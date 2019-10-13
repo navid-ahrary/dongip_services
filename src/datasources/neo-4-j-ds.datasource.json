@@ -1,0 +1,9 @@
+{
+  "name": "neo4jDS",
+  "connector": "neo4j",
+  "url": "",
+  "host": "bolt://0.0.0.0",
+  "port": "7689",
+  "user": "neo4j",
+  "password": "test"
+}
