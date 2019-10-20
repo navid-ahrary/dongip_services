@@ -5,25 +5,11 @@
  * Module dependencies
  */
 const neo4jdb = require('neo4j-driver').v1;
+var g = require('strong-globalize')();
 const util = require('util');
 const async = require('async');
-const Neo4jConnector = require('loopback-connector').Neo4jConnector;
+const Neo4jConnector = require('loopback-connector').Connector;
 const debug = require('debug')('loopback:connector:neo4jdb');
-
-exports.ObjectID = ObjectID;
-/*!
- * Convert the id to be a BSON ObjectID if it is compatible
- * @param {*} id The id value
- * @returns {ObjectID}
- */
-function ObjectID(id: any) {
-  if (id instanceof neo4jdb.ObjectID) {
-    return id;
-  }
-  if (typeof id !== 'string') {
-    return id;
-  }
-}
 
 exports.generateNeo4jDBURL = generateNeo4jDBURL;
 /*!
@@ -94,158 +80,81 @@ function fieldsArrayToObj(fieldsArray) {
 exports.Neo4jDB = Neo4jDB;
 
 /**
- * The constructor for MongoDB connector
+ * The constructor for Neo4j connector
  * @param {Object} settings The settings object
  * @param {DataSource} dataSource The data source instance
  * @constructor
  */
 function Neo4jDB(settings, dataSource) {
-  Neo4jConnector.call(this, 'neo4j', settings);
-
-  this.debug = settings.debug || debug.enabled;
-
-  if (this.debug) {
-    debug('Settings: %j', settings);
-  }
-
   this.dataSource = dataSource;
-
+  Neo4jConnector.call(this, 'neo4j', settings);
+  this.debug = settings.debug || debug.enabled;
+  if (this.debug) {
+    debug("Constructor:settings: %j", settings);
+  }
 }
 
 util.inherits(Neo4jDB, Neo4jConnector);
 
 /**
- * Connect to MongoDB
+ * Connect to Neo4j
  * @param {Function} [callback] The callback function
  *
  * @callback callback
  * @param {Error} err The error object
- * @param {Db} db The mongo DB object
+ * @param {Db} db The neo4j object
+ * @param {Object} config The driver config object
  */
-Neo4jDB.prototype.connect = function (callback) {
+Neo4jDB.prototype.connect = function () {
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
   var self = this;
-  if (self.db) {
-    process.nextTick(function () {
-      if (callback) callback(null, self.db);
-    });
-  } else if (self.dataSource.connecting) {
-    self.dataSource.once('connected', function () {
-      process.nextTick(function () {
-        if (callback) callback(null, self.db);
-      });
-    });
-  } else {
-    // See https://github.com/mongodb/node-mongodb-native/blob/3.0.0/lib/mongo_client.js#L37
-    const validOptionNames = [
-      'poolSize',
-      'ssl',
-      'sslValidate',
-      'sslCA',
-      'sslCert',
-      'sslKey',
-      'sslPass',
-      'sslCRL',
-      'autoReconnect',
-      'noDelay',
-      'keepAlive',
-      'keepAliveInitialDelay',
-      'connectTimeoutMS',
-      'family',
-      'socketTimeoutMS',
-      'reconnectTries',
-      'reconnectInterval',
-      'ha',
-      'haInterval',
-      'replicaSet',
-      'secondaryAcceptableLatencyMS',
-      'acceptableLatencyMS',
-      'connectWithNoPrimary',
-      'authSource',
-      'w',
-      'wtimeout',
-      'j',
-      'forceServerObjectId',
-      'serializeFunctions',
-      'ignoreUndefined',
-      'raw',
-      'bufferMaxEntries',
-      'readPreference',
-      'pkFactory',
-      'promiseLibrary',
-      'readConcern',
-      'maxStalenessSeconds',
-      'loggerLevel',
-      'logger',
-      'promoteValues',
-      'promoteBuffers',
-      'promoteLongs',
-      'domainsEnabled',
-      'checkServerIdentity',
-      'validateOptions',
-      'appname',
-      'auth',
-      'user',
-      'password',
-      'authMechanism',
-      'compression',
-      'fsync',
-      'readPreferenceTags',
-      'numberOfRetries',
-      'auto_reconnect',
-      'minSize',
-      'server',
-      'replset',
-      'replSet',
-      'db',
-    ];
 
-    let lbOptions = Object.keys(self.settings);
-    let validOptions = {};
-    lbOptions.forEach(function (option) {
-      if (validOptionNames.indexOf(option) > -1) {
-        validOptions[option] = self.settings[option];
-      }
-    });
-    debug('Valid options: %j', validOptions);
-    new mongodb.MongoClient(self.settings.url, validOptions).connect(function (err, client) {
-      if (!err) {
-        if (self.debug) {
-          debug('MongoDB connection is established: ' + self.settings.url);
-        }
-        self.client = client;
-        // The database name might be in the url
-        return urlParser(self.settings.url, self.settings, function (
-          err: any,
-          url: {
-            dbName: any;db_options: any
-          },
-        ) {
-          self.db = client.db(
-            url.dbName || self.settings.database,
-            url.db_options || self.settings,
-          );
-          if (callback) callback(err, self.db);
-        });
-      } else {
-        if (self.debug || !callback) {
-          g.error(
-            '{{MongoDB}} connection is failed: %s %s',
-            self.settings.url,
-            err,
-          );
-        }
-        if (callback) callback(err, self.db);
-      }
-    });
+  const validOptionNames = [
+    'auth',
+    'user',
+    'password',
+    'authMechanism',
+    'authSource',
+    'server',
+    'db',
+    'config'
+  ];
+
+  const lbOptions = Object.keys(self.settings);
+  // eslint-disable-next-line prefer-const
+  var validOptions = {};
+  lbOptions.forEach(function (option) {
+    if (validOptionNames.indexOf(option) > -1) {
+      validOptions[option] = self.settings[option];
+    }
+  });
+  debug('Valid options: %j', validOptions);
+
+  const authMechanism = neo4jdb.auth.basic || self.authMechanism;
+
+  var driver = neo4jdb.driver({
+    'url': self.settings.url,
+    'authToken': authMechanism(self.settings.username, self.settings.password),
+    'config': self.settings.config
+  })
+
+  driver.onCompleted = function () {
+    if (self.debug) {
+      debug('Neo4j connection is established: ' + self.settings.url);
+    }
+    self.driver = driver;
   }
-};
 
-MongoDB.prototype.getTypes = function () {
-  return ['db', 'nosql', 'mongodb'];
-};
+  driver.onError = function (error) {
+    g.err('{{Neo4j}} connection is failed: %s %s',
+      self.settings.url,
+      error,
+    )
+  }
+}
 
-MongoDB.prototype.getDefaultIdType = function () {
-  return ObjectID;
+Neo4jDB.prototype.getTypes = function () {
+  return ['db', 'graph', 'neo4j', 'nosql', this.name];
 };
 
 /**
@@ -253,10 +162,10 @@ MongoDB.prototype.getDefaultIdType = function () {
  * @param {String} model Model name
  * @returns {String} collection name
  */
-MongoDB.prototype.collectionName = function (model: string | number) {
-  let modelClass = this._models[model];
-  if (modelClass.settings.mongodb) {
-    model = modelClass.settings.mongodb.collection || model;
+Neo4jDB.prototype.collectionName = function (model) {
+  var modelClass = this._models[model];
+  if (modelClass.settings.neo4jdb) {
+    model = modelClass.settings.neo4jdb.collection || model;
   }
   return model;
 };
@@ -266,11 +175,11 @@ MongoDB.prototype.collectionName = function (model: string | number) {
  * @param {String} model The model name
  * @returns {*}
  */
-MongoDB.prototype.collection = function (model: any) {
+Neo4jDB.prototype.collection = function (model) {
   if (!this.db) {
-    throw new Error(g.f('{{MongoDB}} connection is not established'));
+    throw new Error(g.f('{{Neo4j}} connection is not established'));
   }
-  let collectionName = this.collectionName(model);
+  const collectionName = this.collectionName(model);
   return this.db.collection(collectionName);
 };
 
@@ -280,45 +189,12 @@ MongoDB.prototype.collection = function (model: any) {
  * @param {String} model The model name
  * @param {Object} data The data from DB
  */
-MongoDB.prototype.fromDatabase = function (
-  model: string | number,
-  data: {
-    [x: string]: any
-  },
-) {
+Neo4jDB.prototype.fromDatabase = function (model, data) {
   if (!data) {
     return null;
   }
-  let modelInfo =
-    this._models[model] || this.dataSource.modelBuilder.definitions[model];
-  let props = modelInfo.properties;
-  for (let p in props) {
-    let prop = props[p];
-    if (prop && prop.type === Buffer) {
-      if (data[p] instanceof mongodb.Binary) {
-        // Convert the Binary into Buffer
-        data[p] = data[p].read(0, data[p].length());
-      }
-    } else if (prop && prop.type === String) {
-      if (data[p] instanceof mongodb.Binary) {
-        // Convert the Binary into String
-        data[p] = data[p].toString();
-      }
-    } else if (
-      data[p] &&
-      prop &&
-      prop.type &&
-      prop.type.name === 'GeoPoint' &&
-      this.settings.enableGeoIndexing === true
-    ) {
-      data[p] = {
-        lat: data[p].coordinates[1],
-        lng: data[p].coordinates[0],
-      };
-    } else if (data[p] && prop && prop.type.definition) {
-      data[p] = this.fromDatabase(prop.type.definition.name, data[p]);
-    }
-  }
+
+
 
   data = this.fromDatabaseToPropertyNames(model, data);
 
@@ -332,15 +208,11 @@ MongoDB.prototype.fromDatabase = function (
  * @param {Object} data The JSON data to convert
  */
 MongoDB.prototype.toDatabase = function (
-  model: string | number,
-  data: {
-    [x: string]: {
-      lat: any
-    }
-  },
+  model,
+  data
 ) {
   const modelInstance = this._models[model].model;
-  let props = this._models[model].properties;
+  const props = this._models[model].properties;
 
   if (this.settings.enableGeoIndexing !== true) {
     visitAllProperties(data, modelInstance, coerceDecimalProperty);
@@ -349,8 +221,8 @@ MongoDB.prototype.toDatabase = function (
     return data;
   }
 
-  for (let p in props) {
-    let prop = props[p];
+  for (const p in props) {
+    const prop = props[p];
     const isGeoPoint =
       data[p] && prop && prop.type && prop.type.name === 'GeoPoint';
     if (isGeoPoint) {
@@ -368,119 +240,64 @@ MongoDB.prototype.toDatabase = function (
   return data;
 };
 
+
 /**
- * Execute a mongodb command
- * @param {String} model The model name
- * @param {String} command The command name
+ * Execute a cypher shell command
+ * @param {Function} callback The command name
  * @param [...] params Parameters for the given command
  */
-MongoDB.prototype.execute = function (model: any, command: string) {
-  let self = this;
-  // Get the parameters for the given command
-  let args = [].slice.call(arguments, 2);
-  // The last argument must be a callback function
-  let callback = args[args.length - 1];
-
-  // Topology is destroyed when the server is disconnected
-  // Execute if DB is connected and functional otherwise connect/reconnect first
-  if (self.db && self.db.topology && !self.db.topology.isDestroyed()) {
-    doExecute();
-  } else {
-    if (self.db) {
-      self.disconnect();
-      self.db = null;
-    }
-    self.connect(function (err: any, db: any) {
-      if (err) {
-        debug(
-          'Connection not established - MongoDB: model=%s command=%s -- error=%s',
-          model,
-          command,
-          err,
-        );
-      }
-      doExecute();
-    });
-  }
-
-  function doExecute() {
-    let collection: {
-      [x: string]: {
-        apply: (arg0: any, arg1: never[]) => void
-      }
-    };
-    let context = Object.assign({}, {
-      model: model,
-      collection: collection,
-      req: {
-        command: command,
-        params: args,
-      },
-    }, );
-
-    try {
-      collection = self.collection(model);
-    } catch (err) {
-      debug('Error: ', err);
-      callback(err);
-      return;
-    }
-
-    if (command in COMMAND_MAPPINGS) {
-      context.req.command = COMMAND_MAPPINGS[command];
-    }
-
-    self.notifyObserversAround(
-      'execute',
-      context,
-      function (context: {
-        res: any
-      }, done: (arg0: any, arg1: any) => void) {
-        args[args.length - 1] = function (err: any, result: any) {
-          if (err) {
-            debug('Error: ', err);
-          } else {
-            context.res = result;
-            debug('Result: ', result);
-          }
-          done(err, result);
-        };
-        debug('MongoDB: model=%s command=%s', model, command, args);
-        return collection[command].apply(collection, args);
-      },
-      callback,
-    );
+Neo4jDB.prototype.execute = function (query, properties, callback) {
+  var self = this;
+  try {
+    self.driver.session.run(query).then((result) => {
+      self.driver.session.close();
+      return result;
+    })
+  } catch (err) {
+    debug('Error: ', err);
+    callback(err);
+    return;
   }
 };
 
-MongoDB.prototype.coerceId = function (
-  model: any,
-  id: number | null,
-  options: any,
-) {
-  // See https://github.com/strongloop/loopback-connector-mongodb/issues/206
-  if (id == null) return id;
-  let self = this;
-  let idValue = id;
-  let idName = self.idName(model);
 
-  // Type conversion for id
-  let idProp = self.getPropertyDefinition(model, idName);
-  if (idProp && typeof idProp.type === 'function') {
-    if (!(idValue instanceof idProp.type)) {
-      idValue = idProp.type(id);
-      if (idProp.type === Number && isNaN(id)) {
-        // Reset to id
-        idValue = id;
-      }
-    }
-
-    if (self.isObjectIDProperty(model, idProp, idValue, options)) {
-      idValue = ObjectID(idValue);
-    }
-  }
-  return idValue;
+/**
+ * Get label for a given model.
+ *
+ * @param {string} model - Model name
+ * @returns {string}
+ */
+Neo4jDB.prototype.label = function (model) {
+  var self = this;
+  return model.label;
 };
+
+/**
+ * Get ID name for a given model.
+ *
+ * @param {string} model - Model name
+ * @returns {string}
+ */
+Neo4jDB.prototype.getIdName = function (model) {
+  return this.idName(model) || "id";
+};
+
+
+/**
+ * Get label for a given model.
+ *
+ * @param {string} model - Model name
+ * @returns {string}
+ */
+Neo4jDB.prototype.label = function (model) {
+  var modelClass = this.getModelDefinition(model);
+
+  if (modelClass.settings.neo4j) {
+    model = modelClass.settings.neo4j.label || model;
+  }
+  return model;
+};
+
 
 /**
  * Create a new model instance for the given data
@@ -488,66 +305,20 @@ MongoDB.prototype.coerceId = function (
  * @param {Object} data The model data
  * @param {Function} [callback] The callback function
  */
-MongoDB.prototype.create = function (
-  model: any,
-  data: {
-    [x: string]: any;_id: any
-  },
-  options: any,
-  callback: {
-    (arg0: any): void;
-    (arg0: any, arg1: any): void
-  },
-) {
-  let self = this;
+Neo4jDB.prototype.create = function (model, data, options, callback) {
+  var self = this;
+
   if (self.debug) {
-    debug('create', model, data);
-  }
-  let idValue = self.getIdValue(model, data);
-  let idName = self.idName(model);
-
-  if (idValue === null) {
-    delete data[idName]; // Allow MongoDB to generate the id
-  } else {
-    let oid = self.coerceId(model, idValue, options); // Is it an Object ID?c
-    data._id = oid; // Set it to _id
-    if (idName !== '_id') {
-      delete data[idName];
-    }
+    debug("create:model:%s,data:%j,options:%j", model, data, options);
   }
 
-  data = self.toDatabase(model, data);
-
-  this.execute(
-    model,
-    'insertOne',
-    data, {
-      safe: true,
-    },
-    function (err: any, result: {
-      ops: {
-        _id: any
-      } []
-    }) {
-      if (self.debug) {
-        debug('create.callback', model, err, result);
-      }
-      if (err) {
-        return callback(err);
-      }
-      idValue = result.ops[0]._id;
-      idValue = self.coerceId(model, idValue, options);
-      // Wrap it to process.nextTick as delete data._id seems to be interferring
-      // with mongo insert
-      process.nextTick(function () {
-        // Restore the data object
-        delete data._id;
-        data[idName] = idValue;
-        callback(err, err ? null : idValue);
-      });
-    },
-  );
+  self.driver.session.run(`CREATE (${model}: ${model} {properties: $properties})`, {
+    properties: options
+  }).then(function () {
+    self.driver.session.close();
+  })
 };
+
 
 /**
  * Save the model instance for the given data
@@ -563,14 +334,14 @@ MongoDB.prototype.save = function (
   options: any,
   callback: (arg0: any, arg1: any, arg2: {}) => void,
 ) {
-  let self = this;
+  const self = this;
   if (self.debug) {
     debug('save', model, data);
   }
-  let idValue = self.getIdValue(model, data);
-  let idName = self.idName(model);
+  const idValue = self.getIdValue(model, data);
+  const idName = self.idName(model);
 
-  let oid = self.coerceId(model, idValue, options);
+  const oid = self.coerceId(model, idValue, options);
   data._id = oid;
   if (idName !== '_id') {
     delete data[idName];
@@ -605,7 +376,7 @@ MongoDB.prototype.save = function (
         debug('save.callback', model, err, result);
       }
 
-      let info = {};
+      const info = {};
       if (result && result.result) {
         // create result formats:
         //   { ok: 1, n: 1, upserted: [ [Object] ] }
@@ -641,7 +412,7 @@ MongoDB.prototype.exists = function (
   options: any,
   callback: (arg0: any, arg1: boolean) => void,
 ) {
-  let self = this;
+  const self = this;
   if (self.debug) {
     debug('exists', model, id);
   }
@@ -667,25 +438,23 @@ MongoDB.prototype.exists = function (
  * @param {Function} [callback] The callback function
  */
 MongoDB.prototype.find = function find(
-  model: any,
-  id: any,
-  options: any,
-  callback: (arg0: any, arg1: any) => void,
+  model,
+  id,
+  options,
+  callback,
 ) {
-  let self = this;
+  const self = this;
   if (self.debug) {
     debug('find', model, id);
   }
-  let idName = self.idName(model);
-  let oid = self.coerceId(model, id, options);
+  const idName = self.idName(model);
+  const oid = self.coerceId(model, id, options);
   this.execute(
     model,
     'findOne', {
       _id: oid,
     },
-    function (err: any, data: {
-      _id: any
-    }) {
+    function (err, data) {
       if (self.debug) {
         debug('find.callback', model, id, err, data);
       }
@@ -720,11 +489,11 @@ MongoDB.prototype.parseUpdateData = function (
   },
 ) {
   options = options || {};
-  let parsedData = {};
+  const parsedData = {};
 
-  let modelClass = this._models[model];
+  const modelClass = this._models[model];
 
-  let allowExtendedOperators = this.settings.allowExtendedOperators;
+  var allowExtendedOperators = this.settings.allowExtendedOperators;
   if (options.hasOwnProperty('allowExtendedOperators')) {
     allowExtendedOperators = options.allowExtendedOperators === true;
   } else if (
@@ -740,7 +509,7 @@ MongoDB.prototype.parseUpdateData = function (
 
   if (allowExtendedOperators) {
     // Check for other operators and sanitize the data obj
-    let acceptedOperators = [
+    const acceptedOperators = [
       // Field operators
       '$currentDate',
       '$inc',
@@ -762,10 +531,10 @@ MongoDB.prototype.parseUpdateData = function (
       '$bit',
     ];
 
-    let usedOperators = 0;
+    var usedOperators = 0;
 
     // each accepted operator will take its place on parsedData if defined
-    for (let i = 0; i < acceptedOperators.length; i++) {
+    for (var i = 0; i < acceptedOperators.length; i++) {
       if (data[acceptedOperators[i]]) {
         parsedData[acceptedOperators[i]] = data[acceptedOperators[i]];
         usedOperators++;
@@ -804,14 +573,14 @@ MongoDB.prototype.updateOrCreate = function updateOrCreate(
     } | undefined,
   ) => void,
 ) {
-  let self = this;
+  const self = this;
   if (self.debug) {
     debug('updateOrCreate', model, data);
   }
 
-  let id = self.getIdValue(model, data);
-  let idName = self.idName(model);
-  let oid = self.coerceId(model, id, options);
+  const id = self.getIdValue(model, data);
+  const idName = self.idName(model);
+  const oid = self.coerceId(model, id, options);
   delete data[idName];
 
   data = self.toDatabase(model, data);
@@ -842,7 +611,7 @@ MongoDB.prototype.updateOrCreate = function updateOrCreate(
       if (self.debug) {
         debug('updateOrCreate.callback', model, id, err, result);
       }
-      let object = result && result.value;
+      const object = result && result.value;
       if (!err && !object) {
         // No result
         err = 'No ' + model + ' found for id ' + id;
@@ -854,7 +623,7 @@ MongoDB.prototype.updateOrCreate = function updateOrCreate(
         }
       }
 
-      let info;
+      var info;
       if (result && result.lastErrorObject) {
         info = {
           isNewInstance: !result.lastErrorObject.updatedExisting,
@@ -888,9 +657,9 @@ MongoDB.prototype.replaceOrCreate = function (
 ) {
   if (this.debug) debug('replaceOrCreate', model, data);
 
-  let id = this.getIdValue(model, data);
-  let oid = this.coerceId(model, id, options);
-  let idName = this.idName(model);
+  const id = this.getIdValue(model, data);
+  const oid = this.coerceId(model, id, options);
+  const idName = this.idName(model);
   data._id = data[idName];
   delete data[idName];
   this.replaceWithOptions(
@@ -915,7 +684,7 @@ MongoDB.prototype.destroy = function destroy(
   options: any,
   callback: (arg0: any, arg1: any) => void,
 ) {
-  let self = this;
+  const self = this;
   if (self.debug) {
     debug('delete', model, id);
   }
@@ -931,7 +700,7 @@ MongoDB.prototype.destroy = function destroy(
       if (self.debug) {
         debug('delete.callback', model, id, err, result);
       }
-      let res = result && result.result;
+      var res = result && result.result;
       if (res) {
         res = {
           count: res.n,
@@ -970,7 +739,7 @@ function idIncluded(
     // Excluded
     return false;
   }
-  for (let f in fields) {
+  for (const f in fields) {
     return !fields[f]; // If the fields has exclusion
   }
   return true;
@@ -983,17 +752,17 @@ MongoDB.prototype.buildWhere = function (
   } | null,
   options: any,
 ) {
-  let self = this;
-  let query = {};
+  const self = this;
+  const query = {};
   if (where === null || typeof where !== 'object') {
     return query;
   }
 
   where = sanitizeFilter(where, options);
 
-  let idName = self.idName(model);
+  const idName = self.idName(model);
   Object.keys(where).forEach(function (k) {
-    let cond = where[k];
+    var cond = where[k];
     if (k === 'and' || k === 'or' || k === 'nor') {
       if (Array.isArray(cond)) {
         cond = cond.map(function (c) {
@@ -1007,12 +776,12 @@ MongoDB.prototype.buildWhere = function (
     if (k === idName) {
       k = '_id';
     }
-    let propName = k;
+    var propName = k;
     if (k === '_id') {
       propName = idName;
     }
 
-    let prop = self.getPropertyDefinition(model, propName);
+    const prop = self.getPropertyDefinition(model, propName);
 
     const isDecimal =
       prop &&
@@ -1031,8 +800,8 @@ MongoDB.prototype.buildWhere = function (
     // Convert property to database column name
     k = self.getDatabaseColumnName(model, k);
 
-    let spec = false;
-    let regexOptions = null;
+    var spec = false;
+    var regexOptions = null;
     if (cond && cond.constructor.name === 'Object') {
       regexOptions = cond.options;
       spec = Object.keys(cond)[0];
@@ -1123,12 +892,12 @@ MongoDB.prototype.buildSort = function (
     disableDefaultSort: boolean;
   },
 ) {
-  let sort = {};
-  let idName = this.idName(model);
+  var sort = {};
+  const idName = this.idName(model);
 
-  let modelClass = this._models[model];
+  const modelClass = this._models[model];
 
-  let disableDefaultSort = false;
+  var disableDefaultSort = false;
   if (this.settings.hasOwnProperty('disableDefaultSort')) {
     disableDefaultSort = this.settings.disableDefaultSort;
   }
@@ -1140,20 +909,20 @@ MongoDB.prototype.buildSort = function (
   }
 
   if (!order && !disableDefaultSort) {
-    let idNames = this.idNames(model);
+    const idNames = this.idNames(model);
     if (idNames && idNames.length) {
       order = idNames;
     }
   }
   if (order) {
     order = sanitizeFilter(order, options);
-    let keys = order;
+    var keys = order;
     if (typeof keys === 'string') {
       keys = keys.split(',');
     }
-    for (let index = 0, len = keys.length; index < len; index++) {
-      let m = keys[index].match(/\s+(A|DE)SC$/);
-      let key = keys[index];
+    for (var index = 0, len = keys.length; index < len; index++) {
+      const m = keys[index].match(/\s+(A|DE)SC$/);
+      var key = keys[index];
       key = key.replace(/\s+(A|DE)SC$/, '').trim();
       if (key === idName) {
         key = '_id';
@@ -1220,10 +989,10 @@ function buildNearFilter(
     unit: string;
     mongoKey: string | number | (string | number)[];
   }) {
-    let coordinates = {};
+    var coordinates = {};
 
     if (typeof near.near === 'string') {
-      let s = near.near.split(',');
+      const s = near.near.split(',');
       coordinates.lng = parseFloat(s[0]);
       coordinates.lat = parseFloat(s[1]);
     } else if (Array.isArray(near.near)) {
@@ -1233,11 +1002,11 @@ function buildNearFilter(
       coordinates = near.near;
     }
 
-    let props = ['maxDistance', 'minDistance'];
+    const props = ['maxDistance', 'minDistance'];
     // use mongodb default unit 'meters' rather than 'miles'
-    let unit = near.unit || 'meters';
+    const unit = near.unit || 'meters';
 
-    let queryValue = {
+    const queryValue = {
       near: {
         $geometry: {
           coordinates: [coordinates.lng, coordinates.lat],
@@ -1252,7 +1021,7 @@ function buildNearFilter(
       }
     });
 
-    let property;
+    var property;
 
     if (near.mongoKey) {
       // if mongoKey is an Array, set the $near query at the right depth, following the Array
@@ -1260,7 +1029,7 @@ function buildNearFilter(
         property = query.where;
 
         for (var i = 0; i < near.mongoKey.length; i++) {
-          let subKey = near.mongoKey[i];
+          const subKey = near.mongoKey[i];
 
           if (near.mongoKey.hasOwnProperty(i + 1)) {
             if (!property.hasOwnProperty(subKey)) {
@@ -1285,7 +1054,7 @@ function hasNearFilter(where: any) {
   // TODO: Optimize to return once a `near` key is found
   // instead of searching through everything
 
-  let isFound = false;
+  var isFound = false;
 
   searchForNear(where);
 
@@ -1312,7 +1081,7 @@ function hasNearFilter(where: any) {
       });
     } else if (typeof node === 'object') {
       Object.keys(node).forEach(function (key) {
-        let prop = node[key];
+        const prop = node[key];
 
         isFound = found(prop);
 
@@ -1341,7 +1110,7 @@ MongoDB.prototype.getDatabaseColumnName = function (
     return propName; // missing model properties?
   }
 
-  let prop = model.properties[propName] || {};
+  const prop = model.properties[propName] || {};
 
   // console.log('getDatabaseColumnName', propName, prop);
 
@@ -1388,8 +1157,8 @@ MongoDB.prototype.convertColumnNames = function (
     return data; // missing model properties?
   }
 
-  for (let propName in model.properties) {
-    let columnName = this.getDatabaseColumnName(model, propName);
+  for (const propName in model.properties) {
+    const columnName = this.getDatabaseColumnName(model, propName);
 
     // Copy keys/data if needed
     if (propName === columnName) {
@@ -1451,23 +1220,23 @@ MongoDB.prototype.all = function all(
     (arg0: null, arg1: any): void;
   },
 ) {
-  let self = this;
+  var self = this;
   if (self.debug) {
     debug('all', model, filter);
   }
   filter = filter || {};
-  let idName = self.idName(model);
-  let query = {};
+  const idName = self.idName(model);
+  var query = {};
   if (filter.where) {
     query = self.buildWhere(model, filter.where, options);
   }
-  let fields = filter.fields;
+  var fields = filter.fields;
 
   // Convert custom column names
   fields = self.fromPropertyToDatabaseNames(model, fields);
 
   if (fields) {
-    let findOpts = {
+    const findOpts = {
       projection: fieldsArrayToObj(fields),
     };
     this.execute(model, 'find', query, findOpts, processResponse);
@@ -1492,14 +1261,14 @@ MongoDB.prototype.all = function all(
       return callback(err);
     }
 
-    let collation = options && options.collation;
+    const collation = options && options.collation;
     if (collation) {
       cursor.collation(collation);
     }
 
     // don't apply sorting if dealing with a geo query
     if (!hasNearFilter(filter.where)) {
-      let order = self.buildSort(model, filter.order, options);
+      const order = self.buildSort(model, filter.order, options);
       cursor.sort(order);
     }
 
@@ -1512,8 +1281,8 @@ MongoDB.prototype.all = function all(
       cursor.skip(filter.offset);
     }
 
-    let shouldSetIdValue = idIncluded(fields, idName);
-    let deleteMongoId = !shouldSetIdValue || idName !== '_id';
+    const shouldSetIdValue = idIncluded(fields, idName);
+    const deleteMongoId = !shouldSetIdValue || idName !== '_id';
 
     cursor.toArray(function (
       err: any,
@@ -1527,7 +1296,7 @@ MongoDB.prototype.all = function all(
       if (err) {
         return callback(err);
       }
-      let objs = data.map(function (o: {
+      const objs = data.map(function (o: {
         _id: any
       }) {
         if (shouldSetIdValue) {
@@ -1572,7 +1341,7 @@ MongoDB.prototype.destroyAll = function destroyAll(
     }): void
   },
 ) {
-  let self = this;
+  const self = this;
   if (self.debug) {
     debug('destroyAll', model, where);
   }
@@ -1583,19 +1352,12 @@ MongoDB.prototype.destroyAll = function destroyAll(
   where = self.buildWhere(model, where, options);
   if (debug.enabled) debug('destroyAll where %s', util.inspect(where));
 
-  this.execute(model, 'deleteMany', where || {}, function (
-    err: any,
-    info: {
-      result: {
-        n: any
-      }
-    },
-  ) {
+  this.execute(model, 'deleteMany', where || {}, function (err, info) {
     if (err) return callback && callback(err);
 
     if (self.debug) debug('destroyAll.callback', model, where, err, info);
 
-    let affectedCount = info.result ? info.result.n : undefined;
+    const affectedCount = info.result ? info.result.n : undefined;
 
     if (callback) {
       callback(err, {
@@ -1619,7 +1381,7 @@ MongoDB.prototype.count = function count(
   options: any,
   callback: (arg0: any, arg1: any) => void,
 ) {
-  let self = this;
+  const self = this;
   if (self.debug) {
     debug('count', model, where);
   }
@@ -1654,7 +1416,7 @@ MongoDB.prototype.replaceById = function replace(
   cb: (arg0: any, arg1: any) => void,
 ) {
   if (this.debug) debug('replace', model, id, data);
-  let oid = this.coerceId(model, id, options);
+  const oid = this.coerceId(model, id, options);
   this.replaceWithOptions(
     model,
     oid,
@@ -1668,8 +1430,8 @@ MongoDB.prototype.replaceById = function replace(
 };
 
 function errorIdNotFoundForReplace(idValue: string) {
-  let msg = 'Could not replace. Object with id ' + idValue + ' does not exist!';
-  let error = new Error(msg);
+  const msg = 'Could not replace. Object with id ' + idValue + ' does not exist!';
+  const error = new Error(msg);
   error.statusCode = error.status = 404;
   return error;
 }
@@ -1694,8 +1456,8 @@ MongoDB.prototype.replaceWithOptions = function (
     (arg0: any, arg1: any, arg2: {}): void
   },
 ) {
-  let self = this;
-  let idName = self.idName(model);
+  const self = this;
+  const idName = self.idName(model);
   delete data[idName];
   this.execute(
     model,
@@ -1722,8 +1484,8 @@ MongoDB.prototype.replaceWithOptions = function (
         info,
       );
       if (err) return cb && cb(err);
-      let result;
-      let cbInfo = {};
+      var result;
+      const cbInfo = {};
       if (info.result && info.result.n == 1) {
         result = data;
         delete result._id;
@@ -1765,7 +1527,7 @@ MongoDB.prototype.updateAttributes = function updateAttrs(
     (arg0: any, arg1: any): void
   },
 ) {
-  let self = this;
+  const self = this;
 
   data = self.toDatabase(model, data || {});
 
@@ -1785,8 +1547,8 @@ MongoDB.prototype.updateAttributes = function updateAttrs(
     return;
   }
 
-  let oid = self.coerceId(model, id, options);
-  let idName = this.idName(model);
+  const oid = self.coerceId(model, id, options);
+  const idName = this.idName(model);
 
   this.execute(
     model,
@@ -1804,7 +1566,7 @@ MongoDB.prototype.updateAttributes = function updateAttrs(
       if (self.debug) {
         debug('updateAttributes.callback', model, id, err, result);
       }
-      let object = result && result.value;
+      const object = result && result.value;
       if (!err && !object) {
         // No result
         err = errorIdNotFoundForUpdate(model, id);
@@ -1821,8 +1583,8 @@ MongoDB.prototype.updateAttributes = function updateAttrs(
 };
 
 function errorIdNotFoundForUpdate(modelvalue: string, idValue: string) {
-  let msg = 'No ' + modelvalue + ' found for id ' + idValue;
-  let error = new Error(msg);
+  const msg = 'No ' + modelvalue + ' found for id ' + idValue;
+  const error = new Error(msg);
   error.statusCode = error.status = 404;
   return error;
 }
@@ -1848,11 +1610,11 @@ MongoDB.prototype.update = MongoDB.prototype.updateAll = function updateAll(
     }): void
   },
 ) {
-  let self = this;
+  const self = this;
   if (self.debug) {
     debug('updateAll', model, where, data);
   }
-  let idName = this.idName(model);
+  const idName = this.idName(model);
 
   where = self.buildWhere(model, where, options);
 
@@ -1879,7 +1641,7 @@ MongoDB.prototype.update = MongoDB.prototype.updateAll = function updateAll(
       if (self.debug)
         debug('updateAll.callback', model, where, data, err, info);
 
-      let affectedCount = info.result ? info.result.n : undefined;
+      const affectedCount = info.result ? info.result.n : undefined;
 
       if (cb) {
         cb(err, {
@@ -1893,18 +1655,12 @@ MongoDB.prototype.update = MongoDB.prototype.updateAll = function updateAll(
 /**
  * Disconnect from MongoDB
  */
-MongoDB.prototype.disconnect = function (cb: Function) {
+Neo4jDB.prototype.disconnect = function () {
   if (this.debug) {
     debug('disconnect');
   }
-  if (this.db) {
-    this.db.unref();
-  }
-  if (this.client) {
-    this.client.close();
-  }
-  if (cb) {
-    process.nextTick(cb);
+  if (this.session) {
+    this.session.close();
   }
 };
 
@@ -1915,7 +1671,7 @@ MongoDB.prototype.disconnect = function (cb: Function) {
  * @param {Function} [cb] The callback function
  */
 MongoDB.prototype.autoupdate = function (models: string[] | undefined, cb: any) {
-  let self = this;
+  const self = this;
   if (self.db) {
     if (self.debug) {
       debug('autoupdate');
@@ -1931,18 +1687,18 @@ MongoDB.prototype.autoupdate = function (models: string[] | undefined, cb: any) 
 
     models = models || Object.keys(self._models);
 
-    let enableGeoIndexing = this.settings.enableGeoIndexing === true;
+    const enableGeoIndexing = this.settings.enableGeoIndexing === true;
 
     async.each(
       models,
       function (model: string | number, modelCallback: any) {
-        let indexes = self._models[model].settings.indexes || [];
-        let indexList: any[] | never[] | {} [] = [];
-        let index = {};
-        let options = {};
+        var indexes = self._models[model].settings.indexes || [];
+        var indexList: any[] | never[] | {} [] = [];
+        var index = {};
+        var options = {};
 
         if (typeof indexes === 'object') {
-          for (let indexName in indexes) {
+          for (const indexName in indexes) {
             index = indexes[indexName];
             if (index.keys) {
               // The index object has keys
@@ -1963,9 +1719,9 @@ MongoDB.prototype.autoupdate = function (models: string[] | undefined, cb: any) 
         } else if (Array.isArray(indexes)) {
           indexList = indexList.concat(indexes);
         }
-        let properties = self._models[model].properties;
+        const properties = self._models[model].properties;
         /* eslint-disable one-var */
-        for (let p in properties) {
+        for (const p in properties) {
           if (properties[p].index) {
             index = {};
             index[p] = 1; // Add the index key
@@ -1997,7 +1753,7 @@ MongoDB.prototype.autoupdate = function (models: string[] | undefined, cb: any) 
               properties[p].type &&
               properties[p].type.name === 'GeoPoint'
             ) {
-              let indexType =
+              const indexType =
                 typeof properties[p].index === 'string' ?
                 properties[p].index :
                 '2dsphere';
@@ -2067,7 +1823,7 @@ MongoDB.prototype.automigrate = function (
   models: string[] | undefined,
   cb: (arg0: any) => void,
 ) {
-  let self = this;
+  const self = this;
   if (self.db) {
     if (self.debug) {
       debug('automigrate');
@@ -2087,7 +1843,7 @@ MongoDB.prototype.automigrate = function (
     async.eachSeries(
       models,
       function (model: any, modelCallback: (arg0: any) => void) {
-        let collectionName = self.collectionName(model);
+        const collectionName = self.collectionName(model);
         if (self.debug) {
           debug('drop collection %s for model %s', collectionName, model);
         }
@@ -2138,7 +1894,7 @@ MongoDB.prototype.automigrate = function (
 };
 
 MongoDB.prototype.ping = function (cb: (arg0: any) => void) {
-  let self = this;
+  const self = this;
   if (self.db) {
     this.db.collection('dummy').findOne({
         _id: 1,
@@ -2177,9 +1933,9 @@ MongoDB.prototype.isObjectIDProperty = function (
   ) {
     return true;
   } else if ('string' === typeof value) {
-    let settings = this._models[model] && this._models[model].settings;
+    const settings = this._models[model] && this._models[model].settings;
     options = options || {};
-    let strict =
+    const strict =
       (settings && settings.strictObjectIDCoercion) ||
       this.settings.strictObjectIDCoercion ||
       options.strictObjectIDCoercion;
@@ -2240,20 +1996,20 @@ function optimizedFindOrCreate(
     (arg0: null, arg1: any, arg2: boolean): void;
   },
 ) {
-  let self = this;
+  const self = this;
   if (self.debug) {
     debug('findOrCreate', model, filter, data);
   }
 
   if (!callback) callback = options;
 
-  let idValue = self.getIdValue(model, data);
-  let idName = self.idName(model);
+  const idValue = self.getIdValue(model, data);
+  const idName = self.idName(model);
 
   if (idValue == null) {
     delete data[idName]; // Allow MongoDB to generate the id
   } else {
-    let oid = self.coerceId(model, idValue, options); // Is it an Object ID?
+    const oid = self.coerceId(model, idValue, options); // Is it an Object ID?
     data._id = oid; // Set it to _id
     if (idName !== '_id') {
       delete data[idName];
@@ -2261,10 +2017,10 @@ function optimizedFindOrCreate(
   }
 
   filter = filter || {};
-  let query = {};
+  var query = {};
   if (filter.where) {
     if (filter.where[idName]) {
-      let id = filter.where[idName];
+      var id = filter.where[idName];
       delete filter.where[idName];
       id = self.coerceId(model, id, options);
       filter.where._id = id;
@@ -2272,9 +2028,9 @@ function optimizedFindOrCreate(
     query = self.buildWhere(model, filter.where, options);
   }
 
-  let sort = self.buildSort(model, filter.order, options);
+  const sort = self.buildSort(model, filter.order, options);
 
-  let projection = fieldsArrayToObj(filter.fields);
+  const projection = fieldsArrayToObj(filter.fields);
 
   this.collection(model).findOneAndUpdate(
     query, {
@@ -2296,8 +2052,8 @@ function optimizedFindOrCreate(
         return callback(err);
       }
 
-      let value = result.value;
-      let created = !!result.lastErrorObject.upserted;
+      var value = result.value;
+      const created = !!result.lastErrorObject.upserted;
 
       if (created && (value == null || Object.keys(value).length == 0)) {
         value = data;
@@ -2389,7 +2145,7 @@ function coerceDecimalProperty(
     (arg0: any): void
   },
 ) {
-  let updatedValue;
+  var updatedValue;
   if (hasDataType('decimal128', propDef)) {
     if (Array.isArray(propValue)) {
       updatedValue = propValue.map(val => Decimal128.fromString(val));
