@@ -5,15 +5,17 @@ import {
   ValueOrPromise,
 } from '@loopback/core';
 import {juggler} from '@loopback/repository';
-import * as config from './dong.datasource.json';
+import * as config from './users.datasource.json';
 
 @lifeCycleObserver('datasource')
-export class DongDataSource extends juggler.DataSource
+export class UsersDataSource extends juggler.DataSource
   implements LifeCycleObserver {
-  static dataSourceName = 'Dong';
+  static dataSourceName = 'Users';
 
   constructor(
-    @inject('datasources.config.Dong', {optional: true})
+    @inject('datasources.config.Users', {
+      optional: true,
+    })
     dsConfig: object = config,
   ) {
     super(dsConfig);
@@ -24,6 +26,7 @@ export class DongDataSource extends juggler.DataSource
    */
   start(): ValueOrPromise<void> {
     // Add your logic here to be invoked when the application is started
+    return super.connect();
   }
 
   /**
