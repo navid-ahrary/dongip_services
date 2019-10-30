@@ -1,3 +1,3 @@
 'use strict';
 
-exports.ColorRepository = require('./color.repository').ColorRepository;
+exports.UserRepository = require('./user.repository').UserRepository;

@@ -1,5 +1,4 @@
-import {Entity, model, property, hasOne} from '@loopback/repository';
-import {Subscription} from './subscription.model';
+import {Entity, model, property} from '@loopback/repository';
 
 @model({settings: {strict: false}})
 export class Users extends Entity {
@@ -29,10 +28,6 @@ export class Users extends Entity {
   })
   accountType: string;
 
-  @hasOne(() => Subscription)
-  subscription?: Subscription;
-
-  // Indexer property to allow additional data
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [prop: string]: any;
 

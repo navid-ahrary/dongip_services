@@ -20,10 +20,6 @@ class Lb4Application extends BootMixin(ServiceMixin(RepositoryMixin(RestApplicat
   constructor(options = {}) {
     super(options);
 
-    this.route('get', '/hi', {
-      responses: {}
-    }, () => 'Hi!');
-
     this.sequence(MySequence);
     this.static('/', path.join(__dirname, '../public'));
     this.bind(restExplorer.RestExplorerBindings.CONFIG).to({

@@ -1,6 +1,5 @@
 const application = require('./dist');
 
-module.exports = application;
 
 if (require.main === module) {
   const config = {
@@ -17,4 +16,6 @@ if (require.main === module) {
     console.error('Cannot start the application.', err);
     process.exit(1);
   });
+
+  module.exports = application;
 }

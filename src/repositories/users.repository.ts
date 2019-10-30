@@ -1,14 +1,14 @@
 import {DefaultCrudRepository} from '@loopback/repository';
 import {Users, UsersRelations} from '../models';
-import {UsersDataSource} from '../datasources';
+import {Neo4jDataSource} from '../datasources';
 import {inject} from '@loopback/core';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
-  typeof Users.prototype.phoneNumber,
+  typeof Users.prototype.name,
   UsersRelations
 > {
-  constructor(@inject('datasources.Users') dataSource: UsersDataSource) {
+  constructor(@inject('datasources.Users') dataSource: Neo4jDataSource) {
     super(Users, dataSource);
   }
 }

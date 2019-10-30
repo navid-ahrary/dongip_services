@@ -5,17 +5,15 @@ import {
   ValueOrPromise,
 } from '@loopback/core';
 import {juggler} from '@loopback/repository';
-import * as config from './users.datasource.json';
+import * as config from './neo-4-j.datasource.json';
 
 @lifeCycleObserver('datasource')
-export class UsersDataSource extends juggler.DataSource
+export class Neo4jDataSource extends juggler.DataSource
   implements LifeCycleObserver {
-  static dataSourceName = 'Users';
+  static dataSourceName = 'Neo4jDs';
 
   constructor(
-    @inject('datasources.config.Users', {
-      optional: true,
-    })
+    @inject('datasources.config.Neo4j', {optional: true})
     dsConfig: object = config,
   ) {
     super(dsConfig);
@@ -26,7 +24,6 @@ export class UsersDataSource extends juggler.DataSource
    */
   start(): ValueOrPromise<void> {
     // Add your logic here to be invoked when the application is started
-    return super.connect();
   }
 
   /**

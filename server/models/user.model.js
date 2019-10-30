@@ -4,10 +4,14 @@ const modelDefinition = {
   'properties': {
     // By convetion "id" property should be the id of the model
     'id': {
-      'type': 'number',
+      'type': 'string',
       'required': true
     },
-    'value': {
+    'name': {
+      'type': 'string',
+      'required': true
+    },
+    'createdDate': {
       'type': 'string',
       'required': true
     }
@@ -20,4 +24,4 @@ const modelDefinition = {
   'methods': {}
 }
 
-exports.Color = modelFactory('Color', modelDefinition);
+exports.User = modelFactory('User', modelDefinition);

@@ -1,3 +1,3 @@
 'use strict';
 
-exports.Color = require('./color.model').Color;
+exports.User = require('./user.model').User;
