@@ -1,8 +1,7 @@
 {
-  "debug": true,
   "username": "neo4j",
   "password": "navid",
-  "name": "neo4j",
-  "connector": "neo4j-graph",
+  "name": "user",
+  "connector": "neo4j-driver",
   "url": "bolt://localhost:7688"
 }
