@@ -56,10 +56,10 @@
     "@loopback/rest-explorer": "^1.4.2",
     "@loopback/service-proxy": "^1.3.9",
     "@types/uuid": "^3.4.5",
+    "debug": "^4.1.1",
+    "loopback-connector": "^4.5.0",
     "loopback-connector-mongodb": "^4.2.0",
     "nodemon": "^1.19.4",
-    "debug": "^3.1.0",
-    "loopback-connector": "^4.5.0",
     "loopback-connector-neo4j-driver": "git+https://gitlab.com/navid_ahrary/loopback-connector-neo4j-driver.git"
   },
   "devDependencies": {
