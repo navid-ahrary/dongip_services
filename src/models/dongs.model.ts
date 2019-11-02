@@ -10,23 +10,16 @@ export class Dongs extends Entity {
   id: string;
 
   @property({
-    type: 'object',
+    type: 'string',
     required: true,
   })
-  spec: object;
+  name: string;
 
   @property({
-    type: 'date',
-    required: false,
-  })
-  createDate: string;
-
-  @property({
-    type: 'array',
-    itemType: 'string',
+    type: 'string',
     required: true,
   })
-  members: string[];
+  accountType: string;
 
   constructor(data?: Partial<Dongs>) {
     super(data);

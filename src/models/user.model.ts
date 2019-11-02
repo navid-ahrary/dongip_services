@@ -5,12 +5,6 @@ export class User extends Entity {
   @property({
     type: 'string',
     id: true,
-    generated: false,
-  })
-  id?: string;
-
-  @property({
-    type: 'string',
     required: true,
   })
   username: string;
@@ -27,12 +21,11 @@ export class User extends Entity {
   })
   accountType: string;
 
-  @property({
-    type: 'date',
-    required: true,
-  })
-  createdDate: string;
-
+  // @property({
+  //   type: 'date',
+  //   required: true,
+  // })
+  // createdDate: string;
 
   constructor(data?: Partial<User>) {
     super(data);

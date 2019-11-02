@@ -40,7 +40,7 @@ export class DongsController {
         'application/json': {
           schema: getModelSchemaRef(Dongs, {
             title: 'NewDongs',
-            exclude: ['id', 'createDate'],
+            exclude: ['id'],
           }),
         },
       },

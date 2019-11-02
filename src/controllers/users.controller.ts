@@ -19,6 +19,8 @@ import {
 } from '@loopback/rest';
 import {User} from '../models';
 import {UsersRepository} from '../repositories';
+import {authenticate, AuthenticationBindings} from '@loopback/authentication';
+import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 
 export class UsersController {
   constructor(
@@ -34,6 +36,7 @@ export class UsersController {
       },
     },
   })
+  @authenticate('basic')
   async create(
     @requestBody({
       content: {
