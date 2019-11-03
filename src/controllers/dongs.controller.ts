@@ -54,16 +54,14 @@ export class DongsController {
     responses: {
       '200': {
         description: 'Dongs model count',
-        content: {'application/x-www-form-urlencoded': {schema: CountSchema}},
+        content: {'application/json': {schema: CountSchema}},
       },
     },
   })
   async count(
     @param.query.object('where', getWhereSchemaFor(Dongs)) where?: Where<Dongs>,
   ): Promise<Count> {
-    const count = await this.dongsRepository.count(where);
-    console.log(count);
-    return count;
+    return this.dongsRepository.count(where);
   }
 
   @get('/dongs', {
@@ -82,6 +80,7 @@ export class DongsController {
     @param.query.object('filter', getFilterSchemaFor(Dongs))
     filter?: Filter<Dongs>,
   ): Promise<Dongs[]> {
+    console.log(filter);
     return this.dongsRepository.find(filter);
   }
 

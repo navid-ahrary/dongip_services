@@ -23,10 +23,9 @@ export class MySequence implements SequenceHandler {
 
   async handle(context: RequestContext) {
     try {
-      // console.log(context);
       const {request, response} = context;
+      // console.log(request);
       const route = this.findRoute(request);
-      // console.log(`route: ${JSON.stringify(route)}`);
       const args = await this.parseParams(request, route);
       // console.log(`args: ${JSON.stringify(args)}`);
       const result = await this.invoke(route, args);

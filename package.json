@@ -33,7 +33,8 @@
     "prepublishOnly": "yarn run test"
   },
   "repository": {
-    "type": "git"
+    "type": "git",
+    "url": "git+https://gitlab.com/navid_ahrary/login_service.git"
   },
   "author": "navidarry",
   "license": "ISC",
@@ -59,13 +60,13 @@
     "debug": "^4.1.1",
     "loopback-connector": "^4.5.0",
     "loopback-connector-mongodb": "^4.2.0",
-    "nodemon": "^1.19.4",
-    "loopback-connector-neo4j-driver": "git+https://gitlab.com/navid_ahrary/loopback-connector-neo4j-driver.git"
+    "loopback-connector-neo4j-driver": "^1.0.9",
+    "nodemon": "^1.19.4"
   },
   "devDependencies": {
     "@loopback/build": "^2.0.14",
     "@loopback/eslint-config": "^4.1.2",
-    "@loopback/testlab": "^1.9.2",
+    "@loopback/testlab": "^1.9.3",
     "@types/node": "^10.14.20",
     "@typescript-eslint/eslint-plugin": "^2.3.3",
     "@typescript-eslint/parser": "^2.3.3",

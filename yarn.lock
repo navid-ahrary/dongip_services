@@ -330,7 +330,7 @@
     "@loopback/core" "^1.10.6"
     loopback-datasource-juggler "^4.14.0"
 
-"@loopback/testlab@^1.9.2":
+"@loopback/testlab@^1.9.3":
   version "1.9.3"
   resolved "https://registry.yarnpkg.com/@loopback/testlab/-/testlab-1.9.3.tgz#ca25ab51da47a7a78fce5dcf25108fc334901a45"
   integrity sha512-+2/CWC06wgakG2CiXxrKiWvGpRtzUKBhUUNKT9UdQVj2hK0pIpVnYXUpJ3i9SIxnMF2hKZaD5yewd+DgfdnMHA==

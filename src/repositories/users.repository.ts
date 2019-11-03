@@ -7,7 +7,7 @@ export class UsersRepository extends DefaultCrudRepository<
   User,
   typeof User.prototype.name
 > {
-  constructor(@inject('datasources.Users') dataSource: Neo4jDataSource) {
+  constructor(@inject('datasources.Neo4j') dataSource: Neo4jDataSource) {
     super(User, dataSource);
   }
 }
