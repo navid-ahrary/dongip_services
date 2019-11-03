@@ -80,7 +80,6 @@ export class DongsController {
     @param.query.object('filter', getFilterSchemaFor(Dongs))
     filter?: Filter<Dongs>,
   ): Promise<Dongs[]> {
-    console.log(filter);
     return this.dongsRepository.find(filter);
   }
 
