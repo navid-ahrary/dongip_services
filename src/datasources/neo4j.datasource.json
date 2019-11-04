@@ -3,5 +3,7 @@
   "password": "navid",
   "name": "user",
   "connector": "neo4j-driver",
-  "url": "bolt://localhost:7688"
+  "url": "bolt://localhost:7688",
+  "loginStrategy": "basic",
+  "debug": true
 }

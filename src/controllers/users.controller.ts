@@ -14,7 +14,6 @@ import {
   getWhereSchemaFor,
   patch,
   put,
-  del,
   requestBody,
 } from '@loopback/rest';
 import {User} from '../models';
@@ -86,28 +85,6 @@ export class UsersController {
     return this.usersRepository.find(filter);
   }
 
-  @patch('/user', {
-    responses: {
-      '200': {
-        description: 'User PATCH success count',
-        content: {'application/json': {schema: CountSchema}},
-      },
-    },
-  })
-  async updateAll(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(User, {partial: true}),
-        },
-      },
-    })
-    user: User,
-    @param.query.object('where', getWhereSchemaFor(User)) where?: Where<User>,
-  ): Promise<Count> {
-    return this.usersRepository.updateAll(user, where);
-  }
-
   @get('/user/{id}', {
     responses: {
       '200': {
@@ -135,7 +112,7 @@ export class UsersController {
     @param.path.string('id') id: string,
     @requestBody({
       content: {
-        'application/josn': {
+        'application/json': {
           schema: getModelSchemaRef(User, {partial: true}),
         },
       },
@@ -157,16 +134,5 @@ export class UsersController {
     @requestBody() user: User,
   ): Promise<void> {
     await this.usersRepository.replaceById(id, user);
-  }
-
-  @del('/user/{id}', {
-    responses: {
-      '204': {
-        description: 'User DELETE success',
-      },
-    },
-  })
-  async deleteById(@param.path.string('id') id: string): Promise<void> {
-    await this.usersRepository.deleteById(id);
   }
 }

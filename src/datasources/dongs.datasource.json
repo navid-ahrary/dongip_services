@@ -7,5 +7,7 @@
   "user": "",
   "password": "",
   "database": "Dongs",
-  "useNewUrlParser": true
+  "useNewUrlParser": true,
+  "debug": true,
+  "useUnifiedTopology": true
 }

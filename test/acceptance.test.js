@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const supertest = require('supertest');
-const server  = require('../server');
+const server = require('../server');
 
 describe('CRUD API', () => {
   let app, request;
@@ -14,7 +14,9 @@ describe('CRUD API', () => {
 
     app = await server.start({
       silent: true,
-      rest: { port: 0 }
+      rest: {
+        port: 0
+      }
     });
 
     request = supertest.agent(app.restServer.url);
@@ -24,20 +26,27 @@ describe('CRUD API', () => {
     await app.stop();
   });
 
-  it('should handle GET /color/count', (done) => {
+  it('should handle GET /user/count', (done) => {
     request
-      .get('/color/count')
+      .get('/user/count')
       .expect('Content-Type', /json/)
-      .expect(200, { count: 0 }, done);
+      .expect(200, {
+        count: 0
+      }, done);
   });
 
-  it('should handle POST /color', (done) => {
+  it('should handle POST /user', (done) => {
     request
-      .post('/color')
+      .post('/user')
       .set('Content-Type', 'application/json')
-      .send({ value: 'Red' })
+      .send({
+        value: 'Red'
+      })
       .expect('Content-Type', /json/)
-      .expect(200, { id: 1, value: 'Red' }, done);
+      .expect(200, {
+        id: 1,
+        value: 'Red'
+      }, done);
   });
 
 });

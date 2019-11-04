@@ -9,6 +9,9 @@ if (require.main === module) {
       openApiSpec: {
         setServersFromRequest: true,
       },
+      apiExplorer: {
+        disable: true
+      }
     },
   };
 
