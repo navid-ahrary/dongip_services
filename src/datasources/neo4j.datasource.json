@@ -4,6 +4,6 @@
   "name": "user",
   "connector": "neo4j-driver",
   "url": "bolt://localhost:7688",
-  "loginStrategy": "basic",
+  "authScheme": "basic",
   "debug": true
 }
