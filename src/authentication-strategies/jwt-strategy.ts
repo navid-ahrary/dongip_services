@@ -28,16 +28,14 @@ export class JWTAutehticationStrategy implements AuthenticationStrategy {
     const authHeaderValue = request.headers.authorization;
 
     if (!authHeaderValue.startsWith('Bearer')) {
-      throw new HttpErrors.Unauthorized(
-        'Authorization header is not type of Bearer.',
-      );
+      throw new HttpErrors.Unauthorized('Authorization header is not type of Bearer.');
     }
 
     // split the authHeaderValue into 2 parts, 'Bearer ' and the xxx.yyy.zzz
     const parts = authHeaderValue.split(' ');
     if (parts.length !== 2) {
       throw new HttpErrors.Unauthorized(
-        "Authorization header value has too many parts. It must follow this pattern: 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
+        "Authorization header value must follow this pattern: 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
       );
     }
     const token = parts[1];

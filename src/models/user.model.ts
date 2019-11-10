@@ -1,5 +1,4 @@
 import {Entity, model, property} from '@loopback/repository';
-import {v4 as uuid} from 'uuid';
 
 @model()
 export class User extends Entity {
@@ -7,8 +6,9 @@ export class User extends Entity {
     type: 'string',
     id: true,
     required: false,
+    generated: true,
   })
-  id: string = uuid();
+  id: string;
 
   @property({
     type: 'string',
@@ -30,13 +30,13 @@ export class User extends Entity {
 
   @property({
     type: 'string',
-    reuired: false,
+    reuired: true,
   })
   locale: string;
 
   @property({
     type: 'string',
-    required: false,
+    required: true,
   })
   geolocation: string;
 
@@ -51,12 +51,6 @@ export class User extends Entity {
     required: true,
   })
   accountType: string;
-
-  // @property({
-  //   type: 'date',
-  //   required: true,
-  // })
-  // createdDate: string;
 
   constructor(data?: Partial<User>) {
     super(data);

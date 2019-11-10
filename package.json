@@ -1,6 +1,6 @@
 {
   "name": "login_service",
-  "version": "1.0.0",
+  "version": "0.4.0",
   "description": "login and auth users",
   "keywords": [
     "loopback-application",
@@ -64,7 +64,8 @@
     "lodash": "^4.17.15",
     "loopback-connector": "^4.5.0",
     "loopback-connector-mongodb": "^4.2.0",
-    "loopback-connector-neo4j-driver": "file:../../../loopback-connector-neo4j-driver"
+    "loopback-connector-neo4j-driver": "file:../../../loopback-connector-neo4j-driver",
+    "moment": "^2.24.0"
   },
   "devDependencies": {
     "@loopback/build": "^2.0.14",

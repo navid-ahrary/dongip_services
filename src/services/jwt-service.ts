@@ -2,7 +2,7 @@ import {TokenService} from '@loopback/authentication';
 import {promisify} from 'util';
 import {TokenServiceBindings} from '../keys';
 import {inject} from '@loopback/core';
-import {UserProfile} from '@loopback/security';
+import {UserProfile, securityId} from '@loopback/security';
 import {HttpErrors} from '@loopback/rest';
 
 const jwt = require('jsonwebtoken');
@@ -17,9 +17,7 @@ export class JWTService implements TokenService {
 
   async verifyToken(token: string): Promise<UserProfile> {
     if (!token) {
-      throw new HttpErrors.Unauthorized(
-        `Error verifying token: 'token' is null`,
-      );
+      throw new HttpErrors.Unauthorized(`Error verifying token: 'token' is null`);
     }
 
     let userProfile: UserProfile;
@@ -29,13 +27,11 @@ export class JWTService implements TokenService {
       const decryptedToken = await verifyAsync(token, this.jwtSecret);
       // don't copy over  token field 'iat' and 'exp', nor 'email' to user profile
       userProfile = Object.assign(
-        {id: '', name: ''},
-        {id: decryptedToken.id, name: decryptedToken.name},
+        {[securityId]: '', name: ''},
+        {[securityId]: decryptedToken.id, name: decryptedToken.name},
       );
     } catch (error) {
-      throw new HttpErrors.Unauthorized(
-        `Error verifying token: ${error.message}`,
-      );
+      throw new HttpErrors.Unauthorized(`Error verifying token: ${error.message}`);
     }
 
     return userProfile;
@@ -43,9 +39,7 @@ export class JWTService implements TokenService {
 
   async generateToken(userProfile: UserProfile): Promise<string> {
     if (!userProfile) {
-      throw new HttpErrors.Unauthorized(
-        `Error generating token, userPofile is null.`,
-      );
+      throw new HttpErrors.Unauthorized(`Error generating token, userPofile is null.`);
     }
 
     //generate a JWT token
@@ -56,9 +50,7 @@ export class JWTService implements TokenService {
         expiresIn: +this.jwtExpiresIn,
       });
     } catch (error) {
-      throw new HttpErrors.Unauthorized(
-        `Error generating token: ${error.message}`,
-      );
+      throw new HttpErrors.Unauthorized(`Error generating token: ${error.message}`);
     }
 
     return token;

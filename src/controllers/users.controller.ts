@@ -1,11 +1,5 @@
 import {inject} from '@loopback/core';
-import {
-  Filter,
-  repository,
-  CountSchema,
-  Where,
-  Count,
-} from '@loopback/repository';
+import {Filter, repository, CountSchema, Where, Count} from '@loopback/repository';
 import {
   post,
   getModelSchemaRef,
@@ -19,23 +13,18 @@ import {
   put,
 } from '@loopback/rest';
 import * as _ from 'lodash';
+import {v4 as uuid} from 'uuid';
+import * as moment from 'moment';
 
 import {User} from '../models';
 import {UsersRepository, Credentials} from '../repositories';
-import {
-  authenticate,
-  UserService,
-  TokenService,
-} from '@loopback/authentication';
+import {authenticate, UserService, TokenService} from '@loopback/authentication';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
-import {
-  PasswordHasherBindings,
-  UserServiceBindings,
-  TokenServiceBindings,
-} from '../keys';
+import {PasswordHasherBindings, UserServiceBindings, TokenServiceBindings} from '../keys';
 import {PasswordHasher} from '../services/hash.password.bcryptjs';
 import {validateCredentials} from '../services/validator';
-import {CredentialsRequestBody} from './specs/user-controller.specs';
+import {CredentialsRequestBody, UserProfileSchema} from './specs/user-controller.specs';
+import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
 export class UsersController {
   constructor(
@@ -79,9 +68,14 @@ export class UsersController {
     // eslint-disable-next-line require-atomic-updates
     user.password = await this.passwordHasher.hashPassword(user.password);
 
+    const options = {
+      id: uuid(),
+      registeredAt: moment().format(),
+    };
+
     try {
       // create a new user
-      const savedUser = await this.usersRepository.create(user);
+      const savedUser = await this.usersRepository.create(user, options);
       delete user.password;
 
       return savedUser;
@@ -126,6 +120,30 @@ export class UsersController {
     const token = await this.jwtService.generateToken(userProfile);
 
     return {token};
+  }
+
+  @get('/users/me', {
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '200': {
+        description: 'The current user profile',
+        content: {
+          'application/json': {
+            schema: UserProfileSchema,
+          },
+        },
+      },
+    },
+  })
+  @authenticate('jwt')
+  async printCurrentUser(
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+  ): Promise<UserProfile> {
+    currentUserProfile.id = currentUserProfile[securityId];
+    delete currentUserProfile[securityId];
+    console.log(currentUserProfile);
+
+    return currentUserProfile;
   }
 
   @get('/users/count', {

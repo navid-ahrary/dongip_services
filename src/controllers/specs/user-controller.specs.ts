@@ -4,7 +4,7 @@ export const UserProfileSchema = {
   required: ['id'],
   properties: {
     id: {type: 'string'},
-    email: {type: 'string'},
+    mobile: {type: 'string'},
     name: {type: 'string'},
   },
 };
@@ -20,10 +20,9 @@ const CredentialsSchema = {
   properties: {
     phone: {
       type: 'string',
-      format: 'mobile',
     },
     password: {
-      type: 'number',
+      type: 'string',
       length: 4,
     },
   },

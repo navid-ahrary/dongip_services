@@ -7,5 +7,9 @@
   "password": "navid",
   "authScheme": "basic",
   "connector": "neo4j-driver",
+  "driverConfigs": {
+    "encrypted": "ENCRYPTION_ON",
+    "trust": "TRUST_ALL_CERTIFICATES"
+  },
   "debug": true
 }
