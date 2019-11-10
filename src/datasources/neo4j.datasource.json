@@ -1,9 +1,11 @@
 {
+  "name": "user",
+  "protocol": "bolt",
+  "hostname": "localhost",
+  "port": 7688,
   "username": "neo4j",
   "password": "navid",
-  "name": "user",
-  "connector": "neo4j-driver",
-  "url": "bolt://localhost:7688",
   "authScheme": "basic",
+  "connector": "neo4j-driver",
   "debug": true
 }

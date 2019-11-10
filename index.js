@@ -1,6 +1,5 @@
 const application = require('./dist');
 
-
 if (require.main === module) {
   const config = {
     rest: {
@@ -10,8 +9,8 @@ if (require.main === module) {
         setServersFromRequest: true,
       },
       apiExplorer: {
-        disable: true
-      }
+        disable: true,
+      },
     },
   };
 
