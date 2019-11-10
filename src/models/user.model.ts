@@ -5,9 +5,22 @@ export class User extends Entity {
   @property({
     type: 'string',
     id: true,
+    required: false,
+    generated: true,
+  })
+  id: string;
+
+  @property({
+    type: 'string',
     required: true,
   })
-  username: string;
+  phone: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  password: string;
 
   @property({
     type: 'string',
@@ -17,15 +30,27 @@ export class User extends Entity {
 
   @property({
     type: 'string',
+    reuired: true,
+  })
+  locale: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  geolocation: string;
+
+  @property({
+    type: 'date',
+    required: false,
+  })
+  registeredAt: 'string';
+
+  @property({
+    type: 'string',
     required: true,
   })
   accountType: string;
-
-  // @property({
-  //   type: 'date',
-  //   required: true,
-  // })
-  // createdDate: string;
 
   constructor(data?: Partial<User>) {
     super(data);

@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:12
 
 # Set to a non-root built-in user `node`
 USER node
