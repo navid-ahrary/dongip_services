@@ -1,14 +1,14 @@
 import {DefaultCrudRepository} from '@loopback/repository';
-import {Dongs, DongsRelations} from '../models';
-import {DongsDataSource} from '../datasources';
+import {Dong, DongsRelations} from '../models';
+import {MongodsDataSource} from '../datasources';
 import {inject} from '@loopback/core';
 
 export class DongsRepository extends DefaultCrudRepository<
-  Dongs,
-  typeof Dongs.prototype.id,
+  Dong,
+  typeof Dong.prototype.id,
   DongsRelations
 > {
-  constructor(@inject('datasources.Dongs') dataSource: DongsDataSource) {
-    super(Dongs, dataSource);
+  constructor(@inject('datasources.mongods') dataSource: MongodsDataSource) {
+    super(Dong, dataSource);
   }
 }

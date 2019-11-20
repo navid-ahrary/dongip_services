@@ -1,165 +1,121 @@
-import {
-  Count,
-  CountSchema,
-  Filter,
-  repository,
-  Where,
-} from '@loopback/repository';
+/* eslint-disable @typescript-eslint/no-floating-promises */
+import {Filter, repository} from '@loopback/repository';
 import {
   post,
   param,
   get,
   getFilterSchemaFor,
   getModelSchemaRef,
-  getWhereSchemaFor,
   patch,
-  put,
-  del,
   requestBody,
+  HttpErrors,
 } from '@loopback/rest';
-import {Dongs} from '../models';
+import {Dong} from '../models';
 import {DongsRepository} from '../repositories';
+import * as moment from 'moment';
+import {SecurityBindings, UserProfile} from '@loopback/security';
+import {inject} from '@loopback/core';
+import {authenticate, TokenService} from '@loopback/authentication';
+import {TokenServiceBindings, UserServiceBindings} from '../keys';
+import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
 export class DongsController {
   constructor(
     @repository(DongsRepository)
     public dongsRepository: DongsRepository,
+    @inject(TokenServiceBindings.TOKEN_SERVICE)
+    public jwtService: TokenService,
   ) {}
 
-  @post('/dongs', {
+  @post('/dongs/create', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Dongs model instance',
-        content: {'application/json': {schema: getModelSchemaRef(Dongs)}},
+        description: 'Dongs model create',
+        content: {'application/json': {schema: getModelSchemaRef(Dong)}},
       },
     },
   })
+  @authenticate('jwt')
   async create(
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Dongs, {
+          schema: getModelSchemaRef(Dong, {
             title: 'NewDongs',
-            exclude: ['id'],
           }),
         },
       },
     })
-    dongs: Omit<Dongs, 'id'>,
-  ): Promise<Dongs> {
-    return this.dongsRepository.create(dongs);
-  }
+    dong: Dong,
+    @inject(SecurityBindings.USER) cashier: UserProfile,
+  ): Promise<Dong> {
+    dong.createdAt = moment().format();
 
-  @get('/dongs/count', {
-    responses: {
-      '200': {
-        description: 'Dongs model count',
-        content: {'application/json': {schema: CountSchema}},
-      },
-    },
-  })
-  async count(
-    @param.query.object('where', getWhereSchemaFor(Dongs)) where?: Where<Dongs>,
-  ): Promise<Count> {
-    return this.dongsRepository.count(where);
+    try {
+      const savedDong = await this.dongsRepository.create(dong);
+
+      return savedDong;
+    } catch (error) {
+      throw new HttpErrors.UnprocessableEntity();
+    }
   }
 
   @get('/dongs', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Array of Dongs model instances',
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(Dongs)},
+            schema: {type: 'array', items: getModelSchemaRef(Dong)},
           },
         },
       },
     },
   })
+  @authenticate('jwt')
   async find(
-    @param.query.object('filter', getFilterSchemaFor(Dongs))
-    filter?: Filter<Dongs>,
-  ): Promise<Dongs[]> {
+    @param.query.object('filter', getFilterSchemaFor(Dong)) filter?: Filter<Dong>,
+  ): Promise<Dong[]> {
+    console.log(filter);
     return this.dongsRepository.find(filter);
   }
 
-  @patch('/dongs', {
-    responses: {
-      '200': {
-        description: 'Dongs PATCH success count',
-        content: {'application/json': {schema: CountSchema}},
-      },
-    },
-  })
-  async updateAll(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Dongs, {partial: true}),
-        },
-      },
-    })
-    dongs: Dongs,
-    @param.query.object('where', getWhereSchemaFor(Dongs)) where?: Where<Dongs>,
-  ): Promise<Count> {
-    return this.dongsRepository.updateAll(dongs, where);
-  }
-
   @get('/dongs/{id}', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Dongs model instance',
-        content: {'application/json': {schema: getModelSchemaRef(Dongs)}},
+        description: 'Dong model instance',
+        content: {'application/json': {schema: getModelSchemaRef(Dong)}},
       },
     },
   })
-  async findById(@param.path.string('id') id: string): Promise<Dongs> {
+  @authenticate('jwt')
+  async findById(@param.path.string('id') id: string): Promise<Dong> {
     return this.dongsRepository.findById(id);
   }
 
   @patch('/dongs/{id}', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'Dongs PATCH success',
       },
     },
   })
+  @authenticate('jwt')
   async updateById(
     @param.path.string('id') id: string,
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Dongs, {partial: true}),
+          schema: getModelSchemaRef(Dong, {partial: true}),
         },
       },
     })
-    dongs: Dongs,
+    dong: Dong,
   ): Promise<void> {
-    await this.dongsRepository.updateById(id, dongs);
-  }
-
-  @put('/dongs/{id}', {
-    responses: {
-      '204': {
-        description: 'Dongs PUT success',
-      },
-    },
-  })
-  async replaceById(
-    @param.path.string('id') id: string,
-    @requestBody() dongs: Dongs,
-  ): Promise<void> {
-    await this.dongsRepository.replaceById(id, dongs);
-  }
-
-  @del('/dongs/{id}', {
-    responses: {
-      '204': {
-        description: 'Dongs DELETE success',
-      },
-    },
-  })
-  async deleteById(@param.path.string('id') id: string): Promise<void> {
-    await this.dongsRepository.deleteById(id);
+    await this.dongsRepository.updateById(id, dong);
   }
 }
