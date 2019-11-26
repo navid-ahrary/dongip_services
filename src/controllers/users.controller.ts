@@ -74,10 +74,10 @@ export class UsersController {
 
       return {id: savedUser.id};
     } catch (error) {
-      if (error === 'Neo.ClientError.Schema.ConstraintValidationFailed') {
+      if (error.code === 11000) {
         throw new HttpErrors.Conflict(`This phone number is already taken.`);
       } else {
-        throw error;
+        throw new HttpErrors.NotAcceptable();
       }
     }
   }

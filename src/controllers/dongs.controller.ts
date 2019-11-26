@@ -11,7 +11,7 @@ import {
   HttpErrors,
 } from '@loopback/rest';
 import {Dong} from '../models';
-import {DongsRepository} from '../repositories';
+import {DongsRepository, UsersRepository} from '../repositories';
 import * as moment from 'moment';
 import {SecurityBindings, UserProfile} from '@loopback/security';
 import {inject} from '@loopback/core';
@@ -50,10 +50,11 @@ export class DongsController {
     dong: Dong,
     @inject(SecurityBindings.USER) cashier: UserProfile,
   ): Promise<Dong> {
-    dong.createdAt = moment().format();
+    const postedDong = dong;
+    postedDong['createdAt'] = moment().format();
 
     try {
-      const savedDong = await this.dongsRepository.create(dong);
+      const savedDong = await this.dongsRepository.create(postedDong);
 
       return savedDong;
     } catch (error) {
