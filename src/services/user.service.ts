@@ -22,8 +22,6 @@ export class MyUserService implements UserService<User, Credentials> {
       where: {phone: credentials.phone},
     });
 
-    console.log(foundUser);
-
     if (!foundUser) {
       throw new HttpErrors.NotFound(invalidCredentialsError);
     }
@@ -39,11 +37,11 @@ export class MyUserService implements UserService<User, Credentials> {
     return foundUser;
   }
 
-  convertToUserProfile(user: User): UserProfile {
+  convertToUserProfile(user: User) {
     if (!user.phone || !user.password) {
-      throw new HttpErrors.Unauthorized(`phone/password are null`);
+      throw new HttpErrors.Unauthorized('phone/password are null');
     }
 
-    return {[securityId]: user.id, phone: user.phone};
+    return {[securityId]: user.id, id: user.id};
   }
 }

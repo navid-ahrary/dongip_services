@@ -113,6 +113,10 @@ export class UsersController {
     //create a JWT token based on the user profile
     const token = await this.jwtService.generateToken(userProfile);
 
+    user['token'] = token;
+
+    await this.usersRepository.updateById(user.id, user);
+
     return {token};
   }
 
@@ -135,7 +139,6 @@ export class UsersController {
   ): Promise<UserProfile> {
     currentUserProfile.id = currentUserProfile[securityId];
     delete currentUserProfile[securityId];
-
     return currentUserProfile;
   }
 

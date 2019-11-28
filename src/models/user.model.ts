@@ -24,6 +24,12 @@ export class User extends Entity {
 
   @property({
     type: 'string',
+    required: false,
+  })
+  token: string;
+
+  @property({
+    type: 'string',
     required: true,
   })
   name: string;

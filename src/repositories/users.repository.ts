@@ -1,4 +1,4 @@
-import {DefaultCrudRepository} from '@loopback/repository';
+import {DefaultCrudRepository, CrudRepositoryImpl} from '@loopback/repository';
 import {User} from '../models';
 import {MongodsDataSource} from '../datasources';
 import {inject} from '@loopback/core';

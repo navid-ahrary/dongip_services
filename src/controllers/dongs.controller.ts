@@ -51,10 +51,14 @@ export class DongsController {
     @inject(SecurityBindings.USER) cashier: UserProfile,
   ): Promise<Dong> {
     const postedDong = dong;
-    postedDong['createdAt'] = moment().format();
+    dong['createdAt'] = moment().format();
+
+    console.log(cashier);
 
     try {
-      const savedDong = await this.dongsRepository.create(postedDong);
+      const savedDong = await this.dongsRepository.create(dong);
+      const eqip = dong.eqip;
+      const paidByList = dong.paidBy;
 
       return savedDong;
     } catch (error) {
