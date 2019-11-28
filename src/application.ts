@@ -16,10 +16,10 @@ import {
   PasswordHasherBindings,
   UserServiceBindings,
 } from './keys';
-import {JWTService} from './services/jwt-service';
+import {JWTService} from './services/jwt.service';
 import {SECURITY_SCHEME_SPEC} from './utils/security-specs';
 import {BcryptHasher} from './services/hash.password.bcryptjs';
-import {MyUserService} from './services/user-service';
+import {MyUserService} from './services/user.service';
 
 /**
  * Information from package.json

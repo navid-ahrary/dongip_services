@@ -1,3 +1,4 @@
+/* eslint-disable require-atomic-updates */
 import {inject} from '@loopback/core';
 import {Filter, repository, CountSchema, Where, Count} from '@loopback/repository';
 import {
@@ -10,11 +11,8 @@ import {
   param,
   getFilterSchemaFor,
   patch,
-  put,
 } from '@loopback/rest';
 import * as _ from 'lodash';
-import {v4 as uuid} from 'uuid';
-import * as moment from 'moment';
 
 import {User} from '../models';
 import {UsersRepository, Credentials} from '../repositories';
@@ -25,6 +23,7 @@ import {PasswordHasher} from '../services/hash.password.bcryptjs';
 import {validateCredentials} from '../services/validator';
 import {CredentialsRequestBody, UserProfileSchema} from './specs/user-controller.specs';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
+import moment = require('moment');
 
 export class UsersController {
   constructor(
@@ -37,7 +36,7 @@ export class UsersController {
     public jwtService: TokenService,
   ) {}
 
-  @post('/users', {
+  @post('/users/signup', {
     responses: {
       '200': {
         description: 'User',
@@ -60,30 +59,25 @@ export class UsersController {
       },
     })
     user: User,
-  ): Promise<User> {
+  ): Promise<object> {
     // ensure a valid phone value adn password value
     validateCredentials(_.pick(user, ['phone', 'password']));
 
     // encrypt the password
-    // eslint-disable-next-line require-atomic-updates
     user.password = await this.passwordHasher.hashPassword(user.password);
-
-    const options = {
-      id: uuid(),
-      registeredAt: moment().format(),
-    };
+    user.registeredAt = moment().format();
 
     try {
       // create a new user
-      const savedUser = await this.usersRepository.create(user, options);
+      const savedUser = await this.usersRepository.create(user);
       delete user.password;
 
-      return savedUser;
+      return {id: savedUser.id};
     } catch (error) {
-      if (error === 'Neo.ClientError.Schema.ConstraintValidationFailed') {
+      if (error.code === 11000) {
         throw new HttpErrors.Conflict(`This phone number is already taken.`);
       } else {
-        throw error;
+        throw new HttpErrors.NotAcceptable();
       }
     }
   }
@@ -119,6 +113,10 @@ export class UsersController {
     //create a JWT token based on the user profile
     const token = await this.jwtService.generateToken(userProfile);
 
+    user['token'] = token;
+
+    await this.usersRepository.updateById(user.id, user);
+
     return {token};
   }
 
@@ -141,8 +139,6 @@ export class UsersController {
   ): Promise<UserProfile> {
     currentUserProfile.id = currentUserProfile[securityId];
     delete currentUserProfile[securityId];
-    console.log(currentUserProfile);
-
     return currentUserProfile;
   }
 
@@ -221,19 +217,5 @@ export class UsersController {
     user: User,
   ): Promise<void> {
     await this.usersRepository.updateById(id, user);
-  }
-
-  @put('/user/{id}', {
-    responses: {
-      '204': {
-        description: 'User PUT success',
-      },
-    },
-  })
-  async replaceById(
-    @param.path.string('id') id: string,
-    @requestBody() user: User,
-  ): Promise<void> {
-    await this.usersRepository.replaceById(id, user);
   }
 }

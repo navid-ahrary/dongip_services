@@ -5,15 +5,14 @@ import {
   ValueOrPromise,
 } from '@loopback/core';
 import {juggler} from '@loopback/repository';
-import * as config from './neo4j.datasource.json';
+import * as config from './mongods.datasource.json';
 
 @lifeCycleObserver('datasource')
-export class Neo4jDataSource extends juggler.DataSource
-  implements LifeCycleObserver {
-  static dataSourceName = 'Neo4j';
+export class MongodsDataSource extends juggler.DataSource implements LifeCycleObserver {
+  static dataSourceName = 'mongods';
 
   constructor(
-    @inject('datasources.config.Neo4j', {optional: true})
+    @inject('datasources.config.mongods', {optional: true})
     dsConfig: object = config,
   ) {
     super(dsConfig);

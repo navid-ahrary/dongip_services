@@ -1,7 +1,7 @@
 {
-  "name": "login_service",
+  "name": "dongip",
   "version": "0.4.0",
-  "description": "login and auth users",
+  "description": "spilitin between friends",
   "keywords": [
     "loopback-application",
     "loopback"
@@ -49,6 +49,7 @@
   "dependencies": {
     "@loopback/authentication": "^3.2.0",
     "@loopback/boot": "^1.5.9",
+    "@loopback/cli": "1.23.2",
     "@loopback/context": "^1.23.3",
     "@loopback/core": "^1.10.5",
     "@loopback/openapi-v3": "^1.9.10",
@@ -64,7 +65,7 @@
     "lodash": "^4.17.15",
     "loopback-connector": "^4.5.0",
     "loopback-connector-mongodb": "^4.2.0",
-    "loopback-connector-neo4j-driver": "file:../../../loopback-connector-neo4j-driver",
+    "loopback-connector-neo4j-driver": "file:../../loopback-connector-neo4j-driver",
     "moment": "^2.24.0"
   },
   "devDependencies": {

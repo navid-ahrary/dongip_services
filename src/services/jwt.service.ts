@@ -4,6 +4,8 @@ import {TokenServiceBindings} from '../keys';
 import {inject} from '@loopback/core';
 import {UserProfile, securityId} from '@loopback/security';
 import {HttpErrors} from '@loopback/rest';
+import {repository} from '@loopback/repository';
+import {UsersRepository} from '../repositories';
 
 const jwt = require('jsonwebtoken');
 const signAsync = promisify(jwt.sign);
@@ -11,6 +13,7 @@ const verifyAsync = promisify(jwt.verify);
 
 export class JWTService implements TokenService {
   constructor(
+    @repository(UsersRepository) public usersRepository: UsersRepository,
     @inject(TokenServiceBindings.TOKEN_SECRET) private jwtSecret: string,
     @inject(TokenServiceBindings.TOKEN_EXPIRES_IN) private jwtExpiresIn: string,
   ) {}
@@ -25,11 +28,15 @@ export class JWTService implements TokenService {
     try {
       //decode user profile from token
       const decryptedToken = await verifyAsync(token, this.jwtSecret);
+
+      const user = await this.usersRepository.findById(decryptedToken.id);
+
+      if (token !== user.token) {
+        throw new HttpErrors.Unauthorized('Token is not valid');
+      }
+
       // don't copy over  token field 'iat' and 'exp', nor 'email' to user profile
-      userProfile = Object.assign(
-        {[securityId]: '', name: ''},
-        {[securityId]: decryptedToken.id, name: decryptedToken.name},
-      );
+      userProfile = Object.assign({[securityId]: ''}, {[securityId]: decryptedToken.id});
     } catch (error) {
       throw new HttpErrors.Unauthorized(`Error verifying token: ${error.message}`);
     }
@@ -39,7 +46,7 @@ export class JWTService implements TokenService {
 
   async generateToken(userProfile: UserProfile): Promise<string> {
     if (!userProfile) {
-      throw new HttpErrors.Unauthorized(`Error generating token, userPofile is null.`);
+      throw new HttpErrors.Unauthorized('Error generating token, userPofile is null.');
     }
 
     //generate a JWT token

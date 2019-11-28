@@ -1,13 +1,11 @@
 {
-  "name": "Dongs",
+  "name": "mongods",
   "connector": "mongodb",
   "url": "",
   "host": "localhost",
   "port": 27017,
   "user": "",
   "password": "",
-  "database": "Dongs",
-  "useNewUrlParser": true,
-  "debug": true,
-  "useUnifiedTopology": true
+  "database": "dongip",
+  "useNewUrlParser": true
 }
