@@ -7,5 +7,6 @@
   "user": "",
   "password": "",
   "database": "dongip",
-  "useNewUrlParser": true
+  "useNewUrlParser": true,
+  "useUnifiedTopology": true
 }

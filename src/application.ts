@@ -89,6 +89,10 @@ export class LoginServiceApplication extends BootMixin(
       TokenServiceConstants.TOKEN_EXPIRES_IN_VALUE,
     );
 
+    this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(
+      TokenServiceConstants.TOKEN_ALGORITHM_VALUE,
+    );
+
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
 
     // Bind bcrypt hash service

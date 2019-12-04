@@ -29,6 +29,19 @@ export class User extends Entity {
   token: string;
 
   @property({
+    type: 'array',
+    itemType: 'string',
+  })
+  blacklist: string[];
+
+  @property({
+    type: 'array',
+    itemType: 'object',
+    required: false,
+  })
+  tokens: object[];
+
+  @property({
     type: 'string',
     required: true,
   })

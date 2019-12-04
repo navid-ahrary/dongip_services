@@ -13,18 +13,17 @@ import {
 import {Dong} from '../models';
 import {DongsRepository, UsersRepository} from '../repositories';
 import * as moment from 'moment';
-import {SecurityBindings, UserProfile} from '@loopback/security';
+import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {inject} from '@loopback/core';
 import {authenticate, TokenService} from '@loopback/authentication';
-import {TokenServiceBindings, UserServiceBindings} from '../keys';
+import {TokenServiceBindings} from '../keys';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
 export class DongsController {
   constructor(
-    @repository(DongsRepository)
-    public dongsRepository: DongsRepository,
-    @inject(TokenServiceBindings.TOKEN_SERVICE)
-    public jwtService: TokenService,
+    @repository(DongsRepository) public dongsRepository: DongsRepository,
+    @repository(UsersRepository) public userRepository: UsersRepository,
+    @inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService,
   ) {}
 
   @post('/dongs/create', {
@@ -49,20 +48,19 @@ export class DongsController {
     })
     dong: Dong,
     @inject(SecurityBindings.USER) cashier: UserProfile,
-  ): Promise<Dong> {
-    const postedDong = dong;
-    dong['createdAt'] = moment().format();
+  ): Promise<Dong['id']> {
+    cashier.id = cashier[securityId];
+    delete cashier[securityId];
 
-    console.log(cashier);
+    dong['createdAt'] = moment().format();
+    const eqip = dong.eqip;
+    const paidByList = dong.paidBy;
 
     try {
       const savedDong = await this.dongsRepository.create(dong);
-      const eqip = dong.eqip;
-      const paidByList = dong.paidBy;
-
-      return savedDong;
+      return savedDong.id;
     } catch (error) {
-      throw new HttpErrors.UnprocessableEntity();
+      throw new HttpErrors.UnprocessableEntity(error);
     }
   }
 

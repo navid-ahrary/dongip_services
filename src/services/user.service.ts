@@ -5,7 +5,7 @@ import {repository} from '@loopback/repository';
 import {UsersRepository, Credentials} from '../repositories';
 import {PasswordHasherBindings} from '../keys';
 import {PasswordHasher} from './hash.password.bcryptjs';
-import {UserProfile, securityId} from '@loopback/security';
+import {securityId} from '@loopback/security';
 import {HttpErrors} from '@loopback/rest';
 
 export class MyUserService implements UserService<User, Credentials> {
@@ -42,6 +42,6 @@ export class MyUserService implements UserService<User, Credentials> {
       throw new HttpErrors.Unauthorized('phone/password are null');
     }
 
-    return {[securityId]: user.id, id: user.id};
+    return {[securityId]: user.id};
   }
 }

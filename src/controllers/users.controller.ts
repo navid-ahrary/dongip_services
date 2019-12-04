@@ -23,7 +23,7 @@ import {PasswordHasher} from '../services/hash.password.bcryptjs';
 import {validateCredentials} from '../services/validator';
 import {CredentialsRequestBody, UserProfileSchema} from './specs/user-controller.specs';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import moment = require('moment');
+import * as moment from 'moment';
 
 export class UsersController {
   constructor(
@@ -112,12 +112,35 @@ export class UsersController {
 
     //create a JWT token based on the user profile
     const token = await this.jwtService.generateToken(userProfile);
+    user.token = token;
 
-    user['token'] = token;
+    //add the token of the current client to the tokens list of user
+    user.tokens = user.tokens.concat([{token}]);
 
     await this.usersRepository.updateById(user.id, user);
 
     return {token};
+  }
+
+  @get('/users/logout', {
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '204': {
+        description: "Logout current user's client",
+      },
+    },
+  })
+  @authenticate('jwt')
+  async logout(@inject(SecurityBindings.USER) currentUserProfile: UserProfile) {
+    try {
+      currentUserProfile.id = currentUserProfile[securityId];
+      delete currentUserProfile[securityId];
+
+      const user = await this.usersRepository.findById(currentUserProfile.id);
+      user.blacklist.concat();
+    } catch (error) {
+      throw new HttpErrors.Unauthorized();
+    }
   }
 
   @get('/users/me', {
