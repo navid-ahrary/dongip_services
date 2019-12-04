@@ -9,10 +9,10 @@ import * as config from './redis.datasource.json';
 
 @lifeCycleObserver('datasource')
 export class RedisDataSource extends juggler.DataSource implements LifeCycleObserver {
-  static dataSourceName = 'redis';
+  static dataSourceName = 'redisds';
 
   constructor(
-    @inject('datasources.config.redis', {optional: true})
+    @inject('datasources.config.redisds', {optional: true})
     dsConfig: object = config,
   ) {
     super(dsConfig);

@@ -15,7 +15,7 @@ import {
 import * as _ from 'lodash';
 
 import {User} from '../models';
-import {UsersRepository, Credentials} from '../repositories';
+import {UsersRepository, Credentials, BlacklistRepository} from '../repositories';
 import {authenticate, UserService, TokenService} from '@loopback/authentication';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {PasswordHasherBindings, UserServiceBindings, TokenServiceBindings} from '../keys';
@@ -28,6 +28,7 @@ import * as moment from 'moment';
 export class UsersController {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
     public passwordHasher: PasswordHasher,
     @inject(UserServiceBindings.USER_SERVICE)

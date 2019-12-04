@@ -8,7 +8,6 @@ export class Blacklist extends Entity {
   })
   token: string;
 
-
   constructor(data?: Partial<Blacklist>) {
     super(data);
   }

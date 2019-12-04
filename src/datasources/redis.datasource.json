@@ -1,5 +1,5 @@
 {
-  "name": "redis",
+  "name": "redisds",
   "connector": "kv-redis",
   "url": "",
   "host": "localhost",
