@@ -5,7 +5,7 @@ import {inject} from '@loopback/core';
 import {UserProfile, securityId} from '@loopback/security';
 import {HttpErrors} from '@loopback/rest';
 import {repository} from '@loopback/repository';
-import {UsersRepository} from '../repositories';
+import {UsersRepository, BlacklistRepository} from '../repositories';
 
 const jwt = require('jsonwebtoken');
 const signAsync = promisify(jwt.sign);
@@ -14,6 +14,7 @@ const verifyAsync = promisify(jwt.verify);
 export class JWTService implements TokenService {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
     @inject(TokenServiceBindings.TOKEN_SECRET) private jwtSecret: string,
     @inject(TokenServiceBindings.TOKEN_EXPIRES_IN) private jwtExpiresIn: string,
     @inject(TokenServiceBindings.TOKEN_ALGORITHM) private jwtAlgorithm: string,
@@ -30,14 +31,13 @@ export class JWTService implements TokenService {
       //decode user profile from token
       const decryptedToken = await verifyAsync(token, this.jwtSecret);
 
-      const user = await this.usersRepository.findById(decryptedToken.sub);
-
-      if (token !== user.token) {
-        throw new HttpErrors.Unauthorized('Token is not valid');
-      }
+      await this.blacklistRepository.checkTokenInBlacklist(decryptedToken.sub, token);
 
       // don't copy over  token field 'iat' and 'exp', nor 'email' to user profile
-      userProfile = Object.assign({[securityId]: ''}, {[securityId]: decryptedToken.sub});
+      userProfile = Object.assign(
+        {[securityId]: '', token: ''},
+        {[securityId]: decryptedToken.sub, token: token},
+      );
     } catch (error) {
       throw new HttpErrors.Unauthorized(`Error verifying token: ${error.message}`);
     }

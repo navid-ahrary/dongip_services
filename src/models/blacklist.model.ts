@@ -3,10 +3,11 @@ import {Entity, model, property} from '@loopback/repository';
 @model()
 export class Blacklist extends Entity {
   @property({
-    type: 'string',
+    type: 'array',
+    itemType: 'string',
     required: true,
   })
-  token: string;
+  token: string[];
 
   constructor(data?: Partial<Blacklist>) {
     super(data);

@@ -26,7 +26,7 @@ export class DongsController {
     @inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService,
   ) {}
 
-  @post('/dongs/create', {
+  @post('/apis/dongs/create', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -64,7 +64,7 @@ export class DongsController {
     }
   }
 
-  @get('/dongs', {
+  @get('/apis/dongs', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -85,7 +85,7 @@ export class DongsController {
     return this.dongsRepository.find(filter);
   }
 
-  @get('/dongs/{id}', {
+  @get('/apis/dongs/{id}', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -99,7 +99,7 @@ export class DongsController {
     return this.dongsRepository.findById(id);
   }
 
-  @patch('/dongs/{id}', {
+  @patch('/apis/dongs/{id}', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {

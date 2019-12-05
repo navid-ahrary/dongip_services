@@ -37,7 +37,7 @@ export class UsersController {
     public jwtService: TokenService,
   ) {}
 
-  @post('/users/signup', {
+  @post('/apis/users/signup', {
     responses: {
       '200': {
         description: 'User',
@@ -83,7 +83,7 @@ export class UsersController {
     }
   }
 
-  @post('/users/login', {
+  @post('/apis/users/login', {
     responses: {
       '200': {
         description: 'Token',
@@ -113,17 +113,11 @@ export class UsersController {
 
     //create a JWT token based on the user profile
     const token = await this.jwtService.generateToken(userProfile);
-    user.token = token;
-
-    //add the token of the current client to the tokens list of user
-    user.tokens = user.tokens.concat([{token}]);
-
-    await this.usersRepository.updateById(user.id, user);
 
     return {token};
   }
 
-  @get('/users/logout', {
+  @get('/apis/users/logout', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -132,19 +126,24 @@ export class UsersController {
     },
   })
   @authenticate('jwt')
-  async logout(@inject(SecurityBindings.USER) currentUserProfile: UserProfile) {
+  async logout(
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ) {
     try {
       currentUserProfile.id = currentUserProfile[securityId];
       delete currentUserProfile[securityId];
 
-      const user = await this.usersRepository.findById(currentUserProfile.id);
-      user.blacklist.concat();
+      await this.blacklistRepository.addTokenToBlacklist(
+        currentUserProfile.id,
+        currentUserProfile.token,
+      );
     } catch (error) {
-      throw new HttpErrors.Unauthorized();
+      throw new HttpErrors.Unauthorized('Error logout');
     }
   }
 
-  @get('/users/me', {
+  @get('/apis/users/me', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -163,10 +162,12 @@ export class UsersController {
   ): Promise<UserProfile> {
     currentUserProfile.id = currentUserProfile[securityId];
     delete currentUserProfile[securityId];
+    delete currentUserProfile.token;
+
     return currentUserProfile;
   }
 
-  @get('/users/count', {
+  @get('/apis/users/count', {
     responses: {
       '200': {
         description: 'User model count',
@@ -180,7 +181,7 @@ export class UsersController {
     return this.usersRepository.count(where);
   }
 
-  @get('/user', {
+  @get('/apis/user', {
     responses: {
       '200': {
         description: 'Array of User model instances',
@@ -200,7 +201,7 @@ export class UsersController {
     return this.usersRepository.find(filter);
   }
 
-  @get('/users/{id}', {
+  @get('/apis/users/{id}', {
     responses: {
       '200': {
         description: 'User model instance',
@@ -222,7 +223,7 @@ export class UsersController {
     return this.usersRepository.findById(id);
   }
 
-  @patch('/user/{id}', {
+  @patch('/apis/user/{id}', {
     responses: {
       '204': {
         description: 'User PATCH success',
