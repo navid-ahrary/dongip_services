@@ -661,6 +661,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/underscore@^1.9.4":
+  version "1.9.4"
+  resolved "https://registry.yarnpkg.com/@types/underscore/-/underscore-1.9.4.tgz#22d1a3e6b494608e430221ec085fa0b7ccee7f33"
+  integrity sha512-CjHWEMECc2/UxOZh0kpiz3lEyX2Px3rQS9HzD20lxMvx571ivOBQKeLnqEjxUY0BMgp6WJWo/pQLRBwMW5v4WQ==
+
 "@types/uuid@^3.4.5":
   version "3.4.6"
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-3.4.6.tgz#d2c4c48eb85a757bf2927f75f939942d521e3016"
@@ -3964,16 +3969,16 @@ loopback-connector-kv-redis@^3.0.2:
     loopback-connector "^4.0.0"
     strong-globalize "^4.1.0"
 
-loopback-connector-mongodb@^4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/loopback-connector-mongodb/-/loopback-connector-mongodb-4.2.0.tgz#b9bd45bdf8e1d7f4b93dd3c91202b9fccbd9edf3"
-  integrity sha512-/rv4QQ9428XYlQ22P3dH3ELQKu6iZRXWZgrR2ilB9fX1WnUdOwegVWBT+MizpLLqjD2wr0Sq9M0lS1eZSUvyGQ==
+loopback-connector-mongodb@^5.2.1:
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/loopback-connector-mongodb/-/loopback-connector-mongodb-5.2.1.tgz#dd51c2fa45b52917187feb566825aa012228a1fe"
+  integrity sha512-S06eolQX1iVcleiho9tqCDlZcPuT9zQJlHruzTwXfs7H8q/3eP8y4uls95HYSjn43kjvaIALdTwwtlz7m19/8w==
   dependencies:
-    async "^2.6.1"
+    async "^3.1.0"
     bson "^1.0.6"
-    debug "^3.1.0"
+    debug "^4.1.0"
     loopback-connector "^4.5.0"
-    mongodb "^3.1.4"
+    mongodb "^3.2.4"
     strong-globalize "^4.1.1"
 
 loopback-connector-remote@^3.0.0:
@@ -4430,7 +4435,7 @@ moment@^2.24.0:
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
   integrity sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
 
-mongodb@^3.1.4:
+mongodb@^3.2.4:
   version "3.3.5"
   resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-3.3.5.tgz#38d531013afede92b0dd282e3b9f3c08c9bdff3b"
   integrity sha512-6NAv5gTFdwRyVfCz+O+KDszvjpyxmZw+VlmqmqKR2GmpkeKrKFRv/ZslgTtZba2dc9JYixIf99T5Gih7TIWv7Q==

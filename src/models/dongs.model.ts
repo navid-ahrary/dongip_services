@@ -1,7 +1,8 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, model, property, belongsTo} from '@loopback/repository';
+import {Users} from './users.model';
 
 @model()
-export class Dong extends Entity {
+export class Dongs extends Entity {
   @property({
     type: 'string',
     id: true,
@@ -59,11 +60,13 @@ export class Dong extends Entity {
   })
   paidBy: object;
 
+  @belongsTo(() => Users)
+  usersId: string;
   // Indexer property to allow additional data
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [prop: string]: any;
 
-  constructor(data?: Partial<Dong>) {
+  constructor(data?: Partial<Dongs>) {
     super(data);
   }
 }
@@ -72,4 +75,4 @@ export interface DongsRelations {
   // describe navigational properties here
 }
 
-export type DongsWithRelations = Dong & DongsRelations;
+export type DongsWithRelations = Dongs & DongsRelations;

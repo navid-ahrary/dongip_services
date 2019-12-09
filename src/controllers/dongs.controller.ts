@@ -10,7 +10,7 @@ import {
   requestBody,
   HttpErrors,
 } from '@loopback/rest';
-import {Dong} from '../models';
+import {Dongs} from '../models';
 import {DongsRepository, UsersRepository} from '../repositories';
 import * as moment from 'moment';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
@@ -31,7 +31,7 @@ export class DongsController {
     responses: {
       '200': {
         description: 'Dongs model create',
-        content: {'application/json': {schema: getModelSchemaRef(Dong)}},
+        content: {'application/json': {schema: getModelSchemaRef(Dongs)}},
       },
     },
   })
@@ -40,15 +40,15 @@ export class DongsController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Dong, {
+          schema: getModelSchemaRef(Dongs, {
             title: 'NewDongs',
           }),
         },
       },
     })
-    dong: Dong,
+    dong: Dongs,
     @inject(SecurityBindings.USER) cashier: UserProfile,
-  ): Promise<Dong['id']> {
+  ): Promise<Dongs['id']> {
     cashier.id = cashier[securityId];
     delete cashier[securityId];
 
@@ -71,7 +71,7 @@ export class DongsController {
         description: 'Array of Dongs model instances',
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(Dong)},
+            schema: {type: 'array', items: getModelSchemaRef(Dongs)},
           },
         },
       },
@@ -79,8 +79,8 @@ export class DongsController {
   })
   @authenticate('jwt')
   async find(
-    @param.query.object('filter', getFilterSchemaFor(Dong)) filter?: Filter<Dong>,
-  ): Promise<Dong[]> {
+    @param.query.object('filter', getFilterSchemaFor(Dongs)) filter?: Filter<Dongs>,
+  ): Promise<Dongs[]> {
     console.log(filter);
     return this.dongsRepository.find(filter);
   }
@@ -90,12 +90,12 @@ export class DongsController {
     responses: {
       '200': {
         description: 'Dong model instance',
-        content: {'application/json': {schema: getModelSchemaRef(Dong)}},
+        content: {'application/json': {schema: getModelSchemaRef(Dongs)}},
       },
     },
   })
   @authenticate('jwt')
-  async findById(@param.path.string('id') id: string): Promise<Dong> {
+  async findById(@param.path.string('id') id: string): Promise<Dongs> {
     return this.dongsRepository.findById(id);
   }
 
@@ -113,11 +113,11 @@ export class DongsController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Dong, {partial: true}),
+          schema: getModelSchemaRef(Dongs, {partial: true}),
         },
       },
     })
-    dong: Dong,
+    dong: Dongs,
   ): Promise<void> {
     await this.dongsRepository.updateById(id, dong);
   }

@@ -1,9 +1,8 @@
 // TODO(jannyHou): This should be moved to @loopback/authentication
 export const UserProfileSchema = {
   type: 'object',
-  required: ['id'],
+  required: ['mobile', 'name'],
   properties: {
-    id: {type: 'string'},
     mobile: {type: 'string'},
     name: {type: 'string'},
   },

@@ -30,7 +30,7 @@ export class BlacklistRepository extends DefaultKeyValueRepository<Blacklist> {
     const result = await this.execute('SISMEMBER', [userId, token]);
 
     if (result) {
-      throw new Error('THis token is blacklisted');
+      throw new Error('This token is blacklisted');
     }
     return;
   }

@@ -1,5 +1,5 @@
 import {UserService} from '@loopback/authentication';
-import {User} from '../models';
+import {Users} from '../models';
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {UsersRepository, Credentials} from '../repositories';
@@ -8,14 +8,14 @@ import {PasswordHasher} from './hash.password.bcryptjs';
 import {securityId} from '@loopback/security';
 import {HttpErrors} from '@loopback/rest';
 
-export class MyUserService implements UserService<User, Credentials> {
+export class MyUserService implements UserService<Users, Credentials> {
   constructor(
     @repository(UsersRepository) public userRepository: UsersRepository,
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
     public passwordHasher: PasswordHasher,
   ) {}
 
-  async verifyCredentials(credentials: Credentials): Promise<User> {
+  async verifyCredentials(credentials: Credentials): Promise<Users> {
     const invalidCredentialsError = `Invalid phone or password.`;
 
     const foundUser = await this.userRepository.findOne({
@@ -37,7 +37,7 @@ export class MyUserService implements UserService<User, Credentials> {
     return foundUser;
   }
 
-  convertToUserProfile(user: User) {
+  convertToUserProfile(user: Users) {
     if (!user.phone || !user.password) {
       throw new HttpErrors.Unauthorized('phone/password are null');
     }

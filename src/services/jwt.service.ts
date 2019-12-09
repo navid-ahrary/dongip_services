@@ -34,10 +34,7 @@ export class JWTService implements TokenService {
       await this.blacklistRepository.checkTokenInBlacklist(decryptedToken.sub, token);
 
       // don't copy over  token field 'iat' and 'exp', nor 'email' to user profile
-      userProfile = Object.assign(
-        {[securityId]: '', token: ''},
-        {[securityId]: decryptedToken.sub, token: token},
-      );
+      userProfile = Object.assign({[securityId]: ''}, {[securityId]: decryptedToken.sub});
     } catch (error) {
       throw new HttpErrors.Unauthorized(`Error verifying token: ${error.message}`);
     }
