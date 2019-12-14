@@ -2,7 +2,6 @@ import {DefaultKeyValueRepository} from '@loopback/repository';
 import {Blacklist} from '../models';
 import {RedisDataSource} from '../datasources';
 import {inject} from '@loopback/core';
-import {} from 'module';
 import {promisify} from 'util';
 import {HttpErrors} from '@loopback/rest';
 
@@ -21,16 +20,16 @@ export class BlacklistRepository extends DefaultKeyValueRepository<Blacklist> {
     },
   );
 
-  async addTokenToBlacklist(userId: string, token: string) {
+  public async addTokenToBlacklist(userId: string, token: string) {
     const result = await this.execute('SADD', [userId, token]);
     return result;
   }
 
-  async checkTokenInBlacklist(userId: string, token: string) {
+  public async checkTokenInBlacklist(userId: string, token: string) {
     const result = await this.execute('SISMEMBER', [userId, token]);
 
     if (result) {
-      throw new Error('This token is blacklisted');
+      throw new HttpErrors.Unauthorized('This token is blacklisted');
     }
     return;
   }

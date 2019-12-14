@@ -13,7 +13,12 @@ import {
 import * as _ from 'lodash';
 
 import {Users, FriendRequest} from '../models';
-import {UsersRepository, Credentials, BlacklistRepository} from '../repositories';
+import {
+  UsersRepository,
+  Credentials,
+  BlacklistRepository,
+  VirtualUsersRepository,
+} from '../repositories';
 import {authenticate, UserService, TokenService} from '@loopback/authentication';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {PasswordHasherBindings, UserServiceBindings, TokenServiceBindings} from '../keys';
@@ -27,6 +32,8 @@ import * as underscore from 'underscore';
 export class UsersController {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(VirtualUsersRepository)
+    public virtualUsersRepository: VirtualUsersRepository,
     @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
     public passwordHasher: PasswordHasher,
@@ -91,8 +98,8 @@ export class UsersController {
       delete user.password;
 
       return {id: savedUser.id};
-    } catch (error) {
-      if (error.code === 11000) {
+    } catch (err) {
+      if (err.code === 11000) {
         throw new HttpErrors.Conflict(`This phone number is already taken.`);
       } else {
         throw new HttpErrors.NotAcceptable();
@@ -155,7 +162,7 @@ export class UsersController {
         currentUserProfile.id,
         authorizationHeader.split(' ')[1],
       );
-    } catch (error) {
+    } catch (err) {
       throw new HttpErrors.Unauthorized('Error logout');
     }
   }
@@ -187,7 +194,7 @@ export class UsersController {
     return {id: user.id, name: user.name};
   }
 
-  @post('/apis/users/friend_request', {
+  @post('/apis/users/friend-req', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -216,30 +223,53 @@ export class UsersController {
         where: {phone: reqBody.phone},
       });
 
-      if (requesterUser!.id.toString() === recipientUser!.id.toString()) {
-        throw new HttpErrors.UnavailableForLegalReasons(
-          'We believe you are the best friend of yourself! :)',
-        );
+      if (!recipientUser && requesterUser) {
+        const vu = {
+          avatar: reqBody.avatar,
+          name: reqBody.name,
+          phone: reqBody.phone,
+          usersId: requesterUser.id,
+        };
+
+        const preVu = await this.usersRepository.virtualUsers(requesterUser.id).find({
+          where: {
+            phone: reqBody.phone,
+          },
+        });
+
+        if (!preVu) {
+          const vuResult = await this.usersRepository
+            .virtualUsers(requesterUser.id)
+            .create(vu);
+
+          return vuResult;
+        } else if (preVu) {
+          throw new HttpErrors.NotAcceptable('He/She is in your friends list');
+        }
       }
 
       if (requesterUser && recipientUser) {
+        if (requesterUser!.id.toString() === recipientUser!.id.toString()) {
+          throw new HttpErrors.NotAcceptable('You are the best friend of yourself! :)');
+        }
+
         if (
-          !recipientUser.friendIds.includes(requesterUser.id.toString()) &&
-          !this.arrayHasObject(recipientUser.pendingFriendIds, {
+          !recipientUser.friends.includes(requesterUser.id.toString()) &&
+          !this.arrayHasObject(recipientUser.pendingFriends, {
             requester: requesterUser.id.toString(),
             recipient: recipientUser.id.toString(),
           }) &&
-          !requesterUser.friendIds.includes(recipientUser.id.toString()) &&
-          !this.arrayHasObject(requesterUser.pendingFriendIds, {
+          !requesterUser.friends.includes(recipientUser.id.toString()) &&
+          !this.arrayHasObject(requesterUser.pendingFriends, {
             requester: requesterUser.id.toString(),
             recipient: recipientUser.id.toString(),
           })
         ) {
-          recipientUser.pendingFriendIds.push({
+          recipientUser.pendingFriends.push({
             requester: requesterUser.id.toString(),
             recipient: recipientUser.id.toString(),
           });
-          requesterUser.pendingFriendIds.push({
+          requesterUser.pendingFriends.push({
             requester: requesterUser.id.toString(),
             recipient: recipientUser.id.toString(),
           });
@@ -247,11 +277,23 @@ export class UsersController {
           await this.usersRepository.updateById(requesterUser.getId(), requesterUser);
           await this.usersRepository.updateById(recipientUser.getId(), recipientUser);
 
-          return {
-            message: 'Request is sent, wait for response from him/her',
-          };
-        } else {
-          throw new HttpErrors.TooManyRequests('Request is fired');
+          return {message: 'Request is sent, wait for response from him/her'};
+        } else if (
+          recipientUser.friends.includes(requesterUser.id.toString()) &&
+          requesterUser.friends.includes(recipientUser.id.toString())
+        ) {
+          return {message: 'You were friends lately'};
+        } else if (
+          this.arrayHasObject(recipientUser.pendingFriends, {
+            requester: requesterUser.id.toString(),
+            recipient: recipientUser.id.toString(),
+          }) &&
+          this.arrayHasObject(requesterUser.pendingFriends, {
+            requester: requesterUser.id.toString(),
+            recipient: recipientUser.id.toString(),
+          })
+        ) {
+          return {message: 'Request is fired'};
         }
       }
     } catch (err) {
@@ -259,16 +301,16 @@ export class UsersController {
     }
   }
 
-  @post('/apis/users/friend_accept', {
+  @post('/apis/users/res-friend-req', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Friend request acceptance',
+        description: 'Answer to friend request ',
       },
     },
   })
   @authenticate('jwt')
-  async friendAccept(
+  async responseToFriendRequest(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody({
       content: {
@@ -280,6 +322,8 @@ export class UsersController {
     bodyReq: FriendRequest,
   ) {
     try {
+      let message = '';
+
       const recipientUser = await this.usersRepository.findOne({
         where: {
           id: currentUserProfile[securityId],
@@ -295,66 +339,52 @@ export class UsersController {
       if (recipientUser && requesterUser) {
         if (requesterUser!.id.toString() === recipientUser!.id.toString()) {
           throw new HttpErrors.NotAcceptable(
-            'We believe you are the best friend of yourself! ;)',
+            'We believe that you are the best friend of yourself! ;)',
           );
         }
 
-        for (const pending of recipientUser.pendingFriendIds) {
-          if (recipientUser.id.toString() !== pending.recipient) {
-            throw new HttpErrors.NotAcceptable(
-              'Just recipient must response to friend request',
-            );
-          }
-        }
-
         if (
-          !requesterUser.friendIds.includes(recipientUser.id.toString()) &&
-          this.arrayHasObject(requesterUser.pendingFriendIds, {
+          !requesterUser.friends.includes(recipientUser.id.toString()) &&
+          this.arrayHasObject(requesterUser.pendingFriends, {
             requester: requesterUser.id.toString(),
             recipient: recipientUser.id.toString(),
           }) &&
-          !recipientUser.friendIds.includes(requesterUser.id.toString()) &&
-          this.arrayHasObject(recipientUser.pendingFriendIds, {
+          !recipientUser.friends.includes(requesterUser.id.toString()) &&
+          this.arrayHasObject(recipientUser.pendingFriends, {
             requester: requesterUser.id.toString(),
             recipient: recipientUser.id.toString(),
           })
         ) {
-          this.arrayRemoveItem(requesterUser.pendingFriendIds, {
+          this.arrayRemoveItem(requesterUser.pendingFriends, {
             requester: requesterUser.id.toString(),
             recipient: recipientUser.id.toString(),
           });
-          this.arrayRemoveItem(recipientUser.pendingFriendIds, {
+          this.arrayRemoveItem(recipientUser.pendingFriends, {
             requester: requesterUser.id.toString(),
             recipient: recipientUser.id.toString(),
           });
-
-          console.log(recipientUser);
 
           if (bodyReq.status === true) {
-            recipientUser.friendIds.push(requesterUser.id.toString());
-            requesterUser.friendIds.push(recipientUser.id.toString());
+            recipientUser.friends.push(requesterUser.id.toString());
+            requesterUser.friends.push(recipientUser.id.toString());
+
+            message = 'You are friends together right now';
           } else if (bodyReq.status === false) {
-            return {
-              message: 'Friend request rejected',
-            };
+            message = 'Friend request has been rejected';
           }
 
           await this.usersRepository.updateById(recipientUser.id, recipientUser);
           await this.usersRepository.updateById(requesterUser.id, requesterUser);
 
-          return {
-            message: 'You are friends together now',
-          };
+          return message;
         } else {
-          throw new HttpErrors.NotImplemented(
+          throw new HttpErrors.NotAcceptable(
             'Friend Request not fired or you were friends lately',
           );
         }
-      } else {
-        throw new HttpErrors.NotFound("This 'user' not found");
       }
     } catch (err) {
-      throw new HttpErrors.NotAcceptable(err);
+      throw new HttpErrors.MethodNotAllowed(err);
     }
   }
 

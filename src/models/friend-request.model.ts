@@ -10,13 +10,15 @@ export class FriendRequest extends Entity {
 
   @property({
     type: 'string',
+    required: true,
   })
-  avatar?: string;
+  avatar: string;
 
   @property({
     type: 'string',
+    required: true,
   })
-  name?: string;
+  name: string;
 
   @property({
     type: 'boolean',

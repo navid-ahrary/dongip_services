@@ -1,5 +1,6 @@
 import {Entity, model, property, belongsTo} from '@loopback/repository';
-import {Users} from './users.model';
+import {Users, UsersWithRelations} from './users.model';
+import {VirtualUsersWithRelations} from './virtual-users.model';
 
 @model()
 export class Dongs extends Entity {
@@ -27,14 +28,14 @@ export class Dongs extends Entity {
     type: 'string',
     required: true,
   })
-  decsription: string;
+  decs?: string;
 
   @property({
     type: 'array',
     itemType: 'string',
     required: true,
   })
-  assets: string[];
+  assets?: string[];
 
   @property({
     type: 'array',
@@ -52,19 +53,15 @@ export class Dongs extends Entity {
     type: 'object',
     required: true,
   })
-  eqip: object;
-
-  @property({
-    type: 'object',
-    required: true,
-  })
   paidBy: object;
 
   @belongsTo(() => Users)
   usersId: string;
-  // Indexer property to allow additional data
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [prop: string]: any;
+
+  @property({
+    type: 'string',
+  })
+  virtualUsersId?: string;
 
   constructor(data?: Partial<Dongs>) {
     super(data);
@@ -72,7 +69,8 @@ export class Dongs extends Entity {
 }
 
 export interface DongsRelations {
-  // describe navigational properties here
+  users?: UsersWithRelations[];
+  virtualUsers?: VirtualUsersWithRelations[];
 }
 
 export type DongsWithRelations = Dongs & DongsRelations;

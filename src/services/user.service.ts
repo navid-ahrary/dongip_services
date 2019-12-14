@@ -42,6 +42,6 @@ export class MyUserService implements UserService<Users, Credentials> {
       throw new HttpErrors.Unauthorized('phone/password are null');
     }
 
-    return {[securityId]: user.id};
+    return {[securityId]: user.getId()};
   }
 }

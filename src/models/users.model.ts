@@ -1,6 +1,6 @@
 import {Entity, model, property, hasMany} from '@loopback/repository';
-import {Dongs} from './dongs.model';
-import {VirtualFriends} from './virtual-friends.model';
+import {Dongs, DongsWithRelations} from './dongs.model';
+import {VirtualUsers, VirtualUsersWithRelations} from './virtual-users.model';
 
 @model()
 export class Users extends Entity {
@@ -62,12 +62,23 @@ export class Users extends Entity {
   accountType: string;
 
   @property({
+    type: 'string',
+  })
+  notifToken: string;
+
+  @property({
+    type: 'array',
+    itemType: 'string',
+  })
+  categories: string[];
+
+  @property({
     type: 'array',
     itemType: 'object',
     default: [],
     required: false,
   })
-  pendingFriendIds: {recipient: string; requester: string}[];
+  pendingFriends: {recipient: string; requester: string}[];
 
   @property({
     type: 'array',
@@ -75,13 +86,13 @@ export class Users extends Entity {
     default: [],
     required: false,
   })
-  friendIds: Users['id'][];
-
-  @hasMany(() => VirtualFriends, {keyTo: 'sourceUserId'})
-  virtualFriends?: VirtualFriends[];
+  friends: Users['id'][];
 
   @hasMany(() => Dongs)
-  dongs?: Dongs['id'][];
+  dongs: Dongs[];
+
+  @hasMany(() => VirtualUsers)
+  virtualUsers: VirtualUsers[];
 
   constructor(data?: Partial<Users>) {
     super(data);
@@ -89,7 +100,8 @@ export class Users extends Entity {
 }
 
 export interface UsersRelations {
-  // describe navigational properties here
+  virtualUsers?: VirtualUsersWithRelations[];
+  dongs?: DongsWithRelations[];
 }
 
 export type UsersWithRelations = Users & UsersRelations;
