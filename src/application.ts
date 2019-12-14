@@ -82,15 +82,15 @@ export class LoginServiceApplication extends BootMixin(
     this.bind(PackageKey).to(pkg);
 
     this.bind(TokenServiceBindings.TOKEN_SECRET).to(
-      TokenServiceConstants.TOKEN_SECRET_VALUE,
+      TokenServiceConstants.TOKEN_SECRET_VALUE!,
     );
 
     this.bind(TokenServiceBindings.TOKEN_EXPIRES_IN).to(
-      TokenServiceConstants.TOKEN_EXPIRES_IN_VALUE,
+      TokenServiceConstants.TOKEN_EXPIRES_IN_VALUE!,
     );
 
     this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(
-      TokenServiceConstants.TOKEN_ALGORITHM_VALUE,
+      TokenServiceConstants.TOKEN_ALGORITHM_VALUE!,
     );
 
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);

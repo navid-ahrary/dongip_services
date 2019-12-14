@@ -28,6 +28,8 @@ import {CredentialsRequestBody, UserProfileSchema} from './specs/user-controller
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import * as moment from 'moment';
 import * as underscore from 'underscore';
+import dotenv = require('dotenv');
+import * as admin from 'firebase-admin';
 
 export class UsersController {
   constructor(
@@ -277,6 +279,14 @@ export class UsersController {
 
           await this.usersRepository.updateById(requesterUser.getId(), requesterUser);
           await this.usersRepository.updateById(recipientUser.getId(), recipientUser);
+
+          dotenv.config();
+
+          const serviceAccount = require('process.env.GOOGLE_APPLICATION_CREDENTIALS');
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            databaseURL: process.env.GOOGLE_APPLICATION_DATABASEURL,
+          });
 
           return {message: 'Request is sent, wait for response from him/her'};
         } else if (

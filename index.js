@@ -1,10 +1,12 @@
 const application = require('./dist');
+const dotenv = require('dotenv');
+dotenv.config();
 
 if (require.main === module) {
   const config = {
     rest: {
-      port: +process.env.PORT || 3000,
-      host: process.env.HOST || 'localhost',
+      port: +process.env.PORT,
+      host: process.env.HOST,
       openApiSpec: {
         setServersFromRequest: true,
       },

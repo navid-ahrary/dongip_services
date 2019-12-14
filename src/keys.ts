@@ -3,11 +3,14 @@ import {PasswordHasher} from './services/hash.password.bcryptjs';
 import {TokenService, UserService} from '@loopback/authentication';
 import {Users} from './models';
 import {Credentials} from './repositories';
+import dotenv = require('dotenv');
 
 export namespace TokenServiceConstants {
-  export const TOKEN_SECRET_VALUE = 'Kk&^e*@0oaE!KvT';
-  export const TOKEN_EXPIRES_IN_VALUE = '1209600';
-  export const TOKEN_ALGORITHM_VALUE = 'HS384';
+  dotenv.config();
+
+  export const TOKEN_SECRET_VALUE = process.env.TOKEN_SECRET_VALUE;
+  export const TOKEN_EXPIRES_IN_VALUE = process.env.TOKEN_EXPIRES_IN_VALUE;
+  export const TOKEN_ALGORITHM_VALUE = process.env.TOKEN_ALGORITHM_VALUE;
 }
 
 export namespace TokenServiceBindings {

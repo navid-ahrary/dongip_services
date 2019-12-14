@@ -63,6 +63,7 @@
     "bcryptjs": "^2.4.3",
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",
+    "firebase-admin": "^8.8.0",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.15",
     "loopback-connector": "^4.5.0",
