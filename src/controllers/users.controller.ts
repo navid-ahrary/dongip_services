@@ -234,6 +234,7 @@ export class UsersController {
         const preVu = await this.usersRepository.virtualUsers(requesterUser.id).find({
           where: {
             phone: reqBody.phone,
+            usersId: requesterUser.id,
           },
         });
 
