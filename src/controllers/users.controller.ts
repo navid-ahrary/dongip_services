@@ -288,7 +288,35 @@ export class UsersController {
             databaseURL: process.env.GOOGLE_APPLICATION_DATABASEURL,
           });
 
-          return {message: 'Request is sent, wait for response from him/her'};
+          const recipUserNotifToken = recipientUser.notifToken;
+
+          const payload = {
+            notification: {
+              title: 'دنگیپ درخواست دوستی',
+              body: `کاربر با شماره موبایل ${requesterUser.phone} ازتون درخواست دوستی کرده`,
+            },
+            data: {
+              phone: requesterUser.phone,
+            },
+          };
+
+          const options = {
+            priority: 'normal',
+            contentAvailable: true,
+            mutableContent: true,
+          };
+
+          await admin
+            .messaging()
+            .sendToDevice(recipUserNotifToken, payload, options)
+            .then(function(response) {
+              return {
+                message: `Request is sent, wait for response from him/her: ${response}`,
+              };
+            })
+            .catch(function(error) {
+              throw new HttpErrors.NotImplemented(error);
+            });
         } else if (
           recipientUser.friends.includes(requesterUser.id.toString()) &&
           requesterUser.friends.includes(recipientUser.id.toString())
