@@ -14,8 +14,6 @@ export class Blacklist extends Entity {
   }
 }
 
-export interface BlacklistRelations {
-  // describe navigational properties here
-}
+export interface BlacklistRelations {}
 
 export type BlacklistWithRelations = Blacklist & BlacklistRelations;

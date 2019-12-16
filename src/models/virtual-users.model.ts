@@ -31,7 +31,7 @@ export class VirtualUsers extends Entity {
   avatar: string;
 
   @belongsTo(() => Users)
-  usersId: string;
+  usersId: typeof Users.prototype.id;
 
   @hasMany(() => Dongs)
   dongs: Dongs[];

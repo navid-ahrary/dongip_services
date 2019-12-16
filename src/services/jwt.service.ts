@@ -20,23 +20,26 @@ export class JWTService implements TokenService {
     @inject(TokenServiceBindings.TOKEN_ALGORITHM) private jwtAlgorithm: string,
   ) {}
 
-  async verifyToken(token: string): Promise<UserProfile> {
-    if (!token) {
-      throw new HttpErrors.Unauthorized(`Error verifying token: 'token' is null`);
+  async verifyToken(accessToken: string): Promise<UserProfile> {
+    if (!accessToken) {
+      throw new HttpErrors.Unauthorized(`Error verifying access token: 'token' is null`);
     }
 
     let userProfile: UserProfile;
 
     try {
       //decode user profile from token
-      const decryptedToken = await verifyAsync(token, this.jwtSecret);
+      const decryptedToken = await verifyAsync(accessToken, this.jwtSecret);
 
-      await this.blacklistRepository.checkTokenInBlacklist(decryptedToken.sub, token);
+      await this.blacklistRepository.checkTokenInBlacklist(
+        decryptedToken.sub,
+        accessToken,
+      );
 
       // don't copy over  token field 'iat' and 'exp', nor 'email' to user profile
       userProfile = Object.assign({[securityId]: ''}, {[securityId]: decryptedToken.sub});
     } catch (error) {
-      throw new HttpErrors.Unauthorized(`Error verifying token: ${error.message}`);
+      throw new HttpErrors.Unauthorized(`Error verifying access token: ${error.message}`);
     }
 
     return userProfile;
@@ -51,10 +54,10 @@ export class JWTService implements TokenService {
     userProfile['type'] = 'trial';
 
     //generate a JWT token
-    let token: string;
+    let accessToken: string;
 
     try {
-      token = signAsync(userProfile, this.jwtSecret, {
+      accessToken = signAsync(userProfile, this.jwtSecret, {
         algorithm: this.jwtAlgorithm,
         expiresIn: +this.jwtExpiresIn,
         subject: id,
@@ -63,6 +66,6 @@ export class JWTService implements TokenService {
       throw new HttpErrors.Unauthorized(`Error generating token: ${error.message}`);
     }
 
-    return token;
+    return accessToken;
   }
 }

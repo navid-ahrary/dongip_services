@@ -31,6 +31,14 @@ import * as underscore from 'underscore';
 import dotenv = require('dotenv');
 import * as admin from 'firebase-admin';
 
+dotenv.config();
+const serviceAccount = require('/home/navid/Desktop/dongip/dongip-firebase-adminsdk-jngq0-42215a8173.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: process.env.GOOGLE_APPLICATION_DATABASEURL,
+});
+
 export class UsersController {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -130,7 +138,7 @@ export class UsersController {
   })
   async login(
     @requestBody(CredentialsRequestBody) credentials: Credentials,
-  ): Promise<{token: string}> {
+  ): Promise<{accessToken: string}> {
     //ensure the user exists and the password is correct
     const user = await this.userService.verifyCredentials(credentials);
 
@@ -138,9 +146,9 @@ export class UsersController {
     const userProfile = this.userService.convertToUserProfile(user);
 
     //create a JWT token based on the user profile
-    const token = await this.jwtService.generateToken(userProfile);
+    const accessToken = await this.jwtService.generateToken(userProfile);
 
-    return {token};
+    return {accessToken};
   }
 
   @get('/apis/users/logout', {
@@ -185,7 +193,7 @@ export class UsersController {
   @authenticate('jwt')
   async printCurrentUser(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-  ): Promise<object> {
+  ): Promise<{id: string; name: string}> {
     currentUserProfile.id = currentUserProfile[securityId];
     delete currentUserProfile[securityId];
     delete currentUserProfile.token;
@@ -280,38 +288,30 @@ export class UsersController {
           await this.usersRepository.updateById(requesterUser.getId(), requesterUser);
           await this.usersRepository.updateById(recipientUser.getId(), recipientUser);
 
-          dotenv.config();
-
-          const serviceAccount = require('process.env.GOOGLE_APPLICATION_CREDENTIALS');
-          admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-            databaseURL: process.env.GOOGLE_APPLICATION_DATABASEURL,
-          });
-
-          const recipUserNotifToken = recipientUser.notifToken;
-
           const payload = {
             notification: {
               title: 'دنگیپ درخواست دوستی',
-              body: `کاربر با شماره موبایل ${requesterUser.phone} ازتون درخواست دوستی کرده`,
+              body: `${requesterUser.name} با موبایل ${requesterUser.phone} ازشما درخواست دوستی کرده`,
             },
             data: {
+              name: requesterUser.name,
               phone: requesterUser.phone,
             },
           };
-
           const options = {
             priority: 'normal',
             contentAvailable: true,
             mutableContent: true,
           };
+          const recipUserNotifToken = recipientUser.deviceToken;
 
+          // send friend request notofication to recipient user device
           await admin
             .messaging()
             .sendToDevice(recipUserNotifToken, payload, options)
             .then(function(response) {
               return {
-                message: `Request is sent, wait for response from him/her: ${response}`,
+                message: `Request is sent, wait for response from him/her`,
               };
             })
             .catch(function(error) {
@@ -332,7 +332,7 @@ export class UsersController {
             recipient: recipientUser.id.toString(),
           })
         ) {
-          return {message: 'Request is fired'};
+          return {message: 'Request was fired, wait for respone'};
         }
       }
     } catch (err) {
@@ -403,19 +403,55 @@ export class UsersController {
             recipient: recipientUser.id.toString(),
           });
 
+          const payload = {
+            notification: {
+              title: '',
+              body: ``,
+            },
+            data: {
+              name: requesterUser.name,
+              phone: requesterUser.phone,
+            },
+          };
+          const options = {
+            priority: 'normal',
+            contentAvailable: true,
+            mutableContent: false,
+          };
+
           if (bodyReq.status === true) {
             recipientUser.friends.push(requesterUser.id.toString());
             requesterUser.friends.push(recipientUser.id.toString());
 
+            payload.notification = {
+              title: 'دنگیپ قبول درخواست دوستی',
+              body: `${recipientUser.name} با موبایل ${recipientUser.phone} در خواست دوستیتون رو پذیرفت`,
+            };
+
             message = 'You are friends together right now';
           } else if (bodyReq.status === false) {
+            payload.notification = {
+              title: 'دنگیپ رد درخواست دوستی',
+              body: `${recipientUser.name} با موبایل ${recipientUser.phone} در خواست دوستیتون رو رد کرد`,
+            };
+
             message = 'Friend request has been rejected';
           }
 
           await this.usersRepository.updateById(recipientUser.id, recipientUser);
           await this.usersRepository.updateById(requesterUser.id, requesterUser);
 
-          return message;
+          // send notification accept/reject message to requester of friend request
+          const reqUserNotifToken = requesterUser.deviceToken;
+          await admin
+            .messaging()
+            .sendToDevice(reqUserNotifToken, payload, options)
+            .then(function(response) {
+              return {message: message, firebaseResponse: response};
+            })
+            .catch(function(error) {
+              throw new HttpErrors.NotAcceptable(error);
+            });
         } else {
           throw new HttpErrors.NotAcceptable(
             'Friend Request not fired or you were friends lately',

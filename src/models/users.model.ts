@@ -1,6 +1,7 @@
 import {Entity, model, property, hasMany} from '@loopback/repository';
 import {Dongs, DongsWithRelations} from './dongs.model';
 import {VirtualUsers, VirtualUsersWithRelations} from './virtual-users.model';
+import {Categories, CategoriesRelations} from './categories.model';
 
 @model()
 export class Users extends Entity {
@@ -45,7 +46,7 @@ export class Users extends Entity {
 
   @property({
     type: 'string',
-    required: true,
+    required: false,
   })
   geolocation: string;
 
@@ -57,20 +58,14 @@ export class Users extends Entity {
 
   @property({
     type: 'string',
-    required: true,
   })
   accountType: string;
 
   @property({
     type: 'string',
+    reqiured: true,
   })
-  notifToken: string;
-
-  @property({
-    type: 'array',
-    itemType: 'string',
-  })
-  categories: string[];
+  deviceToken: string;
 
   @property({
     type: 'array',
@@ -86,13 +81,16 @@ export class Users extends Entity {
     default: [],
     required: false,
   })
-  friends: Users['id'][];
+  friends: typeof Users.prototype.id[];
 
   @hasMany(() => Dongs)
   dongs: Dongs[];
 
   @hasMany(() => VirtualUsers)
   virtualUsers: VirtualUsers[];
+
+  @hasMany(() => Categories)
+  categories: Categories[];
 
   constructor(data?: Partial<Users>) {
     super(data);
@@ -102,6 +100,7 @@ export class Users extends Entity {
 export interface UsersRelations {
   virtualUsers?: VirtualUsersWithRelations[];
   dongs?: DongsWithRelations[];
+  categories?: CategoriesRelations[];
 }
 
 export type UsersWithRelations = Users & UsersRelations;

@@ -3,11 +3,12 @@ import {
   repository,
   HasManyRepositoryFactory,
 } from '@loopback/repository';
-import {Users, Dongs, VirtualUsers} from '../models';
+import {Users, Dongs, VirtualUsers, Categories} from '../models';
 import {MongodsDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
 import {DongsRepository} from './dongs.repository';
 import {VirtualUsersRepository} from './virtual-users.repository';
+import {CategoriesRepository} from './categories.repository';
 
 export type Credentials = {
   phone: string;
@@ -24,14 +25,26 @@ export class UsersRepository extends DefaultCrudRepository<
   >;
   public readonly dongs: HasManyRepositoryFactory<Dongs, typeof Users.prototype.id>;
 
+  public readonly categories: HasManyRepositoryFactory<
+    Categories,
+    typeof Users.prototype.id
+  >;
+
   constructor(
     @inject('datasources.mongods') dataSource: MongodsDataSource,
     @repository.getter('DongsRepository')
     protected dongsRepositoryGetter: Getter<DongsRepository>,
     @repository.getter('VirtualUsersRepository')
     protected virtualUsersRepositoryGetter: Getter<VirtualUsersRepository>,
+    @repository.getter('CategoriesRepository')
+    protected categoriesRepositoryGetter: Getter<CategoriesRepository>,
   ) {
     super(Users, dataSource);
+    this.categories = this.createHasManyRepositoryFactoryFor(
+      'categories',
+      categoriesRepositoryGetter,
+    );
+    this.registerInclusionResolver('categories', this.categories.inclusionResolver);
 
     this.virtualUsers = this.createHasManyRepositoryFactoryFor(
       'virtualUsers',

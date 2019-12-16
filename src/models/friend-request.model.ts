@@ -30,8 +30,6 @@ export class FriendRequest extends Entity {
   }
 }
 
-export interface FriendRequestRelations {
-  // describe navigational properties here
-}
+export interface FriendRequestRelations {}
 
 export type FriendRequestWithRelations = FriendRequest & FriendRequestRelations;
