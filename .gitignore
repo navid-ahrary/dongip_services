@@ -57,6 +57,7 @@ typings/
 
 # dotenv environment variables file
 .env
+.env.production
 
 # Transpiled JavaScript files from Typescript
 /dist
