@@ -32,7 +32,7 @@ import dotenv = require('dotenv');
 import * as admin from 'firebase-admin';
 
 dotenv.config();
-const serviceAccount = require('/home/navid/Desktop/dongip/dongip-firebase-adminsdk-jngq0-42215a8173.json');
+const serviceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
