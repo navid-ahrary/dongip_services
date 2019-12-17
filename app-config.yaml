@@ -10,4 +10,4 @@ apps:
       NODE_ENV: development
     env_production:
       NODE_ENV: production
-    node_args: --max_old_space_size=300
+    node_args: --max_memory_restart=300M
