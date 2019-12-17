@@ -1,0 +1,12 @@
+apps:
+  - script: ./index.js
+    name: "demo-app"
+    instances: 2
+    exec_mode: cluster
+  - script: ./index.js
+    name: dongip_services'
+    watch: true
+    env:
+      NODE_ENV: development
+    env_production:
+      NODE_ENV: production
