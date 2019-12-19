@@ -2,7 +2,7 @@
 module.exports = {
   apps: [{
     name: 'dongip_services',
-    script: 'index.js',
+    script: 'dongip.js',
     args: 'one two',
     instances: 1,
     autorestart: true,
