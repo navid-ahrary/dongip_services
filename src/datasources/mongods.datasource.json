@@ -2,11 +2,11 @@
   "name": "mongods",
   "connector": "mongodb",
   "url": "",
-  "host": "localhost",
+  "host": "bglwfx7k1dli3uh-mongodb.services.clever-cloud.com",
   "port": 27017,
-  "user": "",
-  "password": "",
-  "database": "dongip",
+  "user": "up1q5u7sgaydls2o3b00",
+  "password": "ZyKcV0lgz70aR3SMz0o9",
+  "database": "bglwfx7k1dli3uh",
   "useNewUrlParser": true,
   "useUnifiedTopology": true
 }

@@ -15,20 +15,11 @@
   },
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
-
   "typescript.tsdk": "./node_modules/typescript/lib",
-  "eslint.autoFixOnSave": true,
   "eslint.run": "onSave",
   "eslint.nodePath": "./node_modules",
-  "eslint.validate": [
-    "javascript",
-    {
-        "language": "typescript",
-        "autoFix": true
-    }
-  ]
-
-   "json.schemas":[
-      {"fileMatch": ["*/models/*.json"], "url": "./schemas/apiconnectmodels.json"}
-   ]
+  "json.schemas": [{
+    "fileMatch": ["*/models/*.json"],
+    "url": "./schemas/apiconnectmodels.json"
+  }]
 }

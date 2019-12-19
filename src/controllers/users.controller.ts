@@ -150,7 +150,7 @@ export class UsersController {
     return {accessToken};
   }
 
-  @get('/apis/users/logout', {
+  @get('/apis/users/{id}/logout', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -162,10 +162,15 @@ export class UsersController {
   async logout(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.header.string('authorization') authorizationHeader: string,
+    @param.path.string('id') id: typeof Users.prototype.id,
   ) {
     try {
       currentUserProfile.id = currentUserProfile[securityId];
       delete currentUserProfile[securityId];
+
+      if (id !== currentUserProfile.id) {
+        throw new HttpErrors.Unauthorized('Error id, not matched!');
+      }
 
       await this.blacklistRepository.addTokenToBlacklist(
         currentUserProfile.id,
@@ -176,7 +181,7 @@ export class UsersController {
     }
   }
 
-  @get('/apis/users/me', {
+  @get('/apis/users/{id}/me', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -192,10 +197,14 @@ export class UsersController {
   @authenticate('jwt')
   async printCurrentUser(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @param.path.string('id') id: typeof Users.prototype.id,
   ): Promise<{id: string; name: string}> {
     currentUserProfile.id = currentUserProfile[securityId];
     delete currentUserProfile[securityId];
-    delete currentUserProfile.token;
+
+    if (id !== currentUserProfile.id) {
+      throw new HttpErrors.Unauthorized('Error Id, not matched');
+    }
 
     const user = await this.usersRepository.findById(currentUserProfile.id);
     delete user.password;
@@ -203,7 +212,7 @@ export class UsersController {
     return {id: user.id, name: user.name};
   }
 
-  @post('/apis/users/friend-req', {
+  @post('/apis/users/{id}/friend-req', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -214,6 +223,7 @@ export class UsersController {
   @authenticate('jwt')
   async friendRequest(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @param.path.string('id') id: typeof Users.prototype.id,
     @requestBody({
       content: {
         'application/json': {
@@ -224,8 +234,15 @@ export class UsersController {
     reqBody: FriendRequest,
   ) {
     try {
+      currentUserProfile.id = currentUserProfile[securityId];
+      delete currentUserProfile[securityId];
+
+      if (id !== currentUserProfile.id) {
+        throw new HttpErrors.Unauthorized('Error Id, not matched!');
+      }
+
       const requesterUser = await this.usersRepository.findOne({
-        where: {id: currentUserProfile[securityId]},
+        where: {id: currentUserProfile.id},
       });
 
       const recipientUser = await this.usersRepository.findOne({
@@ -339,7 +356,7 @@ export class UsersController {
     }
   }
 
-  @post('/apis/users/res-friend-req', {
+  @post('/apis/users/{id}/res-friend-req', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -350,6 +367,7 @@ export class UsersController {
   @authenticate('jwt')
   async responseToFriendRequest(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @param.path.string('id') id: typeof Users.prototype.id,
     @requestBody({
       content: {
         'application/json': {
@@ -360,11 +378,18 @@ export class UsersController {
     bodyReq: FriendRequest,
   ) {
     try {
+      currentUserProfile.id = currentUserProfile[securityId];
+      delete currentUserProfile[securityId];
+
+      if (id !== currentUserProfile.id) {
+        throw new HttpErrors.Unauthorized('Error Id, not matched!');
+      }
+
       let message = '';
 
       const recipientUser = await this.usersRepository.findOne({
         where: {
-          id: currentUserProfile[securityId],
+          id: currentUserProfile.id,
         },
       });
 
@@ -463,6 +488,7 @@ export class UsersController {
   }
 
   @get('/apis/users/{id}', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'User model instance',
@@ -481,18 +507,25 @@ export class UsersController {
   ): Promise<Users> {
     currentUserProfile.id = currentUserProfile[securityId];
     delete currentUserProfile[securityId];
+
+    if (id !== currentUserProfile.id) {
+      throw new HttpErrors.Unauthorized('Error Id, not matched!');
+    }
     return this.usersRepository.findById(id);
   }
 
   @patch('/apis/user/{id}', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'User PATCH success',
       },
     },
   })
+  @authenticate('jwt')
   async updateById(
     @param.path.string('id') id: string,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody({
       content: {
         'application/json': {
@@ -502,6 +535,12 @@ export class UsersController {
     })
     user: Users,
   ): Promise<void> {
+    currentUserProfile.id = currentUserProfile[securityId];
+    delete currentUserProfile[securityId];
+
+    if (id !== currentUserProfile.id) {
+      throw new HttpErrors.Unauthorized('Error Id, not matched!');
+    }
     await this.usersRepository.updateById(id, user);
   }
 }
