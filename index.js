@@ -16,7 +16,8 @@ if (require.main === module) {
     },
   };
 
-  await application.main(config).catch(err => {
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  application.main(config).catch(err => {
     console.error('Cannot start the application.', err);
     process.exit(1);
   });
