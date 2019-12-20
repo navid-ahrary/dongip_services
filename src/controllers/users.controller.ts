@@ -10,7 +10,6 @@ import {
   param,
   patch,
 } from '@loopback/rest';
-import * as _ from 'lodash';
 
 import {Users, FriendRequest} from '../models';
 import {
@@ -23,7 +22,7 @@ import {authenticate, UserService, TokenService} from '@loopback/authentication'
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {PasswordHasherBindings, UserServiceBindings, TokenServiceBindings} from '../keys';
 import {PasswordHasher} from '../services/hash.password.bcryptjs';
-import {validateCredentials} from '../services/validator';
+import {validatePhoneNumber, validatePassword} from '../services/validator';
 import {CredentialsRequestBody, UserProfileSchema} from './specs/user-controller.specs';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import * as moment from 'moment';
@@ -70,7 +69,44 @@ export class UsersController {
     return arr;
   }
 
-  @post('/apis/users/signup', {
+  @get('/apis/users/{phone}/check', {
+    responses: {
+      '200': {
+        description: 'Check this phone number has been registerd or must register now',
+        content: {
+          'application/json': {
+            schema: {
+              isRegistered: 'bool',
+            },
+          },
+        },
+      },
+    },
+  })
+  async checkPhoneNumber(
+    @param.path.string('phone') phoneNumber: string,
+  ): Promise<object> {
+    let isRegistered = false;
+    // Ensure a valid phone number
+    validatePhoneNumber(phoneNumber);
+
+    try {
+      if (
+        await this.usersRepository.findOne({
+          where: {
+            phone: phoneNumber,
+          },
+        })
+      ) {
+        isRegistered = true;
+      }
+      return {isRegistered};
+    } catch (err) {
+      throw new HttpErrors.NotImplemented(err);
+    }
+  }
+
+  @post('/apis/users/{phone}/signup', {
     responses: {
       '200': {
         description: 'User',
@@ -94,8 +130,9 @@ export class UsersController {
     })
     user: Users,
   ): Promise<object> {
-    // ensure a valid phone value adn password value
-    validateCredentials(_.pick(user, ['phone', 'password']));
+    // ensure a valid phone and password value
+    validatePhoneNumber(user.phone);
+    validatePassword(user.password);
 
     // encrypt the password
     user.password = await this.passwordHasher.hashPassword(user.password);
@@ -116,7 +153,7 @@ export class UsersController {
     }
   }
 
-  @post('/apis/users/login', {
+  @post('/apis/users/{phone}/login', {
     responses: {
       '200': {
         description: 'Token',
