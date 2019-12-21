@@ -34,12 +34,14 @@ export class UsersCategoriesController {
   })
   @authenticate('jwt')
   async find(
-    @inject(SecurityBindings.USER) currentUser: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.query.object('filter')
     filter?: Filter<Categories>,
   ): Promise<Categories[]> {
-    const userId = currentUser[securityId];
-    return this.usersRepository.categories(userId).find(filter);
+    currentUserProfile.id = currentUserProfile[securityId];
+    delete currentUserProfile[securityId];
+
+    return this.usersRepository.categories(currentUserProfile.id).find(filter);
   }
 
   @post('/users/{id}/categories', {
@@ -53,7 +55,7 @@ export class UsersCategoriesController {
   })
   @authenticate('jwt')
   async create(
-    @inject(SecurityBindings.USER) currentUser: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody({
       content: {
         'application/json': {
@@ -67,7 +69,10 @@ export class UsersCategoriesController {
     })
     categories: Omit<Categories, 'id'>,
   ): Promise<Categories> {
-    return this.usersRepository.categories(currentUser[securityId]).create(categories);
+    currentUserProfile.id = currentUserProfile[securityId];
+    delete currentUserProfile[securityId];
+
+    return this.usersRepository.categories(currentUserProfile.id).create(categories);
   }
 
   @patch('/users/{id}/categories', {
@@ -81,7 +86,7 @@ export class UsersCategoriesController {
   })
   @authenticate('jwt')
   async patch(
-    @inject(SecurityBindings.USER) currentUser: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody({
       content: {
         'application/json': {
@@ -92,8 +97,11 @@ export class UsersCategoriesController {
     categories: Partial<Categories>,
     @param.query.object('where', getWhereSchemaFor(Categories)) where?: Where<Categories>,
   ): Promise<Count> {
+    currentUserProfile.id = currentUserProfile[securityId];
+    delete currentUserProfile[securityId];
+
     return this.usersRepository
-      .categories(currentUser[securityId])
+      .categories(currentUserProfile.id)
       .patch(categories, where);
   }
 
@@ -108,9 +116,12 @@ export class UsersCategoriesController {
   })
   @authenticate('jwt')
   async delete(
-    @inject(SecurityBindings.USER) currentUser: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.query.object('where', getWhereSchemaFor(Categories)) where?: Where<Categories>,
   ): Promise<Count> {
-    return this.usersRepository.categories(currentUser[securityId]).delete(where);
+    currentUserProfile.id = currentUserProfile[securityId];
+    delete currentUserProfile[securityId];
+
+    return this.usersRepository.categories(currentUserProfile.id).delete(where);
   }
 }

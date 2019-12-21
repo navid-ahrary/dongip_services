@@ -1,10 +1,4 @@
-import {
-  Count,
-  CountSchema,
-  Filter,
-  repository,
-  Where,
-} from '@loopback/repository';
+import {Count, CountSchema, Filter, repository, Where} from '@loopback/repository';
 import {
   del,
   get,
@@ -15,21 +9,21 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {
-  Users,
-  VirtualUsers,
-} from '../models';
+import {Users, VirtualUsers} from '../models';
 import {UsersRepository} from '../repositories';
+import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
+import {authenticate} from '@loopback/authentication';
+import {inject} from '@loopback/core';
+import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 
 export class UsersVirtualUsersController {
-  constructor(
-    @repository(UsersRepository) protected usersRepository: UsersRepository,
-  ) { }
+  constructor(@repository(UsersRepository) protected usersRepository: UsersRepository) {}
 
   @get('/users/{id}/virtual-users', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Array of VirtualUsers\'s belonging to Users',
+        description: "Array of VirtualUsers's belonging to Users",
         content: {
           'application/json': {
             schema: {type: 'array', items: getModelSchemaRef(VirtualUsers)},
@@ -38,14 +32,20 @@ export class UsersVirtualUsersController {
       },
     },
   })
+  @authenticate('jwt')
   async find(
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.path.string('id') id: string,
     @param.query.object('filter') filter?: Filter<VirtualUsers>,
   ): Promise<VirtualUsers[]> {
-    return this.usersRepository.virtualUsers(id).find(filter);
+    currentUserProfile.id = currentUserProfile[securityId];
+    delete currentUserProfile[securityId];
+
+    return this.usersRepository.virtualUsers(currentUserProfile.id).find(filter);
   }
 
   @post('/users/{id}/virtual-users', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Users model instance',
@@ -53,7 +53,9 @@ export class UsersVirtualUsersController {
       },
     },
   })
+  @authenticate('jwt')
   async create(
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.path.string('id') id: typeof Users.prototype.id,
     @requestBody({
       content: {
@@ -61,16 +63,21 @@ export class UsersVirtualUsersController {
           schema: getModelSchemaRef(VirtualUsers, {
             title: 'NewVirtualUsersInUsers',
             exclude: ['id'],
-            optional: ['usersId']
+            optional: ['usersId'],
           }),
         },
       },
-    }) virtualUsers: Omit<VirtualUsers, 'id'>,
+    })
+    virtualUsers: Omit<VirtualUsers, 'id'>,
   ): Promise<VirtualUsers> {
-    return this.usersRepository.virtualUsers(id).create(virtualUsers);
+    currentUserProfile.id = currentUserProfile[securityId];
+    delete currentUserProfile[securityId];
+
+    return this.usersRepository.virtualUsers(currentUserProfile.id).create(virtualUsers);
   }
 
   @patch('/users/{id}/virtual-users', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Users.VirtualUsers PATCH success count',
@@ -78,7 +85,9 @@ export class UsersVirtualUsersController {
       },
     },
   })
+  @authenticate('jwt')
   async patch(
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.path.string('id') id: string,
     @requestBody({
       content: {
@@ -88,12 +97,19 @@ export class UsersVirtualUsersController {
       },
     })
     virtualUsers: Partial<VirtualUsers>,
-    @param.query.object('where', getWhereSchemaFor(VirtualUsers)) where?: Where<VirtualUsers>,
+    @param.query.object('where', getWhereSchemaFor(VirtualUsers))
+    where?: Where<VirtualUsers>,
   ): Promise<Count> {
-    return this.usersRepository.virtualUsers(id).patch(virtualUsers, where);
+    currentUserProfile.id = currentUserProfile[securityId];
+    delete currentUserProfile[securityId];
+
+    return this.usersRepository
+      .virtualUsers(currentUserProfile.id)
+      .patch(virtualUsers, where);
   }
 
   @del('/users/{id}/virtual-users', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Users.VirtualUsers DELETE success count',
@@ -101,10 +117,16 @@ export class UsersVirtualUsersController {
       },
     },
   })
+  @authenticate('jwt')
   async delete(
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.path.string('id') id: string,
-    @param.query.object('where', getWhereSchemaFor(VirtualUsers)) where?: Where<VirtualUsers>,
+    @param.query.object('where', getWhereSchemaFor(VirtualUsers))
+    where?: Where<VirtualUsers>,
   ): Promise<Count> {
-    return this.usersRepository.virtualUsers(id).delete(where);
+    currentUserProfile.id = currentUserProfile[securityId];
+    delete currentUserProfile[securityId];
+
+    return this.usersRepository.virtualUsers(currentUserProfile.id).delete(where);
   }
 }
