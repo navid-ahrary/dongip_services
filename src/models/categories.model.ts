@@ -26,13 +26,17 @@ export class Categories extends Entity {
   })
   cigar?: object;
 
+  @property({
+    type: 'object',
+  })
+  misc?: object;
+
   @belongsTo(() => Users)
   usersId: string;
   // Define well-known properties here
 
   // Indexer property to allow additional data
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [prop: string]: any;
+  [prop: string]: string | object | undefined;
 
   constructor(data?: Partial<Categories>) {
     super(data);

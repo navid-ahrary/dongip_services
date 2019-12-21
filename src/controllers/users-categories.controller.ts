@@ -19,7 +19,7 @@ import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 export class UsersCategoriesController {
   constructor(@repository(UsersRepository) protected usersRepository: UsersRepository) {}
 
-  @get('/users/categories', {
+  @get('/users/{id}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -42,7 +42,7 @@ export class UsersCategoriesController {
     return this.usersRepository.categories(userId).find(filter);
   }
 
-  @post('/users/categories', {
+  @post('/users/{id}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -70,7 +70,7 @@ export class UsersCategoriesController {
     return this.usersRepository.categories(currentUser[securityId]).create(categories);
   }
 
-  @patch('/users/categories', {
+  @patch('/users/{id}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -97,7 +97,7 @@ export class UsersCategoriesController {
       .patch(categories, where);
   }
 
-  @del('/users/categories', {
+  @del('/users/{id}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
