@@ -397,7 +397,7 @@ export class UsersController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Answer to friend request ',
+        description: 'Response to friend request ',
       },
     },
   })
