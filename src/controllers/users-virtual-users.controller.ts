@@ -19,7 +19,7 @@ import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 export class UsersVirtualUsersController {
   constructor(@repository(UsersRepository) protected usersRepository: UsersRepository) {}
 
-  @get('/users/{id}/virtual-users', {
+  @get('/apis/users/{id}/virtual-users', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -44,7 +44,7 @@ export class UsersVirtualUsersController {
     return this.usersRepository.virtualUsers(currentUserProfile.id).find(filter);
   }
 
-  @post('/users/{id}/virtual-users', {
+  @post('/apis/users/{id}/virtual-users', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -76,7 +76,7 @@ export class UsersVirtualUsersController {
     return this.usersRepository.virtualUsers(currentUserProfile.id).create(virtualUsers);
   }
 
-  @patch('/users/{id}/virtual-users', {
+  @patch('/apis/users/{id}/virtual-users', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -108,7 +108,7 @@ export class UsersVirtualUsersController {
       .patch(virtualUsers, where);
   }
 
-  @del('/users/{id}/virtual-users', {
+  @del('/apis/users/{id}/virtual-users', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
