@@ -1,6 +1,7 @@
 import {Entity, model, property, belongsTo} from '@loopback/repository';
 import {Users, UsersWithRelations} from './users.model';
 import {VirtualUsersWithRelations} from './virtual-users.model';
+import {Categories} from './categories.model';
 
 @model()
 export class Dongs extends Entity {
@@ -42,12 +43,13 @@ export class Dongs extends Entity {
     itemType: 'string',
     required: true,
   })
-  items: string[];
+  items: typeof Categories.prototype.id[];
 
   @property({
     type: 'date',
+    required: true,
   })
-  createdAt?: string;
+  createdAt: string;
 
   @property({
     type: 'object',

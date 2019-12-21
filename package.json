@@ -6,7 +6,7 @@
     "loopback-application",
     "loopback"
   ],
-  "main": "dongip.js",
+  "main": "index.js",
   "engines": {
     "node": ">=10.16.3"
   },
@@ -21,10 +21,10 @@
     "prettier:fix": "yarn run prettier:cli -- --write",
     "eslint": "lb-eslint --report-unused-disable-directives .",
     "eslint:fix": "yarn run eslint -- --fix",
-    "pretest": "yarn run clean && npm run build",
+    "pretest": "yarn run clean && yarn run build",
     "test": "lb-mocha --allow-console-logs \"dist/__tests__\"",
     "posttest": "yarn run lint",
-    "test:dev": "lb-mocha --allow-console-logs dist/__tests__/**/*.js && npm run posttest",
+    "test:dev": "lb-mocha --allow-console-logs dist/__tests__/**/*.js && yarn run posttest",
     "docker:build": "docker build -t dongpi_service .",
     "docker :run": "docker run -p 3000:3000 -d dongpi_services",
     "migrate": "node ./dist/migrate",
@@ -40,8 +40,8 @@
   "license": "ISC",
   "files": [
     "README.md",
-    "dongip.js",
-    "dongip.d.ts",
+    "index.js",
+    "index.d.ts",
     "dist",
     "src",
     "!*/__tests__"
