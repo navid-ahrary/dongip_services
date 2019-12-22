@@ -83,18 +83,16 @@ export class UsersController {
       },
     },
   })
-  async checkPhoneNumber(
-    @param.path.string('phone') phoneNumber: string,
-  ): Promise<object> {
+  async checkPhoneNumber(@param.path.string('phone') phone: string): Promise<object> {
     let isRegistered = false;
     // Ensure a valid phone number
-    validatePhoneNumber(phoneNumber);
+    validatePhoneNumber(phone);
 
     try {
       if (
         await this.usersRepository.findOne({
           where: {
-            phone: phoneNumber,
+            phone: phone,
           },
         })
       ) {
@@ -119,6 +117,7 @@ export class UsersController {
     },
   })
   async create(
+    @param.path.string('phone') phone: string,
     @requestBody({
       content: {
         'application/json': {
@@ -131,6 +130,7 @@ export class UsersController {
     user: Users,
   ): Promise<object> {
     // ensure a valid phone and password value
+    validatePhoneNumber(phone);
     validatePhoneNumber(user.phone);
     validatePassword(user.password);
 
@@ -173,6 +173,7 @@ export class UsersController {
     },
   })
   async login(
+    @param.path.string('phone') phone: string,
     @requestBody(CredentialsRequestBody) credentials: Credentials,
   ): Promise<{accessToken: string}> {
     //ensure the user exists and the password is correct
