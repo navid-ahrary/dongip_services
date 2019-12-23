@@ -86,7 +86,8 @@ export class UsersController {
   })
   async checkPhoneNumber(@param.path.string('phone') phone: string): Promise<object> {
     let isRegistered = false;
-    let name = 'نیروی جدید';
+    let name = 'عضو جدید';
+    let avatar = 'dongip';
     // Ensure a valid phone number
     validatePhoneNumber(phone);
 
@@ -97,8 +98,9 @@ export class UsersController {
       if (user) {
         isRegistered = true;
         name = user.name;
+        avatar = user.avatar;
       }
-      return {isRegistered, name};
+      return {isRegistered, name, avatar};
     } catch (err) {
       throw new HttpErrors.NotImplemented(err);
     }
