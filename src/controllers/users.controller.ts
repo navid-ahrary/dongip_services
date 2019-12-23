@@ -86,20 +86,19 @@ export class UsersController {
   })
   async checkPhoneNumber(@param.path.string('phone') phone: string): Promise<object> {
     let isRegistered = false;
+    let name = 'نیروی جدید';
     // Ensure a valid phone number
     validatePhoneNumber(phone);
 
     try {
-      if (
-        await this.usersRepository.findOne({
-          where: {
-            phone: phone,
-          },
-        })
-      ) {
+      const user = await this.usersRepository.findOne({
+        where: {phone: phone},
+      });
+      if (user) {
         isRegistered = true;
+        name = user.name;
       }
-      return {isRegistered};
+      return {isRegistered, name};
     } catch (err) {
       throw new HttpErrors.NotImplemented(err);
     }
