@@ -5,9 +5,9 @@ import {Users} from './models';
 import {Credentials} from './repositories';
 import dotenv = require('dotenv');
 
-export namespace TokenServiceConstants {
-  dotenv.config();
+dotenv.config();
 
+export namespace TokenServiceConstants {
   export const TOKEN_SECRET_VALUE = process.env.TOKEN_SECRET_VALUE;
   export const TOKEN_EXPIRES_IN_VALUE = process.env.TOKEN_EXPIRES_IN_VALUE;
   export const TOKEN_ALGORITHM_VALUE = process.env.TOKEN_ALGORITHM_VALUE;

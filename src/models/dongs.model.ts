@@ -1,6 +1,6 @@
 import {Entity, model, property, belongsTo} from '@loopback/repository';
 import {Users, UsersWithRelations} from './users.model';
-import {VirtualUsersWithRelations} from './virtual-users.model';
+import {VirtualUsersWithRelations, VirtualUsers} from './virtual-users.model';
 import {Categories} from './categories.model';
 
 @model()
@@ -60,10 +60,8 @@ export class Dongs extends Entity {
   @belongsTo(() => Users)
   usersId: string;
 
-  @property({
-    type: 'string',
-  })
-  virtualUsersId?: string;
+  @belongsTo(() => VirtualUsers)
+  virtualUsersId: string;
 
   constructor(data?: Partial<Dongs>) {
     super(data);

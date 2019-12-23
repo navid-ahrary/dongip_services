@@ -37,7 +37,10 @@ export class JWTService implements TokenService {
       );
 
       // don't copy over  token field 'iat' and 'exp', nor 'email' to user profile
-      userProfile = Object.assign({[securityId]: ''}, {[securityId]: decryptedToken.sub});
+      userProfile = Object.assign(
+        {[securityId]: '', accountType: ''},
+        {[securityId]: decryptedToken.sub, accountType: decryptedToken.accountType},
+      );
     } catch (error) {
       throw new HttpErrors.Unauthorized(`Error verifying access token: ${error.message}`);
     }
@@ -51,7 +54,7 @@ export class JWTService implements TokenService {
     }
     const id: string = userProfile[securityId].toString();
 
-    userProfile['type'] = 'trial';
+    userProfile['accountType'] = 'trial';
 
     //generate a JWT token
     let accessToken: string;

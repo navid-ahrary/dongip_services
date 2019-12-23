@@ -9,8 +9,11 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
+import {UserProfile, SecurityBindings, securityId} from '@loopback/security';
 import {Users, Dongs} from '../models';
 import {UsersRepository} from '../repositories';
+import {inject} from '@loopback/core';
+import {authenticate} from '@loopback/authentication';
 
 export class UsersDongsController {
   constructor(@repository(UsersRepository) protected usersRepository: UsersRepository) {}
@@ -27,7 +30,9 @@ export class UsersDongsController {
       },
     },
   })
+  @authenticate('jwt')
   async find(
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.path.string('id') id: string,
     @param.query.object('filter') filter?: Filter<Dongs>,
   ): Promise<Dongs[]> {
@@ -42,7 +47,9 @@ export class UsersDongsController {
       },
     },
   })
+  @authenticate('jwt')
   async create(
+    @inject(SecurityBindings.USER) curretUserProfile: UserProfile,
     @param.path.string('id') id: typeof Users.prototype.id,
     @requestBody({
       content: {

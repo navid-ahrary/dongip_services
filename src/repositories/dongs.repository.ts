@@ -29,9 +29,9 @@ export class DongsRepository extends DefaultCrudRepository<
       'virtualUsers',
       virtualUsersRepositoryGetter,
     );
-    this.users = this.createBelongsToAccessorFor('users', usersRepositoryGetter);
-
-    this.registerInclusionResolver('users', this.users.inclusionResolver);
     this.registerInclusionResolver('virtualUsers', this.virtualUsers.inclusionResolver);
+
+    this.users = this.createBelongsToAccessorFor('users', usersRepositoryGetter);
+    this.registerInclusionResolver('users', this.users.inclusionResolver);
   }
 }
