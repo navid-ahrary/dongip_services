@@ -44,7 +44,7 @@ export class Categories extends Entity {
 }
 
 export interface CategoriesRelations {
-  usersId?: UsersRelations[];
+  users?: UsersRelations[];
 }
 
 export type CategoriesWithRelations = Categories & CategoriesRelations;

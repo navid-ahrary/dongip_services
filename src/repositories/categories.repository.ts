@@ -9,13 +9,14 @@ export class CategoriesRepository extends DefaultCrudRepository<
   typeof Categories.prototype.id,
   CategoriesRelations
 > {
-
   public readonly users: BelongsToAccessor<Users, typeof Categories.prototype.id>;
 
   constructor(
-    @inject('datasources.mongods') dataSource: MongodsDataSource, @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
+    @inject('datasources.mongods') dataSource: MongodsDataSource,
+    @repository.getter('UsersRepository')
+    protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
     super(Categories, dataSource);
-    this.users = this.createBelongsToAccessorFor('users', usersRepositoryGetter,);
+    this.users = this.createBelongsToAccessorFor('users', usersRepositoryGetter);
   }
 }

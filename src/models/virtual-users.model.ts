@@ -36,6 +36,11 @@ export class VirtualUsers extends Entity {
   @hasMany(() => Dongs)
   dongs: Dongs[];
 
+  @property({
+    type: 'string',
+  })
+  dongsId?: string;
+
   constructor(data?: Partial<VirtualUsers>) {
     super(data);
   }
