@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/camelcase */
 module.exports = {
   apps: [{
-    name: 'dongip_services',
+    name: 'dongip',
     script: 'index.js',
     instances: 2,
     autorestart: true,
