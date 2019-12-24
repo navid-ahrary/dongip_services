@@ -29,7 +29,8 @@
     "docker :run": "docker run -p 3000:3000 -d dongpi_services",
     "migrate": "node ./dist/migrate",
     "prestart": "yarn run build",
-    "start": "node -r source-map-support/register .",
+    "start": "pm2 start ecosystem.config.js --env production",
+    "stop": "pm2 stop ecosystem.config.js --env production",
     "prepublishOnly": "yarn run test"
   },
   "repository": {
@@ -69,7 +70,8 @@
     "loopback-connector": "^4.5.0",
     "loopback-connector-kv-redis": "^3.0.2",
     "loopback-connector-mongodb": "^5.2.1",
-    "moment": "^2.24.0"
+    "moment": "^2.24.0",
+    "pm2": "^4.2.1"
   },
   "devDependencies": {
     "@loopback/build": "^2.0.14",
