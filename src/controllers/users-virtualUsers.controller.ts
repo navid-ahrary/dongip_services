@@ -73,7 +73,14 @@ export class UsersVirtualUsersController {
     currentUserProfile.id = currentUserProfile[securityId];
     delete currentUserProfile[securityId];
 
-    return this.usersRepository.virtualUsers(currentUserProfile.id).create(virtualUsers);
+    const user = await this.usersRepository.findById(currentUserProfile.id);
+
+    const virtualUser = await this.usersRepository
+      .virtualUsers(currentUserProfile.id)
+      .create(virtualUsers);
+    user.virtualFriends.push(virtualUser.id);
+
+    return virtualUser;
   }
 
   @patch('/apis/users/{id}/virtual-users', {

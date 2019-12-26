@@ -9,7 +9,7 @@ import config = require('./mongo.datasource.config.json');
 
 @lifeCycleObserver('datasource')
 export class MongoDataSource extends juggler.DataSource implements LifeCycleObserver {
-  static dataSourceName = 'mongo';
+  static dataSourceName = 'mongods';
 
   constructor(
     @inject('datasources.config.mongo', {optional: true})

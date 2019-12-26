@@ -1,6 +1,6 @@
 import {Entity, model, property, belongsTo, hasMany} from '@loopback/repository';
 import {Users, UsersWithRelations} from './users.model';
-import {Dongs, DongsWithRelations} from './dongs.model';
+import {DongsWithRelations, Dongs} from './dongs.model';
 
 @model()
 export class VirtualUsers extends Entity {
@@ -34,12 +34,7 @@ export class VirtualUsers extends Entity {
   usersId: typeof Users.prototype.id;
 
   @hasMany(() => Dongs)
-  dongs: Dongs[];
-
-  @property({
-    type: 'string',
-  })
-  dongsId?: string;
+  dongs: typeof Dongs.prototype.id;
 
   constructor(data?: Partial<VirtualUsers>) {
     super(data);
@@ -47,7 +42,7 @@ export class VirtualUsers extends Entity {
 }
 
 export interface VirtualUsersRelations {
-  usersId?: UsersWithRelations;
+  users?: UsersWithRelations;
   dongs?: DongsWithRelations;
 }
 

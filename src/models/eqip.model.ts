@@ -25,13 +25,6 @@ export class Eqip extends Model {
   })
   dong: number;
 
-  @property({
-    type: 'array',
-    itemType: 'string',
-    required: true,
-  })
-  guests: string[];
-
   constructor(data?: Partial<Eqip>) {
     super(data);
   }

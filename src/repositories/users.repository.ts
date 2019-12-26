@@ -3,11 +3,10 @@ import {
   repository,
   HasManyRepositoryFactory,
 } from '@loopback/repository';
-import {Users, Dongs, VirtualUsers, Categories} from '../models';
-import {MongodsDataSource} from '../datasources';
+import {Users, VirtualUsers, Categories} from '../models';
+import {MongoDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
-import {DongsRepository} from './dongs.repository';
-import {VirtualUsersRepository} from './virtual-users.repository';
+import {VirtualUsersRepository} from './virtualUsers.repository';
 import {CategoriesRepository} from './categories.repository';
 
 export type Credentials = {
@@ -23,7 +22,6 @@ export class UsersRepository extends DefaultCrudRepository<
     VirtualUsers,
     typeof Users.prototype.id
   >;
-  public readonly dongs: HasManyRepositoryFactory<Dongs, typeof Users.prototype.id>;
 
   public readonly categories: HasManyRepositoryFactory<
     Categories,
@@ -31,15 +29,14 @@ export class UsersRepository extends DefaultCrudRepository<
   >;
 
   constructor(
-    @inject('datasources.mongods') dataSource: MongodsDataSource,
-    @repository.getter('DongsRepository')
-    protected dongsRepositoryGetter: Getter<DongsRepository>,
+    @inject('datasources.mongods') dataSource: MongoDataSource,
     @repository.getter('VirtualUsersRepository')
     protected virtualUsersRepositoryGetter: Getter<VirtualUsersRepository>,
     @repository.getter('CategoriesRepository')
     protected categoriesRepositoryGetter: Getter<CategoriesRepository>,
   ) {
     super(Users, dataSource);
+
     this.categories = this.createHasManyRepositoryFactoryFor(
       'categories',
       categoriesRepositoryGetter,
@@ -51,8 +48,5 @@ export class UsersRepository extends DefaultCrudRepository<
       virtualUsersRepositoryGetter,
     );
     this.registerInclusionResolver('virtualUsers', this.virtualUsers.inclusionResolver);
-
-    this.dongs = this.createHasManyRepositoryFactoryFor('dongs', dongsRepositoryGetter);
-    this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
   }
 }
