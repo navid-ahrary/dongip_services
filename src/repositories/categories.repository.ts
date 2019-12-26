@@ -18,5 +18,6 @@ export class CategoriesRepository extends DefaultCrudRepository<
   ) {
     super(Categories, dataSource);
     this.users = this.createBelongsToAccessorFor('users', usersRepositoryGetter);
+    this.registerInclusionResolver('users', this.users.inclusionResolver);
   }
 }

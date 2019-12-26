@@ -25,10 +25,10 @@ import {PasswordHasher} from '../services/hash.password.bcryptjs';
 import {validatePhoneNumber, validatePassword} from '../services/validator';
 import {CredentialsRequestBody, UserProfileSchema} from './specs/user-controller.specs';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import * as moment from 'moment';
 import * as underscore from 'underscore';
 import dotenv = require('dotenv');
 import * as admin from 'firebase-admin';
+import moment = require('moment');
 
 dotenv.config();
 

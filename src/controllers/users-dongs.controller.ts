@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {Count, CountSchema, Filter, repository, Where} from '@loopback/repository';
 import {
   del,
@@ -8,12 +9,13 @@ import {
   patch,
   post,
   requestBody,
+  HttpErrors,
 } from '@loopback/rest';
-import {UserProfile, SecurityBindings, securityId} from '@loopback/security';
+import {SecurityBindings, UserProfile} from '@loopback/security';
 import {Users, Dongs} from '../models';
 import {UsersRepository} from '../repositories';
-import {inject} from '@loopback/core';
 import {authenticate} from '@loopback/authentication';
+import {inject} from '@loopback/core';
 
 export class UsersDongsController {
   constructor(@repository(UsersRepository) protected usersRepository: UsersRepository) {}
@@ -30,16 +32,14 @@ export class UsersDongsController {
       },
     },
   })
-  @authenticate('jwt')
   async find(
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.path.string('id') id: string,
     @param.query.object('filter') filter?: Filter<Dongs>,
   ): Promise<Dongs[]> {
     return this.usersRepository.dongs(id).find(filter);
   }
 
-  @post('/users/{id}/dongs', {
+  @post('/apis/users/{id}/dongs', {
     responses: {
       '200': {
         description: 'Users model instance',
@@ -49,22 +49,44 @@ export class UsersDongsController {
   })
   @authenticate('jwt')
   async create(
-    @inject(SecurityBindings.USER) curretUserProfile: UserProfile,
     @param.path.string('id') id: typeof Users.prototype.id,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(Dongs, {
-            title: 'NewDongsInUsers',
+            title: 'NewDongForNodes',
             exclude: ['id'],
-            optional: ['usersId'],
+            optional: ['desc'],
           }),
         },
       },
     })
     dongs: Omit<Dongs, 'id'>,
   ): Promise<Dongs> {
-    return this.usersRepository.dongs(id).create(dongs);
+    try {
+      let pong = 0;
+      let factorNodes = 0;
+
+      for (const item of dongs.eqip) {
+        pong += item['paidCost'];
+        factorNodes += item['factor'];
+      }
+
+      dongs.pong = pong;
+
+      const dong = pong / factorNodes;
+
+      for (const n of dongs.eqip) {
+        n.dong = dong * n.factor;
+      }
+
+      console.log(dongs);
+
+      return this.usersRepository.dongs(id).create(dongs);
+    } catch (err) {
+      throw new HttpErrors.NotImplemented(err);
+    }
   }
 
   @patch('/users/{id}/dongs', {

@@ -1,7 +1,6 @@
 import {Entity, model, property, belongsTo} from '@loopback/repository';
+import {Eqip} from './eqip.model';
 import {Users, UsersWithRelations} from './users.model';
-import {VirtualUsersWithRelations, VirtualUsers} from './virtual-users.model';
-import {Categories} from './categories.model';
 
 @model()
 export class Dongs extends Entity {
@@ -21,7 +20,7 @@ export class Dongs extends Entity {
 
   @property({
     type: 'number',
-    required: true,
+    required: false,
   })
   costs: number;
 
@@ -29,21 +28,14 @@ export class Dongs extends Entity {
     type: 'string',
     required: true,
   })
-  decs?: string;
+  desc?: string;
 
   @property({
     type: 'array',
     itemType: 'string',
     required: true,
   })
-  assets?: string[];
-
-  @property({
-    type: 'array',
-    itemType: 'string',
-    required: true,
-  })
-  items: typeof Categories.prototype.id[];
+  categories: string[];
 
   @property({
     type: 'date',
@@ -52,16 +44,20 @@ export class Dongs extends Entity {
   createdAt: string;
 
   @property({
-    type: 'object',
-    required: true,
+    type: 'number',
+    required: false,
   })
-  paidBy: object;
+  pong: number;
+
+  @property({
+    required: true,
+    type: 'array',
+    itemType: 'object',
+  })
+  eqip: Eqip[];
 
   @belongsTo(() => Users)
-  usersId: string;
-
-  @belongsTo(() => VirtualUsers)
-  virtualUsersId: string;
+  usersId: typeof Users.prototype.id;
 
   constructor(data?: Partial<Dongs>) {
     super(data);
@@ -69,8 +65,7 @@ export class Dongs extends Entity {
 }
 
 export interface DongsRelations {
-  users?: UsersWithRelations[];
-  virtualUsers?: VirtualUsersWithRelations[];
+  users?: UsersWithRelations;
 }
 
 export type DongsWithRelations = Dongs & DongsRelations;
