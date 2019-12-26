@@ -1,0 +1,10 @@
+{
+  "name": "neo4jds",
+  "connector": "neo4j-driver",
+  "protocol": "bolt",
+  "host": "localhost",
+  "port": 7688,
+  "user": "neo4j",
+  "password": "navid",
+  "database": "dongip"
+}
