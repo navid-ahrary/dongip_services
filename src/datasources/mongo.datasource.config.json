@@ -1,5 +1,5 @@
 {
-  "name": "mongods",
+  "name": "mongo",
   "connector": "mongodb",
   "url": "",
   "host": "localhost",
@@ -7,6 +7,5 @@
   "user": "",
   "password": "",
   "database": "dongip",
-  "useNewUrlParser": true,
-  "useUnifiedTopology": true
+  "useNewUrlParser": true
 }

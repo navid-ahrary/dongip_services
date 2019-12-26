@@ -5,14 +5,14 @@ import {
   ValueOrPromise,
 } from '@loopback/core';
 import {juggler} from '@loopback/repository';
-import * as config from './redis.datasource.json';
+import config = require('./redis.datasource.config.json');
 
 @lifeCycleObserver('datasource')
 export class RedisDataSource extends juggler.DataSource implements LifeCycleObserver {
-  static dataSourceName = 'redisds';
+  static dataSourceName = 'redis';
 
   constructor(
-    @inject('datasources.config.redisds', {optional: true})
+    @inject('datasources.config.redis', {optional: true})
     dsConfig: object = config,
   ) {
     super(dsConfig);

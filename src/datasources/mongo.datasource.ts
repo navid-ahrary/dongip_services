@@ -5,14 +5,14 @@ import {
   ValueOrPromise,
 } from '@loopback/core';
 import {juggler} from '@loopback/repository';
-import * as config from './mongods.datasource.json';
+import config = require('./mongo.datasource.config.json');
 
 @lifeCycleObserver('datasource')
-export class MongodsDataSource extends juggler.DataSource implements LifeCycleObserver {
-  static dataSourceName = 'mongods';
+export class MongoDataSource extends juggler.DataSource implements LifeCycleObserver {
+  static dataSourceName = 'mongo';
 
   constructor(
-    @inject('datasources.config.mongods', {optional: true})
+    @inject('datasources.config.mongo', {optional: true})
     dsConfig: object = config,
   ) {
     super(dsConfig);
