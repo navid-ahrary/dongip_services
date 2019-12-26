@@ -5,7 +5,7 @@ import {
   HasManyRepositoryFactory,
 } from '@loopback/repository';
 import {VirtualUsers, VirtualUsersRelations, Users, Dongs} from '../models';
-import {MongodsDataSource} from '../datasources';
+import {MongoDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
 import {UsersRepository} from './users.repository';
 import {DongsRepository} from './dongs.repository';
@@ -22,7 +22,7 @@ export class VirtualUsersRepository extends DefaultCrudRepository<
   >;
 
   constructor(
-    @inject('datasources.mongods') dataSource: MongodsDataSource,
+    @inject('datasources.mongods') dataSource: MongoDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('DongsRepository')
@@ -31,9 +31,9 @@ export class VirtualUsersRepository extends DefaultCrudRepository<
     super(VirtualUsers, dataSource);
 
     this.users = this.createBelongsToAccessorFor('users', usersRepositoryGetter);
-    this.dongs = this.createHasManyRepositoryFactoryFor('dongs', dongsRepositoryGetter);
-
     this.registerInclusionResolver('users', this.users.inclusionResolver);
+
+    this.dongs = this.createHasManyRepositoryFactoryFor('dongs', dongsRepositoryGetter);
     this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
   }
 }
