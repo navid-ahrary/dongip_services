@@ -1,7 +1,7 @@
 import {Entity, model, property, hasMany} from '@loopback/repository';
 import {VirtualUsers, VirtualUsersWithRelations} from './virtualUsers.model';
-import {Categories} from './categories.model';
 import {Dongs} from './dongs.model';
+import {Category} from './category.model';
 
 @model()
 export class Users extends Entity {
@@ -65,7 +65,7 @@ export class Users extends Entity {
     type: 'string',
     reqiured: true,
   })
-  deviceToken: string;
+  registerationToken: string;
 
   @property({
     type: 'array',
@@ -94,9 +94,6 @@ export class Users extends Entity {
   @hasMany(() => VirtualUsers)
   virtualUsers: VirtualUsers[];
 
-  @hasMany(() => Categories)
-  categories: Categories[];
-
   @property({
     type: 'array',
     itemType: 'string',
@@ -104,6 +101,12 @@ export class Users extends Entity {
     default: [],
   })
   dongsId: typeof Dongs.prototype.id[];
+
+  @hasMany(() => Dongs, {keyTo: 'expensesManagerId'})
+  dongs: Dongs[];
+
+  @hasMany(() => Category)
+  categories: Category[];
 
   constructor(data?: Partial<Users>) {
     super(data);

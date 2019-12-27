@@ -173,7 +173,7 @@ export class UsersController {
     const user = await this.userService.verifyCredentials(credentials);
 
     await this.usersRepository.updateById(user.id, {
-      deviceToken: credentials.deviceToken,
+      registerationToken: credentials.registerationToken,
     });
 
     //convert a User object into a UserProfile object (reduced set of properties)
@@ -351,7 +351,7 @@ export class UsersController {
             contentAvailable: true,
             mutableContent: true,
           };
-          const recipUserNotifToken = recipientUser.deviceToken;
+          const recipUserNotifToken = recipientUser.registerationToken;
 
           // send friend request notofication to recipient user device
           await admin
@@ -497,7 +497,7 @@ export class UsersController {
           await this.usersRepository.updateById(requesterUser.id, requesterUser);
 
           // send notification accept/reject message to requester of friend request
-          const reqUserNotifToken = requesterUser.deviceToken;
+          const reqUserNotifToken = requesterUser.registerationToken;
           await admin
             .messaging()
             .sendToDevice(reqUserNotifToken, payload, options)
