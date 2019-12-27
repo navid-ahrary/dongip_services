@@ -26,17 +26,8 @@ import {validatePhoneNumber, validatePassword} from '../services/validator';
 import {CredentialsRequestBody, UserProfileSchema} from './specs/user-controller.specs';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import * as underscore from 'underscore';
-import dotenv = require('dotenv');
 import * as admin from 'firebase-admin';
 import moment = require('moment');
-
-dotenv.config();
-
-const serviceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: process.env.GOOGLE_APPLICATION_DATABASEURL,
-});
 
 export class UsersController {
   constructor(
@@ -209,7 +200,7 @@ export class UsersController {
       delete currentUserProfile[securityId];
 
       if (id !== currentUserProfile.id) {
-        throw new HttpErrors.Unauthorized('Error id, not matched!');
+        throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
       }
 
       await this.blacklistRepository.addTokenToBlacklist(
@@ -243,7 +234,7 @@ export class UsersController {
     delete currentUserProfile[securityId];
 
     if (id !== currentUserProfile.id) {
-      throw new HttpErrors.Unauthorized('Error Id, not matched');
+      throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
     }
 
     const user = await this.usersRepository.findById(currentUserProfile.id);
@@ -278,7 +269,7 @@ export class UsersController {
       delete currentUserProfile[securityId];
 
       if (id !== currentUserProfile.id) {
-        throw new HttpErrors.Unauthorized('Error Id, not matched!');
+        throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
       }
 
       const requesterUser = await this.usersRepository.findOne({
@@ -422,7 +413,7 @@ export class UsersController {
       delete currentUserProfile[securityId];
 
       if (id !== currentUserProfile.id) {
-        throw new HttpErrors.Unauthorized('Error Id, not matched!');
+        throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
       }
 
       let message = '';
@@ -549,7 +540,7 @@ export class UsersController {
     delete currentUserProfile[securityId];
 
     if (id !== currentUserProfile.id) {
-      throw new HttpErrors.Unauthorized('Error Id, not matched!');
+      throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
     }
     return this.usersRepository.findById(id);
   }
@@ -579,7 +570,7 @@ export class UsersController {
     delete currentUserProfile[securityId];
 
     if (id !== currentUserProfile.id) {
-      throw new HttpErrors.Unauthorized('Error Id, not matched!');
+      throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
     }
     await this.usersRepository.updateById(id, user);
   }
