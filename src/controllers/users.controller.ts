@@ -420,7 +420,7 @@ export class UsersController {
 
       const recipientUser = await this.usersRepository.findOne({
         where: {
-          id: currentUserProfile.id,
+          id: id,
         },
       });
 
