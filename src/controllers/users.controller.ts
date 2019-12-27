@@ -197,7 +197,9 @@ export class UsersController {
   ) {
     try {
       if (id !== currentUserProfile[securityId]) {
-        throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
+        throw new HttpErrors.Unauthorized(
+          'Error users logout ,Token is not matched to this user id!',
+        );
       }
 
       await this.blacklistRepository.addTokenToBlacklist(
@@ -228,7 +230,9 @@ export class UsersController {
     @param.path.string('id') id: typeof Users.prototype.id,
   ): Promise<{id: string; name: string}> {
     if (id !== currentUserProfile[securityId]) {
-      throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
+      throw new HttpErrors.Unauthorized(
+        'Error users print current user , Token is not matched to this user id!',
+      );
     }
 
     const user = await this.usersRepository.findById(currentUserProfile[securityId]);
@@ -260,7 +264,9 @@ export class UsersController {
   ) {
     try {
       if (id !== currentUserProfile[securityId]) {
-        throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
+        throw new HttpErrors.Unauthorized(
+          'Error users friend request ,Token is not matched to this user id!',
+        );
       }
 
       const requesterUser = await this.usersRepository.findOne({
@@ -401,7 +407,9 @@ export class UsersController {
   ) {
     try {
       if (id !== currentUserProfile[securityId]) {
-        throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
+        throw new HttpErrors.Unauthorized(
+          'Error users response to friend request ,Token is not matched to this user id!',
+        );
       }
 
       let message = '';
@@ -525,7 +533,9 @@ export class UsersController {
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
   ): Promise<Users> {
     if (id !== currentUserProfile[securityId]) {
-      throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
+      throw new HttpErrors.Unauthorized(
+        'Error users findById ,Token is not matched to this user id!',
+      );
     }
     return this.usersRepository.findById(id);
   }
