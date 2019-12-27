@@ -196,15 +196,12 @@ export class UsersController {
     @param.path.string('id') id: typeof Users.prototype.id,
   ) {
     try {
-      currentUserProfile.id = currentUserProfile[securityId];
-      delete currentUserProfile[securityId];
-
-      if (id !== currentUserProfile.id) {
+      if (id !== currentUserProfile[securityId]) {
         throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
       }
 
       await this.blacklistRepository.addTokenToBlacklist(
-        currentUserProfile.id,
+        currentUserProfile[securityId],
         authorizationHeader.split(' ')[1],
       );
     } catch (err) {
@@ -230,14 +227,11 @@ export class UsersController {
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.path.string('id') id: typeof Users.prototype.id,
   ): Promise<{id: string; name: string}> {
-    currentUserProfile.id = currentUserProfile[securityId];
-    delete currentUserProfile[securityId];
-
-    if (id !== currentUserProfile.id) {
+    if (id !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
     }
 
-    const user = await this.usersRepository.findById(currentUserProfile.id);
+    const user = await this.usersRepository.findById(currentUserProfile[securityId]);
     delete user.password;
 
     return {id: user.id, name: user.name};
@@ -265,15 +259,12 @@ export class UsersController {
     reqBody: FriendRequest,
   ) {
     try {
-      currentUserProfile.id = currentUserProfile[securityId];
-      delete currentUserProfile[securityId];
-
-      if (id !== currentUserProfile.id) {
+      if (id !== currentUserProfile[securityId]) {
         throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
       }
 
       const requesterUser = await this.usersRepository.findOne({
-        where: {id: currentUserProfile.id},
+        where: {id: currentUserProfile[securityId]},
       });
 
       const recipientUser = await this.usersRepository.findOne({
@@ -409,10 +400,7 @@ export class UsersController {
     bodyReq: FriendRequest,
   ) {
     try {
-      currentUserProfile.id = currentUserProfile[securityId];
-      delete currentUserProfile[securityId];
-
-      if (id !== currentUserProfile.id) {
+      if (id !== currentUserProfile[securityId]) {
         throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
       }
 
@@ -536,10 +524,7 @@ export class UsersController {
     @param.path.string('id') id: string,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
   ): Promise<Users> {
-    currentUserProfile.id = currentUserProfile[securityId];
-    delete currentUserProfile[securityId];
-
-    if (id !== currentUserProfile.id) {
+    if (id !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
     }
     return this.usersRepository.findById(id);
@@ -566,10 +551,7 @@ export class UsersController {
     })
     user: Users,
   ): Promise<void> {
-    currentUserProfile.id = currentUserProfile[securityId];
-    delete currentUserProfile[securityId];
-
-    if (id !== currentUserProfile.id) {
+    if (id !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
     }
     await this.usersRepository.updateById(id, user);
