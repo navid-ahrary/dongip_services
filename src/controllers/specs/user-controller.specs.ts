@@ -15,7 +15,7 @@ export const UserProfileSchema = {
 
 const CredentialsSchema = {
   type: 'object',
-  required: ['phone', 'password'],
+  required: ['phone', 'password', 'deviceToken'],
   properties: {
     phone: {
       type: 'string',
@@ -23,6 +23,9 @@ const CredentialsSchema = {
     password: {
       type: 'string',
       length: 4,
+    },
+    deviceToken: {
+      type: 'string',
     },
   },
 };

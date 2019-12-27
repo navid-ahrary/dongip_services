@@ -172,6 +172,10 @@ export class UsersController {
     //ensure the user exists and the password is correct
     const user = await this.userService.verifyCredentials(credentials);
 
+    await this.usersRepository.updateById(user.id, {
+      deviceToken: credentials.deviceToken,
+    });
+
     //convert a User object into a UserProfile object (reduced set of properties)
     const userProfile = this.userService.convertToUserProfile(user);
 
