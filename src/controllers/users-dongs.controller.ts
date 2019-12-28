@@ -161,18 +161,15 @@ export class UsersDongsController {
 
     category[0].bill = {dongId: transaction.id, dong: dong};
 
-    console.log(category);
-
     const registrationTokens: string[] = [];
-
     for (const n of dongs.eqip) {
       if (n.node === expensesManager.id.toString()) continue;
 
       const node = await this.usersRepository.findById(n.node);
       node.dongsId.push(transaction.id);
-      registrationTokens.push(node.registerationToken);
-
       await this.usersRepository.updateById(n.node, node);
+
+      registrationTokens.push(node.registerationToken);
     }
 
     // Generate notification message
