@@ -507,7 +507,10 @@ export class UsersController {
               return {message: message, firebaseResponse: response};
             })
             .catch(function(error) {
-              throw new HttpErrors.NotAcceptable(error);
+              debug(`Sending notification failed, ${error}`);
+              throw new HttpErrors.NotImplemented(
+                `Sending notification failed, ${error}`,
+              );
             });
         } else {
           throw new HttpErrors.NotAcceptable(
