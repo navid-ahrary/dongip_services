@@ -458,7 +458,7 @@ export class UsersController {
             recipient: recipientUser.id.toString(),
           });
 
-          const payload = {
+          const payload: admin.messaging.MessagingPayload = {
             notification: {
               title: '',
               body: ``,
@@ -468,7 +468,7 @@ export class UsersController {
               phone: requesterUser.phone,
             },
           };
-          const options = {
+          const options: admin.messaging.MessagingOptions = {
             priority: 'normal',
             contentAvailable: true,
             mutableContent: false,
@@ -502,7 +502,7 @@ export class UsersController {
             .messaging()
             .sendToDevice(reqUserNotifToken, payload, options)
             .then(function(response) {
-              return {message: message, firebaseResponse: response};
+              debug(`Successfully set a friend request, ${response}`);
             })
             .catch(function(error) {
               throw new HttpErrors.NotAcceptable(error);
