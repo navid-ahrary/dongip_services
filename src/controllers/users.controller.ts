@@ -28,7 +28,6 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import * as underscore from 'underscore';
 import * as admin from 'firebase-admin';
 import moment = require('moment');
-import debug = require('debug');
 
 export class UsersController {
   constructor(
@@ -503,16 +502,17 @@ export class UsersController {
             .messaging()
             .sendToDevice(reqUserRegToken, payload, options)
             .then(function(response) {
-              debug(`Successfully set a friend request, ${response}`);
+              console.log(`Successfully set a friend request, ${response}`);
               return {message: message, firebaseResponse: response};
             })
             .catch(function(error) {
-              debug(`Sending notification failed, ${error}`);
+              console.log(`Sending notification failed, ${error}`);
               throw new HttpErrors.NotImplemented(
                 `Sending notification failed, ${error}`,
               );
             });
         } else {
+          console.log('Friend Request not fired or you were friends lately');
           throw new HttpErrors.NotAcceptable(
             'Friend Request not fired or you were friends lately',
           );
