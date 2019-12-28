@@ -28,7 +28,7 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import * as underscore from 'underscore';
 import * as admin from 'firebase-admin';
 import moment = require('moment');
-import * as debug from 'debug';
+import debug = require('debug');
 
 export class UsersController {
   constructor(
