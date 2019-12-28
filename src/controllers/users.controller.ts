@@ -28,6 +28,7 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import * as underscore from 'underscore';
 import * as admin from 'firebase-admin';
 import moment = require('moment');
+import * as debug from 'debug';
 
 export class UsersController {
   constructor(
@@ -497,12 +498,13 @@ export class UsersController {
           await this.usersRepository.updateById(requesterUser.id, requesterUser);
 
           // send notification accept/reject message to requester of friend request
-          const reqUserNotifToken = requesterUser.registerationToken;
+          const reqUserRegToken = requesterUser.registerationToken;
           await admin
             .messaging()
-            .sendToDevice(reqUserNotifToken, payload, options)
+            .sendToDevice(reqUserRegToken, payload, options)
             .then(function(response) {
               debug(`Successfully set a friend request, ${response}`);
+              return {message: message, firebaseResponse: response};
             })
             .catch(function(error) {
               throw new HttpErrors.NotAcceptable(error);
