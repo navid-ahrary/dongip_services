@@ -18,6 +18,7 @@ import {DongsRepository, UsersRepository} from '../repositories';
 import {authenticate} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import * as underscore from 'underscore';
+import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
 export class DongsController {
   constructor(
@@ -55,6 +56,7 @@ export class DongsController {
   }
 
   @post('/apis/dongs', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Dongs model instance',
@@ -89,7 +91,6 @@ export class DongsController {
     delete currentUserProfile[securityId];
 
     const expensesManager = await this.usersRepository.findById(currentUserProfile.id);
-    dongs.expensesManger = expensesManager.id;
 
     if (!(await this.isNodesUsersOrVirtualUsers(currentUserProfile.id, nodes))) {
       throw new HttpErrors.NotAcceptable('Some of this users are not available');
@@ -97,7 +98,7 @@ export class DongsController {
 
     for (const item of dongs.eqip) {
       if (
-        item.node !== currentUserProfile.id &&
+        item.node !== expensesManager.id.toString() &&
         !expensesManager.friends.includes(item.node) &&
         !this.arrayHasObject(expensesManager.pendingFriends, {
           recipient: expensesManager.id,
@@ -123,18 +124,21 @@ export class DongsController {
       n.dong = dong * n.factor;
     }
 
-    const transaction = await this.dongsRepository.create(dongs);
+    const transaction = await this.usersRepository
+      .dongs(currentUserProfile.id)
+      .create(dongs);
 
     expensesManager.dongsId.push(transaction.id);
     await this.usersRepository.updateById(expensesManager.id, expensesManager);
 
     for (const n of dongs.eqip) {
-      if (n.node === expensesManager.id) continue;
+      if (n.node === expensesManager.id.toString()) continue;
 
       const user = await this.usersRepository.findById(n.node);
       user.dongsId.push(transaction.id);
 
       await this.usersRepository.updateById(n.node, user);
+      // await this.usersRepository.categories(n.node).create(dongs.categories);
     }
   }
 

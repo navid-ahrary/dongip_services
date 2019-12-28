@@ -1,5 +1,7 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, model, property, belongsTo} from '@loopback/repository';
 import {Eqip} from './eqip.model';
+import {Users} from './users.model';
+import {Category} from './category.model';
 
 @model()
 export class Dongs extends Entity {
@@ -29,12 +31,8 @@ export class Dongs extends Entity {
   })
   desc?: string;
 
-  @property({
-    type: 'array',
-    itemType: 'string',
-    required: true,
-  })
-  categories: string[];
+  @belongsTo(() => Category)
+  categoryId: string;
 
   @property({
     type: 'date',
@@ -56,22 +54,21 @@ export class Dongs extends Entity {
   eqip: Eqip[];
 
   @property({
-    required: false,
-    type: 'string',
-  })
-  expensesManger: string;
-
-  @property({
     type: 'string',
     required: false,
   })
   virtualUsersId: string;
+
+  @belongsTo(() => Users)
+  expensesManagerId: string;
 
   constructor(data?: Partial<Dongs>) {
     super(data);
   }
 }
 
-export interface DongsRelations {}
+export interface DongsRelations {
+  expensesManager?: DongsWithRelations;
+}
 
 export type DongsWithRelations = Dongs & DongsRelations;

@@ -6,6 +6,8 @@ import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
 import {registerAuthenticationStrategy} from '@loopback/authentication';
 import * as path from 'path';
+import * as admin from 'firebase-admin';
+import dotenv = require('dotenv');
 
 import {MyAuthenticationSequence} from './sequence';
 import {UserAuthenticationComponent} from './components/user.authentication';
@@ -20,6 +22,14 @@ import {JWTService} from './services/jwt.service';
 import {SECURITY_SCHEME_SPEC} from './utils/security-specs';
 import {BcryptHasher} from './services/hash.password.bcryptjs';
 import {MyUserService} from './services/user.service';
+
+dotenv.config();
+
+const serviceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: process.env.GOOGLE_APPLICATION_DATABASEURL,
+});
 
 /**
  * Information from package.json

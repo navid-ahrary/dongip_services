@@ -13,7 +13,7 @@ import {CategoryRepository} from './category.repository';
 export type Credentials = {
   phone: string;
   password: string;
-  deviceToken: string;
+  registerationToken: string;
 };
 
 export class UsersRepository extends DefaultCrudRepository<
