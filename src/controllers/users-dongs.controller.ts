@@ -8,20 +8,21 @@ import {
   requestBody,
   HttpErrors,
   getWhereSchemaFor,
-  del,
 } from '@loopback/rest';
-import {Users, Dongs} from '../models';
-import {UsersRepository} from '../repositories';
+import {Users, Dongs, Category} from '../models';
+import {UsersRepository, CategoryRepository} from '../repositories';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import * as underscore from 'underscore';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {authenticate} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import * as admin from 'firebase-admin';
-import debug = require('debug');
 
 export class UsersDongsController {
-  constructor(@repository(UsersRepository) private usersRepository: UsersRepository) {}
+  constructor(
+    @repository(UsersRepository) private usersRepository: UsersRepository,
+    @repository(CategoryRepository) private categoryRepository: CategoryRepository,
+  ) {}
 
   async isNodesUsersOrVirtualUsers(
     currentUserId: typeof Users.prototype.id,
@@ -95,13 +96,20 @@ export class UsersDongsController {
       },
     })
     dongs: Omit<Dongs, 'id'>,
-  ): Promise<void> {
+  ): Promise<{id: string}> {
     if (id !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
         'Error create a new dong, Token is not matched to this user id!',
       );
     }
+    interface CategoryBill {
+      dongsId?: string;
+      dong?: number;
+      paidCost?: number;
+      calculation?: number;
+    }
 
+    let expensesManager: Users;
     let pong = 0;
     let factorNodes = 0;
     const nodes = [];
@@ -110,12 +118,13 @@ export class UsersDongsController {
       nodes.push(item.node);
     }
 
-    const expensesManager = await this.usersRepository.findById(
-      currentUserProfile[securityId],
-    );
+    if (dongs.expensesManagerId) {
+      expensesManager = await this.usersRepository.findById(dongs.expensesManagerId);
+    }
+    expensesManager = await this.usersRepository.findById(currentUserProfile[securityId]);
 
     if (!(await this.isNodesUsersOrVirtualUsers(currentUserProfile[securityId], nodes))) {
-      throw new HttpErrors.NotAcceptable('Some of this users are not available');
+      throw new HttpErrors.NotAcceptable('Some of this users Id are not available');
     }
 
     for (const item of dongs.eqip) {
@@ -132,7 +141,7 @@ export class UsersDongsController {
         })
       ) {
         throw new HttpErrors.NotAcceptable(
-          'Expenses manager must be friends with all nodes',
+          'Expenses manager must be friends with all of users',
         );
       } else {
         pong += item['paidCost'];
@@ -147,29 +156,64 @@ export class UsersDongsController {
     }
 
     const transaction = await this.usersRepository
-      .dongs(currentUserProfile[securityId])
+      .dongs(expensesManager.id)
       .create(dongs);
+
+    const categoryBill: CategoryBill = {
+      dongsId: transaction.id,
+      dong: dong,
+    };
+    // find category name in expenses manager caetgories
+    const expensesManagerCategoryList = await this.usersRepository
+      .categories(expensesManager.id)
+      .find({
+        where: {
+          name: dongs.categoryName,
+        },
+      });
 
     expensesManager.dongsId.push(transaction.id);
     await this.usersRepository.updateById(expensesManager.id, expensesManager);
 
-    const category = await this.usersRepository.categories(id).find({
-      where: {
-        id: dongs.categoryId,
-      },
-    });
-
-    category[0].bill = {dongId: transaction.id, dong: dong};
-
     const registrationTokens: string[] = [];
     for (const n of dongs.eqip) {
-      if (n.node === expensesManager.id.toString()) continue;
+      let nodeCategory: Category;
+      // if (n.node === expensesManager.id.toString()) continue;
+      const paidCost = n.paidCost;
+
+      categoryBill.paidCost = paidCost;
+      categoryBill.calculation = dong - paidCost;
+
+      const nCategory = await this.usersRepository.categories(n.node).find({
+        where: {
+          name: dongs.categoryName,
+        },
+      });
+
+      if (nCategory.length === 0) {
+        //create a category with name that provided by expenses manager
+        nodeCategory = await this.usersRepository
+          .categories(n.node)
+          .create({name: expensesManagerCategoryList[0].name});
+      } else if (nCategory.length === 1) {
+        nodeCategory = nCategory[0];
+      } else {
+        throw new HttpErrors.NotAcceptable(
+          'Find multi category with this name for userId ' + n.node,
+        );
+      }
+
+      // create bill belonging to created category
+      await this.categoryRepository.categoryBills(nodeCategory.id).create(categoryBill);
 
       const node = await this.usersRepository.findById(n.node);
       node.dongsId.push(transaction.id);
       await this.usersRepository.updateById(n.node, node);
 
-      registrationTokens.push(node.registerationToken);
+      // Do not add expenses manager to the reciever notification list
+      if (n.node !== expensesManager.id.toString()) {
+        registrationTokens.push(node.registerationToken);
+      }
     }
 
     // Generate notification message
@@ -197,19 +241,20 @@ export class UsersDongsController {
               failedTokens.push(registrationTokens[idx]);
             }
           });
-          debug(`List of tokens that caused failure ${failedTokens}`);
+          console.log(`List of tokens that caused failure ${failedTokens}`);
           throw new HttpErrors.NotImplemented(
             `List of tokens that caused failure ${failedTokens}`,
           );
         }
 
-        debug(`Successfully sent notifications, ${response}`);
-        return {respose: response};
+        console.log(`Successfully sent notifications, ${response}`);
       })
       .catch(function(error) {
-        debug(`Error sending notifications, ${error}`);
+        console.log(`Error sending notifications, ${error}`);
         throw new HttpErrors.NotImplemented(`Error sending notifications, ${error}`);
       });
+
+    return {id: transaction.id};
   }
 
   @patch('/apis/users/{id}/dongs', {
@@ -233,20 +278,5 @@ export class UsersDongsController {
     @param.query.object('where', getWhereSchemaFor(Dongs)) where?: Where<Dongs>,
   ): Promise<Count> {
     return this.usersRepository.dongs(id).patch(dongs, where);
-  }
-
-  @del('/users/{id}/dongs', {
-    responses: {
-      '200': {
-        description: 'Users.Dongs DELETE success count',
-        content: {'application/json': {schema: CountSchema}},
-      },
-    },
-  })
-  async delete(
-    @param.path.string('id') id: string,
-    @param.query.object('where', getWhereSchemaFor(Dongs)) where?: Where<Dongs>,
-  ): Promise<Count> {
-    return this.usersRepository.dongs(id).delete(where);
   }
 }

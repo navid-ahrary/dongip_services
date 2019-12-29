@@ -5,3 +5,4 @@ export * from './virtualUsers.model';
 export * from './friendRequest.model';
 export * from './category.model';
 export * from './eqip.model';
+export * from './category-bill.model';

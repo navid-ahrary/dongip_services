@@ -1,5 +1,6 @@
-import {Entity, model, property, belongsTo} from '@loopback/repository';
+import {Entity, model, property, belongsTo, hasMany} from '@loopback/repository';
 import {Users, UsersRelations} from './users.model';
+import {CategoryBill} from './category-bill.model';
 
 @model()
 export class Category extends Entity {
@@ -17,15 +18,11 @@ export class Category extends Entity {
   })
   name: string;
 
-  @property({
-    type: 'object',
-    requried: false,
-    default: {},
-  })
-  bill?: object;
-
   @belongsTo(() => Users)
   usersId: string;
+
+  @hasMany(() => CategoryBill)
+  categoryBills: CategoryBill[];
 
   constructor(data?: Partial<Category>) {
     super(data);

@@ -29,10 +29,15 @@ export class Dongs extends Entity {
     type: 'string',
     required: true,
   })
-  desc?: string;
+  desc: string;
+
+  @property({
+    type: 'string',
+  })
+  categoryName: string;
 
   @belongsTo(() => Category)
-  categoryId: string;
+  categoryId?: string;
 
   @property({
     type: 'date',
