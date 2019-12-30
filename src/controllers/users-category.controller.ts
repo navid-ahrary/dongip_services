@@ -93,7 +93,8 @@ export class UsersCategoryController {
     return this.usersRepository.categories(id).create(category);
   }
 
-  @patch('/users/{id}/categories', {
+  @patch('/apis/users/{id}/categories', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Users.Category PATCH success count',
@@ -101,7 +102,9 @@ export class UsersCategoryController {
       },
     },
   })
+  @authenticate('jwt')
   async patch(
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.path.string('id') id: string,
     @requestBody({
       content: {
@@ -113,6 +116,12 @@ export class UsersCategoryController {
     category: Partial<Category>,
     @param.query.object('where', getWhereSchemaFor(Category)) where?: Where<Category>,
   ): Promise<Count> {
+    if (id !== currentUserProfile[securityId]) {
+      throw new HttpErrors.Unauthorized(
+        'Error find category, Token is not matched to this user id!',
+      );
+    }
+
     return this.usersRepository.categories(id).patch(category, where);
   }
 
