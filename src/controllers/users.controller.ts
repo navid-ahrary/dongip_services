@@ -75,6 +75,7 @@ export class UsersController {
       },
     },
   })
+  @authenticate.skip()
   async checkPhoneNumber(@param.path.string('phone') phone: string): Promise<object> {
     let isRegistered = false;
     let name = 'عضو جدید';
@@ -109,6 +110,7 @@ export class UsersController {
       },
     },
   })
+  @authenticate.skip()
   async create(
     @param.path.string('phone') phone: string,
     @requestBody({
@@ -165,6 +167,7 @@ export class UsersController {
       },
     },
   })
+  @authenticate.skip()
   async login(
     @param.path.string('phone') phone: string,
     @requestBody(CredentialsRequestBody) credentials: Credentials,
