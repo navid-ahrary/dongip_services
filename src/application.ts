@@ -68,10 +68,10 @@ export class LoginServiceApplication extends BootMixin(
     this.sequence(MyAuthenticationSequence);
 
     // Set up default home page
-    this.static('/openapi7823414', path.join(__dirname, '../public'));
+    this.static('/', path.join(__dirname, '../public'));
     // Customize @loopback/rest-explorer configuration here
     this.bind(RestExplorerBindings.CONFIG).to({
-      path: '/openapi7823414/explorer',
+      path: '/explorer',
     });
     this.component(RestExplorerComponent);
 
