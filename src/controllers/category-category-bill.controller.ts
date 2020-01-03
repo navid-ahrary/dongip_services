@@ -1,10 +1,4 @@
-import {
-  Count,
-  CountSchema,
-  Filter,
-  repository,
-  Where,
-} from '@loopback/repository';
+import {Count, CountSchema, Filter, repository, Where} from '@loopback/repository';
 import {
   del,
   get,
@@ -15,21 +9,21 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {
-  Category,
-  CategoryBill,
-} from '../models';
+import {UserProfile, SecurityBindings} from '@loopback/security';
+import {Category, CategoryBill} from '../models';
 import {CategoryRepository} from '../repositories';
+import {authenticate} from '@loopback/authentication';
+import {inject} from '@loopback/core';
 
 export class CategoryCategoryBillController {
   constructor(
     @repository(CategoryRepository) protected categoryRepository: CategoryRepository,
-  ) { }
+  ) {}
 
-  @get('/categories/{id}/category-bills', {
+  @get('/apis/categories/{id}/category-bills', {
     responses: {
       '200': {
-        description: 'Array of CategoryBill\'s belonging to Category',
+        description: "Array of CategoryBill's belonging to Category",
         content: {
           'application/json': {
             schema: {type: 'array', items: getModelSchemaRef(CategoryBill)},
@@ -38,7 +32,9 @@ export class CategoryCategoryBillController {
       },
     },
   })
+  @authenticate('jwt')
   async find(
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.path.string('id') id: string,
     @param.query.object('filter') filter?: Filter<CategoryBill>,
   ): Promise<CategoryBill[]> {
@@ -61,11 +57,12 @@ export class CategoryCategoryBillController {
           schema: getModelSchemaRef(CategoryBill, {
             title: 'NewCategoryBillInCategory',
             exclude: ['id'],
-            optional: ['categoryId']
+            optional: ['categoryId'],
           }),
         },
       },
-    }) categoryBill: Omit<CategoryBill, 'id'>,
+    })
+    categoryBill: Omit<CategoryBill, 'id'>,
   ): Promise<CategoryBill> {
     return this.categoryRepository.categoryBills(id).create(categoryBill);
   }
@@ -88,7 +85,8 @@ export class CategoryCategoryBillController {
       },
     })
     categoryBill: Partial<CategoryBill>,
-    @param.query.object('where', getWhereSchemaFor(CategoryBill)) where?: Where<CategoryBill>,
+    @param.query.object('where', getWhereSchemaFor(CategoryBill))
+    where?: Where<CategoryBill>,
   ): Promise<Count> {
     return this.categoryRepository.categoryBills(id).patch(categoryBill, where);
   }
@@ -103,7 +101,8 @@ export class CategoryCategoryBillController {
   })
   async delete(
     @param.path.string('id') id: string,
-    @param.query.object('where', getWhereSchemaFor(CategoryBill)) where?: Where<CategoryBill>,
+    @param.query.object('where', getWhereSchemaFor(CategoryBill))
+    where?: Where<CategoryBill>,
   ): Promise<Count> {
     return this.categoryRepository.categoryBills(id).delete(where);
   }
