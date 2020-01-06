@@ -1,6 +1,5 @@
 import {Count, CountSchema, Filter, repository, Where} from '@loopback/repository';
 import {
-  del,
   get,
   getModelSchemaRef,
   getWhereSchemaFor,
@@ -113,27 +112,5 @@ export class UsersVirtualUsersController {
     return this.usersRepository
       .virtualUsers(currentUserProfile.id)
       .patch(virtualUsers, where);
-  }
-
-  @del('/apis/users/{id}/virtual-users', {
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'Users.VirtualUsers DELETE success count',
-        content: {'application/json': {schema: CountSchema}},
-      },
-    },
-  })
-  @authenticate('jwt')
-  async delete(
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('id') id: string,
-    @param.query.object('where', getWhereSchemaFor(VirtualUsers))
-    where?: Where<VirtualUsers>,
-  ): Promise<Count> {
-    currentUserProfile.id = currentUserProfile[securityId];
-    delete currentUserProfile[securityId];
-
-    return this.usersRepository.virtualUsers(currentUserProfile.id).delete(where);
   }
 }

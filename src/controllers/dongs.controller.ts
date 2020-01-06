@@ -7,8 +7,6 @@ import {
   getModelSchemaRef,
   getWhereSchemaFor,
   patch,
-  put,
-  del,
   requestBody,
   HttpErrors,
 } from '@loopback/rest';
@@ -227,30 +225,5 @@ export class DongsController {
     dongs: Dongs,
   ): Promise<void> {
     await this.dongsRepository.updateById(id, dongs);
-  }
-
-  @put('/dongs/{id}', {
-    responses: {
-      '204': {
-        description: 'Dongs PUT success',
-      },
-    },
-  })
-  async replaceById(
-    @param.path.string('id') id: string,
-    @requestBody() dongs: Dongs,
-  ): Promise<void> {
-    await this.dongsRepository.replaceById(id, dongs);
-  }
-
-  @del('/dongs/{id}', {
-    responses: {
-      '204': {
-        description: 'Dongs DELETE success',
-      },
-    },
-  })
-  async deleteById(@param.path.string('id') id: string): Promise<void> {
-    await this.dongsRepository.deleteById(id);
   }
 }
