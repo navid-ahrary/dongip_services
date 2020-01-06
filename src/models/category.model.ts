@@ -18,6 +18,12 @@ export class Category extends Entity {
   })
   name: string;
 
+  @property({
+    type: 'string',
+    required: true,
+  })
+  icon: string;
+
   @belongsTo(() => Users)
   usersId: string;
 
