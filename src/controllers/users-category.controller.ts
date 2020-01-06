@@ -1,6 +1,5 @@
 import {Count, CountSchema, Filter, repository, Where} from '@loopback/repository';
 import {
-  del,
   get,
   getModelSchemaRef,
   getWhereSchemaFor,
@@ -123,20 +122,5 @@ export class UsersCategoryController {
     }
 
     return this.usersRepository.categories(id).patch(category, where);
-  }
-
-  @del('/users/{id}/categories', {
-    responses: {
-      '200': {
-        description: 'Users.Category DELETE success count',
-        content: {'application/json': {schema: CountSchema}},
-      },
-    },
-  })
-  async delete(
-    @param.path.string('id') id: string,
-    @param.query.object('where', getWhereSchemaFor(Category)) where?: Where<Category>,
-  ): Promise<Count> {
-    return this.usersRepository.categories(id).delete(where);
   }
 }
