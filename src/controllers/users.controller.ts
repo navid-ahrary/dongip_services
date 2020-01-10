@@ -233,7 +233,7 @@ export class UsersController {
         authorizationHeader.split(' ')[1],
       );
     } catch (err) {
-      throw new HttpErrors.Unauthorized('Error logout');
+      throw new HttpErrors.Unauthorized(`Error logout: ${err}`);
     }
   }
 
