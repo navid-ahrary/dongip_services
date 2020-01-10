@@ -131,6 +131,12 @@ export class UsersController {
     validatePhoneNumber(user.phone);
     validatePassword(user.password);
 
+    if (phone !== user.phone) {
+      throw new HttpErrors.Unauthorized(
+        'Error signup, Phone numbers in params and body not matched !',
+      );
+    }
+
     // encrypt the password
     user.password = await this.passwordHasher.hashPassword(user.password);
     user.registeredAt = moment().format();
@@ -179,6 +185,12 @@ export class UsersController {
     @param.path.string('phone') phone: string,
     @requestBody(CredentialsRequestBody) credentials: Credentials,
   ): Promise<{id: typeof Users.prototype.id; accessToken: string}> {
+    if (phone !== credentials.phone) {
+      throw new HttpErrors.Unauthorized(
+        'Error login, Phone numbers in params and body not matched !',
+      );
+    }
+
     //ensure the user exists and the password is correct
     const user = await this.userService.verifyCredentials(credentials);
 
