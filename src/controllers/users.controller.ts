@@ -69,6 +69,8 @@ export class UsersController {
           'application/json': {
             schema: {
               isRegistered: 'bool',
+              name: 'string',
+              avatar: 'string',
             },
           },
         },
@@ -123,7 +125,7 @@ export class UsersController {
       },
     })
     user: Users,
-  ): Promise<object> {
+  ): Promise<{id: typeof Users.prototype.id; accessToken: string}> {
     // ensure a valid phone and password value
     validatePhoneNumber(phone);
     validatePhoneNumber(user.phone);
@@ -138,7 +140,13 @@ export class UsersController {
       const savedUser = await this.usersRepository.create(user);
       delete user.password;
 
-      return {id: savedUser.id};
+      //convert a User object into a UserProfile object (reduced set of properties)
+      const userProfile = this.userService.convertToUserProfile(savedUser);
+
+      //create a JWT token based on the user profile
+      const accessToken = await this.jwtService.generateToken(userProfile);
+
+      return {id: savedUser.id, accessToken};
     } catch (err) {
       if (err.code === 11000) {
         throw new HttpErrors.Conflict(`This phone number is already taken.`);
@@ -157,9 +165,8 @@ export class UsersController {
             schema: {
               type: 'object',
               properties: {
-                token: {
-                  type: 'string',
-                },
+                accessToken: 'string',
+                id: 'string',
               },
             },
           },
@@ -171,7 +178,7 @@ export class UsersController {
   async login(
     @param.path.string('phone') phone: string,
     @requestBody(CredentialsRequestBody) credentials: Credentials,
-  ): Promise<{accessToken: string}> {
+  ): Promise<{id: typeof Users.prototype.id; accessToken: string}> {
     //ensure the user exists and the password is correct
     const user = await this.userService.verifyCredentials(credentials);
 
@@ -185,7 +192,7 @@ export class UsersController {
     //create a JWT token based on the user profile
     const accessToken = await this.jwtService.generateToken(userProfile);
 
-    return {accessToken};
+    return {id: user.id, accessToken};
   }
 
   @get('/apis/users/{id}/logout', {
