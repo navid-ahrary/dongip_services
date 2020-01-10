@@ -157,7 +157,7 @@ export class UsersController {
       if (err.code === 11000) {
         throw new HttpErrors.Conflict(`This phone number is already taken.`);
       } else {
-        throw new HttpErrors.NotAcceptable();
+        throw new HttpErrors.NotAcceptable(err);
       }
     }
   }
