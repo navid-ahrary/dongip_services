@@ -9,9 +9,9 @@ import config = require('./mongo.datasource.config.json');
 import dotenv = require("dotenv");
 dotenv.config();
 
-config.host = process.env.MONGODB_HOST!;
+config.host = String(process.env.MONGODB_HOST);
 config.port = Number(process.env.MONGODB_PORT!);
-config.database = process.env.MONGODB_DATABASE!;
+config.database = String(process.env.MONGODB_DATABASE);
 
 @lifeCycleObserver('datasource')
 export class MongoDataSource extends juggler.DataSource implements LifeCycleObserver {
