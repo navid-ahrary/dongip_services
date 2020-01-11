@@ -4,16 +4,22 @@ import {
   LifeCycleObserver,
   ValueOrPromise,
 } from '@loopback/core';
-import {juggler} from '@loopback/repository';
+import { juggler } from '@loopback/repository';
 import config = require('./mongo.datasource.config.json');
+import dotenv = require("dotenv");
+dotenv.config();
+
+config.host = process.env.MONGODB_HOST!;
+config.port = Number(process.env.MONGODB_PORT!);
+config.database = process.env.MONGODB_DATABASE!;
 
 @lifeCycleObserver('datasource')
 export class MongoDataSource extends juggler.DataSource implements LifeCycleObserver {
   static dataSourceName = 'mongods';
 
+
   constructor(
-    @inject('datasources.config.mongo', {optional: true})
-    dsConfig: object = config,
+    @inject('datasources.config.mongo', { optional: true }) dsConfig: object = config,
   ) {
     super(dsConfig);
   }
