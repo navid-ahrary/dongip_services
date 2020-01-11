@@ -2,10 +2,10 @@
   "name": "mongo",
   "connector": "mongodb",
   "url": "",
-  "host": "localhost",
-  "port": 27017,
+  "host": "",
+  "port": 0,
   "user": "",
   "password": "",
-  "database": "dongip",
+  "database": "",
   "useNewUrlParser": true
 }
