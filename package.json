@@ -71,6 +71,7 @@
     "loopback-connector": "^4.5.0",
     "loopback-connector-kv-redis": "^3.0.2",
     "loopback-connector-mongodb": "^5.2.1",
+    "loopback-connector-neo4j-driver": "https://gitlab.com/navid_ahrary/loopback-connector-neo4j-driver.git",
     "moment": "^2.24.0",
     "pm2": "^4.2.1"
   },

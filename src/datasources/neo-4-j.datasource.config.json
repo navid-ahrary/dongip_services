@@ -1,0 +1,9 @@
+{
+  "name": "neo4j",
+  "connector": "loopback-connector-neo4j-driver",
+  "username": "neo4j",
+  "password": "navid",
+  "protocol": "bolt",
+  "host": "localhost",
+  "port": 7688
+}
