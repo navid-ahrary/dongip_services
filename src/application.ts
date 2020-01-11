@@ -1,27 +1,27 @@
-import {BootMixin} from '@loopback/boot';
-import {ApplicationConfig, BindingKey} from '@loopback/core';
-import {RestExplorerBindings, RestExplorerComponent} from '@loopback/rest-explorer';
-import {RepositoryMixin} from '@loopback/repository';
-import {RestApplication} from '@loopback/rest';
-import {ServiceMixin} from '@loopback/service-proxy';
-import {registerAuthenticationStrategy} from '@loopback/authentication';
+import { BootMixin } from '@loopback/boot';
+import { ApplicationConfig, BindingKey } from '@loopback/core';
+import { RestExplorerBindings, RestExplorerComponent } from '@loopback/rest-explorer';
+import { RepositoryMixin } from '@loopback/repository';
+import { RestApplication } from '@loopback/rest';
+import { ServiceMixin } from '@loopback/service-proxy';
+import { registerAuthenticationStrategy } from '@loopback/authentication';
 import * as path from 'path';
 import * as admin from 'firebase-admin';
 import dotenv = require('dotenv');
 
-import {MyAuthenticationSequence} from './sequence';
-import {UserAuthenticationComponent} from './components/user.authentication';
-import {JWTAutehticationStrategy} from './authentication-strategies/jwt-strategy';
+import { MyAuthenticationSequence } from './sequence';
+import { UserAuthenticationComponent } from './components/user.authentication';
+import { JWTAutehticationStrategy } from './authentication-strategies/jwt-strategy';
 import {
   TokenServiceBindings,
   TokenServiceConstants,
   PasswordHasherBindings,
   UserServiceBindings,
 } from './keys';
-import {JWTService} from './services/jwt.service';
-import {SECURITY_SCHEME_SPEC} from './utils/security-specs';
-import {BcryptHasher} from './services/hash.password.bcryptjs';
-import {MyUserService} from './services/user.service';
+import { JWTService } from './services/jwt.service';
+import { SECURITY_SCHEME_SPEC } from './utils/security-specs';
+import { BcryptHasher } from './services/hash.password.bcryptjs';
+import { MyUserService } from './services/user.service';
 
 dotenv.config();
 
@@ -51,10 +51,10 @@ export class LoginServiceApplication extends BootMixin(
 
     this.api({
       openapi: '3.0.0',
-      info: {title: pkg.name, version: pkg.version},
+      info: { title: pkg.name, version: pkg.version },
       paths: {},
-      components: {securitySchemes: SECURITY_SCHEME_SPEC},
-      servers: [{url: '/'}],
+      components: { securitySchemes: SECURITY_SCHEME_SPEC },
+      servers: [{ url: '/' }],
     });
 
     this.setupBinding();
@@ -68,10 +68,10 @@ export class LoginServiceApplication extends BootMixin(
     this.sequence(MyAuthenticationSequence);
 
     // Set up default home page
-    this.static('/', path.join(__dirname, '../public'));
+    this.static('/openapi7823414', path.join(__dirname, '../public'));
     // Customize @loopback/rest-explorer configuration here
     this.bind(RestExplorerBindings.CONFIG).to({
-      path: '/explorer',
+      path: '/openapi7823414/explorer',
     });
     this.component(RestExplorerComponent);
 
