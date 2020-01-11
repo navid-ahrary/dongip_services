@@ -1,7 +1,13 @@
-import {Entity, model, property} from '@loopback/repository';
+import { Entity, model, property } from '@loopback/repository';
 
 @model()
 export class Blacklist extends Entity {
+  @property({
+    type: 'string',
+    required: true
+  })
+  id: string;
+
   @property({
     type: 'array',
     itemType: 'string',
@@ -14,6 +20,6 @@ export class Blacklist extends Entity {
   }
 }
 
-export interface BlacklistRelations {}
+export interface BlacklistRelations { }
 
 export type BlacklistWithRelations = Blacklist & BlacklistRelations;
