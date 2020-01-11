@@ -6,13 +6,6 @@ import {
 } from '@loopback/core';
 import { juggler } from '@loopback/repository';
 import config = require('./redis.datasource.config.json');
-import dotenv = require('dotenv');
-
-dotenv.config();
-
-config.host = String(process.env.REDIS_HOST);
-config.port = Number(process.env.REDIS_PORT);
-config.db = Number(process.env.REDIS_DB);
 
 @lifeCycleObserver('datasource')
 export class RedisDataSource extends juggler.DataSource implements LifeCycleObserver {
