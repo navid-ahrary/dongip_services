@@ -1,0 +1,7 @@
+{
+  "name": "arangodb",
+  "connector": "loopback-connector-arangodb",
+  "hostname": "localhost",
+  "port": 8529,
+  "database": "dongip"
+}
