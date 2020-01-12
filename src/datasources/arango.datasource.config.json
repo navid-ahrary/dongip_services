@@ -1,9 +1,7 @@
 {
   "name": "arangodb",
   "connector": "loopback-connector-arangodb",
-  "hostname": "localhost",
-  "port": 8529,
-  "database": "dongip",
-  "user": "root",
-  "password": "test"
+  "username": "root",
+  "password": "test",
+  "database": "dongip"
 }
