@@ -1,6 +1,6 @@
 /* eslint-disable require-atomic-updates */
-import {inject} from '@loopback/core';
-import {repository} from '@loopback/repository';
+import { inject } from '@loopback/core';
+import { repository } from '@loopback/repository';
 import {
   post,
   getModelSchemaRef,
@@ -11,20 +11,20 @@ import {
   patch,
 } from '@loopback/rest';
 
-import {Users, FriendRequest} from '../models';
+import { Users, FriendRequest } from '../models';
 import {
   UsersRepository,
   Credentials,
   BlacklistRepository,
   VirtualUsersRepository,
 } from '../repositories';
-import {authenticate, UserService, TokenService} from '@loopback/authentication';
-import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
-import {PasswordHasherBindings, UserServiceBindings, TokenServiceBindings} from '../keys';
-import {PasswordHasher} from '../services/hash.password.bcryptjs';
-import {validatePhoneNumber, validatePassword} from '../services/validator';
-import {CredentialsRequestBody, UserProfileSchema} from './specs/user-controller.specs';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
+import { authenticate, UserService, TokenService } from '@loopback/authentication';
+import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
+import { PasswordHasherBindings, UserServiceBindings, TokenServiceBindings } from '../keys';
+import { PasswordHasher } from '../services/hash.password.bcryptjs';
+import { validatePhoneNumber, validatePassword } from '../services/validator';
+import { CredentialsRequestBody, UserProfileSchema } from './specs/user-controller.specs';
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import * as underscore from 'underscore';
 import * as admin from 'firebase-admin';
 import moment = require('moment');
@@ -41,7 +41,7 @@ export class UsersController {
     public userService: UserService<Users, Credentials>,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     public jwtService: TokenService,
-  ) {}
+  ) { }
 
   arrayHasObject(arr: object[], obj: object): boolean {
     for (const ele of arr) {
@@ -53,7 +53,7 @@ export class UsersController {
   }
 
   arrayRemoveItem(arr: object[], obj: object) {
-    arr.forEach(function(ele) {
+    arr.forEach(function (ele) {
       if (underscore.isEqual(ele, obj)) {
         arr.splice(arr.indexOf(ele));
       }
@@ -87,14 +87,14 @@ export class UsersController {
 
     try {
       const user = await this.usersRepository.findOne({
-        where: {phone: phone},
+        where: { phone: phone },
       });
       if (user) {
         isRegistered = true;
         name = user.name;
         avatar = user.avatar;
       }
-      return {isRegistered, name, avatar};
+      return { isRegistered, name, avatar };
     } catch (err) {
       throw new HttpErrors.NotImplemented(err);
     }
@@ -125,7 +125,7 @@ export class UsersController {
       },
     })
     user: Users,
-  ): Promise<{id: typeof Users.prototype.id; accessToken: string}> {
+  ): Promise<{ id: typeof Users.prototype.id; accessToken: string }> {
     // ensure a valid phone and password value
     validatePhoneNumber(phone);
     validatePhoneNumber(user.phone);
@@ -152,7 +152,7 @@ export class UsersController {
       //create a JWT token based on the user profile
       const accessToken = await this.jwtService.generateToken(userProfile);
 
-      return {id: savedUser.id, accessToken};
+      return { id: savedUser.id, accessToken };
     } catch (err) {
       if (err.code === 11000) {
         throw new HttpErrors.Conflict(`This phone number is already taken.`);
@@ -184,7 +184,7 @@ export class UsersController {
   async login(
     @param.path.string('phone') phone: string,
     @requestBody(CredentialsRequestBody) credentials: Credentials,
-  ): Promise<{id: typeof Users.prototype.id; accessToken: string}> {
+  ): Promise<{ id: typeof Users.prototype.id; accessToken: string }> {
     if (phone !== credentials.phone) {
       throw new HttpErrors.Unauthorized(
         'Error login, Phone numbers in params and body not matched !',
@@ -204,7 +204,7 @@ export class UsersController {
     //create a JWT token based on the user profile
     const accessToken = await this.jwtService.generateToken(userProfile);
 
-    return {id: user.id, accessToken};
+    return { id: user.id, accessToken };
   }
 
   @get('/apis/users/{id}/logout', {
@@ -227,13 +227,13 @@ export class UsersController {
           'Error users logout ,Token is not matched to this user id!',
         );
       }
-
-      await this.blacklistRepository.addTokenToBlacklist(
-        currentUserProfile[securityId],
-        authorizationHeader.split(' ')[1],
-      );
+      return await this.blacklistRepository.create({ token: authorizationHeader.split(' ')[1] });
     } catch (err) {
-      throw new HttpErrors.Unauthorized(`Error logout: ${err}`);
+      if (err.code === 409) {
+        throw new HttpErrors.Conflict(`Error logout conflict token, this token is blacklisted already`);
+      } else {
+        throw new HttpErrors.NotImplemented(`Error logout not implemented: ${err}`)
+      }
     }
   }
 
@@ -254,7 +254,7 @@ export class UsersController {
   async printCurrentUser(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.path.string('id') id: typeof Users.prototype.id,
-  ): Promise<{id: string; name: string}> {
+  ): Promise<{ id: string; name: string }> {
     if (id !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
         'Error users print current user , Token is not matched to this user id!',
@@ -264,7 +264,7 @@ export class UsersController {
     const user = await this.usersRepository.findById(currentUserProfile[securityId]);
     delete user.password;
 
-    return {id: user.id, name: user.name};
+    return { id: user.id, name: user.name };
   }
 
   @post('/apis/users/{id}/friend-req', {
@@ -296,11 +296,11 @@ export class UsersController {
       }
 
       const requesterUser = await this.usersRepository.findOne({
-        where: {id: currentUserProfile[securityId]},
+        where: { id: currentUserProfile[securityId] },
       });
 
       const recipientUser = await this.usersRepository.findOne({
-        where: {phone: reqBody.phone},
+        where: { phone: reqBody.phone },
       });
 
       if (!recipientUser && requesterUser) {
@@ -379,19 +379,19 @@ export class UsersController {
           await admin
             .messaging()
             .sendToDevice(recipUserNotifToken, payload, options)
-            .then(function(response) {
+            .then(function (response) {
               return {
                 message: `Request is sent, wait for response from him/her`,
               };
             })
-            .catch(function(error) {
+            .catch(function (error) {
               throw new HttpErrors.NotImplemented(error);
             });
         } else if (
           recipientUser.friends.includes(requesterUser.id.toString()) &&
           requesterUser.friends.includes(recipientUser.id.toString())
         ) {
-          return {message: 'You were friends lately'};
+          return { message: 'You were friends lately' };
         } else if (
           this.arrayHasObject(recipientUser.pendingFriends, {
             requester: requesterUser.id.toString(),
@@ -402,7 +402,7 @@ export class UsersController {
             recipient: recipientUser.id.toString(),
           })
         ) {
-          return {message: 'Request was fired, wait for respone'};
+          return { message: 'Request was fired, wait for respone' };
         }
       }
     } catch (err) {
@@ -523,11 +523,11 @@ export class UsersController {
           await admin
             .messaging()
             .sendToDevice(reqUserRegToken, payload, options)
-            .then(function(response) {
+            .then(function (response) {
               console.log(`Successfully set a friend request, ${response}`);
-              return {message: message, firebaseResponse: response};
+              return { message: message, firebaseResponse: response };
             })
-            .catch(function(error) {
+            .catch(function (error) {
               console.log(`Sending notification failed, ${error}`);
               throw new HttpErrors.NotImplemented(
                 `Sending notification failed, ${error}`,
@@ -586,7 +586,7 @@ export class UsersController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Users, {partial: true}),
+          schema: getModelSchemaRef(Users, { partial: true }),
         },
       },
     })
