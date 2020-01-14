@@ -5,7 +5,13 @@ import {
   ValueOrPromise,
 } from '@loopback/core';
 import { juggler } from '@loopback/repository';
-import config from './arango.datasource.config.json';
+import settings from './arango.datasource.config.json';
+import { config } from "dotenv";
+config();
+
+settings.username = String(process.env.ARANGODB_USERNAME);
+settings.password = String(process.env.ARANGODB_PASSWORD);
+settings.database = String(process.env.ARANGODB_DATABASE);
 
 @lifeCycleObserver('datasource')
 export class ArangodbDataSource extends juggler.DataSource
@@ -14,7 +20,7 @@ export class ArangodbDataSource extends juggler.DataSource
 
   constructor(
     @inject('datasources.config.arangodb', { optional: true })
-    dsConfig: object = config,
+    dsConfig: object = settings,
   ) {
     super(dsConfig);
   }
