@@ -154,7 +154,7 @@ export class UsersController {
 
       return { id: savedUser.id, accessToken };
     } catch (err) {
-      if (err.code === 11000) {
+      if (err.code === 409) {
         throw new HttpErrors.Conflict(`This phone number is already taken.`);
       } else {
         throw new HttpErrors.NotAcceptable(err);
