@@ -3,12 +3,12 @@ import { Entity, model, property } from '@loopback/repository';
 @model()
 export class Blacklist extends Entity {
   @property({
-    type: 'Number',
+    type: 'string',
     required: false,
     generated: true,
     id: true
   })
-  _key: Number;
+  _id: string;
 
   @property({
     type: 'string',
