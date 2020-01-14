@@ -1,6 +1,6 @@
 {
   "name": "dongip_services",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "personal accounting and split money between friends",
   "keywords": [
     "loopback-application",
