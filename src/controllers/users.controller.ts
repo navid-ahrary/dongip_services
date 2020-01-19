@@ -97,8 +97,8 @@ export class UsersController {
       }
       return { isRegistered, name, avatar };
     } catch (err) {
-      console.log(err);
-      throw new HttpErrors.NotImplemented(err);
+      console.log(err.message);
+      throw new HttpErrors.MethodNotAllowed(err);
     }
   }
 
@@ -174,8 +174,9 @@ export class UsersController {
             schema: {
               type: 'object',
               properties: {
-                accessToken: 'string',
                 _id: 'string',
+                _rev: 'string',
+                accessToken: 'string',
               },
             },
           },
@@ -192,14 +193,15 @@ export class UsersController {
       _id: typeof Users.prototype._id,
       _rev: typeof Users.prototype._rev,
       accessToken: string
-    }> {
+    }
+    > {
     try {
       let user: Users,
         userProfile: UserProfile,
         accessToken: string;
 
       if (phone !== credentials.phone) {
-        throw new HttpErrors.Unauthorized(
+        throw new Error(
           'Error login, Phone numbers in params and body not matched !',
         );
       }
@@ -220,8 +222,8 @@ export class UsersController {
 
       return { _id: user._id, _rev: user._rev, accessToken };
     } catch (err) {
-      console.log(err);
-      throw new HttpErrors.NotImplemented(err)
+      console.log(err.message);
+      throw new HttpErrors.MethodNotAllowed(err.message)
     }
   }
 
@@ -251,7 +253,7 @@ export class UsersController {
       if (err.code === 409) {
         throw new HttpErrors.Conflict(`Error logout conflict token, this token is blacklisted already`);
       } else {
-        throw new HttpErrors.NotImplemented(`Error logout not implemented: ${err}`)
+        throw new HttpErrors.MethodNotAllowed(`Error logout not implemented: ${err}`)
       }
     }
   }
@@ -404,7 +406,7 @@ export class UsersController {
               };
             })
             .catch(function (error) {
-              throw new HttpErrors.NotImplemented(error);
+              throw new HttpErrors.MethodNotAllowed(error);
             });
         } else if (
           recipientUser.friends.includes(requesterUser._id.toString()) &&
@@ -549,7 +551,7 @@ export class UsersController {
             })
             .catch(function (error) {
               console.log(`Sending notification failed, ${error}`);
-              throw new HttpErrors.NotImplemented(
+              throw new HttpErrors.MethodNotAllowed(
                 `Sending notification failed, ${error}`,
               );
             });
