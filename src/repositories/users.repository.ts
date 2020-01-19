@@ -3,12 +3,12 @@ import {
   repository,
   HasManyRepositoryFactory,
 } from '@loopback/repository';
-import {Users, VirtualUsers, Dongs, Category} from '../models';
-import {MongoDataSource} from '../datasources';
-import {inject, Getter} from '@loopback/core';
-import {VirtualUsersRepository} from './virtualUsers.repository';
-import {DongsRepository} from './dongs.repository';
-import {CategoryRepository} from './category.repository';
+import { Users, VirtualUsers, Dongs, Category } from '../models';
+import { ArangodbDataSource } from '../datasources';
+import { inject, Getter } from '@loopback/core';
+import { VirtualUsersRepository } from './virtualUsers.repository';
+import { DongsRepository } from './dongs.repository';
+import { CategoryRepository } from './category.repository';
 
 export type Credentials = {
   phone: string;
@@ -18,22 +18,22 @@ export type Credentials = {
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
-  typeof Users.prototype.id
-> {
+  typeof Users.prototype._id
+  > {
   public readonly virtualUsers: HasManyRepositoryFactory<
     VirtualUsers,
-    typeof Users.prototype.id
+    typeof Users.prototype._id
   >;
 
-  public readonly dongs: HasManyRepositoryFactory<Dongs, typeof Users.prototype.id>;
+  public readonly dongs: HasManyRepositoryFactory<Dongs, typeof Users.prototype._id>;
 
   public readonly categories: HasManyRepositoryFactory<
     Category,
-    typeof Users.prototype.id
+    typeof Users.prototype._id
   >;
 
   constructor(
-    @inject('datasources.mongods') dataSource: MongoDataSource,
+    @inject('datasources.arangodb') dataSource: ArangodbDataSource,
     @repository.getter('VirtualUsersRepository')
     protected virtualUsersRepositoryGetter: Getter<VirtualUsersRepository>,
     @repository.getter('DongsRepository')

@@ -5,7 +5,7 @@ import { inject } from '@loopback/core';
 
 export class NodeRepository extends DefaultCrudRepository<
   Node,
-  typeof Node.prototype.id,
+  typeof Node.prototype._id,
   NodeRelations
   > {
   constructor(

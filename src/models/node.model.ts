@@ -1,4 +1,4 @@
-import {Entity, model, property} from '@loopback/repository';
+import { Entity, model, property } from '@loopback/repository';
 
 @model()
 export class Node extends Entity {
@@ -8,7 +8,7 @@ export class Node extends Entity {
     generated: false,
     required: true,
   })
-  id: string;
+  _id: string;
 
   @property({
     type: 'string',

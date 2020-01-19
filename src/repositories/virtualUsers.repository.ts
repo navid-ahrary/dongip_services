@@ -4,25 +4,25 @@ import {
   BelongsToAccessor,
   HasManyRepositoryFactory,
 } from '@loopback/repository';
-import {VirtualUsers, VirtualUsersRelations, Users, Dongs} from '../models';
-import {MongoDataSource} from '../datasources';
-import {inject, Getter} from '@loopback/core';
-import {UsersRepository} from './users.repository';
-import {DongsRepository} from './dongs.repository';
+import { VirtualUsers, VirtualUsersRelations, Users, Dongs } from '../models';
+import { ArangodbDataSource } from '../datasources';
+import { inject, Getter } from '@loopback/core';
+import { UsersRepository } from './users.repository';
+import { DongsRepository } from './dongs.repository';
 
 export class VirtualUsersRepository extends DefaultCrudRepository<
   VirtualUsers,
-  typeof VirtualUsers.prototype.id,
+  typeof VirtualUsers.prototype._id,
   VirtualUsersRelations
-> {
-  public readonly users: BelongsToAccessor<Users, typeof VirtualUsers.prototype.id>;
+  > {
+  public readonly users: BelongsToAccessor<Users, typeof VirtualUsers.prototype._id>;
   public readonly dongs: HasManyRepositoryFactory<
     Dongs,
-    typeof VirtualUsers.prototype.id
+    typeof VirtualUsers.prototype._id
   >;
 
   constructor(
-    @inject('datasources.mongods') dataSource: MongoDataSource,
+    @inject('datasources.arangodb') dataSource: ArangodbDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('DongsRepository')

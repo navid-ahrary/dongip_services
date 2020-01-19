@@ -1,4 +1,4 @@
-import {Filter, repository, Where, CountSchema, Count} from '@loopback/repository';
+import { Filter, repository, Where, CountSchema, Count } from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -9,31 +9,31 @@ import {
   HttpErrors,
   getWhereSchemaFor,
 } from '@loopback/rest';
-import {Users, Dongs, Category} from '../models';
-import {UsersRepository, CategoryRepository} from '../repositories';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
+import { Users, Dongs, Category } from '../models';
+import { UsersRepository, CategoryRepository } from '../repositories';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import * as underscore from 'underscore';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {authenticate} from '@loopback/authentication';
-import {inject} from '@loopback/core';
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
+import { authenticate } from '@loopback/authentication';
+import { inject } from '@loopback/core';
 import * as admin from 'firebase-admin';
 
 export class UsersDongsController {
   constructor(
     @repository(UsersRepository) private usersRepository: UsersRepository,
     @repository(CategoryRepository) private categoryRepository: CategoryRepository,
-  ) {}
+  ) { }
 
   async isNodesUsersOrVirtualUsers(
-    currentUserId: typeof Users.prototype.id,
-    nodes: typeof Users.prototype.id[],
+    currentUserId: typeof Users.prototype._id,
+    nodes: typeof Users.prototype._id[],
   ) {
     for (const node of nodes) {
       const user = await this.usersRepository.findById(node);
       if (!user) {
         const virtualUser = await this.usersRepository
           .virtualUsers(currentUserId)
-          .find({where: {id: node}});
+          .find({ where: { _id: node } });
         if (!virtualUser) {
           return false;
         }
@@ -51,55 +51,55 @@ export class UsersDongsController {
     return false;
   }
 
-  @get('/apis/users/{id}/dongs', {
+  @get('/apis/users/{_id}/dongs', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: "Array of Dongs's belonging to Users",
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(Dongs)},
+            schema: { type: 'array', items: getModelSchemaRef(Dongs) },
           },
         },
       },
     },
   })
   async find(
-    @param.path.string('id') id: string,
+    @param.path.string('_id') _id: string,
     @param.query.object('filter') filter?: Filter<Dongs>,
   ): Promise<Dongs[]> {
-    return this.usersRepository.dongs(id).find(filter);
+    return this.usersRepository.dongs(_id).find(filter);
   }
 
-  @post('/apis/users/{id}/dongs', {
+  @post('/apis/users/{_id}/dongs', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Users.Dongs post model instance',
-        content: {'application/json': {schema: getModelSchemaRef(Dongs)}},
+        content: { 'application/json': { schema: getModelSchemaRef(Dongs) } },
       },
     },
   })
   @authenticate('jwt')
   async create(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('id') id: typeof Users.prototype.id,
+    @param.path.string('_id') _id: typeof Users.prototype._id,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(Dongs, {
             title: 'NewDongsInUsers',
-            exclude: ['id'],
+            exclude: ['_id'],
             optional: ['expensesManagerId'],
           }),
         },
       },
     })
-    dongs: Omit<Dongs, 'id'>,
-  ): Promise<{id: string}> {
-    if (id !== currentUserProfile[securityId]) {
+    dongs: Omit<Dongs, '_id'>,
+  ): Promise<{ _id: string }> {
+    if (_id !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
-        'Error create a new dong, Token is not matched to this user id!',
+        'Error create a new dong, Token is not matched to this user _id!',
       );
     }
     interface CategoryBill {
@@ -129,15 +129,15 @@ export class UsersDongsController {
 
     for (const item of dongs.eqip) {
       if (
-        item.node !== expensesManager.id.toString() &&
+        item.node !== expensesManager._id.toString() &&
         !expensesManager.friends.includes(item.node) &&
         !this.arrayHasObject(expensesManager.pendingFriends, {
-          recipient: expensesManager.id,
+          recipient: expensesManager._id,
           requester: item.node,
         }) &&
         !this.arrayHasObject(expensesManager.pendingFriends, {
           recipient: item.node,
-          requester: expensesManager.id,
+          requester: expensesManager._id,
         })
       ) {
         throw new HttpErrors.NotAcceptable(
@@ -156,29 +156,29 @@ export class UsersDongsController {
     }
 
     const transaction = await this.usersRepository
-      .dongs(expensesManager.id)
+      .dongs(expensesManager._id)
       .create(dongs);
 
     const categoryBill: CategoryBill = {
-      dongsId: transaction.id,
+      dongsId: transaction._id,
       dong: dong,
     };
     // find category name in expenses manager caetgories
     const expensesManagerCategoryList = await this.usersRepository
-      .categories(expensesManager.id)
+      .categories(expensesManager._id)
       .find({
         where: {
           name: dongs.categoryName,
         },
       });
 
-    expensesManager.dongsId.push(transaction.id);
-    await this.usersRepository.updateById(expensesManager.id, expensesManager);
+    expensesManager.dongsId.push(transaction._id);
+    await this.usersRepository.updateById(expensesManager._id, expensesManager);
 
     const registrationTokens: string[] = [];
     for (const n of dongs.eqip) {
       let nodeCategory: Category;
-      // if (n.node === expensesManager.id.toString()) continue;
+      // if (n.node === expensesManager._id.toString()) continue;
       const paidCost = n.paidCost;
 
       categoryBill.paidCost = paidCost;
@@ -194,7 +194,7 @@ export class UsersDongsController {
         //create a category with name that provided by expenses manager
         nodeCategory = await this.usersRepository
           .categories(n.node)
-          .create({name: expensesManagerCategoryList[0].name});
+          .create({ name: expensesManagerCategoryList[0].name });
       } else if (nCategory.length === 1) {
         nodeCategory = nCategory[0];
       } else {
@@ -204,14 +204,14 @@ export class UsersDongsController {
       }
 
       // create bill belonging to created category
-      await this.categoryRepository.categoryBills(nodeCategory.id).create(categoryBill);
+      await this.categoryRepository.categoryBills(nodeCategory._id).create(categoryBill);
 
       const node = await this.usersRepository.findById(n.node);
-      node.dongsId.push(transaction.id);
+      node.dongsId.push(transaction._id);
       await this.usersRepository.updateById(n.node, node);
 
       // Do not add expenses manager to the reciever notification list
-      if (n.node !== expensesManager.id.toString()) {
+      if (n.node !== expensesManager._id.toString()) {
         registrationTokens.push(node.registerationToken);
       }
     }
@@ -224,7 +224,7 @@ export class UsersDongsController {
       },
       data: {
         name: expensesManager.name,
-        id: expensesManager.id.toString(),
+        _id: expensesManager._id.toString(),
       },
       tokens: registrationTokens,
     };
@@ -233,7 +233,7 @@ export class UsersDongsController {
     await admin
       .messaging()
       .sendMulticast(message)
-      .then(function(response) {
+      .then(function (response) {
         if (response.failureCount > 0) {
           const failedTokens: string[] = [];
           response.responses.forEach((resp, idx) => {
@@ -249,34 +249,34 @@ export class UsersDongsController {
 
         console.log(`Successfully sent notifications, ${response}`);
       })
-      .catch(function(error) {
+      .catch(function (error) {
         console.log(`Error sending notifications, ${error}`);
         throw new HttpErrors.NotImplemented(`Error sending notifications, ${error}`);
       });
 
-    return {id: transaction.id};
+    return { _id: transaction._id };
   }
 
-  @patch('/apis/users/{id}/dongs', {
+  @patch('/apis/users/{_id}/dongs', {
     responses: {
       '200': {
         description: 'Users.Dongs PATCH success count',
-        content: {'application/json': {schema: CountSchema}},
+        content: { 'application/json': { schema: CountSchema } },
       },
     },
   })
   async patch(
-    @param.path.string('id') id: string,
+    @param.path.string('_id') _id: string,
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Dongs, {partial: true}),
+          schema: getModelSchemaRef(Dongs, { partial: true }),
         },
       },
     })
     dongs: Partial<Dongs>,
     @param.query.object('where', getWhereSchemaFor(Dongs)) where?: Where<Dongs>,
   ): Promise<Count> {
-    return this.usersRepository.dongs(id).patch(dongs, where);
+    return this.usersRepository.dongs(_id).patch(dongs, where);
   }
 }

@@ -1,4 +1,4 @@
-import {Count, CountSchema, Filter, repository, Where} from '@loopback/repository';
+import { Count, CountSchema, Filter, repository, Where } from '@loopback/repository';
 import {
   post,
   param,
@@ -10,13 +10,13 @@ import {
   requestBody,
   HttpErrors,
 } from '@loopback/rest';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {Dongs, Users} from '../models';
-import {DongsRepository, UsersRepository} from '../repositories';
-import {authenticate} from '@loopback/authentication';
-import {inject} from '@loopback/core';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { Dongs, Users } from '../models';
+import { DongsRepository, UsersRepository } from '../repositories';
+import { authenticate } from '@loopback/authentication';
+import { inject } from '@loopback/core';
 import * as underscore from 'underscore';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 
 export class DongsController {
   constructor(
@@ -24,18 +24,18 @@ export class DongsController {
     public dongsRepository: DongsRepository,
     @repository(UsersRepository)
     public usersRepository: UsersRepository,
-  ) {}
+  ) { }
 
   async isNodesUsersOrVirtualUsers(
-    currentUserId: typeof Users.prototype.id,
-    nodes: typeof Users.prototype.id[],
+    currentUserId: typeof Users.prototype._id,
+    nodes: typeof Users.prototype._id[],
   ) {
     for (const node of nodes) {
       const user = await this.usersRepository.findById(node);
       if (!user) {
         const virtualUser = await this.usersRepository
           .virtualUsers(currentUserId)
-          .find({where: {id: node}});
+          .find({ where: { _id: node } });
         if (!virtualUser) {
           return false;
         }
@@ -58,7 +58,7 @@ export class DongsController {
     responses: {
       '200': {
         description: 'Dongs model instance',
-        content: {'application/json': {schema: getModelSchemaRef(Dongs)}},
+        content: { 'application/json': { schema: getModelSchemaRef(Dongs) } },
       },
     },
   })
@@ -70,12 +70,12 @@ export class DongsController {
         'application/json': {
           schema: getModelSchemaRef(Dongs, {
             title: 'NewDongs',
-            exclude: ['id'],
+            exclude: ['_id'],
           }),
         },
       },
     })
-    dongs: Omit<Dongs, 'id'>,
+    dongs: Omit<Dongs, '_id'>,
   ): Promise<void> {
     let pong = 0;
     let factorNodes = 0;
@@ -85,26 +85,26 @@ export class DongsController {
       nodes.push(item.node);
     }
 
-    currentUserProfile.id = currentUserProfile[securityId];
+    currentUserProfile._id = currentUserProfile[securityId];
     delete currentUserProfile[securityId];
 
-    const expensesManager = await this.usersRepository.findById(currentUserProfile.id);
+    const expensesManager = await this.usersRepository.findById(currentUserProfile._id);
 
-    if (!(await this.isNodesUsersOrVirtualUsers(currentUserProfile.id, nodes))) {
+    if (!(await this.isNodesUsersOrVirtualUsers(currentUserProfile._id, nodes))) {
       throw new HttpErrors.NotAcceptable('Some of this users are not available');
     }
 
     for (const item of dongs.eqip) {
       if (
-        item.node !== expensesManager.id.toString() &&
+        item.node !== expensesManager._id.toString() &&
         !expensesManager.friends.includes(item.node) &&
         !this.arrayHasObject(expensesManager.pendingFriends, {
-          recipient: expensesManager.id,
+          recipient: expensesManager._id,
           requester: item.node,
         }) &&
         !this.arrayHasObject(expensesManager.pendingFriends, {
           recipient: item.node,
-          requester: expensesManager.id,
+          requester: expensesManager._id,
         })
       ) {
         throw new HttpErrors.NotAcceptable(
@@ -123,17 +123,17 @@ export class DongsController {
     }
 
     const transaction = await this.usersRepository
-      .dongs(currentUserProfile.id)
+      .dongs(currentUserProfile._id)
       .create(dongs);
 
-    expensesManager.dongsId.push(transaction.id);
-    await this.usersRepository.updateById(expensesManager.id, expensesManager);
+    expensesManager.dongsId.push(transaction._id);
+    await this.usersRepository.updateById(expensesManager._id, expensesManager);
 
     for (const n of dongs.eqip) {
-      if (n.node === expensesManager.id.toString()) continue;
+      if (n.node === expensesManager._id.toString()) continue;
 
       const user = await this.usersRepository.findById(n.node);
-      user.dongsId.push(transaction.id);
+      user.dongsId.push(transaction._id);
 
       await this.usersRepository.updateById(n.node, user);
       // await this.usersRepository.categories(n.node).create(dongs.categories);
@@ -144,7 +144,7 @@ export class DongsController {
     responses: {
       '200': {
         description: 'Dongs model count',
-        content: {'application/json': {schema: CountSchema}},
+        content: { 'application/json': { schema: CountSchema } },
       },
     },
   })
@@ -160,7 +160,7 @@ export class DongsController {
         description: 'Array of Dongs model instances',
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(Dongs)},
+            schema: { type: 'array', items: getModelSchemaRef(Dongs) },
           },
         },
       },
@@ -176,7 +176,7 @@ export class DongsController {
     responses: {
       '200': {
         description: 'Dongs PATCH success count',
-        content: {'application/json': {schema: CountSchema}},
+        content: { 'application/json': { schema: CountSchema } },
       },
     },
   })
@@ -184,7 +184,7 @@ export class DongsController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Dongs, {partial: true}),
+          schema: getModelSchemaRef(Dongs, { partial: true }),
         },
       },
     })
@@ -194,19 +194,19 @@ export class DongsController {
     return this.dongsRepository.updateAll(dongs, where);
   }
 
-  @get('/dongs/{id}', {
+  @get('/dongs/{_id}', {
     responses: {
       '200': {
         description: 'Dongs model instance',
-        content: {'application/json': {schema: getModelSchemaRef(Dongs)}},
+        content: { 'application/json': { schema: getModelSchemaRef(Dongs) } },
       },
     },
   })
-  async findById(@param.path.string('id') id: string): Promise<Dongs> {
-    return this.dongsRepository.findById(id);
+  async findById(@param.path.string('_id') _id: string): Promise<Dongs> {
+    return this.dongsRepository.findById(_id);
   }
 
-  @patch('/dongs/{id}', {
+  @patch('/dongs/{_id}', {
     responses: {
       '204': {
         description: 'Dongs PATCH success',
@@ -214,16 +214,16 @@ export class DongsController {
     },
   })
   async updateById(
-    @param.path.string('id') id: string,
+    @param.path.string('_id') _id: string,
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Dongs, {partial: true}),
+          schema: getModelSchemaRef(Dongs, { partial: true }),
         },
       },
     })
     dongs: Dongs,
   ): Promise<void> {
-    await this.dongsRepository.updateById(id, dongs);
+    await this.dongsRepository.updateById(_id, dongs);
   }
 }

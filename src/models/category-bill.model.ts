@@ -1,6 +1,6 @@
-import {Entity, model, property, belongsTo} from '@loopback/repository';
-import {Category} from './category.model';
-import {Dongs} from './dongs.model';
+import { Entity, model, property, belongsTo } from '@loopback/repository';
+import { Category } from './category.model';
+import { Dongs } from './dongs.model';
 
 @model()
 export class CategoryBill extends Entity {
@@ -9,7 +9,7 @@ export class CategoryBill extends Entity {
     id: true,
     generated: true,
   })
-  id?: string;
+  _id?: string;
 
   @property({
     type: 'number',

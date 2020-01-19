@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* eslint-disable require-atomic-updates */
 import { inject } from '@loopback/core';
 import { repository } from '@loopback/repository';
@@ -125,7 +126,7 @@ export class UsersController {
       },
     })
     user: Users,
-  ): Promise<{ id: typeof Users.prototype.id; accessToken: string }> {
+  ): Promise<{ _id: typeof Users.prototype._id; accessToken: string }> {
     // ensure a valid phone and password value
     validatePhoneNumber(phone);
     validatePhoneNumber(user.phone);
@@ -152,7 +153,7 @@ export class UsersController {
       //create a JWT token based on the user profile
       const accessToken = await this.jwtService.generateToken(userProfile);
 
-      return { id: savedUser.id, accessToken };
+      return { _id: savedUser.getId(), accessToken };
     } catch (err) {
       if (err.code === 409) {
         throw new HttpErrors.Conflict(`This phone number is already taken.`);
@@ -172,7 +173,7 @@ export class UsersController {
               type: 'object',
               properties: {
                 accessToken: 'string',
-                id: 'string',
+                _id: 'string',
               },
             },
           },
@@ -184,30 +185,41 @@ export class UsersController {
   async login(
     @param.path.string('phone') phone: string,
     @requestBody(CredentialsRequestBody) credentials: Credentials,
-  ): Promise<{ id: typeof Users.prototype.id; accessToken: string }> {
-    if (phone !== credentials.phone) {
-      throw new HttpErrors.Unauthorized(
-        'Error login, Phone numbers in params and body not matched !',
-      );
+  )
+  // : Promise<{ _id: typeof Users.prototype._id, accessToken: string }>
+  {
+    try {
+      let user: Users,
+        userProfile: UserProfile,
+        accessToken: string;
+
+      if (phone !== credentials.phone) {
+        throw new HttpErrors.Unauthorized(
+          'Error login, Phone numbers in params and body not matched !',
+        );
+      }
+
+      //ensure the user exists and the password is correct
+      user = await this.userService.verifyCredentials(credentials);
+      //convert a User object into a UserProfile object (reduced set of properties)
+      userProfile = this.userService.convertToUserProfile(user);
+      //create a JWT token bas1ed on the Userprofile
+      accessToken = await this.jwtService.generateToken(userProfile);
+
+      await this.usersRepository.updateById(user.getId(), {
+        registerationToken: credentials.registerationToken
+      });
+
+      // get new _rev
+      user = await this.userService.verifyCredentials(credentials);
+
+      return { _id: user.getId(), _rev: user._rev, accessToken };
+    } catch (err) {
+      throw new HttpErrors.NotImplemented(err)
     }
-
-    //ensure the user exists and the password is correct
-    const user = await this.userService.verifyCredentials(credentials);
-
-    await this.usersRepository.updateById(user.id, {
-      registerationToken: credentials.registerationToken,
-    });
-
-    //convert a User object into a UserProfile object (reduced set of properties)
-    const userProfile = this.userService.convertToUserProfile(user);
-
-    //create a JWT token based on the user profile
-    const accessToken = await this.jwtService.generateToken(userProfile);
-
-    return { id: user.id, accessToken };
   }
 
-  @get('/apis/users/{id}/logout', {
+  @get('/apis/users/{_id}/logout', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -219,12 +231,12 @@ export class UsersController {
   async logout(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.header.string('authorization') authorizationHeader: string,
-    @param.path.string('id') id: typeof Users.prototype.id,
+    @param.path.string('_id') _id: typeof Users.prototype._id,
   ) {
     try {
-      if (id !== currentUserProfile[securityId]) {
+      if (_id !== currentUserProfile[securityId]) {
         throw new HttpErrors.Unauthorized(
-          'Error users logout ,Token is not matched to this user id!',
+          'Error users logout ,Token is not matched to this user _id!',
         );
       }
       return await this.blacklistRepository.create({ token: authorizationHeader.split(' ')[1] });
@@ -237,7 +249,7 @@ export class UsersController {
     }
   }
 
-  @get('/apis/users/{id}/me', {
+  @get('/apis/users/{_id}/me', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -253,21 +265,21 @@ export class UsersController {
   @authenticate('jwt')
   async printCurrentUser(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('id') id: typeof Users.prototype.id,
-  ): Promise<{ id: string; name: string }> {
-    if (id !== currentUserProfile[securityId]) {
+    @param.path.string('_id') _id: typeof Users.prototype._id,
+  ): Promise<{ _id: string; name: string }> {
+    if (_id !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
-        'Error users print current user , Token is not matched to this user id!',
+        'Error users print current user , Token is not matched to this user _id!',
       );
     }
 
     const user = await this.usersRepository.findById(currentUserProfile[securityId]);
     delete user.password;
 
-    return { id: user.id, name: user.name };
+    return { _id: user._id, name: user.name };
   }
 
-  @post('/apis/users/{id}/friend-req', {
+  @post('/apis/users/{_id}/friend-req', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -278,7 +290,7 @@ export class UsersController {
   @authenticate('jwt')
   async friendRequest(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('id') id: typeof Users.prototype.id,
+    @param.path.string('_id') _id: typeof Users.prototype._id,
     @requestBody({
       content: {
         'application/json': {
@@ -289,14 +301,14 @@ export class UsersController {
     reqBody: FriendRequest,
   ) {
     try {
-      if (id !== currentUserProfile[securityId]) {
+      if (_id !== currentUserProfile[securityId]) {
         throw new HttpErrors.Unauthorized(
-          'Error users friend request ,Token is not matched to this user id!',
+          'Error users friend request ,Token is not matched to this user _id!',
         );
       }
 
       const requesterUser = await this.usersRepository.findOne({
-        where: { id: currentUserProfile[securityId] },
+        where: { _id: currentUserProfile[securityId] },
       });
 
       const recipientUser = await this.usersRepository.findOne({
@@ -308,51 +320,51 @@ export class UsersController {
           avatar: reqBody.avatar,
           name: reqBody.name,
           phone: reqBody.phone,
-          usersId: requesterUser.id,
+          usersId: requesterUser._id,
         };
 
-        const preVu = await this.usersRepository.virtualUsers(requesterUser.id).find({
+        const preVu = await this.usersRepository.virtualUsers(requesterUser._id).find({
           where: {
             phone: reqBody.phone,
-            usersId: requesterUser.id,
+            usersId: requesterUser._id,
           },
         });
 
-        if (!preVu) {
+        if (preVu.length === 0) {
           const vuResult = await this.usersRepository
-            .virtualUsers(requesterUser.id)
+            .virtualUsers(requesterUser._id)
             .create(vu);
 
           return vuResult;
-        } else if (preVu) {
+        } else {
           throw new HttpErrors.NotAcceptable('He/She is in your friends list');
         }
       }
 
       if (requesterUser && recipientUser) {
-        if (requesterUser!.id.toString() === recipientUser!.id.toString()) {
+        if (requesterUser!._id.toString() === recipientUser!._id.toString()) {
           throw new HttpErrors.NotAcceptable('You are the best friend of yourself! :)');
         }
 
         if (
-          !recipientUser.friends.includes(requesterUser.id.toString()) &&
+          !recipientUser.friends.includes(requesterUser._id.toString()) &&
           !this.arrayHasObject(recipientUser.pendingFriends, {
-            requester: requesterUser.id.toString(),
-            recipient: recipientUser.id.toString(),
+            requester: requesterUser._id.toString(),
+            recipient: recipientUser._id.toString(),
           }) &&
-          !requesterUser.friends.includes(recipientUser.id.toString()) &&
+          !requesterUser.friends.includes(recipientUser._id.toString()) &&
           !this.arrayHasObject(requesterUser.pendingFriends, {
-            requester: requesterUser.id.toString(),
-            recipient: recipientUser.id.toString(),
+            requester: requesterUser._id.toString(),
+            recipient: recipientUser._id.toString(),
           })
         ) {
           recipientUser.pendingFriends.push({
-            requester: requesterUser.id.toString(),
-            recipient: recipientUser.id.toString(),
+            requester: requesterUser._id.toString(),
+            recipient: recipientUser._id.toString(),
           });
           requesterUser.pendingFriends.push({
-            requester: requesterUser.id.toString(),
-            recipient: recipientUser.id.toString(),
+            requester: requesterUser._id.toString(),
+            recipient: recipientUser._id.toString(),
           });
 
           await this.usersRepository.updateById(requesterUser.getId(), requesterUser);
@@ -379,7 +391,7 @@ export class UsersController {
           await admin
             .messaging()
             .sendToDevice(recipUserNotifToken, payload, options)
-            .then(function (response) {
+            .then(function (_response) {
               return {
                 message: `Request is sent, wait for response from him/her`,
               };
@@ -388,18 +400,18 @@ export class UsersController {
               throw new HttpErrors.NotImplemented(error);
             });
         } else if (
-          recipientUser.friends.includes(requesterUser.id.toString()) &&
-          requesterUser.friends.includes(recipientUser.id.toString())
+          recipientUser.friends.includes(requesterUser._id.toString()) &&
+          requesterUser.friends.includes(recipientUser._id.toString())
         ) {
           return { message: 'You were friends lately' };
         } else if (
           this.arrayHasObject(recipientUser.pendingFriends, {
-            requester: requesterUser.id.toString(),
-            recipient: recipientUser.id.toString(),
+            requester: requesterUser._id.toString(),
+            recipient: recipientUser._id.toString(),
           }) &&
           this.arrayHasObject(requesterUser.pendingFriends, {
-            requester: requesterUser.id.toString(),
-            recipient: recipientUser.id.toString(),
+            requester: requesterUser._id.toString(),
+            recipient: recipientUser._id.toString(),
           })
         ) {
           return { message: 'Request was fired, wait for respone' };
@@ -410,7 +422,7 @@ export class UsersController {
     }
   }
 
-  @post('/apis/users/{id}/res-friend-req', {
+  @post('/apis/users/{_id}/res-friend-req', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -421,7 +433,7 @@ export class UsersController {
   @authenticate('jwt')
   async responseToFriendRequest(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('id') id: typeof Users.prototype.id,
+    @param.path.string('_id') _id: typeof Users.prototype._id,
     @requestBody({
       content: {
         'application/json': {
@@ -432,9 +444,9 @@ export class UsersController {
     bodyReq: FriendRequest,
   ) {
     try {
-      if (id !== currentUserProfile[securityId]) {
+      if (_id !== currentUserProfile[securityId]) {
         throw new HttpErrors.Unauthorized(
-          'Error users response to friend request ,Token is not matched to this user id!',
+          'Error users response to friend request ,Token is not matched to this user _id!',
         );
       }
 
@@ -442,7 +454,7 @@ export class UsersController {
 
       const recipientUser = await this.usersRepository.findOne({
         where: {
-          id: id,
+          _id: _id,
         },
       });
 
@@ -453,31 +465,31 @@ export class UsersController {
       });
 
       if (recipientUser && requesterUser) {
-        if (requesterUser!.id.toString() === recipientUser!.id.toString()) {
+        if (requesterUser!._id.toString() === recipientUser!._id.toString()) {
           throw new HttpErrors.NotAcceptable(
             'We believe that you are the best friend of yourself! ;)',
           );
         }
 
         if (
-          !requesterUser.friends.includes(recipientUser.id.toString()) &&
+          !requesterUser.friends.includes(recipientUser._id.toString()) &&
           this.arrayHasObject(requesterUser.pendingFriends, {
-            requester: requesterUser.id.toString(),
-            recipient: recipientUser.id.toString(),
+            requester: requesterUser._id.toString(),
+            recipient: recipientUser._id.toString(),
           }) &&
-          !recipientUser.friends.includes(requesterUser.id.toString()) &&
+          !recipientUser.friends.includes(requesterUser._id.toString()) &&
           this.arrayHasObject(recipientUser.pendingFriends, {
-            requester: requesterUser.id.toString(),
-            recipient: recipientUser.id.toString(),
+            requester: requesterUser._id.toString(),
+            recipient: recipientUser._id.toString(),
           })
         ) {
           this.arrayRemoveItem(requesterUser.pendingFriends, {
-            requester: requesterUser.id.toString(),
-            recipient: recipientUser.id.toString(),
+            requester: requesterUser._id.toString(),
+            recipient: recipientUser._id.toString(),
           });
           this.arrayRemoveItem(recipientUser.pendingFriends, {
-            requester: requesterUser.id.toString(),
-            recipient: recipientUser.id.toString(),
+            requester: requesterUser._id.toString(),
+            recipient: recipientUser._id.toString(),
           });
 
           const payload: admin.messaging.MessagingPayload = {
@@ -497,8 +509,8 @@ export class UsersController {
           };
 
           if (bodyReq.status === true) {
-            recipientUser.friends.push(requesterUser.id.toString());
-            requesterUser.friends.push(recipientUser.id.toString());
+            recipientUser.friends.push(requesterUser._id.toString());
+            requesterUser.friends.push(recipientUser._id.toString());
 
             payload.notification = {
               title: 'دنگیپ قبول درخواست دوستی',
@@ -515,8 +527,8 @@ export class UsersController {
             message = 'Friend request has been rejected';
           }
 
-          await this.usersRepository.updateById(recipientUser.id, recipientUser);
-          await this.usersRepository.updateById(requesterUser.id, requesterUser);
+          await this.usersRepository.updateById(recipientUser._id, recipientUser);
+          await this.usersRepository.updateById(requesterUser._id, requesterUser);
 
           // send notification accept/reject message to requester of friend request
           const reqUserRegToken = requesterUser.registerationToken;
@@ -545,7 +557,7 @@ export class UsersController {
     }
   }
 
-  @get('/apis/users/{id}', {
+  @get('/apis/users/{_id}', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -560,18 +572,18 @@ export class UsersController {
   })
   @authenticate('jwt')
   async findById(
-    @param.path.string('id') id: string,
+    @param.path.string('_id') _id: string,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
   ): Promise<Users> {
-    if (id !== currentUserProfile[securityId]) {
+    if (_id !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
-        'Error users findById ,Token is not matched to this user id!',
+        'Error users findById ,Token is not matched to this user _id!',
       );
     }
-    return this.usersRepository.findById(id);
+    return this.usersRepository.findById(_id);
   }
 
-  @patch('/apis/user/{id}', {
+  @patch('/apis/user/{_id}', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -581,7 +593,7 @@ export class UsersController {
   })
   @authenticate('jwt')
   async updateById(
-    @param.path.string('id') id: string,
+    @param.path.string('_id') _id: string,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody({
       content: {
@@ -592,9 +604,9 @@ export class UsersController {
     })
     user: Users,
   ): Promise<void> {
-    if (id !== currentUserProfile[securityId]) {
-      throw new HttpErrors.Unauthorized('Token is not matched to this user id!');
+    if (_id !== currentUserProfile[securityId]) {
+      throw new HttpErrors.Unauthorized('Token is not matched to this user _id!');
     }
-    await this.usersRepository.updateById(id, user);
+    await this.usersRepository.updateById(_id, user);
   }
 }

@@ -1,7 +1,7 @@
-import {Entity, model, property, hasMany} from '@loopback/repository';
-import {VirtualUsers, VirtualUsersWithRelations} from './virtualUsers.model';
-import {Dongs} from './dongs.model';
-import {Category} from './category.model';
+import { Entity, model, property, hasMany } from '@loopback/repository';
+import { VirtualUsers, VirtualUsersWithRelations } from './virtualUsers.model';
+import { Dongs } from './dongs.model';
+import { Category } from './category.model';
 
 @model()
 export class Users extends Entity {
@@ -11,7 +11,14 @@ export class Users extends Entity {
     required: false,
     generated: true,
   })
-  id: string;
+  _id: string;
+
+  @property({
+    type: 'string',
+    required: false,
+    generated: true,
+  })
+  _rev: string;
 
   @property({
     type: 'string',
@@ -73,7 +80,7 @@ export class Users extends Entity {
     default: [],
     required: false,
   })
-  pendingFriends: {recipient: string; requester: string}[];
+  pendingFriends: { recipient: string; requester: string }[];
 
   @property({
     type: 'array',
@@ -81,7 +88,7 @@ export class Users extends Entity {
     default: [],
     required: false,
   })
-  friends: typeof Users.prototype.id[];
+  friends: typeof Users.prototype._id[];
 
   @property({
     type: 'array',
@@ -100,9 +107,9 @@ export class Users extends Entity {
     required: false,
     default: [],
   })
-  dongsId: typeof Dongs.prototype.id[];
+  dongsId: typeof Dongs.prototype._id[];
 
-  @hasMany(() => Dongs, {keyTo: 'expensesManagerId'})
+  @hasMany(() => Dongs, { keyTo: 'expensesManagerId' })
   dongs: Dongs[];
 
   @hasMany(() => Category)

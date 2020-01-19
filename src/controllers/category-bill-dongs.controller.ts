@@ -10,7 +10,7 @@ import {
   CategoryBill,
   Dongs,
 } from '../models';
-import {CategoryBillRepository} from '../repositories';
+import { CategoryBillRepository } from '../repositories';
 
 export class CategoryBillDongsController {
   constructor(
@@ -18,21 +18,21 @@ export class CategoryBillDongsController {
     public categoryBillRepository: CategoryBillRepository,
   ) { }
 
-  @get('/category-bills/{id}/dongs', {
+  @get('/category-bills/{_id}/dongs', {
     responses: {
       '200': {
         description: 'Dongs belonging to CategoryBill',
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(Dongs)},
+            schema: { type: 'array', items: getModelSchemaRef(Dongs) },
           },
         },
       },
     },
   })
   async getDongs(
-    @param.path.string('id') id: typeof CategoryBill.prototype.id,
+    @param.path.string('_id') _id: typeof CategoryBill.prototype._id,
   ): Promise<Dongs> {
-    return this.categoryBillRepository.dongs(id);
+    return this.categoryBillRepository.dongs(_id);
   }
 }

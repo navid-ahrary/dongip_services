@@ -1,7 +1,7 @@
-import {Entity, model, property, belongsTo} from '@loopback/repository';
-import {Eqip} from './eqip.model';
-import {Users} from './users.model';
-import {Category} from './category.model';
+import { Entity, model, property, belongsTo } from '@loopback/repository';
+import { Eqip } from './eqip.model';
+import { Users } from './users.model';
+import { Category } from './category.model';
 
 @model()
 export class Dongs extends Entity {
@@ -11,7 +11,7 @@ export class Dongs extends Entity {
     generated: true,
     required: false,
   })
-  id: string;
+  _id: string;
 
   @property({
     type: 'string',

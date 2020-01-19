@@ -6,7 +6,7 @@ import {
 } from '@loopback/core';
 import { juggler } from '@loopback/repository';
 import settings from './arango.datasource.config.json';
-import { config } from "dotenv";
+import { config } from 'dotenv';
 config();
 
 settings.username = String(process.env.ARANGODB_USERNAME);

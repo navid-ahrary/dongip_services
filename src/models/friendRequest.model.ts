@@ -1,4 +1,4 @@
-import {model, property, Model} from '@loopback/repository';
+import { model, property, Model } from '@loopback/repository';
 
 @model()
 export class FriendRequest extends Model {
@@ -30,6 +30,6 @@ export class FriendRequest extends Model {
   }
 }
 
-export interface FriendRequestRelations {}
+export interface FriendRequestRelations { }
 
 export type FriendRequestWithRelations = FriendRequest & FriendRequestRelations;

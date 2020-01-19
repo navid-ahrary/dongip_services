@@ -10,7 +10,7 @@ import {
   CategoryBill,
   Category,
 } from '../models';
-import {CategoryBillRepository} from '../repositories';
+import { CategoryBillRepository } from '../repositories';
 
 export class CategoryBillCategoryController {
   constructor(
@@ -18,21 +18,21 @@ export class CategoryBillCategoryController {
     public categoryBillRepository: CategoryBillRepository,
   ) { }
 
-  @get('/category-bills/{id}/category', {
+  @get('/category-bills/{_id}/category', {
     responses: {
       '200': {
         description: 'Category belonging to CategoryBill',
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(Category)},
+            schema: { type: 'array', items: getModelSchemaRef(Category) },
           },
         },
       },
     },
   })
   async getCategory(
-    @param.path.string('id') id: typeof CategoryBill.prototype.id,
+    @param.path.string('_id') _id: typeof CategoryBill.prototype._id,
   ): Promise<Category> {
-    return this.categoryBillRepository.category(id);
+    return this.categoryBillRepository.category(_id);
   }
 }
