@@ -186,8 +186,11 @@ export class UsersController {
     @param.path.string('phone') phone: string,
     @requestBody(CredentialsRequestBody) credentials: Credentials,
   )
-  // : Promise<{ _id: typeof Users.prototype._id, accessToken: string }>
-  {
+    : Promise<{
+      _id: typeof Users.prototype._id,
+      _rev: typeof Users.prototype._rev,
+      accessToken: string
+    }> {
     try {
       let user: Users,
         userProfile: UserProfile,
@@ -209,7 +212,7 @@ export class UsersController {
       await this.usersRepository.updateById(user._id, {
         registerationToken: credentials.registerationToken
       });
-
+      console.log(user)
       // get new _rev
       user = await this.userService.verifyCredentials(credentials);
 
