@@ -97,6 +97,7 @@ export class UsersController {
       }
       return { isRegistered, name, avatar };
     } catch (err) {
+      console.log(err);
       throw new HttpErrors.NotImplemented(err);
     }
   }
@@ -155,6 +156,7 @@ export class UsersController {
 
       return { _id: savedUser._id, accessToken };
     } catch (err) {
+      console.log(err);
       if (err.code === 409) {
         throw new HttpErrors.Conflict(`This phone number is already taken.`);
       } else {
@@ -204,6 +206,7 @@ export class UsersController {
 
       //ensure the user exists and the password is correct
       user = await this.userService.verifyCredentials(credentials);
+
       //convert a User object into a UserProfile object (reduced set of properties)
       userProfile = this.userService.convertToUserProfile(user);
       //create a JWT token bas1ed on the Userprofile
@@ -212,12 +215,12 @@ export class UsersController {
       await this.usersRepository.updateById(user._id, {
         registerationToken: credentials.registerationToken
       });
-      console.log(user)
       // get new _rev
       user = await this.userService.verifyCredentials(credentials);
 
       return { _id: user._id, _rev: user._rev, accessToken };
     } catch (err) {
+      console.log(err);
       throw new HttpErrors.NotImplemented(err)
     }
   }
@@ -244,6 +247,7 @@ export class UsersController {
       }
       return await this.blacklistRepository.create({ token: authorizationHeader.split(' ')[1] });
     } catch (err) {
+      console.log(err);
       if (err.code === 409) {
         throw new HttpErrors.Conflict(`Error logout conflict token, this token is blacklisted already`);
       } else {
@@ -421,6 +425,7 @@ export class UsersController {
         }
       }
     } catch (err) {
+      console.log(err);
       throw new HttpErrors.NotAcceptable(err);
     }
   }
@@ -556,6 +561,7 @@ export class UsersController {
         }
       }
     } catch (err) {
+      console.log(err);
       throw new HttpErrors.MethodNotAllowed(err);
     }
   }
