@@ -153,7 +153,7 @@ export class UsersController {
       //create a JWT token based on the user profile
       const accessToken = await this.jwtService.generateToken(userProfile);
 
-      return { _id: savedUser.getId(), accessToken };
+      return { _id: savedUser._id, accessToken };
     } catch (err) {
       if (err.code === 409) {
         throw new HttpErrors.Conflict(`This phone number is already taken.`);
@@ -206,14 +206,14 @@ export class UsersController {
       //create a JWT token bas1ed on the Userprofile
       accessToken = await this.jwtService.generateToken(userProfile);
 
-      await this.usersRepository.updateById(user.getId(), {
+      await this.usersRepository.updateById(user._id, {
         registerationToken: credentials.registerationToken
       });
 
       // get new _rev
       user = await this.userService.verifyCredentials(credentials);
 
-      return { _id: user.getId(), _rev: user._rev, accessToken };
+      return { _id: user._id, _rev: user._rev, accessToken };
     } catch (err) {
       throw new HttpErrors.NotImplemented(err)
     }
@@ -367,8 +367,8 @@ export class UsersController {
             recipient: recipientUser._id.toString(),
           });
 
-          await this.usersRepository.updateById(requesterUser.getId(), requesterUser);
-          await this.usersRepository.updateById(recipientUser.getId(), recipientUser);
+          await this.usersRepository.updateById(requesterUser._id, requesterUser);
+          await this.usersRepository.updateById(recipientUser._id, recipientUser);
 
           const payload = {
             notification: {
