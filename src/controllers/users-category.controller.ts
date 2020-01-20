@@ -65,13 +65,13 @@ export class UsersCategoryController {
         'application/json': {
           schema: getModelSchemaRef(Category, {
             title: 'NewCategoryInUsers',
-            exclude: ['_id'],
+            exclude: ['_key'],
             optional: ['usersId'],
           }),
         },
       },
     })
-    category: Omit<Category, '_id'>,
+    category: Omit<Category, '_key'>,
   ): Promise<Category> {
     if (_key !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(

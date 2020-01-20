@@ -61,7 +61,7 @@ export class UsersVirtualUsersController {
         'application/json': {
           schema: getModelSchemaRef(VirtualUsers, {
             title: 'NewVirtualUsersInUsers',
-            exclude: ['_id'],
+            exclude: ['_key'],
             optional: ['usersId'],
           }),
         },
@@ -77,12 +77,12 @@ export class UsersVirtualUsersController {
     const virtualUser = await this.usersRepository
       .virtualUsers(currentUserProfile._key)
       .create(virtualUsers);
-    user.virtualFriends.push(virtualUser._id);
+    user.virtualFriends.push(virtualUser._key);
 
     return virtualUser;
   }
 
-  @patch('/apis/users/{_id}/virtual-users', {
+  @patch('/apis/users/{_key}/virtual-users', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -94,7 +94,7 @@ export class UsersVirtualUsersController {
   @authenticate('jwt')
   async patch(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('_id') _id: string,
+    @param.path.string('_key') _key: string,
     @requestBody({
       content: {
         'application/json': {
@@ -106,11 +106,11 @@ export class UsersVirtualUsersController {
     @param.query.object('where', getWhereSchemaFor(VirtualUsers))
     where?: Where<VirtualUsers>,
   ): Promise<Count> {
-    currentUserProfile._id = currentUserProfile[securityId];
+    currentUserProfile._key = currentUserProfile[securityId];
     delete currentUserProfile[securityId];
 
     return this.usersRepository
-      .virtualUsers(currentUserProfile._id)
+      .virtualUsers(currentUserProfile._key)
       .patch(virtualUsers, where);
   }
 }
