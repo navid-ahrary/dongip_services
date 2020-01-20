@@ -27,8 +27,8 @@ export class DongsController {
   ) { }
 
   async isNodesUsersOrVirtualUsers(
-    currentUserId: typeof Users.prototype._id,
-    nodes: typeof Users.prototype._id[],
+    currentUserId: typeof Users.prototype._key,
+    nodes: typeof Users.prototype._key[],
   ) {
     for (const node of nodes) {
       const user = await this.usersRepository.findById(node);
@@ -96,15 +96,15 @@ export class DongsController {
 
     for (const item of dongs.eqip) {
       if (
-        item.node !== expensesManager._id.toString() &&
+        item.node !== expensesManager._key.toString() &&
         !expensesManager.friends.includes(item.node) &&
         !this.arrayHasObject(expensesManager.pendingFriends, {
-          recipient: expensesManager._id,
+          recipient: expensesManager._key,
           requester: item.node,
         }) &&
         !this.arrayHasObject(expensesManager.pendingFriends, {
           recipient: item.node,
-          requester: expensesManager._id,
+          requester: expensesManager._key,
         })
       ) {
         throw new HttpErrors.NotAcceptable(
@@ -127,10 +127,10 @@ export class DongsController {
       .create(dongs);
 
     expensesManager.dongsId.push(transaction._id);
-    await this.usersRepository.updateById(expensesManager._id, expensesManager);
+    await this.usersRepository.updateById(expensesManager._key, expensesManager);
 
     for (const n of dongs.eqip) {
-      if (n.node === expensesManager._id.toString()) continue;
+      if (n.node === expensesManager._key.toString()) continue;
 
       const user = await this.usersRepository.findById(n.node);
       user.dongsId.push(transaction._id);

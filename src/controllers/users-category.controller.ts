@@ -19,7 +19,7 @@ import { inject } from '@loopback/core';
 export class UsersCategoryController {
   constructor(@repository(UsersRepository) protected usersRepository: UsersRepository) { }
 
-  @get('/apis/users/{_id}/categories', {
+  @get('/apis/users/{_key}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -35,19 +35,19 @@ export class UsersCategoryController {
   @authenticate('jwt')
   async find(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('_id') _id: string,
+    @param.path.string('_key') _key: string,
     @param.query.object('filter') filter?: Filter<Category>,
   ): Promise<Category[]> {
-    if (_id !== currentUserProfile[securityId]) {
+    if (_key !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
-        'Error find category, Token is not matched to this user _id!',
+        'Error find category, Token is not matched to this user _key!',
       );
     }
 
-    return this.usersRepository.categories(_id).find(filter);
+    return this.usersRepository.categories(_key).find(filter);
   }
 
-  @post('/apis/users/{_id}/categories', {
+  @post('/apis/users/{_key}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -59,7 +59,7 @@ export class UsersCategoryController {
   @authenticate('jwt')
   async create(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('_id') _id: typeof Users.prototype._id,
+    @param.path.string('_key') _key: typeof Users.prototype._key,
     @requestBody({
       content: {
         'application/json': {
@@ -73,13 +73,13 @@ export class UsersCategoryController {
     })
     category: Omit<Category, '_id'>,
   ): Promise<Category> {
-    if (_id !== currentUserProfile[securityId]) {
+    if (_key !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
-        'Error create a category, Token is not matched to this user _id!',
+        'Error create a category, Token is not matched to this user _key!',
       );
     }
 
-    const usersCategoriesWithThisName = await this.find(currentUserProfile, _id, {
+    const usersCategoriesWithThisName = await this.find(currentUserProfile, _key, {
       where: { name: category.name },
     });
 
@@ -89,10 +89,10 @@ export class UsersCategoryController {
       );
     }
 
-    return this.usersRepository.categories(_id).create(category);
+    return this.usersRepository.categories(_key).create(category);
   }
 
-  @patch('/apis/users/{_id}/categories', {
+  @patch('/apis/users/{_key}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -104,7 +104,7 @@ export class UsersCategoryController {
   @authenticate('jwt')
   async patch(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('_id') _id: string,
+    @param.path.string('_key') _key: string,
     @requestBody({
       content: {
         'application/json': {
@@ -115,12 +115,12 @@ export class UsersCategoryController {
     category: Partial<Category>,
     @param.query.object('where', getWhereSchemaFor(Category)) where?: Where<Category>,
   ): Promise<Count> {
-    if (_id !== currentUserProfile[securityId]) {
+    if (_key !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
-        'Error find category, Token is not matched to this user _id!',
+        'Error find category, Token is not matched to this user _key!',
       );
     }
 
-    return this.usersRepository.categories(_id).patch(category, where);
+    return this.usersRepository.categories(_key).patch(category, where);
   }
 }

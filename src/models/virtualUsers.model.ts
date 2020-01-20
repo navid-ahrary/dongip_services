@@ -31,10 +31,10 @@ export class VirtualUsers extends Entity {
   avatar: string;
 
   @belongsTo(() => Users)
-  usersId: typeof Users.prototype._id;
+  usersId: typeof Users.prototype.getId;
 
   @hasMany(() => Dongs)
-  dongs: typeof Dongs.prototype._id;
+  dongs: typeof Dongs.prototype.getId;
 
   constructor(data?: Partial<VirtualUsers>) {
     super(data);

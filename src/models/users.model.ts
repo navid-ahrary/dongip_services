@@ -11,7 +11,7 @@ export class Users extends Entity {
     required: false,
     generated: true,
   })
-  _id: string;
+  _key: string;
 
   @property({
     type: 'string',
@@ -88,7 +88,7 @@ export class Users extends Entity {
     default: [],
     required: false,
   })
-  friends: typeof Users.prototype._id[];
+  friends: typeof Users.prototype._key[];
 
   @property({
     type: 'array',

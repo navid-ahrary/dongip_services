@@ -25,8 +25,8 @@ export class UsersDongsController {
   ) { }
 
   async isNodesUsersOrVirtualUsers(
-    currentUserId: typeof Users.prototype._id,
-    nodes: typeof Users.prototype._id[],
+    currentUserId: typeof Users.prototype._key,
+    nodes: typeof Users.prototype._key[],
   ) {
     for (const node of nodes) {
       const user = await this.usersRepository.findById(node);
@@ -51,7 +51,7 @@ export class UsersDongsController {
     return false;
   }
 
-  @get('/apis/users/{_id}/dongs', {
+  @get('/apis/users/{_key}/dongs', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -65,13 +65,13 @@ export class UsersDongsController {
     },
   })
   async find(
-    @param.path.string('_id') _id: string,
+    @param.path.string('_key') _key: string,
     @param.query.object('filter') filter?: Filter<Dongs>,
   ): Promise<Dongs[]> {
-    return this.usersRepository.dongs(_id).find(filter);
+    return this.usersRepository.dongs(_key).find(filter);
   }
 
-  @post('/apis/users/{_id}/dongs', {
+  @post('/apis/users/{_key}/dongs', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -83,7 +83,7 @@ export class UsersDongsController {
   @authenticate('jwt')
   async create(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('_id') _id: typeof Users.prototype._id,
+    @param.path.string('_key') _key: typeof Users.prototype._key,
     @requestBody({
       content: {
         'application/json': {
@@ -97,9 +97,9 @@ export class UsersDongsController {
     })
     dongs: Omit<Dongs, '_id'>,
   ): Promise<{ _id: string }> {
-    if (_id !== currentUserProfile[securityId]) {
+    if (_key !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
-        'Error create a new dong, Token is not matched to this user _id!',
+        'Error create a new dong, Token is not matched to this user _key!',
       );
     }
     interface CategoryBill {
@@ -129,15 +129,15 @@ export class UsersDongsController {
 
     for (const item of dongs.eqip) {
       if (
-        item.node !== expensesManager._id.toString() &&
+        item.node !== expensesManager._key.toString() &&
         !expensesManager.friends.includes(item.node) &&
         !this.arrayHasObject(expensesManager.pendingFriends, {
-          recipient: expensesManager._id,
+          recipient: expensesManager._key,
           requester: item.node,
         }) &&
         !this.arrayHasObject(expensesManager.pendingFriends, {
           recipient: item.node,
-          requester: expensesManager._id,
+          requester: expensesManager._key,
         })
       ) {
         throw new HttpErrors.NotAcceptable(
@@ -156,7 +156,7 @@ export class UsersDongsController {
     }
 
     const transaction = await this.usersRepository
-      .dongs(expensesManager._id)
+      .dongs(expensesManager._key)
       .create(dongs);
 
     const categoryBill: CategoryBill = {
@@ -165,7 +165,7 @@ export class UsersDongsController {
     };
     // find category name in expenses manager caetgories
     const expensesManagerCategoryList = await this.usersRepository
-      .categories(expensesManager._id)
+      .categories(expensesManager._key)
       .find({
         where: {
           name: dongs.categoryName,
@@ -173,12 +173,12 @@ export class UsersDongsController {
       });
 
     expensesManager.dongsId.push(transaction._id);
-    await this.usersRepository.updateById(expensesManager._id, expensesManager);
+    await this.usersRepository.updateById(expensesManager._key, expensesManager);
 
     const registrationTokens: string[] = [];
     for (const n of dongs.eqip) {
       let nodeCategory: Category;
-      // if (n.node === expensesManager._id.toString()) continue;
+      // if (n.node === expensesManager._key.toString()) continue;
       const paidCost = n.paidCost;
 
       categoryBill.paidCost = paidCost;
@@ -211,7 +211,7 @@ export class UsersDongsController {
       await this.usersRepository.updateById(n.node, node);
 
       // Do not add expenses manager to the reciever notification list
-      if (n.node !== expensesManager._id.toString()) {
+      if (n.node !== expensesManager._key.toString()) {
         registrationTokens.push(node.registerationToken);
       }
     }
@@ -224,7 +224,7 @@ export class UsersDongsController {
       },
       data: {
         name: expensesManager.name,
-        _id: expensesManager._id.toString(),
+        _id: expensesManager._key.toString(),
       },
       tokens: registrationTokens,
     };
@@ -257,7 +257,7 @@ export class UsersDongsController {
     return { _id: transaction._id };
   }
 
-  @patch('/apis/users/{_id}/dongs', {
+  @patch('/apis/users/{_key}/dongs', {
     responses: {
       '200': {
         description: 'Users.Dongs PATCH success count',
@@ -266,7 +266,7 @@ export class UsersDongsController {
     },
   })
   async patch(
-    @param.path.string('_id') _id: string,
+    @param.path.string('_key') _key: string,
     @requestBody({
       content: {
         'application/json': {
@@ -277,6 +277,6 @@ export class UsersDongsController {
     dongs: Partial<Dongs>,
     @param.query.object('where', getWhereSchemaFor(Dongs)) where?: Where<Dongs>,
   ): Promise<Count> {
-    return this.usersRepository.dongs(_id).patch(dongs, where);
+    return this.usersRepository.dongs(_key).patch(dongs, where);
   }
 }

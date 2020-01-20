@@ -18,18 +18,18 @@ export type Credentials = {
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
-  typeof Users.prototype._id
+  typeof Users.prototype._key
   > {
   public readonly virtualUsers: HasManyRepositoryFactory<
     VirtualUsers,
-    typeof Users.prototype._id
+    typeof Users.prototype._key
   >;
 
-  public readonly dongs: HasManyRepositoryFactory<Dongs, typeof Users.prototype._id>;
+  public readonly dongs: HasManyRepositoryFactory<Dongs, typeof Users.prototype._key>;
 
   public readonly categories: HasManyRepositoryFactory<
     Category,
-    typeof Users.prototype._id
+    typeof Users.prototype._key
   >;
 
   constructor(

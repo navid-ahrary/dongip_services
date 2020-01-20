@@ -18,7 +18,7 @@ import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 export class UsersVirtualUsersController {
   constructor(@repository(UsersRepository) protected usersRepository: UsersRepository) { }
 
-  @get('/apis/users/{_id}/virtual-users', {
+  @get('/apis/users/{_key}/virtual-users', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -34,16 +34,16 @@ export class UsersVirtualUsersController {
   @authenticate('jwt')
   async find(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('_id') _id: string,
+    @param.path.string('_key') _key: string,
     @param.query.object('filter') filter?: Filter<VirtualUsers>,
   ): Promise<VirtualUsers[]> {
-    currentUserProfile._id = currentUserProfile[securityId];
+    currentUserProfile._key = currentUserProfile[securityId];
     delete currentUserProfile[securityId];
 
-    return this.usersRepository.virtualUsers(currentUserProfile._id).find(filter);
+    return this.usersRepository.virtualUsers(currentUserProfile._key).find(filter);
   }
 
-  @post('/apis/users/{_id}/virtual-users', {
+  @post('/apis/users/{_key}/virtual-users', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -55,7 +55,7 @@ export class UsersVirtualUsersController {
   @authenticate('jwt')
   async create(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('_id') _id: typeof Users.prototype._id,
+    @param.path.string('_key') _key: typeof Users.prototype._key,
     @requestBody({
       content: {
         'application/json': {
@@ -67,15 +67,15 @@ export class UsersVirtualUsersController {
         },
       },
     })
-    virtualUsers: Omit<VirtualUsers, '_id'>,
+    virtualUsers: Omit<VirtualUsers, '_key'>,
   ): Promise<VirtualUsers> {
-    currentUserProfile._id = currentUserProfile[securityId];
+    currentUserProfile._key = currentUserProfile[securityId];
     delete currentUserProfile[securityId];
 
-    const user = await this.usersRepository.findById(currentUserProfile._id);
+    const user = await this.usersRepository.findById(currentUserProfile._key);
 
     const virtualUser = await this.usersRepository
-      .virtualUsers(currentUserProfile._id)
+      .virtualUsers(currentUserProfile._key)
       .create(virtualUsers);
     user.virtualFriends.push(virtualUser._id);
 
