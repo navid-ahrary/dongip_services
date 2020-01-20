@@ -12,13 +12,13 @@ import { DongsRepository } from './dongs.repository';
 
 export class VirtualUsersRepository extends DefaultCrudRepository<
   VirtualUsers,
-  typeof VirtualUsers.prototype._id,
+  typeof VirtualUsers.prototype._key,
   VirtualUsersRelations
   > {
-  public readonly users: BelongsToAccessor<Users, typeof VirtualUsers.prototype._id>;
+  public readonly users: BelongsToAccessor<Users, typeof VirtualUsers.prototype._key>;
   public readonly dongs: HasManyRepositoryFactory<
     Dongs,
-    typeof VirtualUsers.prototype._id
+    typeof VirtualUsers.prototype._key
   >;
 
   constructor(

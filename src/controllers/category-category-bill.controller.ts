@@ -11,7 +11,7 @@ export class CategoryCategoryBillController {
     @repository(CategoryRepository) protected categoryRepository: CategoryRepository,
   ) { }
 
-  @get('/apis/categories/{_id}/category-bills', {
+  @get('/apis/categories/{_key}/category-bills', {
     responses: {
       '200': {
         description: "Array of CategoryBill's belonging to Category",
@@ -26,13 +26,13 @@ export class CategoryCategoryBillController {
   @authenticate('jwt')
   async find(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('_id') _id: string,
+    @param.path.string('_key') _key: string,
     @param.query.object('filter') filter?: Filter<CategoryBill>,
   ): Promise<CategoryBill[]> {
-    return this.categoryRepository.categoryBills(_id).find(filter);
+    return this.categoryRepository.categoryBills(_key).find(filter);
   }
 
-  @post('/categories/{_id}/category-bills', {
+  @post('/categories/{_key}/category-bills', {
     responses: {
       '200': {
         description: 'Category model instance',
@@ -41,20 +41,20 @@ export class CategoryCategoryBillController {
     },
   })
   async create(
-    @param.path.string('_id') _id: typeof Category.prototype._id,
+    @param.path.string('_key') _key: typeof Category.prototype._key,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(CategoryBill, {
             title: 'NewCategoryBillInCategory',
-            exclude: ['_id'],
+            exclude: ['_key'],
             optional: ['categoryId'],
           }),
         },
       },
     })
-    categoryBill: Omit<CategoryBill, '_id'>,
+    categoryBill: Omit<CategoryBill, '_key'>,
   ): Promise<CategoryBill> {
-    return this.categoryRepository.categoryBills(_id).create(categoryBill);
+    return this.categoryRepository.categoryBills(_key).create(categoryBill);
   }
 }

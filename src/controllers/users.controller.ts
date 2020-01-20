@@ -334,14 +334,14 @@ export class UsersController {
           usersId: requesterUser._key,
         };
 
+
         const preVu = await this.usersRepository.virtualUsers(vu.usersId).find({
           where: {
-            phone: reqBody.phone,
-            usersId: requesterUser.getId(),
+            and: [{ phone: reqBody.phone, }, { usersId: requesterUser._key }]
           },
         });
 
-        if (preVu) {
+        if (preVu.length === 0) {
           const vuResult = await this.usersRepository
             .virtualUsers(requesterUser.getId())
             .create(vu);
@@ -351,33 +351,33 @@ export class UsersController {
           throw new HttpErrors.NotAcceptable('He/She is in your friends list');
         }
       } else if (requesterUser && recipientUser) {
-        if (requesterUser!._key.toString() === recipientUser!._key.toString()) {
+        if (requesterUser!.getId() === recipientUser!.getId()) {
           throw new HttpErrors.NotAcceptable('You are the best friend of yourself! :)');
         }
 
         if (
-          !recipientUser.friends.includes(requesterUser._key.toString()) &&
+          !recipientUser.friends.includes(requesterUser.getId()) &&
           !this.arrayHasObject(recipientUser.pendingFriends, {
-            requester: requesterUser._key.toString(),
-            recipient: recipientUser._key.toString(),
+            requester: requesterUser.getId(),
+            recipient: recipientUser.getId(),
           }) &&
-          !requesterUser.friends.includes(recipientUser._key.toString()) &&
+          !requesterUser.friends.includes(recipientUser.getId()) &&
           !this.arrayHasObject(requesterUser.pendingFriends, {
-            requester: requesterUser._key.toString(),
-            recipient: recipientUser._key.toString(),
+            requester: requesterUser.getId(),
+            recipient: recipientUser.getId(),
           })
         ) {
           recipientUser.pendingFriends.push({
-            requester: requesterUser._key.toString(),
-            recipient: recipientUser._key.toString(),
+            requester: requesterUser.getId(),
+            recipient: recipientUser.getId(),
           });
           requesterUser.pendingFriends.push({
-            requester: requesterUser._key.toString(),
-            recipient: recipientUser._key.toString(),
+            requester: requesterUser.getId(),
+            recipient: recipientUser.getId(),
           });
 
-          await this.usersRepository.updateById(requesterUser._key, requesterUser);
-          await this.usersRepository.updateById(recipientUser._key, recipientUser);
+          await this.usersRepository.updateById(requesterUser.getId(), requesterUser);
+          await this.usersRepository.updateById(recipientUser.getId(), recipientUser);
 
           const payload = {
             notification: {
@@ -409,18 +409,18 @@ export class UsersController {
               throw new HttpErrors.MethodNotAllowed(error);
             });
         } else if (
-          recipientUser.friends.includes(requesterUser._key.toString()) &&
-          requesterUser.friends.includes(recipientUser._key.toString())
+          recipientUser.friends.includes(requesterUser.getId()) &&
+          requesterUser.friends.includes(recipientUser.getId())
         ) {
           return { message: 'You were friends lately' };
         } else if (
           this.arrayHasObject(recipientUser.pendingFriends, {
-            requester: requesterUser._key.toString(),
-            recipient: recipientUser._key.toString(),
+            requester: requesterUser.getId(),
+            recipient: recipientUser.getId(),
           }) &&
           this.arrayHasObject(requesterUser.pendingFriends, {
-            requester: requesterUser._key.toString(),
-            recipient: recipientUser._key.toString(),
+            requester: requesterUser.getId(),
+            recipient: recipientUser.getId(),
           })
         ) {
           return { message: 'Request was fired, wait for respone' };
@@ -475,31 +475,31 @@ export class UsersController {
       });
 
       if (recipientUser && requesterUser) {
-        if (requesterUser!._key.toString() === recipientUser!._key.toString()) {
+        if (requesterUser!.getId() === recipientUser!.getId()) {
           throw new HttpErrors.NotAcceptable(
             'We believe that you are the best friend of yourself! ;)',
           );
         }
 
         if (
-          !requesterUser.friends.includes(recipientUser._key.toString()) &&
+          !requesterUser.friends.includes(recipientUser.getId()) &&
           this.arrayHasObject(requesterUser.pendingFriends, {
-            requester: requesterUser._key.toString(),
-            recipient: recipientUser._key.toString(),
+            requester: requesterUser.getId(),
+            recipient: recipientUser.getId(),
           }) &&
-          !recipientUser.friends.includes(requesterUser._key.toString()) &&
+          !recipientUser.friends.includes(requesterUser.getId()) &&
           this.arrayHasObject(recipientUser.pendingFriends, {
-            requester: requesterUser._key.toString(),
-            recipient: recipientUser._key.toString(),
+            requester: requesterUser.getId(),
+            recipient: recipientUser.getId(),
           })
         ) {
           this.arrayRemoveItem(requesterUser.pendingFriends, {
-            requester: requesterUser._key.toString(),
-            recipient: recipientUser._key.toString(),
+            requester: requesterUser.getId(),
+            recipient: recipientUser.getId(),
           });
           this.arrayRemoveItem(recipientUser.pendingFriends, {
-            requester: requesterUser._key.toString(),
-            recipient: recipientUser._key.toString(),
+            requester: requesterUser.getId(),
+            recipient: recipientUser.getId(),
           });
 
           const payload: admin.messaging.MessagingPayload = {
@@ -519,8 +519,8 @@ export class UsersController {
           };
 
           if (bodyReq.status === true) {
-            recipientUser.friends.push(requesterUser._key.toString());
-            requesterUser.friends.push(recipientUser._key.toString());
+            recipientUser.friends.push(requesterUser.getId());
+            requesterUser.friends.push(recipientUser.getId());
 
             payload.notification = {
               title: 'دنگیپ قبول درخواست دوستی',

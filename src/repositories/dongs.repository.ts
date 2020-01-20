@@ -7,12 +7,12 @@ import { CategoryRepository } from './category.repository';
 
 export class DongsRepository extends DefaultCrudRepository<
   Dongs,
-  typeof Dongs.prototype._id,
+  typeof Dongs.prototype._key,
   DongsRelations
   > {
-  public readonly users: BelongsToAccessor<Users, typeof Dongs.prototype._id>;
+  public readonly users: BelongsToAccessor<Users, typeof Dongs.prototype._key>;
 
-  public readonly category: BelongsToAccessor<Category, typeof Dongs.prototype._id>;
+  public readonly category: BelongsToAccessor<Category, typeof Dongs.prototype._key>;
 
   constructor(
     @inject('datasources.mongods') dataSource: MongoDataSource,

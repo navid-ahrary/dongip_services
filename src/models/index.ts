@@ -6,4 +6,3 @@ export * from './friendRequest.model';
 export * from './category.model';
 export * from './eqip.model';
 export * from './category-bill.model';
-export * from './node.model';

@@ -18,7 +18,7 @@ export class CategoryBillCategoryController {
     public categoryBillRepository: CategoryBillRepository,
   ) { }
 
-  @get('/category-bills/{_id}/category', {
+  @get('/category-bills/{_key}/category', {
     responses: {
       '200': {
         description: 'Category belonging to CategoryBill',
@@ -31,8 +31,8 @@ export class CategoryBillCategoryController {
     },
   })
   async getCategory(
-    @param.path.string('_id') _id: typeof CategoryBill.prototype._id,
+    @param.path.string('_key') _key: typeof CategoryBill.prototype._key,
   ): Promise<Category> {
-    return this.categoryBillRepository.category(_id);
+    return this.categoryBillRepository.category(_key);
   }
 }

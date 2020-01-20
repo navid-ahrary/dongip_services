@@ -10,7 +10,7 @@ export class VirtualUsers extends Entity {
     generated: true,
     required: false,
   })
-  _id: string;
+  _key: string;
 
   @property({
     type: 'string',
@@ -31,10 +31,10 @@ export class VirtualUsers extends Entity {
   avatar: string;
 
   @belongsTo(() => Users)
-  usersId: typeof Users.prototype.getId;
+  usersId: typeof Users.prototype._key;
 
   @hasMany(() => Dongs)
-  dongs: typeof Dongs.prototype.getId;
+  dongs: typeof Dongs.prototype._key;
 
   constructor(data?: Partial<VirtualUsers>) {
     super(data);

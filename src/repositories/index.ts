@@ -4,4 +4,3 @@ export * from './blacklist.repository';
 export * from './virtualUsers.repository';
 export * from './category.repository';
 export * from './category-bill.repository';
-export * from './node.repository';

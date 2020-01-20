@@ -33,7 +33,7 @@ export class UsersDongsController {
       if (!user) {
         const virtualUser = await this.usersRepository
           .virtualUsers(currentUserId)
-          .find({ where: { _id: node } });
+          .find({ where: { _key: node } });
         if (!virtualUser) {
           return false;
         }
@@ -89,14 +89,14 @@ export class UsersDongsController {
         'application/json': {
           schema: getModelSchemaRef(Dongs, {
             title: 'NewDongsInUsers',
-            exclude: ['_id'],
+            exclude: ['_key'],
             optional: ['expensesManagerId'],
           }),
         },
       },
     })
-    dongs: Omit<Dongs, '_id'>,
-  ): Promise<{ _id: string }> {
+    dongs: Omit<Dongs, '_key'>,
+  ): Promise<{ _key: string }> {
     if (_key !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
         'Error create a new dong, Token is not matched to this user _key!',
@@ -160,7 +160,7 @@ export class UsersDongsController {
       .create(dongs);
 
     const categoryBill: CategoryBill = {
-      dongsId: transaction._id,
+      dongsId: transaction._key,
       dong: dong,
     };
     // find category name in expenses manager caetgories
@@ -172,7 +172,7 @@ export class UsersDongsController {
         },
       });
 
-    expensesManager.dongsId.push(transaction._id);
+    expensesManager.dongsId.push(transaction._key);
     await this.usersRepository.updateById(expensesManager._key, expensesManager);
 
     const registrationTokens: string[] = [];
@@ -204,10 +204,10 @@ export class UsersDongsController {
       }
 
       // create bill belonging to created category
-      await this.categoryRepository.categoryBills(nodeCategory._id).create(categoryBill);
+      await this.categoryRepository.categoryBills(nodeCategory._key).create(categoryBill);
 
       const node = await this.usersRepository.findById(n.node);
-      node.dongsId.push(transaction._id);
+      node.dongsId.push(transaction._key);
       await this.usersRepository.updateById(n.node, node);
 
       // Do not add expenses manager to the reciever notification list
@@ -224,7 +224,7 @@ export class UsersDongsController {
       },
       data: {
         name: expensesManager.name,
-        _id: expensesManager._key.toString(),
+        _key: expensesManager._key.toString(),
       },
       tokens: registrationTokens,
     };
@@ -254,7 +254,7 @@ export class UsersDongsController {
         throw new HttpErrors.NotImplemented(`Error sending notifications, ${error}`);
       });
 
-    return { _id: transaction._id };
+    return { _key: transaction._key };
   }
 
   @patch('/apis/users/{_key}/dongs', {

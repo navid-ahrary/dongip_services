@@ -10,7 +10,7 @@ export class Category extends Entity {
     generated: true,
     required: false,
   })
-  _id: string;
+  _key: string;
 
   @property({
     type: 'string',

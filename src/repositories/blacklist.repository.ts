@@ -6,7 +6,7 @@ import { HttpErrors } from '@loopback/rest';
 
 export class BlacklistRepository extends DefaultCrudRepository<
   Blacklist,
-  typeof Blacklist.prototype._id,
+  typeof Blacklist.prototype._key,
   BlacklistRelations
   > {
   constructor(

@@ -35,7 +35,7 @@ export class DongsController {
       if (!user) {
         const virtualUser = await this.usersRepository
           .virtualUsers(currentUserId)
-          .find({ where: { _id: node } });
+          .find({ where: { _key: node } });
         if (!virtualUser) {
           return false;
         }
@@ -70,12 +70,12 @@ export class DongsController {
         'application/json': {
           schema: getModelSchemaRef(Dongs, {
             title: 'NewDongs',
-            exclude: ['_id'],
+            exclude: ['_key'],
           }),
         },
       },
     })
-    dongs: Omit<Dongs, '_id'>,
+    dongs: Omit<Dongs, '_key'>,
   ): Promise<void> {
     let pong = 0;
     let factorNodes = 0;
@@ -85,12 +85,12 @@ export class DongsController {
       nodes.push(item.node);
     }
 
-    currentUserProfile._id = currentUserProfile[securityId];
+    currentUserProfile._key = currentUserProfile[securityId];
     delete currentUserProfile[securityId];
 
-    const expensesManager = await this.usersRepository.findById(currentUserProfile._id);
+    const expensesManager = await this.usersRepository.findById(currentUserProfile._key);
 
-    if (!(await this.isNodesUsersOrVirtualUsers(currentUserProfile._id, nodes))) {
+    if (!(await this.isNodesUsersOrVirtualUsers(currentUserProfile._key, nodes))) {
       throw new HttpErrors.NotAcceptable('Some of this users are not available');
     }
 
@@ -123,17 +123,17 @@ export class DongsController {
     }
 
     const transaction = await this.usersRepository
-      .dongs(currentUserProfile._id)
+      .dongs(currentUserProfile._key)
       .create(dongs);
 
-    expensesManager.dongsId.push(transaction._id);
+    expensesManager.dongsId.push(transaction._key);
     await this.usersRepository.updateById(expensesManager._key, expensesManager);
 
     for (const n of dongs.eqip) {
       if (n.node === expensesManager._key.toString()) continue;
 
       const user = await this.usersRepository.findById(n.node);
-      user.dongsId.push(transaction._id);
+      user.dongsId.push(transaction._key);
 
       await this.usersRepository.updateById(n.node, user);
       // await this.usersRepository.categories(n.node).create(dongs.categories);
@@ -194,7 +194,7 @@ export class DongsController {
     return this.dongsRepository.updateAll(dongs, where);
   }
 
-  @get('/dongs/{_id}', {
+  @get('/dongs/{_key}', {
     responses: {
       '200': {
         description: 'Dongs model instance',
@@ -202,11 +202,11 @@ export class DongsController {
       },
     },
   })
-  async findById(@param.path.string('_id') _id: string): Promise<Dongs> {
-    return this.dongsRepository.findById(_id);
+  async findById(@param.path.string('_key') _key: string): Promise<Dongs> {
+    return this.dongsRepository.findById(_key);
   }
 
-  @patch('/dongs/{_id}', {
+  @patch('/dongs/{_key}', {
     responses: {
       '204': {
         description: 'Dongs PATCH success',
@@ -214,7 +214,7 @@ export class DongsController {
     },
   })
   async updateById(
-    @param.path.string('_id') _id: string,
+    @param.path.string('_key') _key: string,
     @requestBody({
       content: {
         'application/json': {
@@ -224,6 +224,6 @@ export class DongsController {
     })
     dongs: Dongs,
   ): Promise<void> {
-    await this.dongsRepository.updateById(_id, dongs);
+    await this.dongsRepository.updateById(_key, dongs);
   }
 }

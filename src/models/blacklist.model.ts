@@ -8,7 +8,7 @@ export class Blacklist extends Entity {
     generated: true,
     id: true
   })
-  _id: string;
+  _key: string;
 
   @property({
     type: 'string',

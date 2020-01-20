@@ -12,7 +12,7 @@ export class CategoryUsersController {
     public categoryRepository: CategoryRepository,
   ) { }
 
-  @get('/apis/categories/{_id}/users', {
+  @get('/apis/categories/{_key}/users', {
     responses: {
       '200': {
         description: 'Users belonging to Category',
@@ -27,14 +27,14 @@ export class CategoryUsersController {
   @authenticate('jwt')
   async getUsers(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('_id') _id: typeof Category.prototype._id,
+    @param.path.string('_key') _key: typeof Category.prototype._key,
   ): Promise<Users> {
-    currentUserProfile._id = currentUserProfile[securityId];
+    currentUserProfile._key = currentUserProfile[securityId];
     delete currentUserProfile[securityId];
 
-    if (_id !== currentUserProfile._id) {
-      throw new HttpErrors.Unauthorized('Token is not matched to this user _id!');
+    if (_key !== currentUserProfile._key) {
+      throw new HttpErrors.Unauthorized('Token is not matched to this user _key!');
     }
-    return this.categoryRepository.users(_id);
+    return this.categoryRepository.users(_key);
   }
 }

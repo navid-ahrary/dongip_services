@@ -9,7 +9,7 @@ export class DongsCategoryController {
     public dongsRepository: DongsRepository,
   ) { }
 
-  @get('/dongs/{_id}/category', {
+  @get('/dongs/{_key}/category', {
     responses: {
       '200': {
         description: 'Category belonging to Dongs',
@@ -22,8 +22,8 @@ export class DongsCategoryController {
     },
   })
   async getCategory(
-    @param.path.string('_id') _id: typeof Dongs.prototype._id,
+    @param.path.string('_key') _key: typeof Dongs.prototype._key,
   ): Promise<Category> {
-    return this.dongsRepository.category(_id);
+    return this.dongsRepository.category(_key);
   }
 }

@@ -9,7 +9,7 @@ export class CategoryBill extends Entity {
     id: true,
     generated: true,
   })
-  _id?: string;
+  _key?: string;
 
   @property({
     type: 'number',

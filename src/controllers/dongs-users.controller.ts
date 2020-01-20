@@ -11,7 +11,7 @@ export class DongsUsersController {
     public dongsRepository: DongsRepository,
   ) { }
 
-  @get('/dongs/{_id}/users', {
+  @get('/dongs/{_key}/users', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -25,7 +25,7 @@ export class DongsUsersController {
     },
   })
   @authenticate('jwt')
-  async getUsers(@param.path.string('_id') _id: typeof Dongs.prototype._id): Promise<Users> {
-    return this.dongsRepository.users(_id);
+  async getUsers(@param.path.string('_key') _key: typeof Dongs.prototype._key): Promise<Users> {
+    return this.dongsRepository.users(_key);
   }
 }

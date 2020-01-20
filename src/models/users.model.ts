@@ -107,7 +107,7 @@ export class Users extends Entity {
     required: false,
     default: [],
   })
-  dongsId: typeof Dongs.prototype._id[];
+  dongsId: typeof Dongs.prototype._key[];
 
   @hasMany(() => Dongs, { keyTo: 'expensesManagerId' })
   dongs: Dongs[];

@@ -7,12 +7,12 @@ import { CategoryBillRepository } from './category-bill.repository';
 
 export class CategoryRepository extends DefaultCrudRepository<
   Category,
-  typeof Category.prototype._id,
+  typeof Category.prototype._key,
   CategoryRelations
   > {
-  public readonly users: BelongsToAccessor<Users, typeof Category.prototype._id>;
+  public readonly users: BelongsToAccessor<Users, typeof Category.prototype._key>;
 
-  public readonly categoryBills: HasManyRepositoryFactory<CategoryBill, typeof Category.prototype._id>;
+  public readonly categoryBills: HasManyRepositoryFactory<CategoryBill, typeof Category.prototype._key>;
 
   constructor(
     @inject('datasources.mongods') dataSource: MongoDataSource,
