@@ -49,7 +49,7 @@ export class JWTService implements TokenService {
     if (!userProfile) {
       throw new HttpErrors.Unauthorized('Error generating token, userPofile is null.');
     }
-    const _id: string = 'Users/' + userProfile[securityId].toString();
+    const _id: string = userProfile[securityId].toString();
 
     userProfile['accountType'] = 'trial';
 
