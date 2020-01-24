@@ -49,7 +49,7 @@ export class JWTService implements TokenService {
     if (!userProfile) {
       throw new HttpErrors.Unauthorized('Error generating token, userPofile is null.');
     }
-    const _id: string = userProfile[securityId].toString();
+    const _key: string = userProfile[securityId].toString();
 
     userProfile['accountType'] = 'trial';
 
@@ -60,7 +60,7 @@ export class JWTService implements TokenService {
       accessToken = signAsync(userProfile, this.jwtSecret, {
         algorithm: this.jwtAlgorithm,
         expiresIn: +this.jwtExpiresIn,
-        subject: _id,
+        subject: _key,
       });
     } catch (error) {
       throw new HttpErrors.Unauthorized(`Error generating token: ${error.message}`);
