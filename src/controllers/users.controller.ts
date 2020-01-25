@@ -26,9 +26,9 @@ import { PasswordHasher } from '../services/hash.password.bcryptjs';
 import { validatePhoneNumber, validatePassword } from '../services/validator';
 import { CredentialsRequestBody, UserProfileSchema } from './specs/user-controller.specs';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
-import * as underscore from 'underscore';
+import underscore from 'underscore';
 import * as admin from 'firebase-admin';
-import moment = require('moment');
+import moment from 'moment';
 
 export class UsersController {
   constructor(
@@ -141,7 +141,7 @@ export class UsersController {
       validatePassword(user.password);
 
       if (phone !== user.phone) {
-        throw new HttpErrors.Unauthorized(
+        throw new Error(
           'Error signup, Phone numbers in params and body not matched !',
         );
       }
@@ -165,7 +165,7 @@ export class UsersController {
       if (err.code === 409) {
         throw new HttpErrors.Conflict(`This phone number is already taken.`);
       } else {
-        throw new HttpErrors.NotAcceptable(err);
+        throw new HttpErrors.NotAcceptable(err.message);
       }
     }
   }
@@ -245,7 +245,7 @@ export class UsersController {
   ) {
     try {
       if (_key !== currentUserProfile[securityId]) {
-        throw new HttpErrors.Unauthorized(
+        throw new Error(
           'Error users logout ,Token is not matched to this user _key!',
         );
       }
@@ -255,7 +255,7 @@ export class UsersController {
       if (err.code === 409) {
         throw new HttpErrors.Conflict(`Error logout conflict token, this token is blacklisted already`);
       } else {
-        throw new HttpErrors.MethodNotAllowed(`Error logout not implemented: ${err}`)
+        throw new HttpErrors.MethodNotAllowed(`Error logout not implemented: ${err.message}`)
       }
     }
   }
@@ -279,7 +279,7 @@ export class UsersController {
     @param.path.string('_key') _key: typeof Users.prototype._key,
   ): Promise<{ _key: string; name: string }> {
     if (_key !== currentUserProfile[securityId]) {
-      throw new HttpErrors.Unauthorized(
+      throw new Error(
         'Error users print current user , Token is not matched to this user _key!',
       );
     }
@@ -313,7 +313,7 @@ export class UsersController {
   ) {
     try {
       if (_key !== currentUserProfile[securityId]) {
-        throw new HttpErrors.Unauthorized(
+        throw new Error(
           'Error users friend request ,Token is not matched to this user _key!',
         );
       }
@@ -348,11 +348,11 @@ export class UsersController {
 
           return vuResult;
         } else {
-          throw new HttpErrors.NotAcceptable('He/She is in your friends list');
+          throw new Error('He/She is in your friends list');
         }
       } else if (requesterUser && recipientUser) {
         if (requesterUser!.getId() === recipientUser!.getId()) {
-          throw new HttpErrors.NotAcceptable('You are the best friend of yourself! :)');
+          throw new Error('You are the best friend of yourself! :)');
         }
 
         if (
@@ -406,13 +406,13 @@ export class UsersController {
               };
             })
             .catch(function (error) {
-              throw new HttpErrors.MethodNotAllowed(error);
+              throw new Error(error);
             });
         } else if (
           recipientUser.friends.includes(requesterUser.getId()) &&
           requesterUser.friends.includes(recipientUser.getId())
         ) {
-          return { message: 'You were friends lately' };
+          throw new Error('You were friends lately');
         } else if (
           this.arrayHasObject(recipientUser.pendingFriends, {
             requester: requesterUser.getId(),
@@ -428,7 +428,7 @@ export class UsersController {
       }
     } catch (err) {
       console.log(err);
-      throw new HttpErrors.NotAcceptable(err);
+      throw new HttpErrors.MethodNotAllowed(err.message);
     }
   }
 
@@ -455,13 +455,12 @@ export class UsersController {
   ) {
     try {
       if (_key !== currentUserProfile[securityId]) {
-        throw new HttpErrors.Unauthorized(
+        throw new Error(
           'Error users response to friend request ,Token is not matched to this user _key!',
         );
       }
 
       let message = '';
-
       const recipientUser = await this.usersRepository.findOne({
         where: {
           _key: _key,
@@ -476,7 +475,7 @@ export class UsersController {
 
       if (recipientUser && requesterUser) {
         if (requesterUser!.getId() === recipientUser!.getId()) {
-          throw new HttpErrors.NotAcceptable(
+          throw new Error(
             'We believe that you are the best friend of yourself! ;)',
           );
         }
@@ -546,25 +545,26 @@ export class UsersController {
             .messaging()
             .sendToDevice(reqUserRegToken, payload, options)
             .then(function (response) {
-              console.log(`Successfully set a friend request, ${response}`);
-              return { message: message, firebaseResponse: response };
+              console.log(`Successfully set a friend, ${response}`);
+              return { message, response: response };
             })
             .catch(function (error) {
               console.log(`Sending notification failed, ${error}`);
-              throw new HttpErrors.MethodNotAllowed(
+              throw new Error(
                 `Sending notification failed, ${error}`,
               );
             });
+
         } else {
           console.log('Friend Request not fired or you were friends lately');
-          throw new HttpErrors.NotAcceptable(
+          throw new Error(
             'Friend Request not fired or you were friends lately',
           );
         }
       }
     } catch (err) {
       console.log(err);
-      throw new HttpErrors.MethodNotAllowed(err);
+      throw new HttpErrors.MethodNotAllowed(err.message);
     }
   }
 
