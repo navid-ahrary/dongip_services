@@ -11,12 +11,12 @@ import {
   HttpErrors,
 } from '@loopback/rest';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
-import { Dongs, Users } from '../models';
-import { DongsRepository, UsersRepository } from '../repositories';
 import { authenticate } from '@loopback/authentication';
 import { inject } from '@loopback/core';
-import * as underscore from 'underscore';
+import underscore from 'underscore';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
+import { Dongs, Users } from '../models';
+import { DongsRepository, UsersRepository } from '../repositories';
 
 export class DongsController {
   constructor(
@@ -76,7 +76,7 @@ export class DongsController {
       },
     })
     dongs: Omit<Dongs, '_key'>,
-  ): Promise<void> {
+  ): Promise<Dongs> {
     let pong = 0;
     let factorNodes = 0;
     const nodes = [];
@@ -130,13 +130,14 @@ export class DongsController {
     await this.usersRepository.updateById(expensesManager._key, expensesManager);
 
     for (const n of dongs.eqip) {
-      if (n.node === expensesManager._key.toString()) continue;
+      if (n.node === expensesManager._key) continue;
 
       const user = await this.usersRepository.findById(n.node);
       user.dongsId.push(transaction._key);
 
       await this.usersRepository.updateById(n.node, user);
     }
+    return transaction;
   }
 
   @get('/dongs/count', {
