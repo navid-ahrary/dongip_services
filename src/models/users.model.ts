@@ -18,6 +18,13 @@ export class Users extends Entity {
     required: false,
     generated: true,
   })
+  _id: string;
+
+  @property({
+    type: 'string',
+    required: false,
+    generated: true,
+  })
   _rev: string;
 
   @property({
