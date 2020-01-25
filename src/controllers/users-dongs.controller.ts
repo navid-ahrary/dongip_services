@@ -130,7 +130,7 @@ export class UsersDongsController {
     for (const item of dongs.eqip) {
       if (
         item.node !== expensesManager._key.toString() &&
-        !expensesManager.friends.includes(item.node) &&
+        // !expensesManager.friends.includes(item.node) &&
         !this.arrayHasObject(expensesManager.pendingFriends, {
           recipient: expensesManager._key,
           requester: item.node,
