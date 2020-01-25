@@ -12,7 +12,7 @@ import {
 import { Users, Dongs, Category } from '../models';
 import { UsersRepository, CategoryRepository } from '../repositories';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
-import * as underscore from 'underscore';
+import underscore from 'underscore';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { authenticate } from '@loopback/authentication';
 import { inject } from '@loopback/core';
@@ -130,7 +130,7 @@ export class UsersDongsController {
     for (const item of dongs.eqip) {
       if (
         item.node !== expensesManager._key.toString() &&
-        // !expensesManager.friends.includes(item.node) &&
+        !expensesManager.friends.includes(item.node) &&
         !this.arrayHasObject(expensesManager.pendingFriends, {
           recipient: expensesManager._key,
           requester: item.node,
