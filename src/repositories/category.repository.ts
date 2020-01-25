@@ -1,6 +1,6 @@
 import { DefaultCrudRepository, repository, BelongsToAccessor, HasManyRepositoryFactory } from '@loopback/repository';
 import { Category, CategoryRelations, Users, CategoryBill } from '../models';
-import { MongoDataSource } from '../datasources';
+import { ArangodbDataSource } from '../datasources';
 import { inject, Getter } from '@loopback/core';
 import { UsersRepository } from './users.repository';
 import { CategoryBillRepository } from './category-bill.repository';
@@ -15,7 +15,7 @@ export class CategoryRepository extends DefaultCrudRepository<
   public readonly categoryBills: HasManyRepositoryFactory<CategoryBill, typeof Category.prototype._key>;
 
   constructor(
-    @inject('datasources.mongods') dataSource: MongoDataSource,
+    @inject('datasources.arangodb') dataSource: ArangodbDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>, @repository.getter('CategoryBillRepository') protected categoryBillRepositoryGetter: Getter<CategoryBillRepository>,
   ) {
