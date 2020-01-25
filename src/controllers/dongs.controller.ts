@@ -136,7 +136,6 @@ export class DongsController {
       user.dongsId.push(transaction._key);
 
       await this.usersRepository.updateById(n.node, user);
-      // await this.usersRepository.categories(n.node).create(dongs.categories);
     }
   }
 
