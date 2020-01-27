@@ -12,10 +12,9 @@ import {
   patch,
 } from '@loopback/rest';
 
-import { Users, FriendRequest } from '../models';
+import { Users, FriendRequest, Credentials } from '../models';
 import {
   UsersRepository,
-  Credentials,
   BlacklistRepository,
   VirtualUsersRepository,
 } from '../repositories';
@@ -177,12 +176,7 @@ export class UsersController {
         content: {
           'application/josn': {
             schema: {
-              type: 'object',
-              properties: {
-                _key: 'string',
-                _rev: 'string',
-                accessToken: 'string',
-              },
+              type: 'object', properties: { _key: 'string', accessToken: 'string', },
             },
           },
         },
@@ -194,10 +188,7 @@ export class UsersController {
     @param.path.string('phone') phone: string,
     @requestBody(CredentialsRequestBody) credentials: Credentials,
   )
-    : Promise<{
-      _key: typeof Users.prototype._key,
-      accessToken: string
-    }
+    : Promise<{ _key: typeof Users.prototype._key, accessToken: string }
     > {
     try {
       let user: Users,
