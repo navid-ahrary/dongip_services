@@ -1,5 +1,5 @@
-import {Credentials} from '../repositories';
-import {HttpErrors} from '@loopback/rest';
+import { Credentials } from '../models';
+import { HttpErrors } from '@loopback/rest';
 import PhoneNumber from 'awesome-phonenumber';
 
 export function validatePhoneNumber(phoneNumber: Credentials['phone']) {

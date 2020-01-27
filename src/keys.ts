@@ -1,8 +1,7 @@
-import {BindingKey} from '@loopback/context';
-import {PasswordHasher} from './services/hash.password.bcryptjs';
-import {TokenService, UserService} from '@loopback/authentication';
-import {Users} from './models';
-import {Credentials} from './repositories';
+import { BindingKey } from '@loopback/context';
+import { PasswordHasher } from './services/hash.password.bcryptjs';
+import { TokenService, UserService } from '@loopback/authentication';
+import { Users, Credentials } from './models';
 import dotenv = require('dotenv');
 
 dotenv.config();
