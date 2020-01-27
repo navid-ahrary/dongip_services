@@ -16,7 +16,7 @@ export class FriendRequest extends Model {
   @property({
     type: 'string',
   })
-  name?: string;
+  alias?: string;
 
   @property({
     type: 'boolean',
