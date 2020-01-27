@@ -2,6 +2,7 @@ import { Entity, model, property, hasMany } from '@loopback/repository';
 import { VirtualUsers, VirtualUsersWithRelations } from './virtualUsers.model';
 import { Dongs } from './dongs.model';
 import { Category } from './category.model';
+import {UsersRels} from './users-rels.model';
 
 @model()
 export class Users extends Entity {
@@ -121,6 +122,9 @@ export class Users extends Entity {
 
   @hasMany(() => Category)
   categories: Category[];
+
+  @hasMany(() => UsersRels)
+  usersRels: UsersRels[];
 
   constructor(data?: Partial<Users>) {
     super(data);

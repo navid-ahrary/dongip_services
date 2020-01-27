@@ -8,3 +8,5 @@ export * from './dongs-category.controller';
 export * from './category-category-bill.controller';
 export * from './category-bill-category.controller';
 export * from './category-bill-dongs.controller';
+export * from './users-rels-users.controller';
+export * from './users-users-rels.controller';
