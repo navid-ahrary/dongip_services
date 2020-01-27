@@ -10,13 +10,6 @@ export class Blacklist extends Entity {
   })
   _key: string;
 
-  @property({
-    type: 'string',
-    required: true,
-    id: false,
-  })
-  token: string;
-
   constructor(data?: Partial<Blacklist>) {
     super(data);
   }

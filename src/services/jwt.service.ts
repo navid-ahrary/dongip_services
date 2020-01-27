@@ -31,7 +31,8 @@ export class JWTService implements TokenService {
       //decode user profile from token
       const decryptedToken = await verifyAsync(accessToken, this.jwtSecret);
 
-      await this.blacklistRepository.checkTokenNotBlacklisted({ where: { token: accessToken } });
+      // check token is not in blacklist
+      await this.blacklistRepository.checkTokenNotBlacklisted({ where: { _key: accessToken } });
 
       // don't copy over  token field 'iat' and 'exp', nor 'email' to user profile
       userProfile = Object.assign(
@@ -41,7 +42,6 @@ export class JWTService implements TokenService {
     } catch (error) {
       throw new HttpErrors.Unauthorized(`Error verifying access token: ${error.message}`);
     }
-
     return userProfile;
   }
 
@@ -50,9 +50,7 @@ export class JWTService implements TokenService {
       throw new HttpErrors.Unauthorized('Error generating token, userPofile is null.');
     }
     const _key: string = userProfile[securityId];
-
     userProfile['accountType'] = 'trial';
-
     //generate a JWT token
     let accessToken: string;
 
@@ -65,7 +63,6 @@ export class JWTService implements TokenService {
     } catch (error) {
       throw new HttpErrors.Unauthorized(`Error generating token: ${error.message}`);
     }
-
     return accessToken;
   }
 }

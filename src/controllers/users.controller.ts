@@ -249,7 +249,7 @@ export class UsersController {
           'Error users logout ,Token is not matched to this user _key!',
         );
       }
-      return await this.blacklistRepository.create({ token: authorizationHeader.split(' ')[1] });
+      return await this.blacklistRepository.create({ _key: authorizationHeader.split(' ')[1] });
     } catch (err) {
       console.log(err);
       if (err.code === 409) {
