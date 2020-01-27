@@ -10,12 +10,6 @@ import { VirtualUsersRepository } from './virtualUsers.repository';
 import { DongsRepository } from './dongs.repository';
 import { CategoryRepository } from './category.repository';
 
-export type Credentials = {
-  phone: string;
-  password: string;
-  registerationToken: string;
-};
-
 export class UsersRepository extends DefaultCrudRepository<
   Users,
   typeof Users.prototype._key
