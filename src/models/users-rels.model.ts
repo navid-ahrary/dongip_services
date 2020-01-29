@@ -1,5 +1,5 @@
-import { Entity, model, property, belongsTo} from '@loopback/repository';
-import {Users} from './users.model';
+import { Entity, model, property, belongsTo } from '@loopback/repository';
+import { Users } from './users.model';
 
 @model()
 export class UsersRels extends Entity {
@@ -7,8 +7,9 @@ export class UsersRels extends Entity {
     type: 'string',
     id: true,
     generated: true,
+    required: false
   })
-  _key?: string;
+  _key: string;
 
   @property({
     type: 'string',
@@ -26,7 +27,13 @@ export class UsersRels extends Entity {
     type: 'string',
     required: true,
   })
-  status: string;
+  alias: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  type: string;
 
   @belongsTo(() => Users)
   usersId: string;
