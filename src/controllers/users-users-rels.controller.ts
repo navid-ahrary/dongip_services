@@ -267,6 +267,7 @@ export class UsersUsersRelsController {
   })
   @authenticate('jwt')
   async patch(
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.path.string('_key') _key: string,
     @requestBody({
       content: {
@@ -281,6 +282,11 @@ export class UsersUsersRelsController {
     usersRels: Partial<UsersRels>,
     @param.query.object('where', getWhereSchemaFor(UsersRels)) where?: Where<UsersRels>,
   ): Promise<Count> {
+    if (_key !== currentUserProfile[securityId]) {
+      throw new HttpErrors.Unauthorized(
+        'Error users response to friend request ,Token is not matched to this user _key!',
+      );
+    }
     return this.usersRepository.usersRels(_key).patch(usersRels, where);
   }
 }
