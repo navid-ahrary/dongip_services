@@ -62,6 +62,7 @@ export class UsersUsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(FriendRequest, {
             exclude: ["relationKey", "status", "requesterKey"],
+            optional: ["phone"]
           }),
         },
       },
