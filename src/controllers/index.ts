@@ -1,5 +1,4 @@
 export * from './users.controller';
-export * from './users-virtual-users.controller';
 export * from './dongs-users.controller';
 export * from './users-dongs.controller';
 export * from './users-category.controller';
