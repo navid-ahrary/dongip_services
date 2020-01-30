@@ -14,13 +14,15 @@ export class Category extends Entity {
 
   @property({
     type: 'string',
-    required: true,
+    generated: true,
+    required: false,
   })
   _id: string;
 
   @property({
     type: 'string',
-    required: true,
+    generated: true,
+    required: false,
   })
   _rev: string;
 
