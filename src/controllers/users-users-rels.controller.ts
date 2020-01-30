@@ -48,6 +48,7 @@ export class UsersUsersRelsController {
     return this.usersRepository.usersRels(_key).find(filter);
   }
 
+
   @post('/apis/users/{_key}/users-rels/friend-request', {
     security: OPERATION_SECURITY_SPEC,
     responses: { '200': { description: 'Sending a friend request', }, },
@@ -255,7 +256,8 @@ export class UsersUsersRelsController {
   }
 
 
-  @patch('/users/{id}/users-rels', {
+  @patch('/apis/users/{_key}/users-rels', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Users.UsersRels PATCH success count',
@@ -263,19 +265,23 @@ export class UsersUsersRelsController {
       },
     },
   })
+  @authenticate('jwt')
   async patch(
-    @param.path.string('id') id: string,
+    @param.path.string('_key') _key: string,
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(UsersRels, { partial: true }),
+          schema: getModelSchemaRef(UsersRels, {
+            partial: true,
+            exclude: ["_from", "_to", "_rev", "type", "usersId"]
+          }),
         },
       },
     })
     usersRels: Partial<UsersRels>,
     @param.query.object('where', getWhereSchemaFor(UsersRels)) where?: Where<UsersRels>,
   ): Promise<Count> {
-    return this.usersRepository.usersRels(id).patch(usersRels, where);
+    return this.usersRepository.usersRels(_key).patch(usersRels, where);
   }
 
   @del('/users/{id}/users-rels', {
