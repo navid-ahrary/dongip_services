@@ -33,6 +33,12 @@ export class FriendRequest extends Model {
   relationKey: string;
 
   @property({
+    required: true,
+    type: 'string',
+  })
+  virtualUserId: string;
+
+  @property({
     type: 'boolean',
     required: true,
   })

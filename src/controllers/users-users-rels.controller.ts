@@ -63,7 +63,7 @@ export class UsersUsersRelsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(FriendRequest, {
-            exclude: ["relationKey", "status", "requesterKey"],
+            exclude: ["relationKey", "status", "requesterKey", "virtualUserId"],
           }),
         },
       },
@@ -128,6 +128,7 @@ export class UsersUsersRelsController {
         data: {
           relationKey: createdUsersRelation._key[0],
           requesterKey: _key,
+          virtualUserId: createdVirtualUser._id,
           name: requesterUser.name,
           phone: requesterUser.phone,
         },
@@ -196,9 +197,15 @@ export class UsersUsersRelsController {
     recipientUser = await this.usersRepository.findById(_key);
     requesterUser = await this.usersRepository.findById(bodyReq.requesterKey);
     usersRelation = await this.usersRelsRepository.findOne({
-      where: { and: [{ _key: bodyReq.relationKey }, { _to: recipientUser._id }] }
+      where: {
+        and: [
+          { _key: bodyReq.relationKey },
+          { _to: bodyReq.virtualUserId.split('/')[1] }
+        ]
+      }
     });
     if (!usersRelation) throw new HttpErrors.NotFound('Relation _key is not found');
+    console.log(usersRelation)
     usersRelation._key = usersRelation._key[0];
 
     if (recipientUser && requesterUser) {
