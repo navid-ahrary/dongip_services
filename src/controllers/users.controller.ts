@@ -505,3 +505,40 @@ export class UsersController {
     }
     return this.usersRepository.findById(_key);
   }
+
+  @patch('/apis/users/{_key}', {
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '204': {
+        description: 'User PATCH success',
+      },
+    },
+  })
+  @authenticate('jwt')
+  async updateById(
+    @param.path.string('_key') _key: string,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Users, {
+            partial: true,
+            exclude: ["_id", "_key", "_rev", "accountType", "registeredAt", "dongsId", "usersRels",
+              "categories", "locale", "geolocation", "password", "phone", "registerationToken"],
+          }),
+        },
+      },
+    })
+    user: Users,
+  ): Promise<Users> {
+    if (_key !== currentUserProfile[securityId]) {
+      throw new HttpErrors.Unauthorized('Token is not matched to this user _key!');
+    }
+    await this.usersRepository.updateById(_key, user);
+    return this.usersRepository.findById(_key, {
+      fields: {
+        _rev: true
+      }
+    });
+  }
+}
