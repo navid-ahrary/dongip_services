@@ -61,7 +61,7 @@ export class UsersUsersRelsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(FriendRequest, {
-            exclude: ["relationKey", "status", "requesterKey"]
+            exclude: ["relationKey", "status", "requesterKey"],
           }),
         },
       },
@@ -92,13 +92,13 @@ export class UsersUsersRelsController {
 
     try {
       const vu = {
-        phone: reqBody.phone, usersId: _key, avatar: reqBody.avatar
+        phone: reqBody.phone!, usersId: _key, avatar: reqBody.avatar
       };
       const createdVirtualUser = await this.usersRepository.virtualUsers(_key).create(vu);
       const createdUsersRelation = await this.usersRepository.usersRels(_key).create(
         {
           _from: requesterUser?._id, _to: createdVirtualUser._key[1],
-          alias: reqBody.alias, type: 'virtual',
+          alias: reqBody.alias, type: 'virtual', avatar: reqBody.avatar
         }
       )
 
@@ -217,7 +217,7 @@ export class UsersUsersRelsController {
         try {
           // Update relation _to property with real-user's _id
           await this.usersRelsRepository.updateById(bodyReq.relationKey, {
-            _to: recipientUser._id, type: 'real'
+            _to: recipientUser._id, type: 'real', avatar: recipientUser.avatar
           });
         } catch (error) {
           console.log(error);
@@ -227,7 +227,7 @@ export class UsersUsersRelsController {
         // Create relation from recipient to requester
         const usersRel = await this.usersRepository.usersRels(_key).create({
           _from: recipientUser._id, _to: requesterUser._id,
-          alias: bodyReq.alias, type: 'real'
+          alias: bodyReq.alias, type: 'real', avatar: requesterUser.avatar
         });
         response = { ...usersRel, message: 'You are friends together right now' };
       } else {
