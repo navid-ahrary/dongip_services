@@ -529,7 +529,7 @@ export class UsersController {
         },
       },
     })
-    user: Users,
+    user: Omit<Users, '_key'>,
   ): Promise<Users> {
     if (_key !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized('Token is not matched to this user _key!');

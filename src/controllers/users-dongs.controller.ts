@@ -1,22 +1,15 @@
 import { Filter, repository, Where, CountSchema, Count } from '@loopback/repository';
 import {
-  get,
-  getModelSchemaRef,
-  param,
-  patch,
-  post,
-  requestBody,
-  HttpErrors,
-  getWhereSchemaFor,
+  get, getModelSchemaRef, param, patch, post, requestBody, HttpErrors, getWhereSchemaFor
 } from '@loopback/rest';
-import { Users, Dongs, Category } from '../models';
-import { UsersRepository, CategoryRepository } from '../repositories';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import underscore from 'underscore';
-import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { authenticate } from '@loopback/authentication';
 import { inject } from '@loopback/core';
 import * as admin from 'firebase-admin';
+import { Users, Dongs, Category } from '../models';
+import { UsersRepository, CategoryRepository } from '../repositories';
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 
 export class UsersDongsController {
   constructor(
@@ -120,8 +113,9 @@ export class UsersDongsController {
 
     if (dongs.exManKey) {
       expensesManager = await this.usersRepository.findById(dongs.exManKey);
+    } else {
+      expensesManager = await this.usersRepository.findById(currentUserProfile[securityId]);
     }
-    expensesManager = await this.usersRepository.findById(currentUserProfile[securityId]);
 
     if (!(await this.isNodesUsersOrVirtualUsers(currentUserProfile[securityId], nodes))) {
       throw new HttpErrors.NotAcceptable('Some of this users Id are not available');
