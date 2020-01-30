@@ -206,7 +206,7 @@ export class UsersUsersRelsController {
       }
     });
     if (!usersRelation) {
-      throw new HttpErrors.NotFound('Relation between you two is not found');
+      throw new HttpErrors.NotFound('There is not friend request fired!');
     }
 
     usersRelation._key = usersRelation._key[0];
