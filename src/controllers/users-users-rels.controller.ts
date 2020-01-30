@@ -306,7 +306,7 @@ export class UsersUsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             partial: true,
-            exclude: ["_from", "_to", "_rev", "type", "usersId"],
+            exclude: ["_from", "_to", "_rev", "type", "usersId", "targetUsersId"],
           }),
         },
       },
