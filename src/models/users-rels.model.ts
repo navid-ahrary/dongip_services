@@ -13,6 +13,13 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'string',
+    required: false,
+    generated: true
+  })
+  _rev: string;
+
+  @property({
+    type: 'string',
     required: true,
   })
   _from: string;
