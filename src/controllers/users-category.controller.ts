@@ -80,7 +80,7 @@ export class UsersCategoryController {
     }
 
     const usersCategoriesWithThisName = await this.find(currentUserProfile, _key, {
-      where: { name: category.name },
+      where: { title: category.title },
     });
 
     if (usersCategoriesWithThisName.length !== 0) {
