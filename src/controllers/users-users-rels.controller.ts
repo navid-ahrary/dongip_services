@@ -113,7 +113,7 @@ export class UsersUsersRelsController {
     } catch (error) {
       console.log(error);
       if (error.code === 409) {
-        throw new HttpErrors.NotAcceptable('You are virtual friends already!');
+        throw new HttpErrors.Conflict('You are virtual friends already!');
       } else {
         throw new HttpErrors.NotAcceptable(error);
       }
@@ -195,19 +195,16 @@ export class UsersUsersRelsController {
 
     recipientUser = await this.usersRepository.findById(_key);
     requesterUser = await this.usersRepository.findById(bodyReq.requesterKey);
-    usersRelation = await this.usersRelsRepository.findById(bodyReq.relationKey);
+    usersRelation = await this.usersRelsRepository.findOne({
+      where: { and: [{ _key: bodyReq.relationKey }, { _to: recipientUser._id }] }
+    });
+    if (!usersRelation) throw new HttpErrors.NotFound('Relation _key is not found');
     usersRelation._key = usersRelation._key[0];
 
     if (recipientUser && requesterUser) {
       const payload: admin.messaging.MessagingPayload = {
-        notification: {
-          title: '',
-          body: '',
-        },
-        data: {
-          name: requesterUser.name,
-          phone: requesterUser.phone,
-        },
+        notification: { title: '', body: '', },
+        data: { name: requesterUser.name, phone: requesterUser.phone, },
       };
       const options: admin.messaging.MessagingOptions = {
         priority: 'normal',
@@ -226,7 +223,9 @@ export class UsersUsersRelsController {
           await this.virtualUsersRepository.deleteById(usersRelation._to.split('/')[1]);
         } catch (error) {
           console.log(error);
-          throw new HttpErrors.NotFound('There is not friend request fired!')
+          throw new HttpErrors.NotFound(
+            'Error delete virtual user, There is not friend request fired!'
+          )
         }
 
         try {
