@@ -63,7 +63,7 @@ export class UsersUsersRelsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(FriendRequest, {
-            exclude: ["relationKey", "status", "requesterKey", "virtualUserKey"],
+            exclude: ["relationId", "status", "requesterId", "virtualUserId"],
           }),
         },
       },
@@ -184,7 +184,7 @@ export class UsersUsersRelsController {
         'Error users response to friend request ,Token is not matched to this user _key!',
       );
     }
-    if (_key === bodyReq.requesterKey) {
+    if (_key === bodyReq.requesterId.split('/')[1]) {
       throw new HttpErrors.NotAcceptable("requester's key and recipient's key is the same! ");
     }
 
@@ -195,13 +195,13 @@ export class UsersUsersRelsController {
       response = {};
 
     recipientUser = await this.usersRepository.findById(_key);
-    requesterUser = await this.usersRepository.findById(bodyReq.requesterKey);
+    requesterUser = await this.usersRepository.findById(bodyReq.requesterId.split('/')[1]);
     usersRelation = await this.usersRelsRepository.findOne({
       where: {
         and: [
-          { _key: bodyReq.relationKey },
-          { _to: bodyReq.virtualUserKey },
-          { _from: bodyReq.requesterKey }
+          { _key: bodyReq.relationId.split('/')[1] },
+          { _to: bodyReq.virtualUserId },
+          { _from: bodyReq.requesterId }
         ]
       }
     });
@@ -230,7 +230,7 @@ export class UsersUsersRelsController {
 
         try {
           // Delete created virtual user
-          await this.virtualUsersRepository.deleteById(bodyReq.virtualUserKey);
+          await this.virtualUsersRepository.deleteById(bodyReq.virtualUserId.split('/')[1]);
         } catch (error) {
           console.log(error);
           throw new HttpErrors.NotFound(
@@ -240,7 +240,7 @@ export class UsersUsersRelsController {
 
         try {
           // Update relation _to property with real-user's _id
-          await this.usersRelsRepository.updateById(bodyReq.relationKey, {
+          await this.usersRelsRepository.updateById(bodyReq.relationId.split('/')[1], {
             _to: recipientUser._id, type: 'real', avatar: recipientUser.avatar
           });
         } catch (error) {

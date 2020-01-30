@@ -12,12 +12,6 @@ export class FriendRequest extends Model {
     type: 'string',
     required: true
   })
-  requesterKey: string;
-
-  @property({
-    type: 'string',
-    required: true
-  })
   avatar: string;
 
   @property({
@@ -28,15 +22,21 @@ export class FriendRequest extends Model {
 
   @property({
     type: 'string',
+    required: true
+  })
+  requesterId: string;
+
+  @property({
+    type: 'string',
     required: true,
   })
-  relationKey: string;
+  relationId: string;
 
   @property({
     required: true,
     type: 'string',
   })
-  virtualUserKey: string;
+  virtualUserId: string;
 
   @property({
     type: 'boolean',
