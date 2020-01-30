@@ -95,9 +95,7 @@ export class UsersUsersRelsController {
     }
 
     try {
-      const vu = {
-        phone: reqBody.phone!, usersId: _key, avatar: reqBody.avatar
-      };
+      const vu = { phone: reqBody.phone!, usersId: _key };
       const createdVirtualUser = await this.usersRepository.virtualUsers(_key).create(vu);
       const createdUsersRelation = await this.usersRepository.usersRels(_key).create(
         {
