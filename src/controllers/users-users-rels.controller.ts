@@ -8,7 +8,7 @@ import { authenticate } from '@loopback/authentication';
 import { inject } from '@loopback/core';
 import * as admin from 'firebase-admin';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
-import { Users, UsersRels, FriendRequest } from '../models';
+import { Users, UsersRels, FriendRequest, VirtualUsers } from '../models';
 import {
   UsersRepository, VirtualUsersRepository, BlacklistRepository, UsersRelsRepository
 } from '../repositories';
@@ -79,10 +79,10 @@ export class UsersUsersRelsController {
     // validate recipient phone number
     validatePhoneNumber(reqBody.phone);
 
-    let requesterUser,
-      recipientUser,
-      createdVirtualUser,
-      createdUsersRelation,
+    let requesterUser: Users,
+      recipientUser: Users | null,
+      createdVirtualUser: VirtualUsers,
+      createdUsersRelation: UsersRels,
       notificationResponse;
 
     requesterUser = await this.usersRepository.findById(_key);
@@ -107,7 +107,8 @@ export class UsersUsersRelsController {
       createdUsersRelation = await this.usersRepository.usersRels(_key).create(
         {
           _from: requesterUser?._id, _to: createdVirtualUser._key[1],
-          alias: reqBody.alias, type: 'virtual', avatar: reqBody.avatar
+          alias: reqBody.alias, type: 'virtual', avatar: reqBody.avatar,
+          targetUsersId: recipientUser?._id
         }
       )
     } catch (error) {
@@ -188,28 +189,38 @@ export class UsersUsersRelsController {
       throw new HttpErrors.NotAcceptable("requester's key and recipient's key is the same! ");
     }
 
-    let requesterUser,
-      recipientUser,
-      usersRelation,
+    let requesterUser: Users | null,
+      recipientUser: Users,
+      usersRelation: UsersRels,
+      usersRelationList: UsersRels[],
       notificationResponse,
       response = {};
 
     recipientUser = await this.usersRepository.findById(_key);
     requesterUser = await this.usersRepository.findById(bodyReq.requesterId.split('/')[1]);
-    usersRelation = await this.usersRelsRepository.findOne({
-      where: {
-        and: [
-          { _key: bodyReq.relationId.split('/')[1] },
-          { _to: bodyReq.virtualUserId },
-          { _from: bodyReq.requesterId }
-        ]
-      }
-    });
-    if (!usersRelation) {
-      throw new HttpErrors.NotFound('There is not friend request fired!');
-    }
+    if (!requesterUser) throw new HttpErrors.NotFound('Requester user is not found! ');
 
+    usersRelationList = await this.usersRepository.usersRels(
+      bodyReq.requesterId.split('/')[1]).find({
+        where: {
+          and: [
+            { _key: bodyReq.relationId.split('/')[1] },
+            { _to: bodyReq.virtualUserId },
+            { _from: bodyReq.requesterId }
+          ]
+        }
+      });
+    if (usersRelationList.length === 0) {
+      console.log('There is not friend request fired!');
+      throw new HttpErrors.NotFound('There is not fired friend request!');
+    }
+    usersRelation = usersRelationList[0];
     usersRelation._key = usersRelation._key[0];
+
+    if (usersRelation.targetUsersId !== recipientUser._id) {
+      console.log('Target user id is not match to recipient id!');
+      throw new HttpErrors.NotFound('Target user id is not match to recipient id!');
+    }
 
     if (recipientUser && requesterUser) {
       const payload: admin.messaging.MessagingPayload = {
@@ -233,9 +244,7 @@ export class UsersUsersRelsController {
           await this.virtualUsersRepository.deleteById(bodyReq.virtualUserId.split('/')[1]);
         } catch (error) {
           console.log(error);
-          throw new HttpErrors.NotFound(
-            'Error delete virtual user, There is not friend request fired!'
-          )
+          throw new HttpErrors.NotFound('virtualUserId is not found')
         }
 
         try {
@@ -245,7 +254,7 @@ export class UsersUsersRelsController {
           });
         } catch (error) {
           console.log(error);
-          throw new HttpErrors.NotFound('Relation _key is not found')
+          throw new HttpErrors.NotFound('Relation is not found')
         }
 
         // Create relation from recipient to requester
