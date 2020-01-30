@@ -11,6 +11,7 @@ import { Users, UsersRels, FriendRequest } from '../models';
 import {
   UsersRepository, VirtualUsersRepository, BlacklistRepository, UsersRelsRepository
 } from '../repositories';
+import { validatePhoneNumber } from "../services/validator";
 
 export class UsersUsersRelsController {
   constructor(
@@ -73,6 +74,9 @@ export class UsersUsersRelsController {
         'Error users friend request ,Token is not matched to this user _key!',
       );
     }
+
+    // validate recipient phone number
+    validatePhoneNumber(reqBody.phone);
 
     const requesterUser = await this.usersRepository.findById(_key);
     const recipientUser = await this.usersRepository.findOne({
@@ -207,7 +211,7 @@ export class UsersUsersRelsController {
         };
 
         try {
-          // Delete created virtual user in friend request
+          // Delete created virtual user
           await this.virtualUsersRepository.deleteById(usersRelation._to.split('/')[1]);
         } catch (error) {
           console.log(error);
