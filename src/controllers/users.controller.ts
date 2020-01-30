@@ -2,22 +2,16 @@
 /* eslint-disable require-atomic-updates */
 import { inject } from '@loopback/core';
 import { repository } from '@loopback/repository';
-import {
-  post,
-  getModelSchemaRef,
-  requestBody,
-  HttpErrors,
-  get,
-  param,
-  patch,
-} from '@loopback/rest';
+import { post, getModelSchemaRef, requestBody, HttpErrors, get, param, patch } from '@loopback/rest';
 
 import { Users, FriendRequest, Credentials } from '../models';
 import {
   UsersRepository,
   BlacklistRepository,
   VirtualUsersRepository,
+  UsersRelsRepository
 } from '../repositories';
+
 import { authenticate, UserService, TokenService } from '@loopback/authentication';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
 import { PasswordHasherBindings, UserServiceBindings, TokenServiceBindings } from '../keys';
@@ -32,15 +26,12 @@ import moment from 'moment';
 export class UsersController {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(VirtualUsersRepository)
-    public virtualUsersRepository: VirtualUsersRepository,
+    @repository(VirtualUsersRepository) public virtualUsersRepository: VirtualUsersRepository,
     @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
-    @inject(PasswordHasherBindings.PASSWORD_HASHER)
-    public passwordHasher: PasswordHasher,
-    @inject(UserServiceBindings.USER_SERVICE)
-    public userService: UserService<Users, Credentials>,
-    @inject(TokenServiceBindings.TOKEN_SERVICE)
-    public jwtService: TokenService,
+    @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
+    @inject(PasswordHasherBindings.PASSWORD_HASHER) public passwordHasher: PasswordHasher,
+    @inject(UserServiceBindings.USER_SERVICE) public userService: UserService<Users, Credentials>,
+    @inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService,
   ) { }
 
   arrayHasObject(arr: object[], obj: object): boolean {
@@ -70,7 +61,7 @@ export class UsersController {
             schema: {
               isRegistered: 'bool',
               _key: 'string',
-              '_rev': 'string',
+              _rev: 'string',
               name: 'string',
               avatar: 'string',
             },
@@ -268,9 +259,9 @@ export class UsersController {
   async printCurrentUser(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.path.string('_key') _key: typeof Users.prototype._key,
-  ): Promise<{ _key: string; name: string }> {
+  ): Promise<{ _key: string; name: string, accessToken: string }> {
     if (_key !== currentUserProfile[securityId]) {
-      throw new Error(
+      throw new HttpErrors.Unauthorized(
         'Error users print current user , Token is not matched to this user _key!',
       );
     }
@@ -278,16 +269,15 @@ export class UsersController {
     const user = await this.usersRepository.findById(currentUserProfile[securityId]);
     delete user.password;
 
-    return { _key: user._key, name: user.name };
+    const userProfile = this.userService.convertToUserProfile(user);
+    const accessToken = await this.jwtService.generateToken(userProfile);
+
+    return { _key: user._key, name: user.name, accessToken: accessToken };
   }
 
   @post('/apis/users/{_key}/friend-req', {
     security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'User friend request',
-      },
-    },
+    responses: { '200': { description: 'User friend request', }, },
   })
   @authenticate('jwt')
   async friendRequest(
@@ -296,130 +286,88 @@ export class UsersController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(FriendRequest),
+          schema: getModelSchemaRef(FriendRequest, {
+            exclude: ["relationKey", "status", "requesterKey"]
+          }),
         },
       },
     })
     reqBody: FriendRequest,
   ) {
+    if (_key !== currentUserProfile[securityId]) {
+      throw new HttpErrors.Unauthorized(
+        'Error users friend request ,Token is not matched to this user _key!',
+      );
+    }
+
+    const requesterUser = await this.usersRepository.findById(_key);
+    const recipientUser = await this.usersRepository.findOne({
+      where: { phone: reqBody.phone },
+    });
+
+    if (_key === recipientUser?._key) {
+      throw new HttpErrors.NotAcceptable('You are the best friend of yourself! :)');
+    }
+
+    const isRealFriend = await this.usersRepository.usersRels(_key).find({
+      where: { and: [{ _from: requesterUser?._id }, { _to: recipientUser?._id }] }
+    })
+    if (isRealFriend.length !== 0) {
+      throw new HttpErrors.NotAcceptable('You are real friends already!');
+    }
+
     try {
-      if (_key !== currentUserProfile[securityId]) {
-        throw new Error(
-          'Error users friend request ,Token is not matched to this user _key!',
-        );
-      }
+      const vu = {
+        phone: reqBody.phone, usersId: _key, avatar: reqBody.avatar
+      };
+      const createdVirtualUser = await this.usersRepository.virtualUsers(_key).create(vu);
+      const createdUsersRelation = await this.usersRepository.usersRels(_key).create(
+        {
+          _from: requesterUser?._id, _to: createdVirtualUser._key[1],
+          alias: reqBody.alias, type: 'virtual',
+        }
+      )
 
-      const requesterUser = await this.usersRepository.findOne({
-        where: { _key: currentUserProfile[securityId] },
-      });
-
-      const recipientUser = await this.usersRepository.findOne({
-        where: { phone: reqBody.phone },
-      });
-
-      if (!recipientUser && requesterUser) {
-        const vu = {
-          avatar: reqBody.avatar,
-          name: reqBody.name,
-          phone: reqBody.phone,
-          usersId: requesterUser._key,
-        };
-
-
-        const preVu = await this.usersRepository.virtualUsers(vu.usersId).find({
-          where: {
-            and: [{ phone: reqBody.phone, }, { usersId: requesterUser._key }]
+      if (requesterUser && recipientUser) {
+        const payload = {
+          notification: {
+            title: 'دنگیپ درخواست دوستی',
+            body: `${requesterUser.name} با شماره موبایل ${requesterUser.phone} ازشما درخواست دوستی کرده`,
           },
-        });
-
-        if (preVu.length === 0) {
-          const vuResult = await this.usersRepository
-            .virtualUsers(requesterUser.getId())
-            .create(vu);
-
-          return vuResult;
-        } else {
-          throw new Error('He/She is in your friends list');
-        }
-      } else if (requesterUser && recipientUser) {
-        if (requesterUser!.getId() === recipientUser!.getId()) {
-          throw new Error('You are the best friend of yourself! :)');
-        }
-
-        if (
-          !recipientUser.friends.includes(requesterUser.getId()) &&
-          !this.arrayHasObject(recipientUser.pendingFriends, {
-            requester: requesterUser.getId(),
-            recipient: recipientUser.getId(),
-          }) &&
-          !requesterUser.friends.includes(recipientUser.getId()) &&
-          !this.arrayHasObject(requesterUser.pendingFriends, {
-            requester: requesterUser.getId(),
-            recipient: recipientUser.getId(),
+          data: {
+            relationKey: createdUsersRelation._key[0],
+            requesterKey: _key,
+            name: requesterUser.name,
+            phone: requesterUser.phone,
+          },
+        };
+        const options = {
+          priority: 'normal',
+          contentAvailable: true,
+          mutableContent: false,
+        };
+        // send friend request notofication to recipient user client
+        await admin
+          .messaging()
+          .sendToDevice(recipientUser.registerationToken, payload, options)
+          .then(function (_response) {
+            console.log(_response);
           })
-        ) {
-          recipientUser.pendingFriends.push({
-            requester: requesterUser.getId(),
-            recipient: recipientUser.getId(),
+          .catch(function (error) {
+            console.log(`Sending notification failed, ${error}`);
+            // throw new Error(`Sending notification failed, ${error}`);
           });
-          requesterUser.pendingFriends.push({
-            requester: requesterUser.getId(),
-            recipient: recipientUser.getId(),
-          });
-
-          await this.usersRepository.updateById(requesterUser.getId(), requesterUser);
-          await this.usersRepository.updateById(recipientUser.getId(), recipientUser);
-
-          const payload = {
-            notification: {
-              title: 'دنگیپ درخواست دوستی',
-              body: `${requesterUser.name} با موبایل ${requesterUser.phone} ازشما درخواست دوستی کرده`,
-            },
-            data: {
-              name: requesterUser.name,
-              phone: requesterUser.phone,
-            },
-          };
-          const options = {
-            priority: 'normal',
-            contentAvailable: true,
-            mutableContent: true,
-          };
-          const recipUserNotifToken = recipientUser.registerationToken;
-
-          // send friend request notofication to recipient user device
-          await admin
-            .messaging()
-            .sendToDevice(recipUserNotifToken, payload, options)
-            .then(function (_response) {
-              return {
-                message: `Request is sent, wait for response from him/her`,
-              };
-            })
-            .catch(function (error) {
-              throw new Error(error);
-            });
-        } else if (
-          recipientUser.friends.includes(requesterUser.getId()) &&
-          requesterUser.friends.includes(recipientUser.getId())
-        ) {
-          throw new Error('You were friends lately');
-        } else if (
-          this.arrayHasObject(recipientUser.pendingFriends, {
-            requester: requesterUser.getId(),
-            recipient: recipientUser.getId(),
-          }) &&
-          this.arrayHasObject(requesterUser.pendingFriends, {
-            requester: requesterUser.getId(),
-            recipient: recipientUser.getId(),
-          })
-        ) {
-          return { message: 'Request was fired, wait for respone' };
-        }
       }
-    } catch (err) {
-      console.log(err);
-      throw new HttpErrors.MethodNotAllowed(err.message);
+      createdVirtualUser._key = createdVirtualUser._key[0];
+      createdUsersRelation._key = createdUsersRelation._key[0];
+      return { createdVirtualUser, createdUsersRelation };
+    } catch (error) {
+      console.log(error);
+      if (error.code === 409) {
+        throw new HttpErrors.NotAcceptable('You are virtual friends already!');
+      } else {
+        throw new HttpErrors.NotAcceptable(error);
+      }
     }
   }
 
@@ -438,124 +386,97 @@ export class UsersController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(FriendRequest),
+          schema: getModelSchemaRef(FriendRequest, {
+            exclude: ["avatar", "phone"]
+          }),
         },
       },
     })
     bodyReq: FriendRequest,
   ) {
-    try {
-      if (_key !== currentUserProfile[securityId]) {
-        throw new Error(
-          'Error users response to friend request ,Token is not matched to this user _key!',
-        );
-      }
+    if (_key !== currentUserProfile[securityId]) {
+      throw new HttpErrors.Unauthorized(
+        'Error users response to friend request ,Token is not matched to this user _key!',
+      );
+    }
+    if (_key === bodyReq.requesterKey) {
+      throw new HttpErrors.NotAcceptable("requester's key and recipient's key is the same! ");
+    }
 
-      let message = '';
-      const recipientUser = await this.usersRepository.findOne({
-        where: {
-          _key: _key,
+    let response = {};
+    const recipientUser = await this.usersRepository.findById(_key);
+    const requesterUser = await this.usersRepository.findById(bodyReq.requesterKey);
+    const usersRelation = await this.usersRelsRepository.findById(bodyReq.relationKey);
+
+    if (recipientUser && requesterUser) {
+      const payload: admin.messaging.MessagingPayload = {
+        notification: {
+          title: '',
+          body: '',
         },
-      });
-
-      const requesterUser = await this.usersRepository.findOne({
-        where: {
-          phone: bodyReq.phone,
+        data: {
+          name: requesterUser.name,
+          phone: requesterUser.phone,
         },
-      });
+      };
+      const options: admin.messaging.MessagingOptions = {
+        priority: 'normal',
+        contentAvailable: true,
+        mutableContent: false,
+      };
 
-      if (recipientUser && requesterUser) {
-        if (requesterUser!.getId() === recipientUser!.getId()) {
-          throw new Error(
-            'We believe that you are the best friend of yourself! ;)',
-          );
+      if (bodyReq.status) {
+        payload.notification = {
+          title: 'دنگیپ قبول درخواست دوستی',
+          body: `${usersRelation.alias} با موبایل ${recipientUser.phone} در خواست دوستیتون رو پذیرفت`,
+        };
+
+        try {
+          // Delete created virtual user in friend request
+          await this.virtualUsersRepository.deleteById(usersRelation._to.split('/')[1]);
+        } catch (error) {
+          console.log(error);
+          throw new HttpErrors.NotFound('There is not friend request fired!')
         }
 
-        if (
-          !requesterUser.friends.includes(recipientUser.getId()) &&
-          this.arrayHasObject(requesterUser.pendingFriends, {
-            requester: requesterUser.getId(),
-            recipient: recipientUser.getId(),
-          }) &&
-          !recipientUser.friends.includes(requesterUser.getId()) &&
-          this.arrayHasObject(recipientUser.pendingFriends, {
-            requester: requesterUser.getId(),
-            recipient: recipientUser.getId(),
-          })
-        ) {
-          this.arrayRemoveItem(requesterUser.pendingFriends, {
-            requester: requesterUser.getId(),
-            recipient: recipientUser.getId(),
+        try {
+          // Update relation _to property with real-user's _id
+          await this.usersRelsRepository.updateById(bodyReq.relationKey, {
+            _to: recipientUser._id, type: 'real'
           });
-          this.arrayRemoveItem(recipientUser.pendingFriends, {
-            requester: requesterUser.getId(),
-            recipient: recipientUser.getId(),
-          });
-
-          const payload: admin.messaging.MessagingPayload = {
-            notification: {
-              title: '',
-              body: ``,
-            },
-            data: {
-              name: requesterUser.name,
-              phone: requesterUser.phone,
-            },
-          };
-          const options: admin.messaging.MessagingOptions = {
-            priority: 'normal',
-            contentAvailable: true,
-            mutableContent: false,
-          };
-
-          if (bodyReq.status === true) {
-            recipientUser.friends.push(requesterUser.getId());
-            requesterUser.friends.push(recipientUser.getId());
-
-            payload.notification = {
-              title: 'دنگیپ قبول درخواست دوستی',
-              body: `${recipientUser.name} با موبایل ${recipientUser.phone} در خواست دوستیتون رو پذیرفت`,
-            };
-
-            message = 'You are friends together right now';
-          } else if (bodyReq.status === false) {
-            payload.notification = {
-              title: 'دنگیپ رد درخواست دوستی',
-              body: `${recipientUser.name} با موبایل ${recipientUser.phone} در خواست دوستیتون رو رد کرد`,
-            };
-
-            message = 'Friend request has been rejected';
-          }
-
-          await this.usersRepository.updateById(recipientUser._key, recipientUser);
-          await this.usersRepository.updateById(requesterUser._key, requesterUser);
-
-          // send notification accept/reject message to requester of friend request
-          const reqUserRegToken = requesterUser.registerationToken;
-          await admin
-            .messaging()
-            .sendToDevice(reqUserRegToken, payload, options)
-            .then(function (response) {
-              console.log(`Successfully set a friend, ${response}`);
-              return { message, response: response };
-            })
-            .catch(function (error) {
-              console.log(`Sending notification failed, ${error}`);
-              throw new Error(
-                `Sending notification failed, ${error}`,
-              );
-            });
-
-        } else {
-          console.log('Friend Request not fired or you were friends lately');
-          throw new Error(
-            'Friend Request not fired or you were friends lately',
-          );
+        } catch (error) {
+          console.log(error);
+          throw new HttpErrors.NotFound('Relation _key is not found')
         }
+
+        // Create relation from recipient to requester
+        const usersRel = await this.usersRepository.usersRels(_key).create({
+          _from: recipientUser._id, _to: requesterUser._id,
+          alias: bodyReq.alias, type: 'real'
+        });
+        response = { ...usersRel, message: 'You are friends together right now' };
+      } else {
+        payload.notification = {
+          title: 'دنگیپ رد درخواست دوستی',
+          body: `${usersRelation.alias} با موبایل ${recipientUser.phone} در خواست دوستیتون رو رد کرد`,
+        };
+        response = { message: 'Friend request has been rejected' };
       }
-    } catch (err) {
-      console.log(err);
-      throw new HttpErrors.MethodNotAllowed(err.message);
+
+      // send response to friend request notification to the requester
+      await admin
+        .messaging()
+        .sendToDevice(requesterUser.registerationToken, payload, options)
+        .then(function (_res) {
+          console.log(`Successfully set a friend, ${_res}`);
+          return { ...response, notifiResponse: _res, relationKey: bodyReq.relationKey };
+        })
+        .catch(function (error) {
+          console.log(`Sending notification failed, ${error}`);
+          throw new HttpErrors.Gone(
+            `Your are Friends now but sending notification failed`,
+          );
+        });
     }
   }
 
@@ -584,31 +505,3 @@ export class UsersController {
     }
     return this.usersRepository.findById(_key);
   }
-
-  @patch('/apis/user/{_key}', {
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '204': {
-        description: 'User PATCH success',
-      },
-    },
-  })
-  @authenticate('jwt')
-  async updateById(
-    @param.path.string('_key') _key: string,
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Users, { partial: true }),
-        },
-      },
-    })
-    user: Users,
-  ): Promise<void> {
-    if (_key !== currentUserProfile[securityId]) {
-      throw new HttpErrors.Unauthorized('Token is not matched to this user _key!');
-    }
-    await this.usersRepository.updateById(_key, user);
-  }
-}
