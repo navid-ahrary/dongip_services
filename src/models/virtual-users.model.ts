@@ -32,11 +32,6 @@ export class VirtualUsers extends Entity {
   })
   phone: string;
 
-  @property({
-    type: 'string',
-  })
-  targetUserId?: string;
-
   @belongsTo(() => Users)
   usersId: typeof Users.prototype._key;
 
