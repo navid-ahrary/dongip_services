@@ -25,10 +25,7 @@ export class DongsRepository extends DefaultCrudRepository<
     this.category = this.createBelongsToAccessorFor('category', categoryRepositoryGetter);
     this.registerInclusionResolver('category', this.category.inclusionResolver);
 
-    this.users = this.createBelongsToAccessorFor(
-      'expensesManager',
-      usersRepositoryGetter,
-    );
+    this.users = this.createBelongsToAccessorFor('exMan', usersRepositoryGetter);
     this.registerInclusionResolver('users', this.users.inclusionResolver);
   }
 }
