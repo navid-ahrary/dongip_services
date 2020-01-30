@@ -16,7 +16,19 @@ export class Category extends Entity {
     type: 'string',
     required: true,
   })
-  name: string;
+  _id: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  _rev: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  title: string;
 
   @property({
     type: 'string',
