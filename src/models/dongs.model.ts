@@ -15,9 +15,23 @@ export class Dongs extends Entity {
 
   @property({
     type: 'string',
+    generated: true,
+    required: false,
+  })
+  _id: string;
+
+  @property({
+    type: 'string',
+    generated: true,
+    required: false,
+  })
+  _rev: string;
+
+  @property({
+    type: 'string',
     requird: true,
   })
-  name: string;
+  title: string;
 
   @property({
     type: 'number',
@@ -65,7 +79,7 @@ export class Dongs extends Entity {
   virtualUsersId: string;
 
   @belongsTo(() => Users)
-  expensesManagerId: string;
+  exManKey: string;
 
   constructor(data?: Partial<Dongs>) {
     super(data);
@@ -73,7 +87,7 @@ export class Dongs extends Entity {
 }
 
 export interface DongsRelations {
-  expensesManager?: DongsWithRelations;
+  exMan?: DongsWithRelations;
 }
 
 export type DongsWithRelations = Dongs & DongsRelations;

@@ -89,8 +89,8 @@ export class UsersDongsController {
         'application/json': {
           schema: getModelSchemaRef(Dongs, {
             title: 'NewDongsInUsers',
-            exclude: ['_key'],
-            optional: ['expensesManagerId'],
+            exclude: ['_key', "_id", "_rev", "costs"],
+            optional: ['exManKey'],
           }),
         },
       },
@@ -118,8 +118,8 @@ export class UsersDongsController {
       nodes.push(item.node);
     }
 
-    if (dongs.expensesManagerId) {
-      expensesManager = await this.usersRepository.findById(dongs.expensesManagerId);
+    if (dongs.exManKey) {
+      expensesManager = await this.usersRepository.findById(dongs.exManKey);
     }
     expensesManager = await this.usersRepository.findById(currentUserProfile[securityId]);
 
