@@ -10,18 +10,33 @@ export class FriendRequest extends Model {
 
   @property({
     type: 'string',
+    required: true
   })
-  avatar?: string;
+  requesterKey: string;
 
   @property({
     type: 'string',
+    required: true
   })
-  alias?: string;
+  avatar: string;
+
+  @property({
+    required: true,
+    type: 'string',
+  })
+  alias: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  relationKey: string;
 
   @property({
     type: 'boolean',
+    required: true,
   })
-  status?: boolean;
+  status: boolean;
 
   constructor(data?: Partial<FriendRequest>) {
     super(data);

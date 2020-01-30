@@ -21,9 +21,10 @@ export class VirtualUsers extends Entity {
 
   @property({
     type: 'string',
-    required: true,
+    required: false,
+    generated: true
   })
-  name: string;
+  _rev: string;
 
   @property({
     type: 'string',
