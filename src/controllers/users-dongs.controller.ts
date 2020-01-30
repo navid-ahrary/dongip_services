@@ -162,7 +162,7 @@ export class UsersDongsController {
       .categories(expensesManager._key)
       .find({
         where: {
-          name: dongs.categoryName,
+          title: dongs.categoryName,
         },
       });
 
@@ -180,7 +180,7 @@ export class UsersDongsController {
 
       const nCategory = await this.usersRepository.categories(n.node).find({
         where: {
-          name: dongs.categoryName,
+          title: dongs.categoryName,
         },
       });
 
@@ -188,7 +188,7 @@ export class UsersDongsController {
         //create a category with name that provided by expenses manager
         nodeCategory = await this.usersRepository
           .categories(n.node)
-          .create({ name: expensesManagerCategoryList[0].name });
+          .create({ title: expensesManagerCategoryList[0].title });
       } else if (nCategory.length === 1) {
         nodeCategory = nCategory[0];
       } else {
