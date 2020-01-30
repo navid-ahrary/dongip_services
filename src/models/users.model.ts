@@ -1,8 +1,8 @@
 import { Entity, model, property, hasMany } from '@loopback/repository';
-import { VirtualUsers, VirtualUsersWithRelations } from './virtualUsers.model';
+import { VirtualUsers, VirtualUsersWithRelations } from './virtual-users.model';
 import { Dongs } from './dongs.model';
 import { Category } from './category.model';
-import {UsersRels} from './users-rels.model';
+import { UsersRels } from './users-rels.model';
 
 @model()
 export class Users extends Entity {
