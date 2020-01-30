@@ -10,14 +10,17 @@ import {
   HttpErrors,
 } from '@loopback/rest';
 import { Users, Category } from '../models';
-import { UsersRepository } from '../repositories';
+import { UsersRepository, CategoryRepository } from '../repositories';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { authenticate } from '@loopback/authentication';
 import { inject } from '@loopback/core';
 
 export class UsersCategoryController {
-  constructor(@repository(UsersRepository) protected usersRepository: UsersRepository) { }
+  constructor(
+    @repository(UsersRepository) protected usersRepository: UsersRepository,
+    @repository(CategoryRepository) protected categoryRepository: CategoryRepository,
+  ) { }
 
   @get('/apis/users/{_key}/categories', {
     security: OPERATION_SECURITY_SPEC,
@@ -65,8 +68,7 @@ export class UsersCategoryController {
         'application/json': {
           schema: getModelSchemaRef(Category, {
             title: 'NewCategoryInUsers',
-            exclude: ['_key'],
-            optional: ['usersId'],
+            exclude: ['_key', '_id', '_rev', 'categoryBills', 'usersId'],
           }),
         },
       },
@@ -79,17 +81,19 @@ export class UsersCategoryController {
       );
     }
 
-    const usersCategoriesWithThisName = await this.find(currentUserProfile, _key, {
-      where: { title: category.title },
-    });
-
-    if (usersCategoriesWithThisName.length !== 0) {
-      throw new HttpErrors.NotAcceptable(
-        "conflict category's name, this category exists",
-      );
+    try {
+      const createdCat = await this.usersRepository.categories(_key).create(category);
+      return createdCat;
+    } catch (error) {
+      console.log(error);
+      if (error.code === 409) {
+        throw new HttpErrors.Conflict(
+          "Conflict category's title, this category exists",
+        );
+      } else {
+        throw new HttpErrors.NotAcceptable(error);
+      }
     }
-
-    return this.usersRepository.categories(_key).create(category);
   }
 
   @patch('/apis/users/{_key}/categories', {
