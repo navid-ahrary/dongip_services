@@ -10,7 +10,7 @@ export function validatePhoneNumber(phoneNumber: Credentials['phone']) {
       throw new HttpErrors.NotAcceptable('Invalid phone value.');
     }
   } catch (err) {
-    throw new HttpErrors.s(err);
+    throw new HttpErrors.NotAcceptable(err);
   }
 }
 export function validatePassword(password: Credentials['password']) {
