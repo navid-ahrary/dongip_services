@@ -126,9 +126,9 @@ export class UsersUsersRelsController {
           body: `${requesterUser.name} با شماره موبایل ${requesterUser.phone} ازشما درخواست دوستی کرده`,
         },
         data: {
-          relationKey: createdUsersRelation._key[0],
-          requesterKey: _key,
-          virtualUserKey: createdVirtualUser._key[0],
+          requesterId: requesterUser._id,
+          virtualUserId: createdVirtualUser._key[1],
+          relationId: createdUsersRelation._key[1],
           name: requesterUser.name,
           phone: requesterUser.phone,
         },
