@@ -204,8 +204,9 @@ export class UsersUsersRelsController {
         ]
       }
     });
-    if (!usersRelation) throw new HttpErrors.NotFound('Relation _key is not found');
-    console.log(usersRelation)
+    if (!usersRelation) {
+      throw new HttpErrors.NotFound('Relation between you two is not found');
+    }
     usersRelation._key = usersRelation._key[0];
 
     if (recipientUser && requesterUser) {
@@ -227,7 +228,7 @@ export class UsersUsersRelsController {
 
         try {
           // Delete created virtual user
-          await this.virtualUsersRepository.deleteById(usersRelation._to.split('/')[1]);
+          await this.virtualUsersRepository.deleteById(bodyReq.virtualUserId.split('/')[1]);
         } catch (error) {
           console.log(error);
           throw new HttpErrors.NotFound(
