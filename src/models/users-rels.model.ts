@@ -38,8 +38,9 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'string',
+    required: true,
   })
-  avatar?: string;
+  avatar: string;
 
   @property({
     type: 'string',
