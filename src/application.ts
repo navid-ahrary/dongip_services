@@ -8,22 +8,19 @@ import { registerAuthenticationStrategy } from '@loopback/authentication';
 import * as path from 'path';
 import * as admin from 'firebase-admin';
 import dotenv = require('dotenv');
+dotenv.config();
 
 import { MyAuthenticationSequence } from './sequence';
 import { UserAuthenticationComponent } from './components/user.authentication';
 import { JWTAutehticationStrategy } from './authentication-strategies/jwt-strategy';
 import {
-  TokenServiceBindings,
-  TokenServiceConstants,
-  PasswordHasherBindings,
-  UserServiceBindings,
+  TokenServiceBindings, TokenServiceConstants, PasswordHasherBindings, UserServiceBindings
 } from './keys';
 import { JWTService } from './services/jwt.service';
 import { SECURITY_SCHEME_SPEC } from './utils/security-specs';
 import { BcryptHasher } from './services/hash.password.bcryptjs';
 import { MyUserService } from './services/user.service';
 
-dotenv.config();
 
 const serviceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
 admin.initializeApp({
