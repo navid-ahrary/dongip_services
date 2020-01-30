@@ -1,6 +1,6 @@
 import { Count, CountSchema, Filter, repository, Where } from '@loopback/repository';
 import {
-  del, get, getModelSchemaRef, getWhereSchemaFor, param, patch, post, requestBody, HttpErrors,
+  get, getModelSchemaRef, getWhereSchemaFor, param, patch, post, requestBody, HttpErrors,
 } from '@loopback/rest';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
@@ -62,7 +62,6 @@ export class UsersUsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(FriendRequest, {
             exclude: ["relationKey", "status", "requesterKey"],
-            optional: ["phone"]
           }),
         },
       },
@@ -274,7 +273,7 @@ export class UsersUsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             partial: true,
-            exclude: ["_from", "_to", "_rev", "type", "usersId"]
+            exclude: ["_from", "_to", "_rev", "type", "usersId"],
           }),
         },
       },
@@ -283,20 +282,5 @@ export class UsersUsersRelsController {
     @param.query.object('where', getWhereSchemaFor(UsersRels)) where?: Where<UsersRels>,
   ): Promise<Count> {
     return this.usersRepository.usersRels(_key).patch(usersRels, where);
-  }
-
-  @del('/users/{id}/users-rels', {
-    responses: {
-      '200': {
-        description: 'Users.UsersRels DELETE success count',
-        content: { 'application/json': { schema: CountSchema } },
-      },
-    },
-  })
-  async delete(
-    @param.path.string('id') id: string,
-    @param.query.object('where', getWhereSchemaFor(UsersRels)) where?: Where<UsersRels>,
-  ): Promise<Count> {
-    return this.usersRepository.usersRels(id).delete(where);
   }
 }
