@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { Count, CountSchema, Filter, repository, Where } from '@loopback/repository';
 import {
   get, getModelSchemaRef, getWhereSchemaFor, param, patch, post, requestBody, HttpErrors,
@@ -78,8 +79,14 @@ export class UsersUsersRelsController {
     // validate recipient phone number
     validatePhoneNumber(reqBody.phone);
 
-    const requesterUser = await this.usersRepository.findById(_key);
-    const recipientUser = await this.usersRepository.findOne({
+    let requesterUser,
+      recipientUser,
+      createdVirtualUser,
+      createdUsersRelation,
+      notificationResponse;
+
+    requesterUser = await this.usersRepository.findById(_key);
+    recipientUser = await this.usersRepository.findOne({
       where: { phone: reqBody.phone },
     });
 
@@ -95,48 +102,14 @@ export class UsersUsersRelsController {
     }
 
     try {
-      const vu = { phone: reqBody.phone!, usersId: _key };
-      const createdVirtualUser = await this.usersRepository.virtualUsers(_key).create(vu);
-      const createdUsersRelation = await this.usersRepository.usersRels(_key).create(
+      const vu = { phone: reqBody.phone, usersId: _key };
+      createdVirtualUser = await this.usersRepository.virtualUsers(_key).create(vu);
+      createdUsersRelation = await this.usersRepository.usersRels(_key).create(
         {
           _from: requesterUser?._id, _to: createdVirtualUser._key[1],
           alias: reqBody.alias, type: 'virtual', avatar: reqBody.avatar
         }
       )
-
-      if (requesterUser && recipientUser) {
-        const payload = {
-          notification: {
-            title: 'دنگیپ درخواست دوستی',
-            body: `${requesterUser.name} با شماره موبایل ${requesterUser.phone} ازشما درخواست دوستی کرده`,
-          },
-          data: {
-            relationKey: createdUsersRelation._key[0],
-            requesterKey: _key,
-            name: requesterUser.name,
-            phone: requesterUser.phone,
-          },
-        };
-        const options = {
-          priority: 'normal',
-          contentAvailable: true,
-          mutableContent: false,
-        };
-        // send friend request notofication to recipient user client
-        await admin
-          .messaging()
-          .sendToDevice(recipientUser.registerationToken, payload, options)
-          .then(function (_response) {
-            console.log(_response);
-          })
-          .catch(function (error) {
-            console.log(`Sending notification failed, ${error}`);
-            throw new Error(`Sending notification failed, ${error}`);
-          });
-      }
-      createdVirtualUser._key = createdVirtualUser._key[0];
-      createdUsersRelation._key = createdUsersRelation._key[0];
-      return { createdVirtualUser, createdUsersRelation };
     } catch (error) {
       console.log(error);
       if (error.code === 409) {
@@ -145,6 +118,40 @@ export class UsersUsersRelsController {
         throw new HttpErrors.NotAcceptable(error);
       }
     }
+
+    if (requesterUser && recipientUser) {
+      const payload = {
+        notification: {
+          title: 'دنگیپ درخواست دوستی',
+          body: `${requesterUser.name} با شماره موبایل ${requesterUser.phone} ازشما درخواست دوستی کرده`,
+        },
+        data: {
+          relationKey: createdUsersRelation._key[0],
+          requesterKey: _key,
+          name: requesterUser.name,
+          phone: requesterUser.phone,
+        },
+      };
+      const options = {
+        priority: 'normal',
+        contentAvailable: true,
+        mutableContent: false,
+      };
+      // send friend request notofication to recipient user client
+      await admin
+        .messaging()
+        .sendToDevice(recipientUser.registerationToken, payload, options)
+        .then(function (_response) {
+          console.log(_response);
+          notificationResponse = _response;
+        }).catch(function (err) {
+          console.log(err)
+          notificationResponse = err;
+        })
+    }
+    createdVirtualUser._key = createdVirtualUser._key[0];
+    createdUsersRelation._key = createdUsersRelation._key[0];
+    return { createdVirtualUser, createdUsersRelation, notificationResponse };
   }
 
 
@@ -180,10 +187,16 @@ export class UsersUsersRelsController {
       throw new HttpErrors.NotAcceptable("requester's key and recipient's key is the same! ");
     }
 
-    let response = {};
-    const recipientUser = await this.usersRepository.findById(_key);
-    const requesterUser = await this.usersRepository.findById(bodyReq.requesterKey);
-    const usersRelation = await this.usersRelsRepository.findById(bodyReq.relationKey);
+    let requesterUser,
+      recipientUser,
+      usersRelation,
+      notificationResponse,
+      response = {};
+
+    recipientUser = await this.usersRepository.findById(_key);
+    requesterUser = await this.usersRepository.findById(bodyReq.requesterKey);
+    usersRelation = await this.usersRelsRepository.findById(bodyReq.relationKey);
+    usersRelation._key = usersRelation._key[0];
 
     if (recipientUser && requesterUser) {
       const payload: admin.messaging.MessagingPayload = {
@@ -244,16 +257,15 @@ export class UsersUsersRelsController {
       await admin
         .messaging()
         .sendToDevice(requesterUser.registerationToken, payload, options)
-        .then(function (_res) {
-          console.log(`Successfully set a friend, ${_res}`);
-          return { ...response, notifiResponse: _res, relationKey: bodyReq.relationKey };
+        .then(function (_response) {
+          console.log(`Successfully set a friend, ${_response}`);
+          notificationResponse = _response;
         })
-        .catch(function (error) {
-          console.log(`Sending notification failed, ${error}`);
-          throw new HttpErrors.Gone(
-            `Your are Friends now but sending notification failed`,
-          );
+        .catch(function (_error) {
+          console.log(`Sending notification failed, ${_error}`);
+          notificationResponse = _error;
         });
+      return { ...response, notificationResponse };
     }
   }
 
