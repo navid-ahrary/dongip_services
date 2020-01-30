@@ -63,7 +63,7 @@ export class UsersUsersRelsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(FriendRequest, {
-            exclude: ["relationKey", "status", "requesterKey", "virtualUserId"],
+            exclude: ["relationKey", "status", "requesterKey", "virtualUserKey"],
           }),
         },
       },
@@ -128,7 +128,7 @@ export class UsersUsersRelsController {
         data: {
           relationKey: createdUsersRelation._key[0],
           requesterKey: _key,
-          virtualUserId: createdVirtualUser._id,
+          virtualUserKey: createdVirtualUser._key[0],
           name: requesterUser.name,
           phone: requesterUser.phone,
         },
@@ -200,13 +200,15 @@ export class UsersUsersRelsController {
       where: {
         and: [
           { _key: bodyReq.relationKey },
-          { _to: bodyReq.virtualUserId.split('/')[1] }
+          { _to: bodyReq.virtualUserKey },
+          { _from: bodyReq.requesterKey }
         ]
       }
     });
     if (!usersRelation) {
       throw new HttpErrors.NotFound('Relation between you two is not found');
     }
+
     usersRelation._key = usersRelation._key[0];
 
     if (recipientUser && requesterUser) {
@@ -228,7 +230,7 @@ export class UsersUsersRelsController {
 
         try {
           // Delete created virtual user
-          await this.virtualUsersRepository.deleteById(bodyReq.virtualUserId.split('/')[1]);
+          await this.virtualUsersRepository.deleteById(bodyReq.virtualUserKey);
         } catch (error) {
           console.log(error);
           throw new HttpErrors.NotFound(
