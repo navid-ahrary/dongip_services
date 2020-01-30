@@ -129,7 +129,7 @@ export class UsersUsersRelsController {
           })
           .catch(function (error) {
             console.log(`Sending notification failed, ${error}`);
-            // throw new Error(`Sending notification failed, ${error}`);
+            throw new Error(`Sending notification failed, ${error}`);
           });
       }
       createdVirtualUser._key = createdVirtualUser._key[0];
