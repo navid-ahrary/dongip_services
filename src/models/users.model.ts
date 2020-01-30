@@ -117,7 +117,7 @@ export class Users extends Entity {
   })
   dongsId: typeof Dongs.prototype._key[];
 
-  @hasMany(() => Dongs, { keyTo: 'expensesManagerId' })
+  @hasMany(() => Dongs, { keyTo: 'exManKey' })
   dongs: Dongs[];
 
   @hasMany(() => Category)
