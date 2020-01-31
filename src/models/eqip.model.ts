@@ -6,7 +6,7 @@ export class Eqip extends Model
     type: 'string',
     required: true,
   } )
-  nodeId: string
+  usersRelsId: string
 
   @property( {
     type: 'number',
