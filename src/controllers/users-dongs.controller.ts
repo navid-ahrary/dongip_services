@@ -98,8 +98,8 @@ export class UsersDongsController
         'application/json': {
           schema: getModelSchemaRef( Dongs, {
             title: 'NewDongsInUsers',
-            exclude: [ '_key', "_id", "_rev", "costs" ],
-            optional: [ 'exManKey' ],
+            exclude: [ "_key", "_id", "_rev", "costs" ],
+            optional: [ "exManKey" ],
           } ),
         },
       },
@@ -128,7 +128,7 @@ export class UsersDongsController
 
     for ( const item of dongs.eqip )
     {
-      nodes.push( item.node )
+      nodes.push( item.nodeId )
     }
 
     if ( dongs.exManKey )
@@ -136,25 +136,25 @@ export class UsersDongsController
       expensesManager = await this.usersRepository.findById( dongs.exManKey )
     } else
     {
-      expensesManager = await this.usersRepository.findById( currentUserProfile[ securityId ] )
+      expensesManager = await this.usersRepository.findById( _key )
     }
 
     if ( !( await this.isNodesUsersOrVirtualUsers( currentUserProfile[ securityId ], nodes ) ) )
     {
-      throw new HttpErrors.NotAcceptable( 'Some of this users Id are not available' )
+      throw new HttpErrors.NotAcceptable( 'Some of this users keys are not available for you! ' )
     }
 
     for ( const item of dongs.eqip )
     {
       if (
-        item.node !== expensesManager._key.toString() &&
-        !expensesManager.friends.includes( item.node ) &&
+        item.nodeId !== expensesManager._key.toString() &&
+        !expensesManager.friends.includes( item.nodeId ) &&
         !this.arrayHasObject( expensesManager.pendingFriends, {
           recipient: expensesManager._key,
-          requester: item.node,
+          requester: item.nodeId,
         } ) &&
         !this.arrayHasObject( expensesManager.pendingFriends, {
-          recipient: item.node,
+          recipient: item.nodeId,
           requester: expensesManager._key,
         } )
       )
@@ -183,9 +183,7 @@ export class UsersDongsController
     const expensesManagerCategoryList = await this.usersRepository
       .categories( expensesManager._key )
       .find( {
-        where: {
-          title: dongs.categoryName,
-        },
+        where: { title: dongs.categoryName, },
       } )
 
     expensesManager.dongsId.push( transaction._key )
@@ -201,17 +199,16 @@ export class UsersDongsController
       categoryBill.paidCost = paidCost
       categoryBill.calculation = dong - paidCost
 
-      const nCategory = await this.usersRepository.categories( n.node ).find( {
-        where: {
-          title: dongs.categoryName,
-        },
-      } )
+      const nCategory = await this.usersRepository.categories( n.nodeId )
+        .find( {
+          where: { title: dongs.categoryName, },
+        } )
 
       if ( nCategory.length === 0 )
       {
         //create a category with name that provided by expenses manager
         nodeCategory = await this.usersRepository
-          .categories( n.node )
+          .categories( n.nodeId )
           .create( { title: expensesManagerCategoryList[ 0 ].title } )
       } else if ( nCategory.length === 1 )
       {
@@ -219,19 +216,19 @@ export class UsersDongsController
       } else
       {
         throw new HttpErrors.NotAcceptable(
-          'Find multi category with this name for userId ' + n.node,
+          'Find multi category with this name for userId ' + n.nodeId,
         )
       }
 
       // create bill belonging to created category
       await this.categoryRepository.categoryBills( nodeCategory._key ).create( categoryBill )
 
-      const node = await this.usersRepository.findById( n.node )
+      const node = await this.usersRepository.findById( n.nodeId )
       node.dongsId.push( transaction._key )
-      await this.usersRepository.updateById( n.node, node )
+      await this.usersRepository.updateById( n.nodeId, node )
 
       // Do not add expenses manager to the reciever notification list
-      if ( n.node !== expensesManager._key.toString() )
+      if ( n.nodeId !== expensesManager._key.toString() )
       {
         registrationTokens.push( node.registerationToken )
       }
@@ -254,12 +251,12 @@ export class UsersDongsController
     await admin
       .messaging()
       .sendMulticast( message )
-      .then( function ( response )
+      .then( function ( _response )
       {
-        if ( response.failureCount > 0 )
+        if ( _response.failureCount > 0 )
         {
           const failedTokens: string[] = []
-          response.responses.forEach( ( resp, idx ) =>
+          _response.responses.forEach( ( resp, idx ) =>
           {
             if ( !resp.success )
             {
@@ -272,12 +269,12 @@ export class UsersDongsController
           )
         }
 
-        console.log( `Successfully sent notifications, ${ response }` )
+        console.log( `Successfully sent notifications, ${ _response }` )
       } )
-      .catch( function ( error )
+      .catch( function ( _error )
       {
-        console.log( `Error sending notifications, ${ error }` )
-        throw new HttpErrors.NotImplemented( `Error sending notifications, ${ error }` )
+        console.log( `Error sending notifications, ${ _error }` )
+        throw new HttpErrors.NotImplemented( `Error sending notifications, ${ _error }` )
       } )
 
     return { _key: transaction._key }
