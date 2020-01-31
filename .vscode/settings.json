@@ -14,6 +14,7 @@
     "dist": true,
   },
   "files.insertFinalNewline": true,
+  "prettier.singleQuote": true,
   "files.trimTrailingWhitespace": true,
   "typescript.tsdk": "./node_modules/typescript/lib",
   "eslint.run": "onSave",
@@ -21,5 +22,7 @@
   "json.schemas": [{
     "fileMatch": ["*/models/*.json"],
     "url": "./schemas/apiconnectmodels.json"
-  }]
+  }
+],
+"prettier.packageManager": "yarn"
 }
