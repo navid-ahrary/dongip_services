@@ -3,8 +3,8 @@ import { PasswordHasher } from './services/hash.password.bcryptjs';
 import { TokenService, UserService } from '@loopback/authentication';
 import { Users, Credentials } from './models';
 import dotenv = require('dotenv');
-
 dotenv.config();
+
 
 export namespace TokenServiceConstants {
   export const TOKEN_SECRET_VALUE = process.env.TOKEN_SECRET_VALUE;
