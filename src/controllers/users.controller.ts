@@ -133,17 +133,15 @@ export class UsersController
   {
     try
     {
-      // ensure a valid phone and password value
-      validatePhoneNumber( phone )
-      validatePhoneNumber( user.phone )
-      validatePassword( user.password )
-
       if ( phone !== user.phone )
       {
         throw new Error(
           'Error signup, Phone numbers in params and body not matched !',
         )
       }
+      // ensure a valid phone and password value
+      validatePhoneNumber( user.phone )
+      validatePassword( user.password )
 
       // encrypt the password
       user.password = await this.passwordHasher.hashPassword( user.password )

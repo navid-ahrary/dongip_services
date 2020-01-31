@@ -128,7 +128,7 @@ export class UsersDongsController
 
     for ( const item of dongs.eqip )
     {
-      nodes.push( item.nodeId )
+      nodes.push( item.usersRelsId )
     }
 
     if ( dongs.exManKey )
@@ -147,14 +147,14 @@ export class UsersDongsController
     for ( const item of dongs.eqip )
     {
       if (
-        item.nodeId !== expensesManager._key.toString() &&
-        !expensesManager.friends.includes( item.nodeId ) &&
+        item.usersRelsId !== expensesManager._key.toString() &&
+        !expensesManager.friends.includes( item.usersRelsId ) &&
         !this.arrayHasObject( expensesManager.pendingFriends, {
           recipient: expensesManager._key,
-          requester: item.nodeId,
+          requester: item.usersRelsId,
         } ) &&
         !this.arrayHasObject( expensesManager.pendingFriends, {
-          recipient: item.nodeId,
+          recipient: item.usersRelsId,
           requester: expensesManager._key,
         } )
       )
@@ -177,7 +177,7 @@ export class UsersDongsController
     }
 
     const transaction = await this.usersRepository.dongs( expensesManager._key ).create( dongs )
-    const categoryBill: CategoryBill = { dongsId: transaction._key, dong: dong, }
+    let categoryBill: CategoryBill = { dongsId: transaction._key, dong: dong, }
 
     // find category name in expenses manager's caetgories list
     const expensesManagerCategoryList = await this.usersRepository
@@ -199,7 +199,7 @@ export class UsersDongsController
       categoryBill.paidCost = paidCost
       categoryBill.calculation = dong - paidCost
 
-      const nCategory = await this.usersRepository.categories( n.nodeId )
+      const nCategory = await this.usersRepository.categories( n.usersRelsId )
         .find( {
           where: { title: dongs.categoryName, },
         } )
@@ -208,7 +208,7 @@ export class UsersDongsController
       {
         //create a category with name that provided by expenses manager
         nodeCategory = await this.usersRepository
-          .categories( n.nodeId )
+          .categories( n.usersRelsId )
           .create( { title: expensesManagerCategoryList[ 0 ].title } )
       } else if ( nCategory.length === 1 )
       {
@@ -216,19 +216,19 @@ export class UsersDongsController
       } else
       {
         throw new HttpErrors.NotAcceptable(
-          'Find multi category with this name for userId ' + n.nodeId,
+          'Find multi category with this name for userId ' + n.usersRelsId,
         )
       }
 
       // create bill belonging to created category
       await this.categoryRepository.categoryBills( nodeCategory._key ).create( categoryBill )
 
-      const node = await this.usersRepository.findById( n.nodeId )
+      const node = await this.usersRepository.findById( n.usersRelsId )
       node.dongsId.push( transaction._key )
-      await this.usersRepository.updateById( n.nodeId, node )
+      await this.usersRepository.updateById( n.usersRelsId, node )
 
       // Do not add expenses manager to the reciever notification list
-      if ( n.nodeId !== expensesManager._key.toString() )
+      if ( n.usersRelsId !== expensesManager._key.toString() )
       {
         registrationTokens.push( node.registerationToken )
       }
@@ -255,7 +255,7 @@ export class UsersDongsController
       {
         if ( _response.failureCount > 0 )
         {
-          const failedTokens: string[] = []
+          let failedTokens: string[] = []
           _response.responses.forEach( ( resp, idx ) =>
           {
             if ( !resp.success )
