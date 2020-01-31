@@ -17,17 +17,22 @@ export class UsersRels extends Entity
     required: false,
     generated: true
   } )
+  _id: string
+
+  @property( {
+    type: 'string',
+    required: false,
+    generated: true
+  } )
   _rev: string
 
   @property( {
     type: 'string',
-    required: true,
   } )
   _from: string
 
   @property( {
     type: 'string',
-    required: true,
   } )
   _to: string
 
@@ -38,21 +43,18 @@ export class UsersRels extends Entity
 
   @property( {
     type: 'string',
-    required: true,
   } )
   alias: string
 
   @property( {
     type: 'string',
-    required: true,
   } )
   avatar: string
 
   @property( {
     type: 'string',
-    required: true,
   } )
-  type: string
+  type: string = 'self' || 'virtual' || 'real'
 
   @belongsTo( () => Users )
   usersId: string
