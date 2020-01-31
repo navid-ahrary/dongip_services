@@ -121,7 +121,7 @@ export class UsersUsersRelsController {
     }
 
     if (requesterUser && recipientUser) {
-      const payload = {
+      const payload: admin.messaging.MessagingPayload = {
         notification: {
           title: 'دنگیپ درخواست دوستی',
           body: `${requesterUser.name} با شماره موبایل ${requesterUser.phone} ازشما درخواست دوستی کرده`,
@@ -134,7 +134,7 @@ export class UsersUsersRelsController {
           phone: requesterUser.phone,
         },
       };
-      const options = {
+      const options: admin.messaging.MessagingOptions = {
         priority: 'normal',
         contentAvailable: true,
         mutableContent: false,
@@ -206,7 +206,8 @@ export class UsersUsersRelsController {
           and: [
             { _key: bodyReq.relationId.split('/')[1] },
             { _to: bodyReq.virtualUserId },
-            { _from: bodyReq.requesterId }
+            { _from: bodyReq.requesterId },
+            { targetUsersId: recipientUser?._id }
           ]
         }
       });
@@ -215,17 +216,14 @@ export class UsersUsersRelsController {
       throw new HttpErrors.NotFound('There is not fired friend request!');
     }
     usersRelation = usersRelationList[0];
-    usersRelation._key = usersRelation._key[0];
-
-    if (usersRelation.targetUsersId !== recipientUser._id) {
-      console.log('Target user id is not match to recipient id!');
-      throw new HttpErrors.NotFound('Target user id is not match to recipient id!');
-    }
 
     if (recipientUser && requesterUser) {
       const payload: admin.messaging.MessagingPayload = {
         notification: { title: '', body: '', },
-        data: { name: requesterUser.name, phone: requesterUser.phone, },
+        data: {
+          alias: usersRelation.alias, avatar: recipientUser.avatar,
+          usersRelationId: usersRelation._key[1]
+        },
       };
       const options: admin.messaging.MessagingOptions = {
         priority: 'normal',
@@ -267,6 +265,7 @@ export class UsersUsersRelsController {
         payload.notification = {
           title: 'دنگیپ رد درخواست دوستی',
           body: `${usersRelation.alias} با موبایل ${recipientUser.phone} در خواست دوستیتون رو رد کرد`,
+
         };
         response = { message: 'Friend request has been rejected' };
       }
