@@ -1,138 +1,141 @@
-import { Entity, model, property, hasMany } from '@loopback/repository';
-import { VirtualUsers, VirtualUsersWithRelations } from './virtual-users.model';
-import { Dongs } from './dongs.model';
-import { Category } from './category.model';
-import { UsersRels } from './users-rels.model';
+import { Entity, model, property, hasMany } from '@loopback/repository'
+import { VirtualUsers, VirtualUsersWithRelations } from './virtual-users.model'
+import { Dongs } from './dongs.model'
+import { Category } from './category.model'
+import { UsersRels } from './users-rels.model'
 
 @model()
-export class Users extends Entity {
-  @property({
+export class Users extends Entity
+{
+  @property( {
     type: 'string',
     id: true,
     required: false,
     generated: true,
-  })
-  _key: string;
+  } )
+  _key: string
 
-  @property({
+  @property( {
     type: 'string',
     required: false,
     generated: true,
-  })
-  _id: string;
+  } )
+  _id: string
 
-  @property({
+  @property( {
     type: 'string',
     required: false,
     generated: true,
-  })
-  _rev: string;
+  } )
+  _rev: string
 
-  @property({
+  @property( {
     type: 'string',
     required: true,
-  })
-  phone: string;
+  } )
+  phone: string
 
-  @property({
+  @property( {
     type: 'string',
     required: true,
-  })
-  password: string;
+  } )
+  password: string
 
-  @property({
+  @property( {
     type: 'string',
     required: true,
-  })
-  name: string;
+  } )
+  name: string
 
-  @property({
+  @property( {
     type: 'string',
     default: '',
     required: true,
-  })
-  avatar: string;
+  } )
+  avatar: string
 
-  @property({
+  @property( {
     type: 'string',
     required: false,
-  })
-  locale: string;
+  } )
+  locale: string
 
-  @property({
+  @property( {
     type: 'string',
     required: false,
-  })
-  geolocation: string;
+  } )
+  geolocation: string
 
-  @property({
+  @property( {
     type: 'date',
     required: false,
-  })
-  registeredAt: string;
+  } )
+  registeredAt: string
 
-  @property({
+  @property( {
     type: 'string',
-  })
-  accountType: string;
+  } )
+  accountType: string
 
-  @property({
+  @property( {
     type: 'string',
     reqiured: true,
-  })
-  registerationToken: string;
+  } )
+  registerationToken: string
 
-  @property({
+  @property( {
     type: 'array',
     itemType: 'object',
     default: [],
     required: false,
-  })
-  pendingFriends: { recipient: string; requester: string }[];
+  } )
+  pendingFriends: { recipient: string; requester: string }[]
 
-  @property({
+  @property( {
     type: 'array',
     itemType: 'string',
     default: [],
     required: false,
-  })
-  friends: typeof Users.prototype._key[];
+  } )
+  friends: typeof Users.prototype._key[]
 
-  @property({
+  @property( {
     type: 'array',
     itemType: 'string',
     default: [],
     required: false,
-  })
-  virtualFriends: string[];
+  } )
+  virtualFriends: string[]
 
-  @hasMany(() => VirtualUsers)
-  virtualUsers: VirtualUsers[];
+  @hasMany( () => VirtualUsers )
+  virtualUsers: VirtualUsers[]
 
-  @property({
+  @property( {
     type: 'array',
     itemType: 'string',
     required: false,
     default: [],
-  })
-  dongsId: typeof Dongs.prototype._key[];
+  } )
+  dongsId: typeof Dongs.prototype._key[]
 
-  @hasMany(() => Dongs, { keyTo: 'exManKey' })
-  dongs: Dongs[];
+  @hasMany( () => Dongs, { keyTo: 'exManKey' } )
+  dongs: Dongs[]
 
-  @hasMany(() => Category)
-  categories: Category[];
+  @hasMany( () => Category )
+  categories: Category[]
 
-  @hasMany(() => UsersRels)
-  usersRels: UsersRels[];
+  @hasMany( () => UsersRels )
+  usersRels: UsersRels[]
 
-  constructor(data?: Partial<Users>) {
-    super(data);
+  constructor ( data?: Partial<Users> )
+  {
+    super( data )
   }
 }
 
-export interface UsersRelations {
-  virtualUsers?: VirtualUsersWithRelations;
+export interface UsersRelations
+{
+  virtualUsers?: VirtualUsersWithRelations
 }
 
-export type UsersWithRelations = Users & UsersRelations;
+export type UsersWithRelations = Users & UsersRelations

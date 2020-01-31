@@ -1,33 +1,36 @@
-import {Model, model, property} from '@loopback/repository';
+import { Model, model, property } from '@loopback/repository'
 
 @model()
-export class Credentials extends Model {
-  @property({
+export class Credentials extends Model
+{
+  @property( {
     type: 'string',
     required: true,
-  })
-  phone: string;
+  } )
+  phone: string
 
-  @property({
+  @property( {
     type: 'string',
     required: true,
-  })
-  password: string;
+  } )
+  password: string
 
-  @property({
+  @property( {
     type: 'string',
     required: true,
-  })
-  registerationToken: string;
+  } )
+  registerationToken: string
 
 
-  constructor(data?: Partial<Credentials>) {
-    super(data);
+  constructor ( data?: Partial<Credentials> )
+  {
+    super( data )
   }
 }
 
-export interface CredentialsRelations {
+export interface CredentialsRelations
+{
   // describe navigational properties here
 }
 
-export type CredentialsWithRelations = Credentials & CredentialsRelations;
+export type CredentialsWithRelations = Credentials & CredentialsRelations

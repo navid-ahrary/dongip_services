@@ -1,56 +1,59 @@
-import { Entity, model, property, belongsTo, hasMany } from '@loopback/repository';
-import { Users, UsersRelations } from './users.model';
-import { CategoryBill } from './category-bill.model';
+import { Entity, model, property, belongsTo, hasMany } from '@loopback/repository'
+import { Users, UsersRelations } from './users.model'
+import { CategoryBill } from './category-bill.model'
 
 @model()
-export class Category extends Entity {
-  @property({
+export class Category extends Entity
+{
+  @property( {
     type: 'string',
     id: true,
     generated: true,
     required: false,
-  })
-  _key: string;
+  } )
+  _key: string
 
-  @property({
+  @property( {
     type: 'string',
     generated: true,
     required: false,
-  })
-  _id: string;
+  } )
+  _id: string
 
-  @property({
+  @property( {
     type: 'string',
     generated: true,
     required: false,
-  })
-  _rev: string;
+  } )
+  _rev: string
 
-  @property({
+  @property( {
     type: 'string',
     required: true,
-  })
-  title: string;
+  } )
+  title: string
 
-  @property({
+  @property( {
     type: 'string',
     required: true,
-  })
-  icon: string;
+  } )
+  icon: string
 
-  @belongsTo(() => Users)
-  usersId: string;
+  @belongsTo( () => Users )
+  usersId: string
 
-  @hasMany(() => CategoryBill)
-  categoryBills: CategoryBill[];
+  @hasMany( () => CategoryBill )
+  categoryBills: CategoryBill[]
 
-  constructor(data?: Partial<Category>) {
-    super(data);
+  constructor ( data?: Partial<Category> )
+  {
+    super( data )
   }
 }
 
-export interface CategoryRelations {
-  users?: UsersRelations[];
+export interface CategoryRelations
+{
+  users?: UsersRelations[]
 }
 
-export type CategoryWithRelations = Category & CategoryRelations;
+export type CategoryWithRelations = Category & CategoryRelations

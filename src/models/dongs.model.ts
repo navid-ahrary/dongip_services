@@ -1,99 +1,102 @@
-import { Entity, model, property, belongsTo } from '@loopback/repository';
-import { Eqip } from './eqip.model';
-import { Users } from './users.model';
-import { Category } from './category.model';
+import { Entity, model, property, belongsTo } from '@loopback/repository'
+import { Eqip } from './eqip.model'
+import { Users } from './users.model'
+import { Category } from './category.model'
 
 @model()
-export class Dongs extends Entity {
-  @property({
+export class Dongs extends Entity
+{
+  @property( {
     type: 'string',
     id: true,
     generated: true,
     required: false,
-  })
-  _key: string;
+  } )
+  _key: string
 
-  @property({
+  @property( {
     type: 'string',
     generated: true,
     required: false,
-  })
-  _id: string;
+  } )
+  _id: string
 
-  @property({
+  @property( {
     type: 'string',
     generated: true,
     required: false,
-  })
-  _rev: string;
+  } )
+  _rev: string
 
-  @property({
+  @property( {
     type: 'string',
     requird: true,
-  })
-  title: string;
+  } )
+  title: string
 
-  @property({
+  @property( {
     type: 'string',
     requird: true,
-  })
-  factorType: string;
+  } )
+  factorType: string
 
-  @property({
+  @property( {
     type: 'number',
     required: false,
-  })
-  costs: number;
+  } )
+  costs: number
 
-  @property({
+  @property( {
     type: 'string',
     required: true,
-  })
-  desc: string;
+  } )
+  desc: string
 
-  @property({
+  @property( {
     type: 'string',
-  })
-  categoryName: string;
+  } )
+  categoryName: string
 
-  @belongsTo(() => Category)
-  categoryId?: string;
+  @belongsTo( () => Category )
+  categoryId?: string
 
-  @property({
+  @property( {
     type: 'date',
     required: true,
-  })
-  createdAt: string;
+  } )
+  createdAt: string
 
-  @property({
+  @property( {
     type: 'number',
     required: false,
-  })
-  pong: number;
+  } )
+  pong: number
 
-  @property({
+  @property( {
     required: true,
     type: 'array',
     itemType: 'object',
-  })
-  eqip: Eqip[];
+  } )
+  eqip: Eqip[]
 
-  @property({
+  @property( {
     type: 'string',
     required: false,
-  })
-  virtualUsersId: string;
+  } )
+  virtualUsersId: string
 
-  @belongsTo(() => Users)
-  exManKey: string;
+  @belongsTo( () => Users )
+  exManKey: string
 
-  constructor(data?: Partial<Dongs>) {
-    super(data);
+  constructor ( data?: Partial<Dongs> )
+  {
+    super( data )
   }
 }
 
-export interface DongsRelations {
-  exMan?: DongsWithRelations;
+export interface DongsRelations
+{
+  exMan?: DongsWithRelations
 }
 
-export type DongsWithRelations = Dongs & DongsRelations;
+export type DongsWithRelations = Dongs & DongsRelations

@@ -1,19 +1,21 @@
-import { Entity, model, property } from '@loopback/repository';
+import { Entity, model, property } from '@loopback/repository'
 
 @model()
-export class Blacklist extends Entity {
-  @property({
+export class Blacklist extends Entity
+{
+  @property( {
     type: 'string',
     required: true,
     id: true
-  })
-  _key: string;
+  } )
+  _key: string
 
-  constructor(data?: Partial<Blacklist>) {
-    super(data);
+  constructor ( data?: Partial<Blacklist> )
+  {
+    super( data )
   }
 }
 
 export interface BlacklistRelations { }
 
-export type BlacklistWithRelations = Blacklist & BlacklistRelations;
+export type BlacklistWithRelations = Blacklist & BlacklistRelations

@@ -1,68 +1,71 @@
-import { Entity, model, property, belongsTo } from '@loopback/repository';
-import { Users } from './users.model';
+import { Entity, model, property, belongsTo } from '@loopback/repository'
+import { Users } from './users.model'
 
 @model()
-export class UsersRels extends Entity {
-  @property({
+export class UsersRels extends Entity
+{
+  @property( {
     type: 'string',
     id: true,
     generated: true,
     required: false
-  })
-  _key: string;
+  } )
+  _key: string
 
-  @property({
+  @property( {
     type: 'string',
     required: false,
     generated: true
-  })
-  _rev: string;
+  } )
+  _rev: string
 
-  @property({
+  @property( {
     type: 'string',
     required: true,
-  })
-  _from: string;
+  } )
+  _from: string
 
-  @property({
+  @property( {
     type: 'string',
     required: true,
-  })
-  _to: string;
+  } )
+  _to: string
 
-  @property({
+  @property( {
     type: 'string',
-  })
-  targetUsersId?: string;
+  } )
+  targetUsersId?: string
 
-  @property({
-    type: 'string',
-    required: true,
-  })
-  alias: string;
-
-  @property({
+  @property( {
     type: 'string',
     required: true,
-  })
-  avatar: string;
+  } )
+  alias: string
 
-  @property({
+  @property( {
     type: 'string',
     required: true,
-  })
-  type: string;
+  } )
+  avatar: string
 
-  @belongsTo(() => Users)
-  usersId: string;
+  @property( {
+    type: 'string',
+    required: true,
+  } )
+  type: string
 
-  constructor(data?: Partial<UsersRels>) {
-    super(data);
+  @belongsTo( () => Users )
+  usersId: string
+
+  constructor ( data?: Partial<UsersRels> )
+  {
+    super( data )
   }
 }
 
-export interface UsersRelsRelations {
+export interface UsersRelsRelations
+{
   // describe navigational properties here
 }
 
-export type UsersRelsWithRelations = UsersRels & UsersRelsRelations;
+export type UsersRelsWithRelations = UsersRels & UsersRelsRelations

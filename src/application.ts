@@ -1,111 +1,115 @@
-import { BootMixin } from '@loopback/boot';
-import { ApplicationConfig, BindingKey } from '@loopback/core';
-import { RestExplorerBindings, RestExplorerComponent } from '@loopback/rest-explorer';
-import { RepositoryMixin } from '@loopback/repository';
-import { RestApplication } from '@loopback/rest';
-import { ServiceMixin } from '@loopback/service-proxy';
-import { registerAuthenticationStrategy } from '@loopback/authentication';
-import * as path from 'path';
-import * as admin from 'firebase-admin';
-import dotenv = require('dotenv');
-dotenv.config();
+import { BootMixin } from '@loopback/boot'
+import { ApplicationConfig, BindingKey } from '@loopback/core'
+import { RestExplorerBindings, RestExplorerComponent } from '@loopback/rest-explorer'
+import { RepositoryMixin } from '@loopback/repository'
+import { RestApplication } from '@loopback/rest'
+import { ServiceMixin } from '@loopback/service-proxy'
+import { registerAuthenticationStrategy } from '@loopback/authentication'
+import * as path from 'path'
+import * as admin from 'firebase-admin'
+import dotenv = require( 'dotenv' )
+dotenv.config()
 
-import { MyAuthenticationSequence } from './sequence';
-import { UserAuthenticationComponent } from './components/user.authentication';
-import { JWTAutehticationStrategy } from './authentication-strategies/jwt-strategy';
-import {
+import { MyAuthenticationSequence } from './sequence'
+import { UserAuthenticationComponent } from './components/user.authentication'
+import { JWTAutehticationStrategy } from './authentication-strategies/jwt-strategy'
+import
+{
   TokenServiceBindings, TokenServiceConstants, PasswordHasherBindings, UserServiceBindings
-} from './keys';
-import { JWTService } from './services/jwt.service';
-import { SECURITY_SCHEME_SPEC } from './utils/security-specs';
-import { BcryptHasher } from './services/hash.password.bcryptjs';
-import { MyUserService } from './services/user.service';
+} from './keys'
+import { JWTService } from './services/jwt.service'
+import { SECURITY_SCHEME_SPEC } from './utils/security-specs'
+import { BcryptHasher } from './services/hash.password.bcryptjs'
+import { MyUserService } from './services/user.service'
 
 
-const serviceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+const serviceAccount = require( `${ process.env.GOOGLE_APPLICATION_CREDENTIALS }` )
+admin.initializeApp( {
+  credential: admin.credential.cert( serviceAccount ),
   databaseURL: process.env.GOOGLE_APPLICATION_DATABASEURL,
-});
+} )
 
 /**
  * Information from package.json
  */
-export interface PackageInfo {
-  name: string;
-  version: string;
-  description: string;
+export interface PackageInfo
+{
+  name: string
+  version: string
+  description: string
 }
-export const PackageKey = BindingKey.create<PackageInfo>('application.package');
+export const PackageKey = BindingKey.create<PackageInfo>( 'application.package' )
 
-const pkg: PackageInfo = require('../package.json');
+const pkg: PackageInfo = require( '../package.json' )
 
 export class LoginServiceApplication extends BootMixin(
-  ServiceMixin(RepositoryMixin(RestApplication)),
+  ServiceMixin( RepositoryMixin( RestApplication ) ),
 ) {
-  constructor(options: ApplicationConfig = {}) {
-    super(options);
+  constructor ( options: ApplicationConfig = {} )
+  {
+    super( options )
 
-    this.api({
+    this.api( {
       openapi: '3.0.0',
       info: { title: pkg.name, version: pkg.version },
       paths: {},
       components: { securitySchemes: SECURITY_SCHEME_SPEC },
-      servers: [{ url: '/' }],
-    });
+      servers: [ { url: '/' } ],
+    } )
 
-    this.setupBinding();
+    this.setupBinding()
 
     //Bind authentication components related elemets
-    this.component(UserAuthenticationComponent);
+    this.component( UserAuthenticationComponent )
 
-    registerAuthenticationStrategy(this, JWTAutehticationStrategy);
+    registerAuthenticationStrategy( this, JWTAutehticationStrategy )
 
     // Set up the custom sequence
-    this.sequence(MyAuthenticationSequence);
+    this.sequence( MyAuthenticationSequence )
 
     // Set up default home page
-    this.static('/', path.join(__dirname, '../public'));
+    this.static( '/', path.join( __dirname, '../public' ) )
     // Customize @loopback/rest-explorer configuration here
-    this.bind(RestExplorerBindings.CONFIG).to({
+    this.bind( RestExplorerBindings.CONFIG ).to( {
       path: '/openapi7823414/explorer',
-    });
-    this.component(RestExplorerComponent);
+    } )
+    this.component( RestExplorerComponent )
 
-    this.projectRoot = __dirname;
+    this.projectRoot = __dirname
     // Customize @loopback/boot Booter Conventions here
     this.bootOptions = {
       controllers: {
         // Customize ControllerBooter Conventions here
-        dirs: ['controllers'],
-        extensions: ['.controller.js'],
+        dirs: [ 'controllers' ],
+        extensions: [ '.controller.js' ],
         nested: true,
       },
-    };
+    }
   }
 
-  setupBinding(): void {
+  setupBinding (): void
+  {
     // Bind package.json to the application context
-    this.bind(PackageKey).to(pkg);
+    this.bind( PackageKey ).to( pkg )
 
-    this.bind(TokenServiceBindings.TOKEN_SECRET).to(
+    this.bind( TokenServiceBindings.TOKEN_SECRET ).to(
       TokenServiceConstants.TOKEN_SECRET_VALUE!,
-    );
+    )
 
-    this.bind(TokenServiceBindings.TOKEN_EXPIRES_IN).to(
+    this.bind( TokenServiceBindings.TOKEN_EXPIRES_IN ).to(
       TokenServiceConstants.TOKEN_EXPIRES_IN_VALUE!,
-    );
+    )
 
-    this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(
+    this.bind( TokenServiceBindings.TOKEN_ALGORITHM ).to(
       TokenServiceConstants.TOKEN_ALGORITHM_VALUE!,
-    );
+    )
 
-    this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
+    this.bind( TokenServiceBindings.TOKEN_SERVICE ).toClass( JWTService )
 
     // Bind bcrypt hash service
-    this.bind(PasswordHasherBindings.ROUNDS).to(10);
-    this.bind(PasswordHasherBindings.PASSWORD_HASHER).toClass(BcryptHasher);
+    this.bind( PasswordHasherBindings.ROUNDS ).to( 10 )
+    this.bind( PasswordHasherBindings.PASSWORD_HASHER ).toClass( BcryptHasher )
 
-    this.bind(UserServiceBindings.USER_SERVICE).toClass(MyUserService);
+    this.bind( UserServiceBindings.USER_SERVICE ).toClass( MyUserService )
   }
 }

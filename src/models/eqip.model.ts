@@ -1,37 +1,40 @@
-import {Model, model, property} from '@loopback/repository';
+import { Model, model, property } from '@loopback/repository'
 @model()
-export class Eqip extends Model {
-  @property({
+export class Eqip extends Model
+{
+  @property( {
     type: 'string',
     required: true,
-  })
-  node: string;
+  } )
+  node: string
 
-  @property({
+  @property( {
     type: 'number',
     required: true,
-  })
-  paidCost: number;
+  } )
+  paidCost: number
 
-  @property({
+  @property( {
     type: 'number',
     required: true,
-  })
-  factor: number;
+  } )
+  factor: number
 
-  @property({
+  @property( {
     type: 'number',
     required: false,
-  })
-  dong: number;
+  } )
+  dong: number
 
-  constructor(data?: Partial<Eqip>) {
-    super(data);
+  constructor ( data?: Partial<Eqip> )
+  {
+    super( data )
   }
 }
 
-export interface EqipRelations {
+export interface EqipRelations
+{
   // describe navigational properties here
 }
 
-export type EqipWithRelations = Eqip & EqipRelations;
+export type EqipWithRelations = Eqip & EqipRelations

@@ -1,47 +1,50 @@
-import { Entity, model, property, belongsTo } from '@loopback/repository';
-import { Category } from './category.model';
-import { Dongs } from './dongs.model';
+import { Entity, model, property, belongsTo } from '@loopback/repository'
+import { Category } from './category.model'
+import { Dongs } from './dongs.model'
 
 @model()
-export class CategoryBill extends Entity {
-  @property({
+export class CategoryBill extends Entity
+{
+  @property( {
     type: 'string',
     id: true,
     generated: true,
-  })
-  _key?: string;
+  } )
+  _key?: string
 
-  @property({
+  @property( {
     type: 'number',
     required: true,
-  })
-  dong: number;
+  } )
+  dong: number
 
-  @property({
+  @property( {
     type: 'number',
     required: true,
-  })
-  paidCost: number;
+  } )
+  paidCost: number
 
-  @property({
+  @property( {
     type: 'number',
     required: false,
-  })
-  calculation: number;
+  } )
+  calculation: number
 
-  @belongsTo(() => Category)
-  categoryId: string;
+  @belongsTo( () => Category )
+  categoryId: string
 
-  @belongsTo(() => Dongs)
-  dongsId: string;
+  @belongsTo( () => Dongs )
+  dongsId: string
 
-  constructor(data?: Partial<CategoryBill>) {
-    super(data);
+  constructor ( data?: Partial<CategoryBill> )
+  {
+    super( data )
   }
 }
 
-export interface CategoryBillRelations {
+export interface CategoryBillRelations
+{
   // describe navigational properties here
 }
 
-export type CategoryBillWithRelations = CategoryBill & CategoryBillRelations;
+export type CategoryBillWithRelations = CategoryBill & CategoryBillRelations
