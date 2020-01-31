@@ -68,7 +68,11 @@ export class UsersUsersRelsController
       content: {
         'application/json': {
           schema: getModelSchemaRef( FriendRequest, {
-            exclude: [ "relationId", "status", "requesterId", "virtualUserId" ],
+            exclude: [
+              "relationId",
+              "status",
+              "requesterId",
+              "virtualUserId" ],
           } ),
         },
       },
@@ -103,7 +107,12 @@ export class UsersUsersRelsController
     }
 
     const isRealFriend = await this.usersRepository.usersRels( _key ).find( {
-      where: { and: [ { _from: requesterUser?._id }, { _to: recipientUser?._id } ] }
+      where: {
+        and: [
+          { _from: requesterUser?._id },
+          { _to: recipientUser?._id }
+        ]
+      }
     } )
     if ( isRealFriend.length !== 0 )
     {
@@ -116,9 +125,12 @@ export class UsersUsersRelsController
       createdVirtualUser = await this.usersRepository.virtualUsers( _key ).create( vu )
       createdUsersRelation = await this.usersRepository.usersRels( _key ).create(
         {
-          _from: requesterUser?._id, _to: createdVirtualUser._key[ 1 ],
-          alias: reqBody.alias, type: 'virtual', avatar: reqBody.avatar,
-          targetUsersId: recipientUser?._id
+          _from: requesterUser?._id,
+          _to: createdVirtualUser._key[ 1 ],
+          alias: reqBody.alias,
+          avatar: reqBody.avatar,
+          targetUsersId: recipientUser?._id,
+          type: 'virtual',
         }
       )
     } catch ( error )
@@ -161,15 +173,20 @@ export class UsersUsersRelsController
         {
           console.log( _response )
           notificationResponse = _response
-        } ).catch( function ( err )
+        } ).catch( function ( _error )
         {
-          console.log( err )
-          notificationResponse = err
+          console.log( _error )
+          notificationResponse = _error
         } )
     }
     createdVirtualUser._key = createdVirtualUser._key[ 0 ]
     createdUsersRelation._key = createdUsersRelation._key[ 0 ]
-    return { createdVirtualUser, createdUsersRelation, notificationResponse }
+
+    return {
+      createdVirtualUser,
+      createdUsersRelation,
+      notificationResponse
+    }
   }
 
 
@@ -189,7 +206,9 @@ export class UsersUsersRelsController
       content: {
         'application/json': {
           schema: getModelSchemaRef( FriendRequest, {
-            exclude: [ "avatar", "phone" ]
+            exclude: [
+              "avatar",
+              "phone" ]
           } ),
         },
       },
@@ -243,7 +262,8 @@ export class UsersUsersRelsController
       const payload: admin.messaging.MessagingPayload = {
         notification: { title: '', body: '', },
         data: {
-          alias: usersRelation.alias, avatar: recipientUser.avatar,
+          alias: usersRelation.alias,
+          avatar: recipientUser.avatar,
           usersRelationId: usersRelation._key[ 1 ]
         },
       }
@@ -276,9 +296,13 @@ export class UsersUsersRelsController
         try
         {
           // Update relation _to property with real-user's _id
-          await this.usersRelsRepository.updateById( bodyReq.relationId.split( '/' )[ 1 ], {
-            _to: recipientUser._id, type: 'real', avatar: recipientUser.avatar
-          } )
+          await this.usersRelsRepository.updateById( bodyReq.relationId.split( '/' )[ 1 ],
+            {
+              _to: recipientUser._id,
+              avatar: recipientUser.avatar,
+              type: 'real',
+            }
+          )
         } catch ( error )
         {
           // Create deleted virtual user in previous phase
@@ -289,11 +313,18 @@ export class UsersUsersRelsController
         }
 
         // Create relation from recipient to requester
-        const usersRel = await this.usersRepository.usersRels( _key ).create( {
-          _from: recipientUser._id, _to: requesterUser._id,
-          alias: bodyReq.alias, type: 'real', avatar: requesterUser.avatar
-        } )
-        response = { ...usersRel, message: 'You are friends together right now' }
+        const usersRel = await this.usersRepository.usersRels( _key )
+          .create( {
+            _from: recipientUser._id,
+            _to: requesterUser._id,
+            alias: bodyReq.alias,
+            type: 'real',
+            avatar: requesterUser.avatar
+          } )
+        response = {
+          ...usersRel,
+          message: 'You are friends together right now'
+        }
       } else
       {
         payload.notification = {
@@ -318,7 +349,11 @@ export class UsersUsersRelsController
           console.log( `Sending notification failed, ${ _error }` )
           notificationResponse = _error
         } )
-      return { ...response, notificationResponse }
+
+      return {
+        ...response,
+        notificationResponse
+      }
     }
   }
 
@@ -341,7 +376,13 @@ export class UsersUsersRelsController
         'application/json': {
           schema: getModelSchemaRef( UsersRels, {
             partial: true,
-            exclude: [ "_from", "_to", "_rev", "type", "usersId", "targetUsersId" ],
+            exclude: [
+              "_from",
+              "_to",
+              "_rev",
+              "type",
+              "usersId",
+              "targetUsersId" ],
           } ),
         },
       },
