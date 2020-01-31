@@ -175,7 +175,10 @@ export class UsersController
         content: {
           'application/josn': {
             schema: {
-              type: 'object', properties: { _key: 'string', accessToken: 'string', },
+              type: 'object', properties: {
+                _key: 'string',
+                accessToken: 'string',
+              },
             },
           },
         },
@@ -246,7 +249,10 @@ export class UsersController
           'Error users logout ,Token is not matched to this user _key!',
         )
       }
-      return await this.blacklistRepository.create( { _key: authorizationHeader.split( ' ' )[ 1 ] } )
+      return await this.blacklistRepository.create(
+        { _key: authorizationHeader.split( ' ' )[ 1 ] }
+      )
+
     } catch ( err )
     {
       console.log( err )
@@ -340,8 +346,20 @@ export class UsersController
         'application/json': {
           schema: getModelSchemaRef( Users, {
             partial: true,
-            exclude: [ "_id", "_key", "_rev", "accountType", "registeredAt", "dongsId", "usersRels",
-              "categories", "locale", "geolocation", "password", "phone", "registerationToken" ],
+            exclude: [
+              "_id",
+              "_key",
+              "_rev",
+              "accountType",
+              "registeredAt",
+              "dongsId",
+              "usersRels",
+              "categories",
+              "locale",
+              "geolocation",
+              "password",
+              "phone",
+              "registerationToken" ],
           } ),
         },
       },
