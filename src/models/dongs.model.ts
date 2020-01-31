@@ -38,7 +38,7 @@ export class Dongs extends Entity
     type: 'string',
     requird: true,
   } )
-  factorType: string
+  factorType: string = 'factor' || 'percent' || 'amount'
 
   @property( {
     type: 'number',
