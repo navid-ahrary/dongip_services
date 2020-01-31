@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
-import { Filter, repository, Where, CountSchema, Count } from '@loopback/repository'
+import { Filter, repository } from '@loopback/repository'
 import {
-  get, getModelSchemaRef, param, patch, post, requestBody, HttpErrors, getWhereSchemaFor
+  get, getModelSchemaRef, param, post, requestBody, HttpErrors
 } from '@loopback/rest'
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security'
 import underscore from 'underscore'
@@ -247,29 +247,5 @@ export class UsersDongsController {
       } )
 
     return { _key: transaction._key }
-  }
-
-
-  @patch( '/apis/users/{_key}/dongs', {
-    responses: {
-      '200': {
-        description: 'Users.Dongs PATCH success count',
-        content: { 'application/json': { schema: CountSchema } },
-      },
-    },
-  } )
-  async patch (
-    @param.path.string( '_key' ) _key: string,
-    @requestBody( {
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef( Dongs, { partial: true } ),
-        },
-      },
-    } )
-    dongs: Partial<Dongs>,
-    @param.query.object( 'where', getWhereSchemaFor( Dongs ) ) where?: Where<Dongs>,
-  ): Promise<Count> {
-    return this.usersRepository.dongs( _key ).patch( dongs, where )
   }
 }
