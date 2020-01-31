@@ -1,7 +1,6 @@
 /* eslint-disable prefer-const */
 import { Filter, repository, Where, CountSchema, Count } from '@loopback/repository'
-import
-{
+import {
   get, getModelSchemaRef, param, patch, post, requestBody, HttpErrors, getWhereSchemaFor
 } from '@loopback/rest'
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security'
@@ -14,8 +13,7 @@ import { UsersRepository, CategoryRepository } from '../repositories'
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 
 
-export class UsersDongsController
-{
+export class UsersDongsController {
   constructor (
     @repository( UsersRepository ) private usersRepository: UsersRepository,
     @repository( CategoryRepository ) private categoryRepository: CategoryRepository,
@@ -25,18 +23,14 @@ export class UsersDongsController
   async isNodesUsersOrVirtualUsers (
     currentUserId: typeof Users.prototype._key,
     nodes: typeof Users.prototype._key[],
-  )
-  {
-    for ( const node of nodes )
-    {
+  ) {
+    for ( const node of nodes ) {
       const user = await this.usersRepository.findById( node )
-      if ( !user )
-      {
+      if ( !user ) {
         const virtualUser = await this.usersRepository
           .virtualUsers( currentUserId )
           .find( { where: { _key: node } } )
-        if ( !virtualUser )
-        {
+        if ( !virtualUser ) {
           return false
         }
       }
@@ -45,12 +39,9 @@ export class UsersDongsController
   }
 
 
-  arrayHasObject ( arr: object[], obj: object ): boolean
-  {
-    for ( const ele of arr )
-    {
-      if ( underscore.isEqual( ele, obj ) )
-      {
+  arrayHasObject ( arr: object[], obj: object ): boolean {
+    for ( const ele of arr ) {
+      if ( underscore.isEqual( ele, obj ) ) {
         return true
       }
     }
@@ -74,8 +65,7 @@ export class UsersDongsController
   async find (
     @param.path.string( '_key' ) _key: string,
     @param.query.object( 'filter' ) filter?: Filter<Dongs>,
-  ): Promise<Dongs[]>
-  {
+  ): Promise<Dongs[]> {
     return this.usersRepository.dongs( _key ).find( filter )
   }
 
@@ -105,16 +95,13 @@ export class UsersDongsController
       },
     } )
     dongs: Omit<Dongs, '_key'>,
-  ): Promise<{ _key: string }>
-  {
-    if ( _key !== currentUserProfile[ securityId ] )
-    {
+  ): Promise<{ _key: string }> {
+    if ( _key !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized(
         'Error create a new dong, Token is not matched to this user _key!',
       )
     }
-    interface CategoryBill
-    {
+    interface CategoryBill {
       dongsId?: string
       dong?: number
       paidCost?: number
@@ -126,26 +113,21 @@ export class UsersDongsController
       factorNodes = 0,
       nodes = []
 
-    for ( const item of dongs.eqip )
-    {
+    for ( const item of dongs.eqip ) {
       nodes.push( item.usersRelsId )
     }
 
-    if ( dongs.exManKey )
-    {
+    if ( dongs.exManKey ) {
       expensesManager = await this.usersRepository.findById( dongs.exManKey )
-    } else
-    {
+    } else {
       expensesManager = await this.usersRepository.findById( _key )
     }
 
-    if ( !( await this.isNodesUsersOrVirtualUsers( currentUserProfile[ securityId ], nodes ) ) )
-    {
+    if ( !( await this.isNodesUsersOrVirtualUsers( currentUserProfile[ securityId ], nodes ) ) ) {
       throw new HttpErrors.NotAcceptable( 'Some of this users keys are not available for you! ' )
     }
 
-    for ( const item of dongs.eqip )
-    {
+    for ( const item of dongs.eqip ) {
       if (
         item.usersRelsId !== expensesManager._key.toString() &&
         !expensesManager.friends.includes( item.usersRelsId ) &&
@@ -157,13 +139,11 @@ export class UsersDongsController
           recipient: item.usersRelsId,
           requester: expensesManager._key,
         } )
-      )
-      {
+      ) {
         throw new HttpErrors.NotAcceptable(
           'Expenses manager must be friends with all of users',
         )
-      } else
-      {
+      } else {
         pong += item[ 'paidCost' ]
         factorNodes += item[ 'factor' ]
       }
@@ -171,8 +151,7 @@ export class UsersDongsController
 
     dongs.pong = pong
     const dong = pong / factorNodes
-    for ( const n of dongs.eqip )
-    {
+    for ( const n of dongs.eqip ) {
       n.dong = dong * n.factor
     }
 
@@ -190,8 +169,7 @@ export class UsersDongsController
     await this.usersRepository.updateById( expensesManager._key, expensesManager )
 
     const registrationTokens: string[] = []
-    for ( const n of dongs.eqip )
-    {
+    for ( const n of dongs.eqip ) {
       let nodeCategory: Category
       // if (n.node === expensesManager._key.toString()) continue;
       const paidCost = n.paidCost
@@ -204,17 +182,14 @@ export class UsersDongsController
           where: { title: dongs.categoryName, },
         } )
 
-      if ( nCategory.length === 0 )
-      {
+      if ( nCategory.length === 0 ) {
         //create a category with name that provided by expenses manager
         nodeCategory = await this.usersRepository
           .categories( n.usersRelsId )
           .create( { title: expensesManagerCategoryList[ 0 ].title } )
-      } else if ( nCategory.length === 1 )
-      {
+      } else if ( nCategory.length === 1 ) {
         nodeCategory = nCategory[ 0 ]
-      } else
-      {
+      } else {
         throw new HttpErrors.NotAcceptable(
           'Find multi category with this name for userId ' + n.usersRelsId,
         )
@@ -228,8 +203,7 @@ export class UsersDongsController
       await this.usersRepository.updateById( n.usersRelsId, node )
 
       // Do not add expenses manager to the reciever notification list
-      if ( n.usersRelsId !== expensesManager._key.toString() )
-      {
+      if ( n.usersRelsId !== expensesManager._key.toString() ) {
         registrationTokens.push( node.registerationToken )
       }
     }
@@ -251,15 +225,11 @@ export class UsersDongsController
     await admin
       .messaging()
       .sendMulticast( message )
-      .then( function ( _response )
-      {
-        if ( _response.failureCount > 0 )
-        {
+      .then( function ( _response ) {
+        if ( _response.failureCount > 0 ) {
           let failedTokens: string[] = []
-          _response.responses.forEach( ( resp, idx ) =>
-          {
-            if ( !resp.success )
-            {
+          _response.responses.forEach( ( resp, idx ) => {
+            if ( !resp.success ) {
               failedTokens.push( registrationTokens[ idx ] )
             }
           } )
@@ -271,8 +241,7 @@ export class UsersDongsController
 
         console.log( `Successfully sent notifications, ${ _response }` )
       } )
-      .catch( function ( _error )
-      {
+      .catch( function ( _error ) {
         console.log( `Error sending notifications, ${ _error }` )
         throw new HttpErrors.NotImplemented( `Error sending notifications, ${ _error }` )
       } )
@@ -300,8 +269,7 @@ export class UsersDongsController
     } )
     dongs: Partial<Dongs>,
     @param.query.object( 'where', getWhereSchemaFor( Dongs ) ) where?: Where<Dongs>,
-  ): Promise<Count>
-  {
+  ): Promise<Count> {
     return this.usersRepository.dongs( _key ).patch( dongs, where )
   }
 }
