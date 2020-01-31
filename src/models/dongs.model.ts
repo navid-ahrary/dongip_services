@@ -34,6 +34,12 @@ export class Dongs extends Entity {
   title: string;
 
   @property({
+    type: 'string',
+    requird: true,
+  })
+  factorType: string;
+
+  @property({
     type: 'number',
     required: false,
   })
