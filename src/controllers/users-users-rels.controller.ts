@@ -283,7 +283,7 @@ export class UsersUsersRelsController
         {
           // Create deleted virtual user in previous phase
           await this.virtualUsersRepository.create( vu )
-          console.log( 'Create deleted virual user again, cause of previous phase error' )
+          console.log( 'Create deleted virual user again, cause of previous phase error' + vu )
           console.log( 'userRels updatebyId error' + error )
           throw new HttpErrors.NotAcceptable( error )
         }
