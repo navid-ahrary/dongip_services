@@ -12,6 +12,7 @@ export namespace TokenServiceConstants {
   export const TOKEN_ALGORITHM_VALUE = process.env.TOKEN_ALGORITHM_VALUE;
 }
 
+
 export namespace TokenServiceBindings {
   export const TOKEN_SECRET = BindingKey.create<string>('authentication.jwt.secret');
   export const TOKEN_EXPIRES_IN = BindingKey.create<string>(
@@ -25,10 +26,12 @@ export namespace TokenServiceBindings {
   );
 }
 
+
 export namespace PasswordHasherBindings {
   export const PASSWORD_HASHER = BindingKey.create<PasswordHasher>('services.hasher');
   export const ROUNDS = BindingKey.create<number>('services.hasher.round');
 }
+
 
 export namespace UserServiceBindings {
   export const USER_SERVICE = BindingKey.create<UserService<Users, Credentials>>(
