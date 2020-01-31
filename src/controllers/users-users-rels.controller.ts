@@ -212,6 +212,7 @@ export class UsersUsersRelsController
       recipientUser: Users,
       usersRelation: UsersRels,
       usersRelationList: UsersRels[],
+      vu: VirtualUsers,
       notificationResponse,
       response = {}
 
@@ -261,12 +262,15 @@ export class UsersUsersRelsController
 
         try
         {
+          vu = await this.virtualUsersRepository
+            .findById( bodyReq.virtualUserId.split( '/' )[ 1 ] )
           // Delete created virtual user
-          await this.virtualUsersRepository.deleteById( bodyReq.virtualUserId.split( '/' )[ 1 ] )
+          await this.virtualUsersRepository.
+            deleteById( bodyReq.virtualUserId.split( '/' )[ 1 ] )
         } catch ( error )
         {
-          console.log( error )
-          throw new HttpErrors.NotFound( 'virtualUserId is not found' )
+          console.log( 'virtualUser deletebyId error' + error )
+          throw new HttpErrors.NotAcceptable( error )
         }
 
         try
@@ -277,8 +281,11 @@ export class UsersUsersRelsController
           } )
         } catch ( error )
         {
-          console.log( error )
-          throw new HttpErrors.NotFound( 'Relation is not found' )
+          // Create deleted virtual user in previous phase
+          await this.virtualUsersRepository.create( vu )
+          console.log( 'Create deleted virual user again, cause of previous phase error' )
+          console.log( 'userRels updatebyId error' + error )
+          throw new HttpErrors.NotAcceptable( error )
         }
 
         // Create relation from recipient to requester
