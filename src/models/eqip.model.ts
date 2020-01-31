@@ -6,7 +6,7 @@ export class Eqip extends Model
     type: 'string',
     required: true,
   } )
-  node: string
+  nodeId: string
 
   @property( {
     type: 'number',
