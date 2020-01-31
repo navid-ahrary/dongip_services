@@ -4,7 +4,7 @@ import { inject } from '@loopback/core'
 import { repository } from '@loopback/repository'
 import { post, getModelSchemaRef, requestBody, HttpErrors, get, param, patch } from '@loopback/rest'
 
-import { Users, Credentials } from '../models'
+import { Users, Credentials, UsersRels } from '../models'
 import { UsersRepository, BlacklistRepository } from '../repositories'
 import { authenticate, UserService, TokenService } from '@loopback/authentication'
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security'
@@ -125,7 +125,11 @@ export class UsersController
       },
     } )
     user: Users,
-  ): Promise<{ _key: typeof Users.prototype._key; accessToken: string }>
+  ): Promise<{
+    _key: typeof Users.prototype._key
+    accessToken: string
+    usersRels: UsersRels
+  }>
   {
     try
     {
@@ -144,17 +148,31 @@ export class UsersController
       // encrypt the password
       user.password = await this.passwordHasher.hashPassword( user.password )
       user.registeredAt = moment().format()
-      // create a new user
+      // Create a new user
       const savedUser = await this.usersRepository.create( user )
       delete user.password
+      savedUser._id = savedUser._key[ 1 ]
+      savedUser._key = savedUser._key[ 0 ]
 
-      //convert a User object into a UserProfile object (reduced set of properties)
+      // Convert a User object into a UserProfile object (reduced set of properties)
       const userProfile = this.userService.convertToUserProfile( savedUser )
 
-      //create a JWT token based on the user profile
+      // Create a JWT token based on the user profile
       const accessToken = await this.jwtService.generateToken( userProfile )
 
-      return { _key: savedUser._key, accessToken }
+      // Create self-relation for self accounting
+      const usersRels = await this.usersRepository.usersRels( savedUser._key )
+        .create( {
+          _from: savedUser._id,
+          _to: savedUser._id,
+          alias: savedUser.name,
+          avatar: savedUser.avatar,
+          type: 'self'
+        } )
+      usersRels._id = usersRels._key[ 1 ]
+      usersRels._key = usersRels._key[ 0 ]
+
+      return { _key: savedUser._key, accessToken, usersRels }
     } catch ( err )
     {
       console.log( err )
