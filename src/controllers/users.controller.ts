@@ -373,9 +373,7 @@ export class UsersController
     }
     await this.usersRepository.updateById( _key, user )
     return this.usersRepository.findById( _key, {
-      fields: {
-        _rev: true
-      }
+      fields: { _rev: true }
     } )
   }
 }
