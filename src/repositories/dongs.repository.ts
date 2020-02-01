@@ -1,4 +1,7 @@
-import { DefaultCrudRepository, repository, BelongsToAccessor, DataObject } from '@loopback/repository'
+import {
+  DefaultCrudRepository, repository, BelongsToAccessor,
+  DataObject
+} from '@loopback/repository'
 import { Dongs, DongsRelations, Users, Category } from '../models'
 import { ArangodbDataSource } from '../datasources'
 import { inject, Getter } from '@loopback/core'
@@ -6,12 +9,9 @@ import { UsersRepository } from './users.repository'
 import { CategoryRepository } from './category.repository'
 
 export class DongsRepository extends DefaultCrudRepository<
-  Dongs,
-  typeof Dongs.prototype._key,
-  DongsRelations
-  > {
-  public readonly users: BelongsToAccessor<Users, typeof Dongs.prototype._key>
+  Dongs, typeof Dongs.prototype._key, DongsRelations> {
 
+  public readonly exMan: BelongsToAccessor<Users, typeof Dongs.prototype._key>
   public readonly category: BelongsToAccessor<Category, typeof Dongs.prototype._key>
 
   constructor (
@@ -22,11 +22,9 @@ export class DongsRepository extends DefaultCrudRepository<
     protected categoryRepositoryGetter: Getter<CategoryRepository>,
   ) {
     super( Dongs, dataSource )
-    this.category = this.createBelongsToAccessorFor( 'category', categoryRepositoryGetter )
-    this.registerInclusionResolver( 'category', this.category.inclusionResolver )
 
-    this.users = this.createBelongsToAccessorFor( 'exMan', usersRepositoryGetter )
-    this.registerInclusionResolver( 'users', this.users.inclusionResolver )
+    this.exMan = this.createBelongsToAccessorFor( 'exMan', usersRepositoryGetter )
+    this.category = this.createBelongsToAccessorFor( 'category', categoryRepositoryGetter )
   }
 
   /**
