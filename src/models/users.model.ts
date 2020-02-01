@@ -5,8 +5,7 @@ import { Category } from './category.model'
 import { UsersRels } from './users-rels.model'
 
 @model()
-export class Users extends Entity
-{
+export class Users extends Entity {
   @property( {
     type: 'string',
     id: true,
@@ -74,6 +73,7 @@ export class Users extends Entity
 
   @property( {
     type: 'string',
+    required: false
   } )
   accountType: string
 
@@ -82,30 +82,6 @@ export class Users extends Entity
     reqiured: true,
   } )
   registerationToken: string
-
-  @property( {
-    type: 'array',
-    itemType: 'object',
-    default: [],
-    required: false,
-  } )
-  pendingFriends: { recipient: string; requester: string }[]
-
-  @property( {
-    type: 'array',
-    itemType: 'string',
-    default: [],
-    required: false,
-  } )
-  friends: typeof Users.prototype._key[]
-
-  @property( {
-    type: 'array',
-    itemType: 'string',
-    default: [],
-    required: false,
-  } )
-  virtualFriends: string[]
 
   @hasMany( () => VirtualUsers )
   virtualUsers: VirtualUsers[]
@@ -127,14 +103,12 @@ export class Users extends Entity
   @hasMany( () => UsersRels )
   usersRels: UsersRels[]
 
-  constructor ( data?: Partial<Users> )
-  {
+  constructor ( data?: Partial<Users> ) {
     super( data )
   }
 }
 
-export interface UsersRelations
-{
+export interface UsersRelations {
   virtualUsers?: VirtualUsersWithRelations
 }
 
