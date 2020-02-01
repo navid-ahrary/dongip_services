@@ -1,7 +1,6 @@
 /* eslint-disable prefer-const */
 import { Count, CountSchema, Filter, repository, Where } from '@loopback/repository'
-import
-{
+import {
   get, getModelSchemaRef, getWhereSchemaFor, param, patch, post, requestBody, HttpErrors,
 } from '@loopback/rest'
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security'
@@ -10,14 +9,12 @@ import { inject } from '@loopback/core'
 import * as admin from 'firebase-admin'
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 import { Users, UsersRels, FriendRequest, VirtualUsers } from '../models'
-import
-{
+import {
   UsersRepository, VirtualUsersRepository, BlacklistRepository, UsersRelsRepository
 } from '../repositories'
 import { validatePhoneNumber } from "../services/validator"
 
-export class UsersUsersRelsController
-{
+export class UsersUsersRelsController {
   constructor (
     @repository( UsersRepository ) protected usersRepository: UsersRepository,
     @repository( VirtualUsersRepository ) public virtualUsersRepository: VirtualUsersRepository,
@@ -43,10 +40,8 @@ export class UsersUsersRelsController
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: string,
     @param.query.object( 'filter' ) filter?: Filter<UsersRels>,
-  ): Promise<UsersRels[]>
-  {
-    if ( _key !== currentUserProfile[ securityId ] )
-    {
+  ): Promise<UsersRels[]> {
+    if ( _key !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized(
         'Error find category, Token is not matched to this user _key!',
       )
@@ -78,10 +73,8 @@ export class UsersUsersRelsController
       },
     } )
     reqBody: FriendRequest,
-  )
-  {
-    if ( _key !== currentUserProfile[ securityId ] )
-    {
+  ) {
+    if ( _key !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized(
         'Error users friend request ,Token is not matched to this user _key!',
       )
@@ -101,8 +94,7 @@ export class UsersUsersRelsController
       where: { phone: reqBody.phone },
     } )
 
-    if ( _key === recipientUser?._key )
-    {
+    if ( _key === recipientUser?._key ) {
       throw new HttpErrors.NotAcceptable( 'You are the best friend of yourself! :)' )
     }
 
@@ -114,13 +106,11 @@ export class UsersUsersRelsController
         ]
       }
     } )
-    if ( isRealFriend.length !== 0 )
-    {
+    if ( isRealFriend.length !== 0 ) {
       throw new HttpErrors.NotAcceptable( 'You are real friends already!' )
     }
 
-    try
-    {
+    try {
       const vu = { phone: reqBody.phone, usersId: _key }
       createdVirtualUser = await this.usersRepository.virtualUsers( _key ).create( vu )
       createdUsersRelation = await this.usersRepository.usersRels( _key ).create(
@@ -133,20 +123,17 @@ export class UsersUsersRelsController
           type: 'virtual',
         }
       )
-    } catch ( error )
-    {
+
+    } catch ( error ) {
       console.log( error )
-      if ( error.code === 409 )
-      {
+      if ( error.code === 409 ) {
         throw new HttpErrors.Conflict( 'You are virtual friends already!' )
-      } else
-      {
+      } else {
         throw new HttpErrors.NotAcceptable( error )
       }
     }
 
-    if ( requesterUser && recipientUser )
-    {
+    if ( requesterUser && recipientUser ) {
       const payload: admin.messaging.MessagingPayload = {
         notification: {
           title: 'دنگیپ درخواست دوستی',
@@ -169,18 +156,18 @@ export class UsersUsersRelsController
       await admin
         .messaging()
         .sendToDevice( recipientUser.registerationToken, payload, options )
-        .then( function ( _response )
-        {
+        .then( function ( _response ) {
           console.log( _response )
           notificationResponse = _response
-        } ).catch( function ( _error )
-        {
+        } ).catch( function ( _error ) {
           console.log( _error )
           notificationResponse = _error
         } )
     }
     createdVirtualUser._key = createdVirtualUser._key[ 0 ]
     createdUsersRelation._key = createdUsersRelation._key[ 0 ]
+    // Delete target user id in reponse object
+    delete createdUsersRelation.targetUsersId
 
     return {
       createdVirtualUser,
@@ -214,16 +201,13 @@ export class UsersUsersRelsController
       },
     } )
     bodyReq: FriendRequest,
-  )
-  {
-    if ( _key !== currentUserProfile[ securityId ] )
-    {
+  ) {
+    if ( _key !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized(
         'Error users response to friend request ,Token is not matched to this user _key!',
       )
     }
-    if ( _key === bodyReq.requesterId.split( '/' )[ 1 ] )
-    {
+    if ( _key === bodyReq.requesterId.split( '/' )[ 1 ] ) {
       throw new HttpErrors.NotAcceptable( "requester's key and recipient's key is the same! " )
     }
 
@@ -250,15 +234,13 @@ export class UsersUsersRelsController
           ]
         }
       } )
-    if ( usersRelationList.length === 0 )
-    {
+    if ( usersRelationList.length === 0 ) {
       console.log( 'There is not friend request fired!' )
       throw new HttpErrors.NotFound( 'There is not fired friend request!' )
     }
     usersRelation = usersRelationList[ 0 ]
 
-    if ( recipientUser && requesterUser )
-    {
+    if ( recipientUser && requesterUser ) {
       const payload: admin.messaging.MessagingPayload = {
         notification: { title: '', body: '', },
         data: {
@@ -273,28 +255,24 @@ export class UsersUsersRelsController
         mutableContent: false,
       }
 
-      if ( bodyReq.status )
-      {
+      if ( bodyReq.status ) {
         payload.notification = {
           title: 'دنگیپ قبول درخواست دوستی',
           body: `${ usersRelation.alias } با موبایل ${ recipientUser.phone } در خواست دوستیتون رو پذیرفت`,
         }
 
-        try
-        {
+        try {
           vu = await this.virtualUsersRepository
             .findById( bodyReq.virtualUserId.split( '/' )[ 1 ] )
           // Delete created virtual user
           await this.virtualUsersRepository.
             deleteById( bodyReq.virtualUserId.split( '/' )[ 1 ] )
-        } catch ( error )
-        {
+        } catch ( error ) {
           console.log( 'virtualUser deletebyId error' + error )
           throw new HttpErrors.NotAcceptable( error )
         }
 
-        try
-        {
+        try {
           // Update relation _to property with real-user's _id
           await this.usersRelsRepository.updateById( bodyReq.relationId.split( '/' )[ 1 ],
             {
@@ -303,8 +281,7 @@ export class UsersUsersRelsController
               type: 'real',
             }
           )
-        } catch ( error )
-        {
+        } catch ( error ) {
           // Create deleted virtual user in previous phase
           await this.virtualUsersRepository.create( vu )
           console.log( 'Create deleted virual user again, cause of previous phase error' + vu )
@@ -325,8 +302,7 @@ export class UsersUsersRelsController
           ...usersRel,
           message: 'You are friends together right now'
         }
-      } else
-      {
+      } else {
         payload.notification = {
           title: 'دنگیپ رد درخواست دوستی',
           body: `${ usersRelation.alias } با موبایل ${ recipientUser.phone } در خواست دوستیتون رو رد کرد`,
@@ -339,13 +315,11 @@ export class UsersUsersRelsController
       await admin
         .messaging()
         .sendToDevice( requesterUser.registerationToken, payload, options )
-        .then( function ( _response )
-        {
+        .then( function ( _response ) {
           console.log( `Successfully set a friend, ${ _response }` )
           notificationResponse = _response
         } )
-        .catch( function ( _error )
-        {
+        .catch( function ( _error ) {
           console.log( `Sending notification failed, ${ _error }` )
           notificationResponse = _error
         } )
@@ -389,10 +363,8 @@ export class UsersUsersRelsController
     } )
     usersRels: Partial<UsersRels>,
     @param.query.object( 'where', getWhereSchemaFor( UsersRels ) ) where?: Where<UsersRels>,
-  ): Promise<Count>
-  {
-    if ( _key !== currentUserProfile[ securityId ] )
-    {
+  ): Promise<Count> {
+    if ( _key !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized(
         'Error users response to friend request ,Token is not matched to this user _key!',
       )
