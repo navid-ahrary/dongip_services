@@ -1,9 +1,6 @@
 import {
-  DefaultCrudRepository,
-  repository,
-  BelongsToAccessor,
-  HasManyRepositoryFactory,
-  DataObject,
+  DefaultCrudRepository, repository, BelongsToAccessor,
+  HasManyRepositoryFactory, DataObject,
 } from '@loopback/repository'
 import { VirtualUsers, VirtualUsersRelations, Users, Dongs } from '../models'
 import { ArangodbDataSource } from '../datasources'
@@ -13,10 +10,9 @@ import { DongsRepository } from './dongs.repository'
 
 export class VirtualUsersRepository extends DefaultCrudRepository<
   VirtualUsers, typeof VirtualUsers.prototype._key, VirtualUsersRelations> {
-  public readonly users: BelongsToAccessor<Users, typeof VirtualUsers.prototype._key>
-  public readonly dongs: HasManyRepositoryFactory<
-    Dongs, typeof VirtualUsers.prototype._key
-  >
+
+  public readonly sourceUser: BelongsToAccessor<Users, typeof VirtualUsers.prototype._key>
+  public readonly dongs: HasManyRepositoryFactory<Dongs, typeof VirtualUsers.prototype._key>
 
   constructor (
     @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource,
@@ -27,12 +23,10 @@ export class VirtualUsersRepository extends DefaultCrudRepository<
   ) {
     super( VirtualUsers, dataSource )
 
-    this.users = this.createBelongsToAccessorFor( 'users', usersRepositoryGetter )
-    this.registerInclusionResolver( 'users', this.users.inclusionResolver )
-
+    this.sourceUser = this.createBelongsToAccessorFor( 'sourceUser', usersRepositoryGetter )
     this.dongs = this.createHasManyRepositoryFactoryFor( 'dongs', dongsRepositoryGetter )
-    this.registerInclusionResolver( 'dongs', this.dongs.inclusionResolver )
   }
+
 
   /**
   * create model like a human being
