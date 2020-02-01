@@ -84,7 +84,7 @@ export class Dongs extends Entity {
   } )
   virtualUsersId: string
 
-  @belongsTo( () => Users )
+  @belongsTo( () => Users, { name: 'exMan' } )
   exManKey: string
 
   constructor ( data?: Partial<Dongs> ) {
@@ -93,7 +93,6 @@ export class Dongs extends Entity {
 }
 
 export interface DongsRelations {
-  exMan?: DongsWithRelations
 }
 
 export type DongsWithRelations = Dongs & DongsRelations
