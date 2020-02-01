@@ -85,7 +85,7 @@ export class Dongs extends Entity {
   virtualUsersId: string
 
   @belongsTo( () => Users )
-  exManKey: string
+  exManKey?: string
 
   constructor ( data?: Partial<Dongs> ) {
     super( data )
