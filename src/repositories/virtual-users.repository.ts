@@ -12,14 +12,10 @@ import { UsersRepository } from './users.repository'
 import { DongsRepository } from './dongs.repository'
 
 export class VirtualUsersRepository extends DefaultCrudRepository<
-  VirtualUsers,
-  typeof VirtualUsers.prototype._key,
-  VirtualUsersRelations
-  > {
+  VirtualUsers, typeof VirtualUsers.prototype._key, VirtualUsersRelations> {
   public readonly users: BelongsToAccessor<Users, typeof VirtualUsers.prototype._key>
   public readonly dongs: HasManyRepositoryFactory<
-    Dongs,
-    typeof VirtualUsers.prototype._key
+    Dongs, typeof VirtualUsers.prototype._key
   >
 
   constructor (
@@ -41,7 +37,7 @@ export class VirtualUsersRepository extends DefaultCrudRepository<
   /**
   * create model like a human being
   */
-  public async createHumanKind ( entity: DataObject<VirtualUsers> ) {
+  public async createHumanKind ( entity: DataObject<VirtualUsers> ): Promise<VirtualUsers> {
     const result = await this.create( entity )
     result._id = result._key[ 1 ]
     result._key = result._key[ 0 ]

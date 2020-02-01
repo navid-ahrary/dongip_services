@@ -6,8 +6,7 @@ import { CategoryRepository } from '../repositories'
 import { authenticate } from '@loopback/authentication'
 import { inject } from '@loopback/core'
 
-export class CategoryCategoryBillController
-{
+export class CategoryCategoryBillController {
   constructor (
     @repository( CategoryRepository ) protected categoryRepository: CategoryRepository,
   ) { }
@@ -29,8 +28,7 @@ export class CategoryCategoryBillController
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: string,
     @param.query.object( 'filter' ) filter?: Filter<CategoryBill>,
-  ): Promise<CategoryBill[]>
-  {
+  ): Promise<CategoryBill[]> {
     return this.categoryRepository.categoryBills( _key ).find( filter )
   }
 
@@ -56,8 +54,7 @@ export class CategoryCategoryBillController
       },
     } )
     categoryBill: Omit<CategoryBill, '_key'>,
-  ): Promise<CategoryBill>
-  {
-    return this.categoryRepository.categoryBills( _key ).create( categoryBill )
+  ): Promise<CategoryBill> {
+    return this.categoryRepository.createHumanKindCategoryBill( _key, categoryBill )
   }
 }
