@@ -51,7 +51,7 @@ export class UsersUsersRelsController {
   }
 
 
-  @post( '/apis/users/{_key}/users-rels/friend-request', {
+  @post( '/apis/users/{_key}/users-rels/set-friend', {
     security: OPERATION_SECURITY_SPEC,
     responses: { '200': { description: 'Sending a friend request', }, },
   } )
@@ -63,11 +63,7 @@ export class UsersUsersRelsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef( FriendRequest, {
-            exclude: [
-              "relationId",
-              "status",
-              "requesterId",
-              "virtualUserId" ],
+            exclude: [ "relationId", "status", "virtualUserId" ],
           } ),
         },
       },
@@ -140,7 +136,6 @@ export class UsersUsersRelsController {
           body: `${ requesterUser.name } با شماره موبایل ${ requesterUser.phone } ازشما درخواست دوستی کرده`,
         },
         data: {
-          requesterId: requesterUser._id,
           virtualUserId: createdVirtualUser._key[ 1 ],
           relationId: createdUsersRelation._key[ 1 ],
           name: requesterUser.name,
@@ -193,9 +188,7 @@ export class UsersUsersRelsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef( FriendRequest, {
-            exclude: [
-              "avatar",
-              "phone" ]
+            exclude: [ "avatar", "phone" ]
           } ),
         },
       },
@@ -207,38 +200,42 @@ export class UsersUsersRelsController {
         'Error users response to friend request ,Token is not matched to this user _key!',
       )
     }
-    if ( _key === bodyReq.requesterId.split( '/' )[ 1 ] ) {
-      throw new HttpErrors.NotAcceptable( "requester's key and recipient's key is the same! " )
-    }
 
     let requesterUser: Users | null,
       recipientUser: Users,
-      usersRelation: UsersRels,
-      usersRelationList: UsersRels[],
+      usersRelation: UsersRels | null,
       vu: VirtualUsers,
       notificationResponse,
       response = {}
 
+    // Find the recipient user
     recipientUser = await this.usersRepository.findById( _key )
-    requesterUser = await this.usersRepository.findById( bodyReq.requesterId.split( '/' )[ 1 ] )
-    if ( !requesterUser ) throw new HttpErrors.NotFound( 'Requester user is not found! ' )
-
-    usersRelationList = await this.usersRepository.usersRels(
-      bodyReq.requesterId.split( '/' )[ 1 ] ).find( {
+    // Find the user relation edge
+    usersRelation = await this.usersRelsRepository.findOne(
+      {
         where: {
           and: [
             { _key: bodyReq.relationId.split( '/' )[ 1 ] },
             { _to: bodyReq.virtualUserId },
-            { _from: bodyReq.requesterId },
             { targetUsersId: recipientUser?._id }
           ]
         }
       } )
-    if ( usersRelationList.length === 0 ) {
+    if ( !usersRelation ) {
       console.log( 'There is not friend request fired!' )
       throw new HttpErrors.NotFound( 'There is not fired friend request!' )
     }
-    usersRelation = usersRelationList[ 0 ]
+    // Check requester and recipient is not the same
+    if ( _key === usersRelation._from.split( '/' )[ 1 ] ) {
+      console.log( "requester's key and recipient's key is the same! " )
+      throw new HttpErrors.NotAcceptable( "requester's key and recipient's key is the same! " )
+    }
+    // Find the requester user
+    requesterUser = await this.usersRepository.findById( usersRelation!._from.split( '/' )[ 1 ] )
+    if ( !requesterUser ) {
+      console.log( 'Requester user is not found! ' )
+      throw new HttpErrors.NotFound( 'Requester user is not found! ' )
+    }
 
     if ( recipientUser && requesterUser ) {
       const payload: admin.messaging.MessagingPayload = {
