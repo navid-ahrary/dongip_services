@@ -5,8 +5,7 @@ import { DongsRepository } from '../repositories'
 import { authenticate } from '@loopback/authentication'
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 
-export class DongsUsersController
-{
+export class DongsUsersController {
   constructor (
     @repository( DongsRepository )
     public dongsRepository: DongsRepository,
@@ -26,8 +25,8 @@ export class DongsUsersController
     },
   } )
   @authenticate( 'jwt' )
-  async getUsers ( @param.path.string( '_key' ) _key: typeof Dongs.prototype._key ): Promise<Users>
-  {
-    return this.dongsRepository.users( _key )
+  async getUsers ( @param.path.string( '_key' ) _key: typeof Dongs.prototype._key )
+    : Promise<Users> {
+    return this.dongsRepository.exMan( _key )
   }
 }
