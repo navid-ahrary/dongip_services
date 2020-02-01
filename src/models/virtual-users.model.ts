@@ -1,10 +1,9 @@
 import { Entity, model, property, belongsTo, hasMany } from '@loopback/repository'
-import { Users, UsersWithRelations } from './users.model'
-import { DongsWithRelations, Dongs } from './dongs.model'
+import { Users } from './users.model'
+import { Dongs } from './dongs.model'
 
 @model()
-export class VirtualUsers extends Entity
-{
+export class VirtualUsers extends Entity {
   @property( {
     type: 'string',
     id: true,
@@ -33,22 +32,18 @@ export class VirtualUsers extends Entity
   } )
   phone: string
 
-  @belongsTo( () => Users )
-  usersId: typeof Users.prototype._key
+  @belongsTo( () => Users, { name: 'sourceUser' } )
+  sourceUserKey: string
 
   @hasMany( () => Dongs )
-  dongs: typeof Dongs.prototype._key
+  dongs: string
 
-  constructor ( data?: Partial<VirtualUsers> )
-  {
+  constructor ( data?: Partial<VirtualUsers> ) {
     super( data )
   }
 }
 
-export interface VirtualUsersRelations
-{
-  users?: UsersWithRelations
-  dongs?: DongsWithRelations
+export interface VirtualUsersRelations {
 }
 
 export type VirtualUsersWithRelations = VirtualUsers & VirtualUsersRelations
