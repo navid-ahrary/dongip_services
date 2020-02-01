@@ -1,5 +1,5 @@
 import { Entity, model, property, hasMany } from '@loopback/repository'
-import { VirtualUsers, VirtualUsersWithRelations } from './virtual-users.model'
+import { VirtualUsers } from './virtual-users.model'
 import { Dongs } from './dongs.model'
 import { Category } from './category.model'
 import { UsersRels } from './users-rels.model'
@@ -83,7 +83,7 @@ export class Users extends Entity {
   } )
   registerationToken: string
 
-  @hasMany( () => VirtualUsers )
+  @hasMany( () => VirtualUsers, { keyTo: 'sourceUserKey' } )
   virtualUsers: VirtualUsers[]
 
   @property( {
@@ -109,7 +109,6 @@ export class Users extends Entity {
 }
 
 export interface UsersRelations {
-  virtualUsers?: VirtualUsersWithRelations
 }
 
 export type UsersWithRelations = Users & UsersRelations
