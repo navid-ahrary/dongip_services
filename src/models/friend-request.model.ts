@@ -1,8 +1,7 @@
 import { model, property, Model } from '@loopback/repository'
 
 @model()
-export class FriendRequest extends Model
-{
+export class FriendRequest extends Model {
   @property( {
     type: 'string',
     required: true,
@@ -23,12 +22,6 @@ export class FriendRequest extends Model
 
   @property( {
     type: 'string',
-    required: true
-  } )
-  requesterId: string
-
-  @property( {
-    type: 'string',
     required: true,
   } )
   relationId: string
@@ -45,8 +38,7 @@ export class FriendRequest extends Model
   } )
   status: boolean
 
-  constructor ( data?: Partial<FriendRequest> )
-  {
+  constructor ( data?: Partial<FriendRequest> ) {
     super( data )
   }
 }
