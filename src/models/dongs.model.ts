@@ -4,8 +4,7 @@ import { Users } from './users.model'
 import { Category } from './category.model'
 
 @model()
-export class Dongs extends Entity
-{
+export class Dongs extends Entity {
   @property( {
     type: 'string',
     id: true,
@@ -38,7 +37,7 @@ export class Dongs extends Entity
     type: 'string',
     requird: true,
   } )
-  factorType: string = 'coefficient' || 'percent' || 'amount'
+  factorType: string
 
   @property( {
     type: 'number',
@@ -88,14 +87,12 @@ export class Dongs extends Entity
   @belongsTo( () => Users )
   exManKey: string
 
-  constructor ( data?: Partial<Dongs> )
-  {
+  constructor ( data?: Partial<Dongs> ) {
     super( data )
   }
 }
 
-export interface DongsRelations
-{
+export interface DongsRelations {
   exMan?: DongsWithRelations
 }
 
