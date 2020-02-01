@@ -2,8 +2,7 @@ import { Entity, model, property, belongsTo } from '@loopback/repository'
 import { Users } from './users.model'
 
 @model()
-export class UsersRels extends Entity
-{
+export class UsersRels extends Entity {
   @property( {
     type: 'string',
     id: true,
@@ -54,19 +53,17 @@ export class UsersRels extends Entity
   @property( {
     type: 'string',
   } )
-  type: string = 'self' || 'virtual' || 'real'
+  type: string
 
   @belongsTo( () => Users )
   usersId: string
 
-  constructor ( data?: Partial<UsersRels> )
-  {
+  constructor ( data?: Partial<UsersRels> ) {
     super( data )
   }
 }
 
-export interface UsersRelsRelations
-{
+export interface UsersRelsRelations {
   // describe navigational properties here
 }
 
