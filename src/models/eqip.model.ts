@@ -1,12 +1,16 @@
 import { Model, model, property } from '@loopback/repository'
 @model()
-export class Eqip extends Model
-{
+export class Eqip extends Model {
   @property( {
     type: 'string',
     required: true,
   } )
   usersRelsId: string
+
+  @property( {
+    type: 'string',
+  } )
+  guest?: string
 
   @property( {
     type: 'number',
@@ -26,14 +30,12 @@ export class Eqip extends Model
   } )
   dong: number
 
-  constructor ( data?: Partial<Eqip> )
-  {
+  constructor ( data?: Partial<Eqip> ) {
     super( data )
   }
 }
 
-export interface EqipRelations
-{
+export interface EqipRelations {
   // describe navigational properties here
 }
 
