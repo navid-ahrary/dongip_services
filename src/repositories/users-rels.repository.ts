@@ -15,7 +15,9 @@ export class UsersRelsRepository extends DefaultCrudRepository<
   public readonly users: BelongsToAccessor<Users, typeof UsersRels.prototype._key>
 
   constructor (
-    @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource, @repository.getter( 'UsersRepository' ) protected usersRepositoryGetter: Getter<UsersRepository>,
+    @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource,
+    @repository.getter( 'UsersRepository' )
+    protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
     super( UsersRels, dataSource )
     this.users = this.createBelongsToAccessorFor( 'users', usersRepositoryGetter )
@@ -25,7 +27,7 @@ export class UsersRelsRepository extends DefaultCrudRepository<
   /**
    * create model like a human being
    */
-  public async createHumanKind ( entity: DataObject<UsersRels> ) {
+  public async createHumanKind ( entity: DataObject<UsersRels> ): Promise<UsersRels> {
     const result = await this.create( entity )
     result._id = result._key[ 1 ]
     result._key = result._key[ 0 ]

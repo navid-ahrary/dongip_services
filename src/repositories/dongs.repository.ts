@@ -32,7 +32,7 @@ export class DongsRepository extends DefaultCrudRepository<
   /**
   * create model like a human being
   */
-  public async createHumanKind ( entity: DataObject<Dongs> ) {
+  public async createHumanKind ( entity: DataObject<Dongs> ): Promise<Dongs> {
     const result = await this.create( entity )
     result._id = result._key[ 1 ]
     result._key = result._key[ 0 ]

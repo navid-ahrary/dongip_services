@@ -6,10 +6,7 @@ import { CategoryRepository } from './category.repository'
 import { DongsRepository } from './dongs.repository'
 
 export class CategoryBillRepository extends DefaultCrudRepository<
-  CategoryBill,
-  typeof CategoryBill.prototype._key,
-  CategoryBillRelations
-  > {
+  CategoryBill, typeof CategoryBill.prototype._key, CategoryBillRelations> {
   public readonly category: BelongsToAccessor<Category, typeof CategoryBill.prototype._key>
 
   public readonly dongs: BelongsToAccessor<Dongs, typeof CategoryBill.prototype._key>
@@ -31,7 +28,7 @@ export class CategoryBillRepository extends DefaultCrudRepository<
   /**
   * create model like a human being
   */
-  public async createHumanKind ( entity: DataObject<CategoryBill> ) {
+  public async createHumanKind ( entity: DataObject<CategoryBill> ): Promise<CategoryBill> {
     const result = await this.create( entity )
     result._id = result._key[ 1 ]
     result._key = result._key[ 0 ]
