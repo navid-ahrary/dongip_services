@@ -202,8 +202,9 @@ export class UsersUsersRelsController {
     }
 
     let requesterUser: Users | null,
+      ur: UsersRels | null,
       recipientUser: Users,
-      usersRelation: UsersRels | null,
+      backUr: UsersRels,
       vu: VirtualUsers,
       notificationResponse,
       response = {}
@@ -211,7 +212,7 @@ export class UsersUsersRelsController {
     // Find the recipient user
     recipientUser = await this.usersRepository.findById( _key )
     // Find the user relation edge
-    usersRelation = await this.usersRelsRepository.findOne(
+    ur = await this.usersRelsRepository.findOne(
       {
         where: {
           and: [
@@ -221,17 +222,17 @@ export class UsersUsersRelsController {
           ]
         }
       } )
-    if ( !usersRelation ) {
+    if ( !ur ) {
       console.log( 'There is not friend request fired!' )
       throw new HttpErrors.NotFound( 'There is not fired friend request!' )
     }
     // Check requester and recipient is not the same
-    if ( _key === usersRelation._from.split( '/' )[ 1 ] ) {
+    if ( _key === ur._from.split( '/' )[ 1 ] ) {
       console.log( "requester's key and recipient's key is the same! " )
       throw new HttpErrors.NotAcceptable( "requester's key and recipient's key is the same! " )
     }
     // Find the requester user
-    requesterUser = await this.usersRepository.findById( usersRelation!._from.split( '/' )[ 1 ] )
+    requesterUser = await this.usersRepository.findById( ur._from.split( '/' )[ 1 ] )
     if ( !requesterUser ) {
       console.log( 'Requester user is not found! ' )
       throw new HttpErrors.NotFound( 'Requester user is not found! ' )
@@ -241,9 +242,9 @@ export class UsersUsersRelsController {
       const payload: admin.messaging.MessagingPayload = {
         notification: { title: '', body: '', },
         data: {
-          alias: usersRelation.alias,
+          alias: ur.alias,
           avatar: recipientUser.avatar,
-          usersRelationId: usersRelation._key[ 1 ]
+          usersRelationId: ur._key[ 1 ]
         },
       }
       const options: admin.messaging.MessagingOptions = {
@@ -255,7 +256,7 @@ export class UsersUsersRelsController {
       if ( bodyReq.status ) {
         payload.notification = {
           title: 'دنگیپ قبول درخواست دوستی',
-          body: `${ usersRelation.alias } با موبایل ${ recipientUser.phone } در خواست دوستیتون رو پذیرفت`,
+          body: `${ ur.alias } با موبایل ${ recipientUser.phone } در خواست دوستیتون رو پذیرفت`,
         }
 
         try {
@@ -287,7 +288,7 @@ export class UsersUsersRelsController {
         }
 
         // Create relation from recipient to requester
-        const usersRel = await this.usersRepository.usersRels( _key )
+        backUr = await this.usersRepository.usersRels( _key )
           .create( {
             _from: recipientUser._id,
             _to: requesterUser._id,
@@ -296,13 +297,13 @@ export class UsersUsersRelsController {
             avatar: requesterUser.avatar
           } )
         response = {
-          ...usersRel,
+          ...backUr,
           message: 'You are friends together right now'
         }
       } else {
         payload.notification = {
           title: 'دنگیپ رد درخواست دوستی',
-          body: `${ usersRelation.alias } با موبایل ${ recipientUser.phone } در خواست دوستیتون رو رد کرد`,
+          body: `${ ur.alias } با موبایل ${ recipientUser.phone } در خواست دوستیتون رو رد کرد`,
 
         }
         response = { message: 'Friend request has been rejected' }
