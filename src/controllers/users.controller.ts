@@ -16,8 +16,7 @@ import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 import underscore from 'underscore'
 import moment from 'moment'
 
-export class UsersController
-{
+export class UsersController {
   constructor (
     @repository( UsersRepository ) public usersRepository: UsersRepository,
     @repository( BlacklistRepository ) public blacklistRepository: BlacklistRepository,
@@ -26,24 +25,18 @@ export class UsersController
     @inject( TokenServiceBindings.TOKEN_SERVICE ) public jwtService: TokenService,
   ) { }
 
-  arrayHasObject ( arr: object[], obj: object ): boolean
-  {
-    for ( const ele of arr )
-    {
-      if ( underscore.isEqual( ele, obj ) )
-      {
+  arrayHasObject ( arr: object[], obj: object ): boolean {
+    for ( const ele of arr ) {
+      if ( underscore.isEqual( ele, obj ) ) {
         return true
       }
     }
     return false
   }
 
-  arrayRemoveItem ( arr: object[], obj: object )
-  {
-    arr.forEach( function ( ele )
-    {
-      if ( underscore.isEqual( ele, obj ) )
-      {
+  arrayRemoveItem ( arr: object[], obj: object ) {
+    arr.forEach( function ( ele ) {
+      if ( underscore.isEqual( ele, obj ) ) {
         arr.splice( arr.indexOf( ele ) )
       }
     } )
@@ -71,10 +64,8 @@ export class UsersController
   @authenticate.skip()
   async checkPhoneNumber (
     @param.path.string( 'phone' ) phone: string,
-  ): Promise<object>
-  {
-    try
-    {
+  ): Promise<object> {
+    try {
       let isRegistered = false
       // Ensure a valid phone number
       validatePhoneNumber( phone )
@@ -88,13 +79,11 @@ export class UsersController
           _key: true
         },
       } )
-      if ( user )
-      {
+      if ( user ) {
         isRegistered = true
       }
       return { isRegistered, ...user }
-    } catch ( err )
-    {
+    } catch ( err ) {
       console.log( err.message )
       throw new HttpErrors.MethodNotAllowed( err )
     }
@@ -127,14 +116,13 @@ export class UsersController
     user: Users,
   ): Promise<{
     _key: typeof Users.prototype._key
+    _id: typeof Users.prototype._id
+    _rev: typeof Users.prototype._rev
     accessToken: string
     usersRels: UsersRels
-  }>
-  {
-    try
-    {
-      if ( phone !== user.phone )
-      {
+  }> {
+    try {
+      if ( phone !== user.phone ) {
         throw new Error(
           'Error signup, Phone numbers in params and body not matched !',
         )
@@ -147,10 +135,8 @@ export class UsersController
       user.password = await this.passwordHasher.hashPassword( user.password )
       user.registeredAt = moment().format()
       // Create a new user
-      const savedUser = await this.usersRepository.create( user )
+      const savedUser = await this.usersRepository.createHumanKind( user )
       delete user.password
-      savedUser._id = savedUser._key[ 1 ]
-      savedUser._key = savedUser._key[ 0 ]
 
       // Convert a User object into a UserProfile object (reduced set of properties)
       const userProfile = this.userService.convertToUserProfile( savedUser )
@@ -159,26 +145,28 @@ export class UsersController
       const accessToken = await this.jwtService.generateToken( userProfile )
 
       // Create self-relation for self accounting
-      const usersRels = await this.usersRepository.usersRels( savedUser._key )
-        .create( {
+      const usersRels = await this.usersRepository.createHumanKindUsersRels(
+        savedUser._key,
+        {
           _from: savedUser._id,
           _to: savedUser._id,
           alias: savedUser.name,
           avatar: savedUser.avatar,
           type: 'self'
         } )
-      usersRels._id = usersRels._key[ 1 ]
-      usersRels._key = usersRels._key[ 0 ]
 
-      return { _key: savedUser._key, accessToken, usersRels }
-    } catch ( err )
-    {
+      return {
+        _key: savedUser._key,
+        _id: savedUser._id,
+        _rev: savedUser._rev,
+        accessToken,
+        usersRels
+      }
+    } catch ( err ) {
       console.log( err )
-      if ( err.code === 409 )
-      {
-        throw new HttpErrors.Conflict( `This phone number is already taken.` )
-      } else
-      {
+      if ( err.code === 409 ) {
+        throw new HttpErrors.Conflict( 'This phone number is already taken.' )
+      } else {
         throw new HttpErrors.NotAcceptable( err.message )
       }
     }
@@ -207,16 +195,13 @@ export class UsersController
     @requestBody( CredentialsRequestBody ) credentials: Credentials,
   )
     : Promise<{ _key: typeof Users.prototype._key, accessToken: string }
-    >
-  {
-    try
-    {
+    > {
+    try {
       let user: Users,
         userProfile: UserProfile,
         accessToken: string
 
-      if ( phone !== credentials.phone )
-      {
+      if ( phone !== credentials.phone ) {
         throw new Error(
           'Error login, Phone numbers in params and body not matched !',
         )
@@ -235,8 +220,7 @@ export class UsersController
       } )
 
       return { _key: user._key, accessToken }
-    } catch ( err )
-    {
+    } catch ( err ) {
       console.log( err )
       throw new HttpErrors.MethodNotAllowed( err.message )
     }
@@ -255,28 +239,22 @@ export class UsersController
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.header.string( 'authorization' ) authorizationHeader: string,
     @param.path.string( '_key' ) _key: typeof Users.prototype._key,
-  )
-  {
-    try
-    {
-      if ( _key !== currentUserProfile[ securityId ] )
-      {
+  ) {
+    try {
+      if ( _key !== currentUserProfile[ securityId ] ) {
         throw new Error(
           'Error users logout ,Token is not matched to this user _key!',
         )
       }
-      return await this.blacklistRepository.create(
+      return await this.blacklistRepository.createHumanKind(
         { _key: authorizationHeader.split( ' ' )[ 1 ] }
       )
 
-    } catch ( err )
-    {
+    } catch ( err ) {
       console.log( err )
-      if ( err.code === 409 )
-      {
+      if ( err.code === 409 ) {
         throw new HttpErrors.Conflict( `Error logout conflict token, this token is blacklisted already` )
-      } else
-      {
+      } else {
         throw new HttpErrors.MethodNotAllowed( `Error logout not implemented: ${ err.message }` )
       }
     }
@@ -299,10 +277,8 @@ export class UsersController
   async printCurrentUser (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: typeof Users.prototype._key,
-  ): Promise<{ _key: string; name: string, accessToken: string }>
-  {
-    if ( _key !== currentUserProfile[ securityId ] )
-    {
+  ): Promise<{ _key: string; name: string, accessToken: string }> {
+    if ( _key !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized(
         'Error users print current user , Token is not matched to this user _key!',
       )
@@ -334,10 +310,8 @@ export class UsersController
   async findById (
     @param.path.string( '_key' ) _key: string,
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-  ): Promise<Users>
-  {
-    if ( _key !== currentUserProfile[ securityId ] )
-    {
+  ): Promise<Users> {
+    if ( _key !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized(
         'Error users findById ,Token is not matched to this user _key!',
       )
@@ -381,10 +355,8 @@ export class UsersController
       },
     } )
     user: Omit<Users, '_key'>,
-  ): Promise<Users>
-  {
-    if ( _key !== currentUserProfile[ securityId ] )
-    {
+  ): Promise<Users> {
+    if ( _key !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized( 'Token is not matched to this user _key!' )
     }
     await this.usersRepository.updateById( _key, user )

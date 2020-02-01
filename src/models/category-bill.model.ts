@@ -1,16 +1,22 @@
 import { Entity, model, property, belongsTo } from '@loopback/repository'
 import { Category } from './category.model'
-import { Dongs } from './dongs.model'
+import { Dongs, DongsWithRelations } from './dongs.model'
 
 @model()
-export class CategoryBill extends Entity
-{
+export class CategoryBill extends Entity {
   @property( {
     type: 'string',
     id: true,
     generated: true,
   } )
-  _key?: string
+  _key: string
+
+
+  @property( {
+    type: 'string',
+    required: false,
+  } )
+  _id: string
 
   @property( {
     type: 'number',
@@ -34,17 +40,15 @@ export class CategoryBill extends Entity
   categoryId: string
 
   @belongsTo( () => Dongs )
-  dongsId: string
+  dongsKey: string
 
-  constructor ( data?: Partial<CategoryBill> )
-  {
+  constructor ( data?: Partial<CategoryBill> ) {
     super( data )
   }
 }
 
-export interface CategoryBillRelations
-{
-  // describe navigational properties here
+export interface CategoryBillRelations {
+  dongsId?: DongsWithRelations
 }
 
 export type CategoryBillWithRelations = CategoryBill & CategoryBillRelations

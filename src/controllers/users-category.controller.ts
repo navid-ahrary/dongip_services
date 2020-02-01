@@ -1,14 +1,9 @@
-import { Count, CountSchema, Filter, repository, Where } from '@loopback/repository'
-import
-{
-  get,
-  getModelSchemaRef,
-  getWhereSchemaFor,
-  param,
-  patch,
-  post,
-  requestBody,
-  HttpErrors,
+import {
+  Count, CountSchema, Filter, repository, Where
+} from '@loopback/repository'
+import {
+  get, getModelSchemaRef, getWhereSchemaFor, param,
+  patch, post, requestBody, HttpErrors,
 } from '@loopback/rest'
 import { Users, Category } from '../models'
 import { UsersRepository, CategoryRepository } from '../repositories'
@@ -17,8 +12,7 @@ import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 import { authenticate } from '@loopback/authentication'
 import { inject } from '@loopback/core'
 
-export class UsersCategoryController
-{
+export class UsersCategoryController {
   constructor (
     @repository( UsersRepository ) protected usersRepository: UsersRepository,
     @repository( CategoryRepository ) protected categoryRepository: CategoryRepository,
@@ -42,10 +36,8 @@ export class UsersCategoryController
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: string,
     @param.query.object( 'filter' ) filter?: Filter<Category>,
-  ): Promise<Category[]>
-  {
-    if ( _key !== currentUserProfile[ securityId ] )
-    {
+  ): Promise<Category[]> {
+    if ( _key !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized(
         'Error find category, Token is not matched to this user _key!',
       )
@@ -78,29 +70,23 @@ export class UsersCategoryController
       },
     } )
     category: Omit<Category, '_key'>,
-  ): Promise<Category>
-  {
-    if ( _key !== currentUserProfile[ securityId ] )
-    {
+  ): Promise<Category> {
+    if ( _key !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized(
         'Error create a category, Token is not matched to this user _key!',
       )
     }
 
-    try
-    {
-      const createdCat = await this.usersRepository.categories( _key ).create( category )
+    try {
+      const createdCat = await this.usersRepository.createHumanKindCategory( _key, category )
       return createdCat
-    } catch ( error )
-    {
+    } catch ( error ) {
       console.log( error )
-      if ( error.code === 409 )
-      {
+      if ( error.code === 409 ) {
         throw new HttpErrors.Conflict(
           "Conflict category's title, this category exists",
         )
-      } else
-      {
+      } else {
         throw new HttpErrors.NotAcceptable( error )
       }
     }
@@ -128,10 +114,8 @@ export class UsersCategoryController
     } )
     category: Partial<Category>,
     @param.query.object( 'where', getWhereSchemaFor( Category ) ) where?: Where<Category>,
-  ): Promise<Count>
-  {
-    if ( _key !== currentUserProfile[ securityId ] )
-    {
+  ): Promise<Count> {
+    if ( _key !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized(
         'Error find category, Token is not matched to this user _key!',
       )

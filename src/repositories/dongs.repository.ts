@@ -1,4 +1,4 @@
-import { DefaultCrudRepository, repository, BelongsToAccessor } from '@loopback/repository'
+import { DefaultCrudRepository, repository, BelongsToAccessor, DataObject } from '@loopback/repository'
 import { Dongs, DongsRelations, Users, Category } from '../models'
 import { ArangodbDataSource } from '../datasources'
 import { inject, Getter } from '@loopback/core'
@@ -20,13 +20,22 @@ export class DongsRepository extends DefaultCrudRepository<
     protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter( 'CategoryRepository' )
     protected categoryRepositoryGetter: Getter<CategoryRepository>,
-  )
-  {
+  ) {
     super( Dongs, dataSource )
     this.category = this.createBelongsToAccessorFor( 'category', categoryRepositoryGetter )
     this.registerInclusionResolver( 'category', this.category.inclusionResolver )
 
     this.users = this.createBelongsToAccessorFor( 'exMan', usersRepositoryGetter )
     this.registerInclusionResolver( 'users', this.users.inclusionResolver )
+  }
+
+  /**
+  * create model like a human being
+  */
+  public async createHumanKind ( entity: DataObject<Dongs> ) {
+    const result = await this.create( entity )
+    result._id = result._key[ 1 ]
+    result._key = result._key[ 0 ]
+    return result
   }
 }

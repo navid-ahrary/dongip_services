@@ -108,17 +108,18 @@ export class UsersUsersRelsController {
 
     try {
       const vu = { phone: reqBody.phone, usersId: _key }
-      createdVirtualUser = await this.usersRepository.virtualUsers( _key ).create( vu )
-      createdUsersRelation = await this.usersRepository.usersRels( _key ).create(
+      createdVirtualUser = await this.usersRepository.createHumanKindVirtualUsers( _key, vu )
+      createdUsersRelation = await this.usersRepository.createHumanKindUsersRels( _key,
         {
           _from: requesterUser?._id,
-          _to: createdVirtualUser._key[ 1 ],
+          _to: createdVirtualUser._key,
           alias: reqBody.alias,
           avatar: reqBody.avatar,
           targetUsersId: recipientUser?._id,
           type: 'virtual',
         }
       )
+      delete createdUsersRelation.targetUsersId
 
     } catch ( error ) {
       console.log( error )
@@ -159,10 +160,6 @@ export class UsersUsersRelsController {
           notificationResponse = _error
         } )
     }
-    createdVirtualUser._key = createdVirtualUser._key[ 0 ]
-    createdUsersRelation._key = createdUsersRelation._key[ 0 ]
-    // Delete target user id in reponse object
-    delete createdUsersRelation.targetUsersId
 
     return {
       createdVirtualUser,
@@ -288,8 +285,8 @@ export class UsersUsersRelsController {
         }
 
         // Create relation from recipient to requester
-        backUr = await this.usersRepository.usersRels( _key )
-          .create( {
+        backUr = await this.usersRepository.createHumanKindUsersRels( _key,
+          {
             _from: recipientUser._id,
             _to: requesterUser._id,
             alias: bodyReq.alias,

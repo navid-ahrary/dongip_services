@@ -1,9 +1,9 @@
-import
-{
+import {
   DefaultCrudRepository,
   repository,
   BelongsToAccessor,
   HasManyRepositoryFactory,
+  DataObject,
 } from '@loopback/repository'
 import { VirtualUsers, VirtualUsersRelations, Users, Dongs } from '../models'
 import { ArangodbDataSource } from '../datasources'
@@ -28,8 +28,7 @@ export class VirtualUsersRepository extends DefaultCrudRepository<
     protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter( 'DongsRepository' )
     protected dongsRepositoryGetter: Getter<DongsRepository>,
-  )
-  {
+  ) {
     super( VirtualUsers, dataSource )
 
     this.users = this.createBelongsToAccessorFor( 'users', usersRepositoryGetter )
@@ -37,5 +36,15 @@ export class VirtualUsersRepository extends DefaultCrudRepository<
 
     this.dongs = this.createHasManyRepositoryFactoryFor( 'dongs', dongsRepositoryGetter )
     this.registerInclusionResolver( 'dongs', this.dongs.inclusionResolver )
+  }
+
+  /**
+  * create model like a human being
+  */
+  public async createHumanKind ( entity: DataObject<VirtualUsers> ) {
+    const result = await this.create( entity )
+    result._id = result._key[ 1 ]
+    result._key = result._key[ 0 ]
+    return result
   }
 }
