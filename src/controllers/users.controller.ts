@@ -345,7 +345,6 @@ export class UsersController {
               "dongsId",
               "usersRels",
               "categories",
-              "locale",
               "geolocation",
               "password",
               "phone",
