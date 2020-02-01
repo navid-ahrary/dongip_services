@@ -8,7 +8,7 @@ import underscore from 'underscore'
 import { authenticate } from '@loopback/authentication'
 import { inject } from '@loopback/core'
 import * as admin from 'firebase-admin'
-import { Users, Dongs, Category, UsersRels } from '../models'
+import { Users, Dongs, Category } from '../models'
 import { UsersRepository, CategoryRepository } from '../repositories'
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 
@@ -20,28 +20,30 @@ export class UsersDongsController {
   ) { }
 
 
-  async userHasUsersRels (
-    currentUserkey: typeof Users.prototype._key,
-    edgesIds: typeof UsersRels.prototype._id[],
+  async isNodesUsersOrVirtualUsers (
+    currentUserId: typeof Users.prototype._key,
+    nodes: typeof Users.prototype._key[],
   ) {
-    for ( let edge of edgesIds ) {
-      let usersRels = await this.usersRepository
-        .usersRels( currentUserkey )
-        .find( { where: { _key: edge.split( '/' )[ 1 ] } } )
-      console.log( usersRels )
-      if ( usersRels.length === 0 ) {
-        return false
-      } else continue
+    for ( const node of nodes ) {
+      const user = await this.usersRepository.findById( node )
+      if ( !user ) {
+        const virtualUser = await this.usersRepository
+          .virtualUsers( currentUserId )
+          .find( { where: { _key: node } } )
+        if ( !virtualUser ) {
+          return false
+        }
+      }
     }
     return true
   }
 
 
   arrayHasObject ( arr: object[], obj: object ): boolean {
-    for ( let ele of arr ) {
+    for ( const ele of arr ) {
       if ( underscore.isEqual( ele, obj ) ) {
         return true
-      } else continue
+      }
     }
     return false
   }
@@ -86,14 +88,14 @@ export class UsersDongsController {
         'application/json': {
           schema: getModelSchemaRef( Dongs, {
             title: 'NewDongsInUsers',
-            exclude: [ "costs" ],
+            exclude: [ "_key", "_id", "_rev", "costs" ],
             optional: [ "exManKey" ],
           } ),
         },
       },
     } )
     dongs: Omit<Dongs, '_key'>,
-  ): Promise<void> {
+  ): Promise<{ _key: string }> {
     if ( _key !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized(
         'Error create a new dong, Token is not matched to this user _key!',
@@ -106,147 +108,144 @@ export class UsersDongsController {
       calculation?: number
     }
 
-    let exMan: Users,
+    let expensesManager: Users,
       pong = 0,
       factorNodes = 0,
-      edgesIds = []
+      nodes = []
 
     for ( const item of dongs.eqip ) {
-      edgesIds.push( item.usersRelsId )
+      nodes.push( item.usersRelsId )
     }
 
     if ( dongs.exManKey ) {
-      exMan = await this.usersRepository.findById( dongs.exManKey )
+      expensesManager = await this.usersRepository.findById( dongs.exManKey )
     } else {
-      exMan = await this.usersRepository.findById( _key )
-    }
-    console.log( edgesIds )
-
-    if ( !( await this.userHasUsersRels( _key, edgesIds ) ) ) {
-      throw new HttpErrors.NotAcceptable( 'You have not some of these friend relations  ' )
+      expensesManager = await this.usersRepository.findById( _key )
     }
 
+    if ( !( await this.isNodesUsersOrVirtualUsers( currentUserProfile[ securityId ], nodes ) ) ) {
+      throw new HttpErrors.NotAcceptable( 'Some of this users keys are not available for you! ' )
+    }
 
+    for ( const item of dongs.eqip ) {
+      if (
+        item.usersRelsId !== expensesManager._key.toString() &&
+        !expensesManager.friends.includes( item.usersRelsId ) &&
+        !this.arrayHasObject( expensesManager.pendingFriends, {
+          recipient: expensesManager._key,
+          requester: item.usersRelsId,
+        } ) &&
+        !this.arrayHasObject( expensesManager.pendingFriends, {
+          recipient: item.usersRelsId,
+          requester: expensesManager._key,
+        } )
+      ) {
+        throw new HttpErrors.NotAcceptable(
+          'Expenses manager must be friends with all of users',
+        )
+      } else {
+        pong += item[ 'paidCost' ]
+        factorNodes += item[ 'factor' ]
+      }
+    }
 
-    //   for ( const item of dongs.eqip ) {
-    //     if (
-    //       item.usersRelsId !== exMan._key.toString() &&
-    //       !exMan.friends.includes( item.usersRelsId ) &&
-    //       !this.arrayHasObject( exMan.pendingFriends, {
-    //         recipient: exMan._key,
-    //         requester: item.usersRelsId,
-    //       } ) &&
-    //       !this.arrayHasObject( exMan.pendingFriends, {
-    //         recipient: item.usersRelsId,
-    //         requester: exMan._key,
-    //       } )
-    //     ) {
-    //       throw new HttpErrors.NotAcceptable(
-    //         'Expenses manager must be friends with all of users',
-    //       )
-    //     } else {
-    //       pong += item[ 'paidCost' ]
-    //       factorNodes += item[ 'factor' ]
-    //     }
-    //   }
+    dongs.pong = pong
+    const dong = pong / factorNodes
+    for ( const n of dongs.eqip ) {
+      n.dong = dong * n.factor
+    }
 
-    //   dongs.pong = pong
-    //   const dong = pong / factorNodes
-    //   for ( const n of dongs.eqip ) {
-    //     n.dong = dong * n.factor
-    //   }
+    const transaction = await this.usersRepository.dongs( expensesManager._key ).create( dongs )
+    let categoryBill: CategoryBill = { dongsId: transaction._key, dong: dong, }
 
-    //   const transaction = await this.usersRepository.dongs( exMan._key ).create( dongs )
-    //   let categoryBill: CategoryBill = { dongsId: transaction._key, dong: dong, }
+    // find category name in expenses manager's caetgories list
+    const expensesManagerCategoryList = await this.usersRepository
+      .categories( expensesManager._key )
+      .find( {
+        where: { title: dongs.categoryName, },
+      } )
 
-    //   // find category name in expenses manager's caetgories list
-    //   const expensesManagerCategoryList = await this.usersRepository
-    //     .categories( exMan._key )
-    //     .find( {
-    //       where: { title: dongs.categoryName, },
-    //     } )
+    expensesManager.dongsId.push( transaction._key )
+    await this.usersRepository.updateById( expensesManager._key, expensesManager )
 
-    //   exMan.dongsId.push( transaction._key )
-    //   await this.usersRepository.updateById( exMan._key, exMan )
+    const registrationTokens: string[] = []
+    for ( const n of dongs.eqip ) {
+      let nodeCategory: Category
+      // if (n.node === expensesManager._key.toString()) continue;
+      const paidCost = n.paidCost
 
-    //   const registrationTokens: string[] = []
-    //   for ( const n of dongs.eqip ) {
-    //     let nodeCategory: Category
-    //     // if (n.node === expensesManager._key.toString()) continue;
-    //     const paidCost = n.paidCost
+      categoryBill.paidCost = paidCost
+      categoryBill.calculation = dong - paidCost
 
-    //     categoryBill.paidCost = paidCost
-    //     categoryBill.calculation = dong - paidCost
+      const nCategory = await this.usersRepository.categories( n.usersRelsId )
+        .find( {
+          where: { title: dongs.categoryName, },
+        } )
 
-    //     const nCategory = await this.usersRepository.categories( n.usersRelsId )
-    //       .find( {
-    //         where: { title: dongs.categoryName, },
-    //       } )
+      if ( nCategory.length === 0 ) {
+        //create a category with name that provided by expenses manager
+        nodeCategory = await this.usersRepository
+          .categories( n.usersRelsId )
+          .create( { title: expensesManagerCategoryList[ 0 ].title } )
+      } else if ( nCategory.length === 1 ) {
+        nodeCategory = nCategory[ 0 ]
+      } else {
+        throw new HttpErrors.NotAcceptable(
+          'Find multi category with this name for userId ' + n.usersRelsId,
+        )
+      }
 
-    //     if ( nCategory.length === 0 ) {
-    //       //create a category with name that provided by expenses manager
-    //       nodeCategory = await this.usersRepository
-    //         .categories( n.usersRelsId )
-    //         .create( { title: expensesManagerCategoryList[ 0 ].title } )
-    //     } else if ( nCategory.length === 1 ) {
-    //       nodeCategory = nCategory[ 0 ]
-    //     } else {
-    //       throw new HttpErrors.NotAcceptable(
-    //         'Find multi category with this name for userId ' + n.usersRelsId,
-    //       )
-    //     }
+      // create bill belonging to created category
+      await this.categoryRepository.categoryBills( nodeCategory._key ).create( categoryBill )
 
-    //     // create bill belonging to created category
-    //     await this.categoryRepository.categoryBills( nodeCategory._key ).create( categoryBill )
+      const node = await this.usersRepository.findById( n.usersRelsId )
+      node.dongsId.push( transaction._key )
+      await this.usersRepository.updateById( n.usersRelsId, node )
 
-    //     const node = await this.usersRepository.findById( n.usersRelsId )
-    //     node.dongsId.push( transaction._key )
-    //     await this.usersRepository.updateById( n.usersRelsId, node )
+      // Do not add expenses manager to the reciever notification list
+      if ( n.usersRelsId !== expensesManager._key.toString() ) {
+        registrationTokens.push( node.registerationToken )
+      }
+    }
 
-    //     // Do not add expenses manager to the reciever notification list
-    //     if ( n.usersRelsId !== exMan._key.toString() ) {
-    //       registrationTokens.push( node.registerationToken )
-    //     }
-    //   }
+    // Generate notification message
+    const message: admin.messaging.MulticastMessage = {
+      notification: {
+        title: 'دنگیپ دنگ جدید',
+        body: `${ dongs.categoryId } توسط ${ expensesManager.name } دنگیپ شد`,
+      },
+      data: {
+        name: expensesManager.name,
+        _key: expensesManager._key.toString(),
+      },
+      tokens: registrationTokens,
+    }
 
-    //   // Generate notification message
-    //   const message: admin.messaging.MulticastMessage = {
-    //     notification: {
-    //       title: 'دنگیپ دنگ جدید',
-    //       body: `${ dongs.categoryId } توسط ${ exMan.name } دنگیپ شد`,
-    //     },
-    //     data: {
-    //       name: exMan.name,
-    //       _key: exMan._key,
-    //     },
-    //     tokens: registrationTokens,
-    //   }
+    //send new dong notification to the nodes
+    await admin
+      .messaging()
+      .sendMulticast( message )
+      .then( function ( _response ) {
+        if ( _response.failureCount > 0 ) {
+          let failedTokens: string[] = []
+          _response.responses.forEach( ( resp, idx ) => {
+            if ( !resp.success ) {
+              failedTokens.push( registrationTokens[ idx ] )
+            }
+          } )
+          console.log( `List of tokens that caused failure ${ failedTokens }` )
+          throw new HttpErrors.NotImplemented(
+            `List of tokens that caused failure ${ failedTokens }`,
+          )
+        }
 
-    //   //send new dong notification to the nodes
-    //   await admin
-    //     .messaging()
-    //     .sendMulticast( message )
-    //     .then( function ( _response ) {
-    //       if ( _response.failureCount > 0 ) {
-    //         let failedTokens: string[] = []
-    //         _response.responses.forEach( ( resp, idx ) => {
-    //           if ( !resp.success ) {
-    //             failedTokens.push( registrationTokens[ idx ] )
-    //           }
-    //         } )
-    //         console.log( `List of tokens that caused failure ${ failedTokens }` )
-    //         throw new HttpErrors.NotImplemented(
-    //           `List of tokens that caused failure ${ failedTokens }`,
-    //         )
-    //       }
+        console.log( `Successfully sent notifications, ${ _response }` )
+      } )
+      .catch( function ( _error ) {
+        console.log( `Error sending notifications, ${ _error }` )
+        throw new HttpErrors.NotImplemented( `Error sending notifications, ${ _error }` )
+      } )
 
-    //       console.log( `Successfully sent notifications, ${ _response }` )
-    //     } )
-    //     .catch( function ( _error ) {
-    //       console.log( `Error sending notifications, ${ _error }` )
-    //       throw new HttpErrors.NotImplemented( `Error sending notifications, ${ _error }` )
-    //     } )
-
-    //   return { _key: transaction._key }
+    return { _key: transaction._key }
   }
 }
