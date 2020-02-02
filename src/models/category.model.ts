@@ -41,7 +41,7 @@ export class Category extends Entity {
   @belongsTo( () => Users, { name: 'belongsToUser' } )
   belongsToUserKey: string
 
-  @hasMany( () => CategoryBill, { keyTo: 'belongToCategory' } )
+  @hasMany( () => CategoryBill, { keyTo: 'belongsToCategoryKey' } )
   categoryBills: CategoryBill[]
 
   constructor ( data?: Partial<Category> ) {
