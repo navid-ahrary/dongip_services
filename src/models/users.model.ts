@@ -83,24 +83,24 @@ export class Users extends Entity {
   } )
   registerationToken: string
 
-  @hasMany( () => VirtualUsers, { keyTo: 'sourceUserKey' } )
-  virtualUsers: VirtualUsers[]
-
   @property( {
     type: 'array',
     itemType: 'string',
     required: false,
     default: [],
   } )
-  dongsId: typeof Dongs.prototype._key[]
+  dongsId: string[]
 
-  @hasMany( () => Dongs, { keyTo: 'exManKey' } )
+  @hasMany( () => VirtualUsers, { keyTo: 'belongsToUserKey' } )
+  virtualUsers: VirtualUsers[]
+
+  @hasMany( () => Dongs, { keyTo: 'belongsToUserKey' } )
   dongs: Dongs[]
 
-  @hasMany( () => Category )
+  @hasMany( () => Category, { keyTo: 'belongsToUserKey' } )
   categories: Category[]
 
-  @hasMany( () => UsersRels )
+  @hasMany( () => UsersRels, { keyTo: 'belongsToUserKey' } )
   usersRels: UsersRels[]
 
   constructor ( data?: Partial<Users> ) {

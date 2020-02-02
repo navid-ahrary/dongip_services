@@ -1,22 +1,18 @@
-import
-{
+import {
   repository,
 } from '@loopback/repository'
-import
-{
+import {
   param,
   get,
   getModelSchemaRef,
 } from '@loopback/rest'
-import
-{
+import {
   CategoryBill,
   Dongs,
 } from '../models'
 import { CategoryBillRepository } from '../repositories'
 
-export class CategoryBillDongsController
-{
+export class CategoryBillDongsController {
   constructor (
     @repository( CategoryBillRepository )
     public categoryBillRepository: CategoryBillRepository,
@@ -36,8 +32,7 @@ export class CategoryBillDongsController
   } )
   async getDongs (
     @param.path.string( '_key' ) _key: typeof CategoryBill.prototype._key,
-  ): Promise<Dongs>
-  {
-    return this.categoryBillRepository.dongs( _key )
+  ): Promise<Dongs> {
+    return this.categoryBillRepository.belongsToDong( _key )
   }
 }

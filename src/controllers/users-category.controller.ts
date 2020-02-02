@@ -64,7 +64,7 @@ export class UsersCategoryController {
         'application/json': {
           schema: getModelSchemaRef( Category, {
             title: 'NewCategoryInUsers',
-            exclude: [ '_key', '_id', '_rev', 'categoryBills', 'usersId' ],
+            exclude: [ '_key', '_id', '_rev', 'categoryBills', 'belongsToUserKey' ],
           } ),
         },
       },

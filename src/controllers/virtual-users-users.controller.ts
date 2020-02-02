@@ -24,6 +24,6 @@ export class VirtualUsersUsersController {
   async getUsers (
     @param.path.string( 'id' ) id: typeof VirtualUsers.prototype._key,
   ): Promise<Users> {
-    return this.virtualUsersRepository.sourceUser( id )
+    return this.virtualUsersRepository.belongsToUser( id )
   }
 }

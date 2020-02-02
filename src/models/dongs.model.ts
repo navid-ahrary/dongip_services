@@ -52,14 +52,6 @@ export class Dongs extends Entity {
   desc: string
 
   @property( {
-    type: 'string',
-  } )
-  categoryName: string
-
-  @belongsTo( () => Category )
-  categoryId?: string
-
-  @property( {
     type: 'date',
     required: true,
   } )
@@ -80,12 +72,14 @@ export class Dongs extends Entity {
 
   @property( {
     type: 'string',
-    required: false,
   } )
-  virtualUsersId: string
+  xManUsersRelsKey?: string
 
-  @belongsTo( () => Users, { name: 'exMan' } )
-  exManKey: string
+  @belongsTo( () => Users, { name: 'belongsToUser' } )
+  belongsToUserKey: string
+
+  @belongsTo( () => Category, { name: 'belongsToCategory' } )
+  belongsToCategoryKey: string
 
   constructor ( data?: Partial<Dongs> ) {
     super( data )

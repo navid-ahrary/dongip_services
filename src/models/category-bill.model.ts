@@ -1,6 +1,6 @@
 import { Entity, model, property, belongsTo } from '@loopback/repository'
 import { Category } from './category.model'
-import { Dongs, DongsWithRelations } from './dongs.model'
+import { Dongs } from './dongs.model'
 
 @model()
 export class CategoryBill extends Entity {
@@ -11,12 +11,19 @@ export class CategoryBill extends Entity {
   } )
   _key: string
 
-
   @property( {
     type: 'string',
+    generated: true,
     required: false,
   } )
   _id: string
+
+  @property( {
+    type: 'string',
+    generated: true,
+    required: false,
+  } )
+  _rev: string
 
   @property( {
     type: 'number',
@@ -36,11 +43,11 @@ export class CategoryBill extends Entity {
   } )
   calculation: number
 
-  @belongsTo( () => Category )
-  categoryId: string
+  @belongsTo( () => Category, { name: 'belongsToCategory' } )
+  belongsToCategoryKey: string
 
-  @belongsTo( () => Dongs )
-  dongsKey: string
+  @belongsTo( () => Dongs, { name: 'belongsToDong' } )
+  belongsToDongKey: string
 
   constructor ( data?: Partial<CategoryBill> ) {
     super( data )
@@ -48,7 +55,6 @@ export class CategoryBill extends Entity {
 }
 
 export interface CategoryBillRelations {
-  dongsId?: DongsWithRelations
 }
 
 export type CategoryBillWithRelations = CategoryBill & CategoryBillRelations

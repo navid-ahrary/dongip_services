@@ -6,8 +6,7 @@ import { CategoryRepository } from '../repositories'
 import { authenticate } from '@loopback/authentication'
 import { inject } from '@loopback/core'
 
-export class CategoryUsersController
-{
+export class CategoryUsersController {
   constructor (
     @repository( CategoryRepository )
     public categoryRepository: CategoryRepository,
@@ -29,15 +28,13 @@ export class CategoryUsersController
   async getUsers (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: typeof Category.prototype._key,
-  ): Promise<Users>
-  {
+  ): Promise<Users> {
     currentUserProfile._key = currentUserProfile[ securityId ]
     delete currentUserProfile[ securityId ]
 
-    if ( _key !== currentUserProfile._key )
-    {
+    if ( _key !== currentUserProfile._key ) {
       throw new HttpErrors.Unauthorized( 'Token is not matched to this user _key!' )
     }
-    return this.categoryRepository.users( _key )
+    return this.categoryRepository.belongsToUser( _key )
   }
 }

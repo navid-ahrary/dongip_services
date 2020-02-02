@@ -3,8 +3,7 @@ import { param, get, getModelSchemaRef } from '@loopback/rest'
 import { Dongs, Category } from '../models'
 import { DongsRepository } from '../repositories'
 
-export class DongsCategoryController
-{
+export class DongsCategoryController {
   constructor (
     @repository( DongsRepository )
     public dongsRepository: DongsRepository,
@@ -24,8 +23,7 @@ export class DongsCategoryController
   } )
   async getCategory (
     @param.path.string( '_key' ) _key: typeof Dongs.prototype._key,
-  ): Promise<Category>
-  {
-    return this.dongsRepository.category( _key )
+  ): Promise<Category> {
+    return this.dongsRepository.belongsToCategory( _key )
   }
 }

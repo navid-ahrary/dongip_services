@@ -11,8 +11,10 @@ import { DongsRepository } from './dongs.repository'
 export class VirtualUsersRepository extends DefaultCrudRepository<
   VirtualUsers, typeof VirtualUsers.prototype._key, VirtualUsersRelations> {
 
-  public readonly sourceUser: BelongsToAccessor<Users, typeof VirtualUsers.prototype._key>
-  public readonly dongs: HasManyRepositoryFactory<Dongs, typeof VirtualUsers.prototype._key>
+  public readonly belongsToUser: BelongsToAccessor<
+    Users, typeof VirtualUsers.prototype._key>
+  public readonly dongs: HasManyRepositoryFactory<
+    Dongs, typeof VirtualUsers.prototype._key>
 
   constructor (
     @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource,
@@ -23,15 +25,18 @@ export class VirtualUsersRepository extends DefaultCrudRepository<
   ) {
     super( VirtualUsers, dataSource )
 
-    this.sourceUser = this.createBelongsToAccessorFor( 'sourceUser', usersRepositoryGetter )
-    this.dongs = this.createHasManyRepositoryFactoryFor( 'dongs', dongsRepositoryGetter )
+    this.belongsToUser = this.createBelongsToAccessorFor(
+      'belongsToUser', usersRepositoryGetter )
+    this.dongs = this.createHasManyRepositoryFactoryFor(
+      'dongs', dongsRepositoryGetter )
   }
 
 
   /**
   * create model like a human being
   */
-  public async createHumanKind ( entity: DataObject<VirtualUsers> ): Promise<VirtualUsers> {
+  public async createHumanKind ( entity: DataObject<VirtualUsers> )
+    : Promise<VirtualUsers> {
     const result = await this.create( entity )
     result._id = result._key[ 1 ]
     result._key = result._key[ 0 ]

@@ -27,6 +27,6 @@ export class DongsUsersController {
   @authenticate( 'jwt' )
   async getUsers ( @param.path.string( '_key' ) _key: typeof Dongs.prototype._key )
     : Promise<Users> {
-    return this.dongsRepository.exMan( _key )
+    return this.dongsRepository.belongsToUser( _key )
   }
 }

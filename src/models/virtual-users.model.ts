@@ -32,8 +32,8 @@ export class VirtualUsers extends Entity {
   } )
   phone: string
 
-  @belongsTo( () => Users, { name: 'sourceUser' } )
-  sourceUserKey: string
+  @belongsTo( () => Users, { name: 'belongsToUser' } )
+  belongsToUserKey: string
 
   @hasMany( () => Dongs )
   dongs: string

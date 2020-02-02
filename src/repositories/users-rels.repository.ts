@@ -7,12 +7,10 @@ import { inject, Getter } from '@loopback/core'
 import { UsersRepository } from './users.repository'
 
 export class UsersRelsRepository extends DefaultCrudRepository<
-  UsersRels,
-  typeof UsersRels.prototype._key,
-  UsersRelsRelations
-  > {
+  UsersRels, typeof UsersRels.prototype._key, UsersRelsRelations> {
 
-  public readonly users: BelongsToAccessor<Users, typeof UsersRels.prototype._key>
+  public readonly belongsToUser: BelongsToAccessor<
+    Users, typeof UsersRels.prototype._key>
 
   constructor (
     @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource,
@@ -20,14 +18,16 @@ export class UsersRelsRepository extends DefaultCrudRepository<
     protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
     super( UsersRels, dataSource )
-    this.users = this.createBelongsToAccessorFor( 'users', usersRepositoryGetter )
-    this.registerInclusionResolver( 'users', this.users.inclusionResolver )
+
+    this.belongsToUser = this.createBelongsToAccessorFor(
+      'belongsToUser', usersRepositoryGetter )
   }
 
   /**
    * create model like a human being
    */
-  public async createHumanKind ( entity: DataObject<UsersRels> ): Promise<UsersRels> {
+  public async createHumanKind ( entity: DataObject<UsersRels> )
+    : Promise<UsersRels> {
     const result = await this.create( entity )
     result._id = result._key[ 1 ]
     result._key = result._key[ 0 ]

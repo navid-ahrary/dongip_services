@@ -55,8 +55,8 @@ export class UsersRels extends Entity {
   } )
   type: string
 
-  @belongsTo( () => Users )
-  usersId: string
+  @belongsTo( () => Users, { name: 'belongsToUser' } )
+  belongsToUserKey: string
 
   constructor ( data?: Partial<UsersRels> ) {
     super( data )

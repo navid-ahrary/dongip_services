@@ -11,8 +11,10 @@ import { CategoryRepository } from './category.repository'
 export class DongsRepository extends DefaultCrudRepository<
   Dongs, typeof Dongs.prototype._key, DongsRelations> {
 
-  public readonly exMan: BelongsToAccessor<Users, typeof Dongs.prototype._key>
-  public readonly category: BelongsToAccessor<Category, typeof Dongs.prototype._key>
+  public readonly belongsToUser: BelongsToAccessor<
+    Users, typeof Dongs.prototype._key>
+  public readonly belongsToCategory: BelongsToAccessor<
+    Category, typeof Dongs.prototype._key>
 
   constructor (
     @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource,
@@ -23,8 +25,10 @@ export class DongsRepository extends DefaultCrudRepository<
   ) {
     super( Dongs, dataSource )
 
-    this.exMan = this.createBelongsToAccessorFor( 'exMan', usersRepositoryGetter )
-    this.category = this.createBelongsToAccessorFor( 'category', categoryRepositoryGetter )
+    this.belongsToUser = this.createBelongsToAccessorFor(
+      'belongsToUser', usersRepositoryGetter )
+    this.belongsToCategory = this.createBelongsToAccessorFor(
+      'belongsToCategory', categoryRepositoryGetter )
   }
 
   /**
