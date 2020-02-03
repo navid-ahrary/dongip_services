@@ -89,7 +89,7 @@ export class UsersDongsController {
           schema: getModelSchemaRef( Dongs, {
             title: 'NewDongsInUsers',
             exclude: [ "_key", "_id", "_rev", "costs" ],
-            optional: [ "exManKey" ],
+            optional: [ "belongsToUserKey" ],
           } ),
         },
       },
@@ -117,8 +117,8 @@ export class UsersDongsController {
       nodes.push( item.usersRelsId )
     }
 
-    if ( dongs.exManKey ) {
-      expensesManager = await this.usersRepository.findById( dongs.exManKey )
+    if ( dongs.belongsToUserKey ) {
+      expensesManager = await this.usersRepository.findById( dongs.belongsToUserKey )
     } else {
       expensesManager = await this.usersRepository.findById( _key )
     }
@@ -127,27 +127,27 @@ export class UsersDongsController {
       throw new HttpErrors.NotAcceptable( 'Some of this users keys are not available for you! ' )
     }
 
-    for ( const item of dongs.eqip ) {
-      if (
-        item.usersRelsId !== expensesManager._key.toString() &&
-        !expensesManager.friends.includes( item.usersRelsId ) &&
-        !this.arrayHasObject( expensesManager.pendingFriends, {
-          recipient: expensesManager._key,
-          requester: item.usersRelsId,
-        } ) &&
-        !this.arrayHasObject( expensesManager.pendingFriends, {
-          recipient: item.usersRelsId,
-          requester: expensesManager._key,
-        } )
-      ) {
-        throw new HttpErrors.NotAcceptable(
-          'Expenses manager must be friends with all of users',
-        )
-      } else {
-        pong += item[ 'paidCost' ]
-        factorNodes += item[ 'factor' ]
-      }
-    }
+    // for ( const item of dongs.eqip ) {
+    //   if (
+    //     item.usersRelsId !== expensesManager._key.toString() &&
+    //     !expensesManager.friends.includes( item.usersRelsId ) &&
+    //     !this.arrayHasObject( expensesManager.pendingFriends, {
+    //       recipient: expensesManager._key,
+    //       requester: item.usersRelsId,
+    //     } ) &&
+    //     !this.arrayHasObject( expensesManager.pendingFriends, {
+    //       recipient: item.usersRelsId,
+    //       requester: expensesManager._key,
+    //     } )
+    //   ) {
+    //     throw new HttpErrors.NotAcceptable(
+    //       'Expenses manager must be friends with all of users',
+    //     )
+    //   } else {
+    //     pong += item[ 'paidCost' ]
+    //     factorNodes += item[ 'factor' ]
+    //   }
+    // }
 
     dongs.pong = pong
     const dong = pong / factorNodes
@@ -162,7 +162,7 @@ export class UsersDongsController {
     const expensesManagerCategoryList = await this.usersRepository
       .categories( expensesManager._key )
       .find( {
-        where: { title: dongs.categoryName, },
+        where: { _key: dongs.belongsToCategoryKey, },
       } )
 
     expensesManager.dongsId.push( transaction._key )
@@ -179,7 +179,7 @@ export class UsersDongsController {
 
       const nCategory = await this.usersRepository.categories( n.usersRelsId )
         .find( {
-          where: { title: dongs.categoryName, },
+          where: { _key: dongs.belongsToCategoryKey },
         } )
 
       if ( nCategory.length === 0 ) {
@@ -212,7 +212,7 @@ export class UsersDongsController {
     const message: admin.messaging.MulticastMessage = {
       notification: {
         title: 'دنگیپ دنگ جدید',
-        body: `${ dongs.categoryId } توسط ${ expensesManager.name } دنگیپ شد`,
+        body: `${ dongs.belongsToCategoryKey } توسط ${ expensesManager.name } دنگیپ شد`,
       },
       data: {
         name: expensesManager.name,
