@@ -83,6 +83,12 @@ export class Dongs extends Entity {
   @belongsTo( () => Users, { name: 'belongsToUser' } )
   belongsToUserKey: string
 
+
+  @property( {
+    type: 'string',
+  } )
+  categoryId: string
+
   @belongsTo( () => Category, { name: 'belongsToCategory' } )
   belongsToCategoryKey: string
 
