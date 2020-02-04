@@ -1,13 +1,14 @@
 import {
   DefaultCrudRepository, repository, HasManyRepositoryFactory, DataObject,
 } from '@loopback/repository'
-import { Users, VirtualUsers, Dongs, Category, UsersRels } from '../models'
+import { Users, VirtualUsers, Dongs, Category, UsersRels, CategoryBill } from '../models'
 import { ArangodbDataSource } from '../datasources'
 import { inject, Getter } from '@loopback/core'
 import { VirtualUsersRepository } from './virtual-users.repository'
 import { DongsRepository } from './dongs.repository'
 import { CategoryRepository } from './category.repository'
 import { UsersRelsRepository } from './users-rels.repository'
+import { CategoryBillRepository } from './category-bill.repository'
 
 export class UsersRepository extends DefaultCrudRepository<
   Users, typeof Users.prototype._key> {
@@ -23,6 +24,8 @@ export class UsersRepository extends DefaultCrudRepository<
   public readonly usersRels: HasManyRepositoryFactory<
     UsersRels, typeof Users.prototype._key>
 
+  public readonly categoryBills: HasManyRepositoryFactory<CategoryBill, typeof Users.prototype._key>
+
   constructor (
     @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource,
     @repository.getter( 'VirtualUsersRepository' )
@@ -33,8 +36,12 @@ export class UsersRepository extends DefaultCrudRepository<
     protected categoryRepositoryGetter: Getter<CategoryRepository>,
     @repository.getter( 'UsersRelsRepository' )
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
+    @repository.getter( 'CategoryBillRepository' )
+    protected categoryBillRepositoryGetter: Getter<CategoryBillRepository>,
   ) {
     super( Users, dataSource )
+    this.categoryBills = this.createHasManyRepositoryFactoryFor(
+      'categoryBills', categoryBillRepositoryGetter )
 
     this.usersRels = this.createHasManyRepositoryFactoryFor(
       'usersRels', usersRelsRepositoryGetter )
@@ -97,6 +104,18 @@ export class UsersRepository extends DefaultCrudRepository<
     category._id = category._key[ 1 ]
     category._key = category._key[ 0 ]
     return category
+  }
+
+  /**
+ * create category bills belong to user like a human being
+ */
+  public async createHumanKindCategoryBills (
+    _key: typeof Users.prototype._key,
+    entity: DataObject<CategoryBill> ): Promise<CategoryBill> {
+    const categoryBill = await this.categoryBills( _key ).create( entity )
+    categoryBill._id = categoryBill._key[ 1 ]
+    categoryBill._key = categoryBill._key[ 0 ]
+    return categoryBill
   }
 
   /**

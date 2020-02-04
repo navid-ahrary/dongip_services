@@ -9,3 +9,5 @@ export * from './category-bill-category.controller'
 export * from './category-bill-dongs.controller'
 export * from './users-users-rels.controller'
 export * from './virtual-users-users.controller'
+export * from './category-bill-users.controller';
+export * from './users-category-bill.controller';

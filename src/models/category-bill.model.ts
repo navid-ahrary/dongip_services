@@ -1,64 +1,68 @@
 import { Entity, model, property, belongsTo } from '@loopback/repository'
 import { Category } from './category.model'
 import { Dongs } from './dongs.model'
+import {Users} from './users.model';
 
 @model()
 export class CategoryBill extends Entity {
-  @property( {
+  @property({
     type: 'string',
     id: true,
     generated: true,
-  } )
+  })
   _key: string
 
-  @property( {
+  @property({
     type: 'string',
     generated: true,
     required: false,
-  } )
+  })
   _id: string
 
-  @property( {
+  @property({
     type: 'string',
     generated: true,
     required: false,
-  } )
+  })
   _rev: string
 
-  @property( {
+  @property({
     type: 'string',
-  } )
+  })
   _from: string
 
-  @property( {
+  @property({
     type: 'string',
-  } )
+  })
   _to: string
 
-  @property( {
+  @property({
     type: 'number',
-  } )
+  })
   dong: number
 
-  @property( {
+  @property({
     type: 'number',
-  } )
+  })
   paidCost: number
 
-  @property( {
+  @property({
     type: 'number',
     required: false,
-  } )
+  })
   calculation: number
 
-  @belongsTo( () => Category, { name: 'belongsToCategory' } )
+  @belongsTo(() => Category, {name: 'belongsToCategory'})
   belongsToCategoryKey: string
 
-  @belongsTo( () => Dongs, { name: 'belongsToDong' } )
+  @belongsTo(() => Dongs, {name: 'belongsToDong'})
   belongsToDongKey: string
 
-  constructor ( data?: Partial<CategoryBill> ) {
-    super( data )
+  @belongsTo(() => Users, {name: 'belongsToUser'})
+  belongsToUserKey: string;
+
+  constructor(data?: Partial<CategoryBill>) {
+    super(data)
   }
 }
 

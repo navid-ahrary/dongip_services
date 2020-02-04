@@ -1,11 +1,12 @@
 import {
   DefaultCrudRepository, repository, BelongsToAccessor, DataObject
 } from '@loopback/repository'
-import { CategoryBill, CategoryBillRelations, Category, Dongs } from '../models'
+import { CategoryBill, CategoryBillRelations, Category, Dongs, Users} from '../models'
 import { ArangodbDataSource } from '../datasources'
 import { inject, Getter } from '@loopback/core'
 import { CategoryRepository } from './category.repository'
 import { DongsRepository } from './dongs.repository'
+import {UsersRepository} from './users.repository';
 
 export class CategoryBillRepository extends DefaultCrudRepository<
   CategoryBill, typeof CategoryBill.prototype._key, CategoryBillRelations> {
@@ -15,14 +16,17 @@ export class CategoryBillRepository extends DefaultCrudRepository<
   public readonly belongsToDong: BelongsToAccessor<
     Dongs, typeof CategoryBill.prototype._key>
 
+  public readonly belongsToUser: BelongsToAccessor<Users, typeof CategoryBill.prototype._key>;
+
   constructor (
     @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource,
     @repository.getter( 'CategoryRepository' )
     protected categoryRepositoryGetter: Getter<CategoryRepository>,
     @repository.getter( 'DongsRepository' )
-    protected dongsRepositoryGetter: Getter<DongsRepository>,
+    protected dongsRepositoryGetter: Getter<DongsRepository>, @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
     super( CategoryBill, dataSource )
+    this.belongsToUser = this.createBelongsToAccessorFor('belongsToUser', usersRepositoryGetter,);
     this.belongsToDong = this.createBelongsToAccessorFor(
       'belongsToDong', dongsRepositoryGetter )
     this.belongsToCategory = this.createBelongsToAccessorFor(

@@ -3,6 +3,7 @@ import { VirtualUsers } from './virtual-users.model'
 import { Dongs } from './dongs.model'
 import { Category } from './category.model'
 import { UsersRels } from './users-rels.model'
+import { CategoryBill } from './category-bill.model'
 
 @model()
 export class Users extends Entity {
@@ -102,6 +103,9 @@ export class Users extends Entity {
 
   @hasMany( () => UsersRels, { keyTo: 'belongsToUserKey' } )
   usersRels: UsersRels[]
+
+  @hasMany( () => CategoryBill, { keyTo: 'belongsToUserKey' } )
+  categoryBills: CategoryBill[]
 
   constructor ( data?: Partial<Users> ) {
     super( data )
