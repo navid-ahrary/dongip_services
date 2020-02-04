@@ -34,11 +34,12 @@ export class CategoryRepository extends DefaultCrudRepository<
   /**
   * create model like a human being
   */
-  public async createHumanKind ( entity: DataObject<Category> ) {
-    const result = await this.create( entity )
-    result._id = result._key[ 1 ]
-    result._key = result._key[ 0 ]
-    return result
+  public async createHumanKind ( entity: DataObject<Category> )
+    : Promise<Category> {
+    const category = await this.create( entity )
+    category._id = category._key[ 1 ]
+    category._key = category._key[ 0 ]
+    return category
   }
 
   /**
@@ -47,9 +48,9 @@ export class CategoryRepository extends DefaultCrudRepository<
   public async createHumanKindCategoryBill (
     _key: typeof Category.prototype._key,
     entity: DataObject<Category> ): Promise<CategoryBill> {
-    const result = await this.categoryBills( _key ).create( entity )
-    result._id = result._key[ 1 ]
-    result._key = result._key[ 0 ]
-    return result
+    const categoryBill = await this.categoryBills( _key ).create( entity )
+    categoryBill._id = categoryBill._key[ 1 ]
+    categoryBill._key = categoryBill._key[ 0 ]
+    return categoryBill
   }
 }

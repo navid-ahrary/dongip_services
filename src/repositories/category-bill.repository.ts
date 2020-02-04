@@ -34,9 +34,9 @@ export class CategoryBillRepository extends DefaultCrudRepository<
   */
   public async createHumanKind ( entity: DataObject<CategoryBill> )
     : Promise<CategoryBill> {
-    const result = await this.create( entity )
-    result._id = result._key[ 1 ]
-    result._key = result._key[ 0 ]
-    return result
+    const categoryBill = await this.create( entity )
+    categoryBill._id = categoryBill._key[ 1 ]
+    categoryBill._key = categoryBill._key[ 0 ]
+    return categoryBill
   }
 }

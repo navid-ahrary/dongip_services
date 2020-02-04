@@ -37,9 +37,9 @@ export class VirtualUsersRepository extends DefaultCrudRepository<
   */
   public async createHumanKind ( entity: DataObject<VirtualUsers> )
     : Promise<VirtualUsers> {
-    const result = await this.create( entity )
-    result._id = result._key[ 1 ]
-    result._key = result._key[ 0 ]
-    return result
+    const virtualUser = await this.create( entity )
+    virtualUser._id = virtualUser._key[ 1 ]
+    virtualUser._key = virtualUser._key[ 0 ]
+    return virtualUser
   }
 }

@@ -27,10 +27,11 @@ export class BlacklistRepository extends DefaultCrudRepository<
   /**
   * create model like a human being
   */
-  public async createHumanKind ( entity: DataObject<Blacklist> ) {
-    const result = await this.create( entity )
-    result._id = result._key[ 1 ]
-    result._key = result._key[ 0 ]
-    return result
+  public async createHumanKind ( entity: DataObject<Blacklist> )
+    : Promise<Blacklist> {
+    const blackList = await this.create( entity )
+    blackList._id = blackList._key[ 1 ]
+    blackList._key = blackList._key[ 0 ]
+    return blackList
   }
 }

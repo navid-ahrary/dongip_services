@@ -57,10 +57,10 @@ export class UsersRepository extends DefaultCrudRepository<
   * create model like a human being
   */
   public async createHumanKind ( entity: DataObject<Users> ): Promise<Users> {
-    const result = await this.create( entity )
-    result._id = result._key[ 1 ]
-    result._key = result._key[ 0 ]
-    return result
+    const user = await this.create( entity )
+    user._id = user._key[ 1 ]
+    user._key = user._key[ 0 ]
+    return user
   }
 
   /**
@@ -69,10 +69,10 @@ export class UsersRepository extends DefaultCrudRepository<
   public async createHumanKindUsersRels (
     _key: typeof Users.prototype._key,
     entity: DataObject<UsersRels> ): Promise<UsersRels> {
-    const result = await this.usersRels( _key ).create( entity )
-    result._id = result._key[ 1 ]
-    result._key = result._key[ 0 ]
-    return result
+    const userRel = await this.usersRels( _key ).create( entity )
+    userRel._id = userRel._key[ 1 ]
+    userRel._key = userRel._key[ 0 ]
+    return userRel
   }
 
   /**
@@ -81,10 +81,10 @@ export class UsersRepository extends DefaultCrudRepository<
   public async createHumanKindVirtualUsers (
     _key: typeof Users.prototype._key,
     entity: DataObject<VirtualUsers> ): Promise<VirtualUsers> {
-    const result = await this.virtualUsers( _key ).create( entity )
-    result._id = result._key[ 1 ]
-    result._key = result._key[ 0 ]
-    return result
+    const virtualUser = await this.virtualUsers( _key ).create( entity )
+    virtualUser._id = virtualUser._key[ 1 ]
+    virtualUser._key = virtualUser._key[ 0 ]
+    return virtualUser
   }
 
   /**
@@ -93,10 +93,10 @@ export class UsersRepository extends DefaultCrudRepository<
   public async createHumanKindCategory (
     _key: typeof Users.prototype._key,
     entity: DataObject<Category> ): Promise<Category> {
-    const result = await this.categories( _key ).create( entity )
-    result._id = result._key[ 1 ]
-    result._key = result._key[ 0 ]
-    return result
+    const category = await this.categories( _key ).create( entity )
+    category._id = category._key[ 1 ]
+    category._key = category._key[ 0 ]
+    return category
   }
 
   /**
@@ -105,9 +105,9 @@ export class UsersRepository extends DefaultCrudRepository<
   public async createHumanKindDongs (
     _key: typeof Users.prototype._key,
     entity: DataObject<Dongs> ): Promise<Dongs> {
-    const result = await this.dongs( _key ).create( entity )
-    result._id = result._key[ 1 ]
-    result._key = result._key[ 0 ]
-    return result
+    const dong = await this.dongs( _key ).create( entity )
+    dong._id = dong._key[ 1 ]
+    dong._key = dong._key[ 0 ]
+    return dong
   }
 }
