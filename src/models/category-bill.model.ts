@@ -26,14 +26,22 @@ export class CategoryBill extends Entity {
   _rev: string
 
   @property( {
+    type: 'string',
+  } )
+  _from: string
+
+  @property( {
+    type: 'string',
+  } )
+  _to: string
+
+  @property( {
     type: 'number',
-    required: true,
   } )
   dong: number
 
   @property( {
     type: 'number',
-    required: true,
   } )
   paidCost: number
 
