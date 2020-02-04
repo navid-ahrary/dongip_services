@@ -47,10 +47,12 @@ export class UsersUsersRelsController {
       )
     }
     const usersRelsList = await this.usersRepository.usersRels( _key ).find( filter )
-    for ( const ob of usersRelsList ) {
-      delete ob._to
-      delete ob.belongsToUserKey
-    }
+    usersRelsList.forEach( function ( usersRel ) {
+      delete usersRel._to
+      delete usersRel.belongsToUserKey
+      delete usersRel.targetUsersId
+
+    } )
     return usersRelsList
   }
 
