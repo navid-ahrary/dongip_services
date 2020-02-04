@@ -1,6 +1,5 @@
-import { Entity, model, property, belongsTo, hasMany } from '@loopback/repository'
+import { Entity, model, property, belongsTo, } from '@loopback/repository'
 import { Users } from './users.model'
-import { Dongs } from './dongs.model'
 
 @model()
 export class VirtualUsers extends Entity {
@@ -34,9 +33,6 @@ export class VirtualUsers extends Entity {
 
   @belongsTo( () => Users, { name: 'belongsToUser' } )
   belongsToUserKey: string
-
-  @hasMany( () => Dongs )
-  dongs: string
 
   constructor ( data?: Partial<VirtualUsers> ) {
     super( data )
