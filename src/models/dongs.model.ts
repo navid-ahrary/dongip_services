@@ -1,5 +1,4 @@
 import { Entity, model, property, belongsTo } from '@loopback/repository'
-import { Eqip } from './eqip.model'
 import { Users } from './users.model'
 import { Category } from './category.model'
 
@@ -68,12 +67,18 @@ export class Dongs extends Entity {
     type: 'array',
     itemType: 'object',
   } )
-  eqip: Eqip[]
+  eqip: {
+    usersRelId: string,
+    guests?: string,
+    factor: number,
+    paidCost: number,
+    dong: number
+  }[]
 
   @property( {
     type: 'string',
   } )
-  xManUsersRelsKey?: string
+  xManUsersRelId: string
 
   @belongsTo( () => Users, { name: 'belongsToUser' } )
   belongsToUserKey: string
