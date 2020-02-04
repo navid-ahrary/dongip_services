@@ -46,8 +46,12 @@ export class UsersUsersRelsController {
         'Error find category, Token is not matched to this user _key!',
       )
     }
-
-    return this.usersRepository.usersRels( _key ).find( filter )
+    const usersRelsList = await this.usersRepository.usersRels( _key ).find( filter )
+    for ( const ob of usersRelsList ) {
+      delete ob._to
+      delete ob.belongsToUserKey
+    }
+    return usersRelsList
   }
 
 
