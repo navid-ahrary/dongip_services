@@ -18,7 +18,7 @@ export class VerificationsRepository extends DefaultCrudRepository<
   // Get random verify code
   public async getCode () {
     const count = await this.count()
-    const randomNumber = Math.floor( Math.random() * count.count )
+    const randomNumber = Math.floor( Math.random() * ( count.count + 1 ) )
     const verifyCode = await this.findOne( {
       offset: randomNumber,
       limit: 1
