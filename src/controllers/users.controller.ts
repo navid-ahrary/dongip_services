@@ -2,51 +2,69 @@
 /* eslint-disable require-atomic-updates */
 import { inject } from '@loopback/core'
 import { repository } from '@loopback/repository'
-import { post, getModelSchemaRef, requestBody, HttpErrors, get, param, patch } from '@loopback/rest'
-
+import {
+  post, getModelSchemaRef, requestBody, HttpErrors, get, param, patch
+} from '@loopback/rest'
 import { Users, Credentials, UsersRels } from '../models'
-import { UsersRepository, BlacklistRepository } from '../repositories'
-import { authenticate, UserService, TokenService } from '@loopback/authentication'
+import {
+  UsersRepository, BlacklistRepository, VerificationsRepository
+} from '../repositories'
+import {
+  authenticate, UserService, TokenService
+} from '@loopback/authentication'
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security'
-import { PasswordHasherBindings, UserServiceBindings, TokenServiceBindings } from '../keys'
+import {
+  PasswordHasherBindings, UserServiceBindings, TokenServiceBindings
+} from '../keys'
 import { PasswordHasher } from '../services/hash.password.bcryptjs'
 import { validatePhoneNumber, validatePassword } from '../services/validator'
-import { CredentialsRequestBody, UserProfileSchema } from './specs/user-controller.specs'
+import {
+  CredentialsRequestBody, UserProfileSchema
+} from './specs/user-controller.specs'
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
-import underscore from 'underscore'
+import _ from 'underscore'
 import moment from 'moment'
 
 export class UsersController {
   constructor (
     @repository( UsersRepository ) public usersRepository: UsersRepository,
-    @repository( BlacklistRepository ) public blacklistRepository: BlacklistRepository,
-    @inject( PasswordHasherBindings.PASSWORD_HASHER ) public passwordHasher: PasswordHasher,
-    @inject( UserServiceBindings.USER_SERVICE ) public userService: UserService<Users, Credentials>,
-    @inject( TokenServiceBindings.TOKEN_SERVICE ) public jwtService: TokenService,
+    @repository( BlacklistRepository )
+    public blacklistRepository: BlacklistRepository,
+    @repository( VerificationsRepository )
+    public verificationsRepository: VerificationsRepository,
+    @inject( PasswordHasherBindings.PASSWORD_HASHER )
+    public passwordHasher: PasswordHasher,
+    @inject( UserServiceBindings.USER_SERVICE )
+    public userService: UserService<Users, Credentials>,
+    @inject( TokenServiceBindings.TOKEN_SERVICE )
+    public jwtService: TokenService,
   ) { }
+
 
   arrayHasObject ( arr: object[], obj: object ): boolean {
     for ( const ele of arr ) {
-      if ( underscore.isEqual( ele, obj ) ) {
+      if ( _.isEqual( ele, obj ) ) {
         return true
       }
     }
     return false
   }
 
+
   arrayRemoveItem ( arr: object[], obj: object ) {
     arr.forEach( function ( ele ) {
-      if ( underscore.isEqual( ele, obj ) ) {
+      if ( _.isEqual( ele, obj ) ) {
         arr.splice( arr.indexOf( ele ) )
       }
     } )
     return arr
   }
 
-  @get( '/apis/users/{phone}/check', {
+
+  @get( '/apis/users/check', {
     responses: {
       '200': {
-        description: 'Check this phone number has been registerd or must register now',
+        description: 'Checking this phone number has been registerd and sending verify sms',
         content: {
           'application/json': {
             schema: {
@@ -63,12 +81,14 @@ export class UsersController {
   } )
   @authenticate.skip()
   async checkPhoneNumber (
-    @param.path.string( 'phone' ) phone: string,
+    @param.query.string( 'phone' ) phone: string,
+    @param.query.string( 'registerationToken' ) registerationToken: string,
   ): Promise<object> {
     try {
+      phone = phone.replace( ' ', '+' )
       let isRegistered = false
-      // Ensure a valid phone number
       validatePhoneNumber( phone )
+      const verifyCode = await this.verificationsRepository.getCode()
 
       const user = await this.usersRepository.findOne( {
         where: { phone: phone },
@@ -76,18 +96,22 @@ export class UsersController {
           name: true,
           avatar: true,
           _rev: true,
+          _id: true,
           _key: true
         },
       } )
+      console.log( user )
+
       if ( user ) {
         isRegistered = true
       }
-      return { isRegistered, ...user }
+      return { isRegistered, ...user, ...verifyCode }
     } catch ( err ) {
       console.log( err.message )
       throw new HttpErrors.MethodNotAllowed( err )
     }
   }
+
 
   @post( '/apis/users/{phone}/signup', {
     responses: {
@@ -138,7 +162,7 @@ export class UsersController {
       const savedUser = await this.usersRepository.createHumanKind( user )
       delete user.password
 
-      // Convert a User object into a UserProfile object (reduced set of properties)
+      // Convert a User object into a UserProfile object
       const userProfile = this.userService.convertToUserProfile( savedUser )
 
       // Create a JWT token based on the user profile
@@ -171,6 +195,7 @@ export class UsersController {
       }
     }
   }
+
 
   @post( '/apis/users/{phone}/login', {
     responses: {
@@ -226,6 +251,7 @@ export class UsersController {
     }
   }
 
+
   @get( '/apis/users/{_key}/logout', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -260,6 +286,7 @@ export class UsersController {
     }
   }
 
+
   @get( '/apis/users/{_key}/me', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -292,6 +319,7 @@ export class UsersController {
 
     return { _key: user._key, name: user.name, accessToken: accessToken }
   }
+
 
   @get( '/apis/users/{_key}', {
     security: OPERATION_SECURITY_SPEC,
