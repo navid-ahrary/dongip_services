@@ -69,6 +69,7 @@ export class Dongs extends Entity {
   } )
   eqip: {
     usersRelId: string,
+    userId: string,
     guests?: string,
     factor: number,
     paidCost: number,
