@@ -4,11 +4,11 @@ import {
   get, getModelSchemaRef, param, post, requestBody, HttpErrors
 } from '@loopback/rest'
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security'
-import underscore from 'underscore'
+import _ from 'underscore'
 import { authenticate } from '@loopback/authentication'
 import { inject } from '@loopback/core'
 import * as admin from 'firebase-admin'
-import { Users, Dongs, Category } from '../models'
+import { Users, Dongs, Category, UsersRels } from '../models'
 import { UsersRepository, CategoryRepository } from '../repositories'
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 
@@ -20,28 +20,27 @@ export class UsersDongsController {
   ) { }
 
 
-  async isNodesUsersOrVirtualUsers (
-    currentUserId: typeof Users.prototype._key,
-    nodes: typeof Users.prototype._key[],
-  ) {
-    for ( const node of nodes ) {
-      const user = await this.usersRepository.findById( node )
-      if ( !user ) {
-        const virtualUser = await this.usersRepository
-          .virtualUsers( currentUserId )
-          .find( { where: { _key: node } } )
-        if ( !virtualUser ) {
-          return false
+  async getNodesIds ( _key: string, usersRelsIdsList: string[] )
+    : Promise<false | string[]> {
+    let usersIdsList: string[] = []
+    for ( const id of usersRelsIdsList ) {
+      const relList = await this.usersRepository.usersRels( _key )
+        .find( { where: { _id: id } } )
+      if ( relList.length === 0 ) {
+        return false
+      } else {
+        if ( usersIdsList.indexOf( relList[ 0 ]._to ) > -1 ) {
+          usersIdsList.push( relList[ 0 ]._to )
         }
       }
     }
-    return true
+    return usersIdsList
   }
 
 
   arrayHasObject ( arr: object[], obj: object ): boolean {
     for ( const ele of arr ) {
-      if ( underscore.isEqual( ele, obj ) ) {
+      if ( _.isEqual( ele, obj ) ) {
         return true
       }
     }
@@ -75,7 +74,13 @@ export class UsersDongsController {
     responses: {
       '200': {
         description: 'Users.Dongs post model instance',
-        content: { 'application/json': { schema: getModelSchemaRef( Dongs ) } },
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef( Dongs, {
+              exclude: [ "belongsToCategoryKey", "belongsToUserKey" ]
+            } )
+          }
+        },
       },
     },
   } )
@@ -88,8 +93,8 @@ export class UsersDongsController {
         'application/json': {
           schema: getModelSchemaRef( Dongs, {
             title: 'NewDongsInUsers',
-            exclude: [ "_key", "_id", "_rev", "costs" ],
-            optional: [ "belongsToUserKey" ],
+            exclude: [ "_key", "_id", "_rev", "costs", "belongsToUserKey",
+              "belongsToCategoryKey" ],
           } ),
         },
       },
@@ -101,110 +106,127 @@ export class UsersDongsController {
         'Error create a new dong, Token is not matched to this user _key!',
       )
     }
-    interface CategoryBill {
-      dongsId?: string
-      dong?: number
-      paidCost?: number
-      calculation?: number
-    }
 
-    let expensesManager: Users,
+    let xManUsersRel: UsersRels[],
+      xManKey: string,
+      xManUsersRelId = dongs.xManUsersRelId,
+      usersRelsIdsList: string[] = [],
+      eqip = dongs.eqip,
+      nodes: string[] | false,
       pong = 0,
+      dong = 0,
       factorNodes = 0,
-      nodes = []
+      transaction: Dongs,
+      categoryId: string = dongs.categoryId,
+      xManCategory: Category,
+      registrationTokens: string[] = []
 
-    for ( const item of dongs.eqip ) {
-      nodes.push( item.usersRelsId )
-    }
+    delete dongs.categoryId
+    delete dongs.xManUsersRelId
 
-    if ( dongs.belongsToUserKey ) {
-      expensesManager = await this.usersRepository.findById( dongs.belongsToUserKey )
-    } else {
-      expensesManager = await this.usersRepository.findById( _key )
-    }
+    usersRelsIdsList.push( xManUsersRelId )
+    for ( const _node of eqip ) {
+      const relList = await this.usersRepository.usersRels( _key )
+        .find( { where: { _id: _node.usersRelId } } )
 
-    if ( !( await this.isNodesUsersOrVirtualUsers( currentUserProfile[ securityId ], nodes ) ) ) {
-      throw new HttpErrors.NotAcceptable( 'Some of this users keys are not available for you! ' )
-    }
-
-    // for ( const item of dongs.eqip ) {
-    //   if (
-    //     item.usersRelsId !== expensesManager._key.toString() &&
-    //     !expensesManager.friends.includes( item.usersRelsId ) &&
-    //     !this.arrayHasObject( expensesManager.pendingFriends, {
-    //       recipient: expensesManager._key,
-    //       requester: item.usersRelsId,
-    //     } ) &&
-    //     !this.arrayHasObject( expensesManager.pendingFriends, {
-    //       recipient: item.usersRelsId,
-    //       requester: expensesManager._key,
-    //     } )
-    //   ) {
-    //     throw new HttpErrors.NotAcceptable(
-    //       'Expenses manager must be friends with all of users',
-    //     )
-    //   } else {
-    //     pong += item[ 'paidCost' ]
-    //     factorNodes += item[ 'factor' ]
-    //   }
-    // }
-
-    dongs.pong = pong
-    const dong = pong / factorNodes
-    for ( const n of dongs.eqip ) {
-      n.dong = dong * n.factor
-    }
-
-    const transaction = await this.usersRepository.dongs( expensesManager._key ).create( dongs )
-    let categoryBill: CategoryBill = { dongsId: transaction._key, dong: dong, }
-
-    // find category name in expenses manager's caetgories list
-    const expensesManagerCategoryList = await this.usersRepository
-      .categories( expensesManager._key )
-      .find( {
-        where: { _key: dongs.belongsToCategoryKey, },
-      } )
-
-    expensesManager.dongsId.push( transaction._key )
-    await this.usersRepository.updateById( expensesManager._key, expensesManager )
-
-    const registrationTokens: string[] = []
-    for ( const n of dongs.eqip ) {
-      let nodeCategory: Category
-      // if (n.node === expensesManager._key.toString()) continue;
-      const paidCost = n.paidCost
-
-      categoryBill.paidCost = paidCost
-      categoryBill.calculation = dong - paidCost
-
-      const nCategory = await this.usersRepository.categories( n.usersRelsId )
-        .find( {
-          where: { _key: dongs.belongsToCategoryKey },
-        } )
-
-      if ( nCategory.length === 0 ) {
-        //create a category with name that provided by expenses manager
-        nodeCategory = await this.usersRepository
-          .categories( n.usersRelsId )
-          .create( { title: expensesManagerCategoryList[ 0 ].title } )
-      } else if ( nCategory.length === 1 ) {
-        nodeCategory = nCategory[ 0 ]
-      } else {
+      if ( relList.length === 0 ) {
         throw new HttpErrors.NotAcceptable(
-          'Find multi category with this name for userId ' + n.usersRelsId,
-        )
+          'You have not relation with some of users!' )
+      } else {
+        _node[ 'userId' ] = ( relList[ 0 ]._to )
+      }
+    }
+    eqip.forEach( _item => {
+      usersRelsIdsList.push( _item.usersRelId )
+    } )
+
+    // Get eqip users ids
+    nodes = await this.getNodesIds( _key, usersRelsIdsList )
+    // Check current user has all usersRels
+    if ( !nodes ) {
+      throw new HttpErrors.NotAcceptable(
+        'You have not relation with some of users!' )
+    }
+
+    xManUsersRel = await this.usersRepository.usersRels( _key )
+      .find( { where: { _id: xManUsersRelId } } )
+    xManKey = xManUsersRel[ 0 ]._to.split( '/' )[ 1 ]
+
+    // If current user and xManare different user
+    // check that xMan has relation with all eqip user
+    if ( _key !== xManKey ) {
+      usersRelsIdsList = []
+      for ( const __id in nodes ) {
+        const relList = await this.usersRepository.usersRels( xManKey )
+          .find( { where: { _to: __id } } )
+        if ( !relList[ 0 ] ) {
+          throw new HttpErrors.NotAcceptable(
+            'xMan has not relation with some of users!' )
+        }
+        usersRelsIdsList.push( relList[ 0 ]._id )
+      }
+    }
+
+    // find category name in current suer's caetgories list
+    const findedCategoryList = await this.usersRepository.categories( _key )
+      .find( { where: { _id: categoryId }, } )
+
+    if ( findedCategoryList.length !== 1 ) {
+      throw new HttpErrors.NotAcceptable( 'This category is not avaiable!' )
+    }
+    xManCategory = findedCategoryList[ 0 ]
+
+    switch ( dongs.factorType ) {
+      case 'coefficient':
+        eqip.forEach( n => {
+          factorNodes += n.factor
+          pong += n.paidCost
+        } )
+        dongs[ 'pong' ] = pong
+        dong = pong / factorNodes
+        eqip.forEach( n => {
+          n[ 'dong' ] = dong * n.factor
+        } )
+        break
+
+      case 'amount':
+        throw new HttpErrors.NotImplemented( 'Not implemented yet!' )
+
+      case 'percent':
+        throw new HttpErrors.NotImplemented( 'Not implemented yet!' )
+    }
+    transaction = await this.usersRepository.createHumanKindDongs( xManKey, dongs )
+
+    for ( const n of eqip ) {
+      let nodeCategory: Category
+      const findCategory = await this.usersRepository.categories( n.userId.split( '/' )[ 1 ] )
+        .find( { where: { title: xManCategory.title } } )
+
+      if ( findCategory.length !== 1 ) {
+        nodeCategory = await this.usersRepository.createHumanKindCategory(
+          n.userId.split( '/' )[ 1 ], {
+          title: xManCategory.title,
+          icon: xManCategory.icon
+        } )
+      } else {
+        nodeCategory = findCategory[ 0 ]
       }
 
-      // create bill belonging to created category
-      await this.categoryRepository.categoryBills( nodeCategory._key ).create( categoryBill )
+      await this.usersRepository.createHumanKindCategoryBills(
+        n.userId.split( '/' )[ 1 ], {
+        _from: transaction._id,
+        _to: categoryId,
+        dong: n.dong,
+        paidCost: n.paidCost,
+        belongsToCategoryKey: nodeCategory._key,
+        belongsToUserKey: n.userId.split( '/' )[ 1 ],
+        belongsToDongKey: transaction._key
+      } )
 
-      const node = await this.usersRepository.findById( n.usersRelsId )
-      node.dongsId.push( transaction._key )
-      await this.usersRepository.updateById( n.usersRelsId, node )
-
+      const user = await this.usersRepository.findById( n.userId.split( '/' )[ 1 ] )
       // Do not add expenses manager to the reciever notification list
-      if ( n.usersRelsId !== expensesManager._key.toString() ) {
-        registrationTokens.push( node.registerationToken )
+      if ( n.userId.split( '/' )[ 1 ] !== xManKey ) {
+        registrationTokens.push( user.registerationToken )
       }
     }
 
@@ -212,11 +234,11 @@ export class UsersDongsController {
     const message: admin.messaging.MulticastMessage = {
       notification: {
         title: 'دنگیپ دنگ جدید',
-        body: `${ dongs.belongsToCategoryKey } توسط ${ expensesManager.name } دنگیپ شد`,
+        body: `${ dongs.belongsToCategoryKey } توسط ${ xManUsersRel[ 0 ].alias } دنگیپ شد`,
       },
       data: {
-        name: expensesManager.name,
-        _key: expensesManager._key.toString(),
+        name: xManUsersRel[ 0 ].alias,
+        _key: xManUsersRel[ 0 ]._to.split( '/' )[ 0 ],
       },
       tokens: registrationTokens,
     }
@@ -238,14 +260,12 @@ export class UsersDongsController {
             `List of tokens that caused failure ${ failedTokens }`,
           )
         }
-
         console.log( `Successfully sent notifications, ${ _response }` )
       } )
       .catch( function ( _error ) {
         console.log( `Error sending notifications, ${ _error }` )
         throw new HttpErrors.NotImplemented( `Error sending notifications, ${ _error }` )
       } )
-
     return { _key: transaction._key }
   }
 }
