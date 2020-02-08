@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prefer-const */
 /* eslint-disable require-atomic-updates */
 import { inject } from '@loopback/core'
@@ -7,7 +8,7 @@ import {
 } from '@loopback/rest'
 import { Users, Credentials, UsersRels } from '../models'
 import {
-  UsersRepository, BlacklistRepository, VerificationsRepository
+  UsersRepository, BlacklistRepository, PoemRepository, VerifyRepository
 } from '../repositories'
 import {
   authenticate, UserService, TokenService
@@ -24,21 +25,33 @@ import {
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 import _ from 'underscore'
 import moment from 'moment'
+import admin from 'firebase-admin'
+const Kavenegar = require( 'kavenegar' )
+
 
 export class UsersController {
   constructor (
     @repository( UsersRepository ) public usersRepository: UsersRepository,
     @repository( BlacklistRepository )
     public blacklistRepository: BlacklistRepository,
-    @repository( VerificationsRepository )
-    public verificationsRepository: VerificationsRepository,
+    @repository( VerifyRepository ) public verifyRepository: VerifyRepository,
+    @repository( PoemRepository ) public poemsRepository: PoemRepository,
     @inject( PasswordHasherBindings.PASSWORD_HASHER )
     public passwordHasher: PasswordHasher,
     @inject( UserServiceBindings.USER_SERVICE )
     public userService: UserService<Users, Credentials>,
-    @inject( TokenServiceBindings.TOKEN_SERVICE )
-    public jwtService: TokenService,
+    @inject( TokenServiceBindings.TOKEN_SERVICE ) public jwtService: TokenService,
   ) { }
+  smsApi = Kavenegar.KavenegarApi( {
+    apikey: process.env.KAVENEGAR_API
+  } )
+
+
+  TimeDiff = ( startTime: any, endTime: any, format: any ) => {
+    startTime = moment( startTime, 'YYYY-MM-DD HH:mm:ss' )
+    endTime = moment( endTime, 'YYYY-MM-DD HH:mm:ss' )
+    return endTime.diff( startTime, format )
+  }
 
 
   arrayHasObject ( arr: object[], obj: object ): boolean {
@@ -61,7 +74,19 @@ export class UsersController {
   }
 
 
-  @get( '/apis/users/check', {
+  generateRandomString ( length: number ) {
+    let result = '',
+      characters =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~!?'@#$%^&()<>{}[]_-*+|/",
+      charactersLength = characters.length
+    for ( let i = 0; i < length; i++ ) {
+      result += characters.charAt( Math.floor( Math.random() * charactersLength ) )
+    }
+    return result
+  }
+
+
+  @get( '/apis/users/verify', {
     responses: {
       '200': {
         description: 'Checking this phone number has been registerd and sending verify sms',
@@ -88,7 +113,6 @@ export class UsersController {
       phone = phone.replace( ' ', '+' )
       let isRegistered = false
       validatePhoneNumber( phone )
-      const verifyCode = await this.verificationsRepository.getCode()
 
       const user = await this.usersRepository.findOne( {
         where: { phone: phone },
@@ -100,12 +124,11 @@ export class UsersController {
           _key: true
         },
       } )
-      console.log( user )
 
       if ( user ) {
         isRegistered = true
       }
-      return { isRegistered, ...user, ...verifyCode }
+      return { isRegistered, ...user }
     } catch ( err ) {
       console.log( err.message )
       throw new HttpErrors.MethodNotAllowed( err )
@@ -119,7 +142,9 @@ export class UsersController {
         description: 'User',
         content: {
           'application/json': {
-            schema: getModelSchemaRef( Users ),
+            schema: getModelSchemaRef( Users, {
+              exclude: [ 'osSpec', 'password', 'accountType' ]
+            } ),
           },
         },
       },
@@ -156,7 +181,7 @@ export class UsersController {
       validatePassword( user.password )
 
       // encrypt the password
-      user.password = await this.passwordHasher.hashPassword( user.password )
+      user.password = ( await ( this.passwordHasher.hashPassword( user.password ) ) ).password
       user.registeredAt = moment().format()
       // Create a new user
       const savedUser = await this.usersRepository.createHumanKind( user )
@@ -217,6 +242,7 @@ export class UsersController {
   @authenticate.skip()
   async login (
     @param.path.string( 'phone' ) phone: string,
+    @param.header.string( 'User-Agent' ) userAgent: string,
     @requestBody( CredentialsRequestBody ) credentials: Credentials,
   )
     : Promise<{ _key: typeof Users.prototype._key, accessToken: string }
@@ -237,6 +263,7 @@ export class UsersController {
 
       //convert a User object into a UserProfile object (reduced set of properties)
       userProfile = this.userService.convertToUserProfile( user )
+      userProfile[ 'aud' ] = userAgent
       //create a JWT token bas1ed on the Userprofile
       accessToken = await this.jwtService.generateToken( userProfile )
 
@@ -321,32 +348,6 @@ export class UsersController {
   }
 
 
-  @get( '/apis/users/{_key}', {
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '204': {
-        description: 'User model instance',
-        content: {
-          'application/json': {
-            schema: getModelSchemaRef( Users ),
-          },
-        },
-      },
-    },
-  } )
-  @authenticate( 'jwt' )
-  async findById (
-    @param.path.string( '_key' ) _key: string,
-    @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-  ): Promise<Users> {
-    if ( _key !== currentUserProfile[ securityId ] ) {
-      throw new HttpErrors.Unauthorized(
-        'Error users findById ,Token is not matched to this user _key!',
-      )
-    }
-    return this.usersRepository.findById( _key )
-  }
-
   @patch( '/apis/users/{_key}', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -376,7 +377,8 @@ export class UsersController {
               "geolocation",
               "password",
               "phone",
-              "registerationToken" ],
+              "registerationToken",
+              "osSpec" ],
           } ),
         },
       },
