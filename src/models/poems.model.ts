@@ -1,7 +1,7 @@
 import { Entity, model, property } from '@loopback/repository'
 
 @model()
-export class Verifications extends Entity {
+export class Poems extends Entity {
   @property( {
     type: 'string',
   } )
@@ -26,13 +26,13 @@ export class Verifications extends Entity {
   _id?: string
 
 
-  constructor ( data?: Partial<Verifications> ) {
+  constructor ( data?: Partial<Poems> ) {
     super( data )
   }
 }
 
-export interface VerificationsRelations {
+export interface PoemsRelations {
   // describe navigational properties here
 }
 
-export type VerificationsWithRelations = Verifications & VerificationsRelations
+export type PoemsWithRelations = Poems & PoemsRelations

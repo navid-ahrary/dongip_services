@@ -1,4 +1,4 @@
-import { genSalt, hash, compare } from 'bcryptjs'
+import { genSalt, hash, compare, } from 'bcryptjs'
 import { inject } from '@loopback/core'
 import { PasswordHasherBindings } from '../keys'
 
@@ -12,34 +12,30 @@ export type HashPassword = (
   rounds: number,
 ) => Promise<string>
 // bind function to `services.bcryptjs.HashPassword`
-export async function hashPassword (
-  password: string,
-  rounds: number,
-): Promise<string> {
+export async function hashPassword ( password: string, rounds: number )
+  : Promise<{ password: string, salt: string }> {
   const salt = await genSalt( rounds )
-  return hash( password, salt )
+  return { password: await hash( password, salt ), salt: salt }
 }
 
 export interface PasswordHasher<T = string> {
-  hashPassword ( password: T ): Promise<T>
+  hashPassword ( password: T ): Promise<{ password: string, salt: string }>
   comparePassword ( providedPass: T, storedPass: T ): Promise<boolean>
 }
 
 export class BcryptHasher implements PasswordHasher<string> {
   constructor (
-    @inject( PasswordHasherBindings.ROUNDS )
-    private readonly rounds: number,
+    @inject( PasswordHasherBindings.ROUNDS ) private readonly rounds: number,
   ) { }
 
-  async hashPassword ( password: string ): Promise<string> {
+  async hashPassword ( password: string )
+    : Promise<{ password: string, salt: string }> {
     const salt = await genSalt( this.rounds )
-    return hash( password, salt )
+    return { password: await hash( password, salt ), salt: salt }
   }
 
-  async comparePassword (
-    providedPass: string,
-    storedPass: string,
-  ): Promise<boolean> {
+  async comparePassword ( providedPass: string, storedPass: string )
+    : Promise<boolean> {
     const passwordIsMatched = await compare( providedPass, storedPass )
     return passwordIsMatched
   }

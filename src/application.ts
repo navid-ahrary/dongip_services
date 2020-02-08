@@ -7,20 +7,17 @@ import { ServiceMixin } from '@loopback/service-proxy'
 import { registerAuthenticationStrategy } from '@loopback/authentication'
 import * as path from 'path'
 import * as admin from 'firebase-admin'
-import dotenv = require( 'dotenv' )
-dotenv.config()
-
 import { MyAuthenticationSequence } from './sequence'
 import { UserAuthenticationComponent } from './components/user.authentication'
 import { JWTAutehticationStrategy } from './authentication-strategies/jwt-strategy'
-import
-{
+import {
   TokenServiceBindings, TokenServiceConstants, PasswordHasherBindings, UserServiceBindings
 } from './keys'
 import { JWTService } from './services/jwt.service'
 import { SECURITY_SCHEME_SPEC } from './utils/security-specs'
 import { BcryptHasher } from './services/hash.password.bcryptjs'
 import { MyUserService } from './services/user.service'
+require( 'dotenv' ).config()
 
 
 const serviceAccount = require( `${ process.env.GOOGLE_APPLICATION_CREDENTIALS }` )
@@ -29,11 +26,11 @@ admin.initializeApp( {
   databaseURL: process.env.GOOGLE_APPLICATION_DATABASEURL,
 } )
 
+
 /**
  * Information from package.json
  */
-export interface PackageInfo
-{
+export interface PackageInfo {
   name: string
   version: string
   description: string
@@ -45,8 +42,7 @@ const pkg: PackageInfo = require( '../package.json' )
 export class LoginServiceApplication extends BootMixin(
   ServiceMixin( RepositoryMixin( RestApplication ) ),
 ) {
-  constructor ( options: ApplicationConfig = {} )
-  {
+  constructor ( options: ApplicationConfig = {} ) {
     super( options )
 
     this.api( {
@@ -85,10 +81,12 @@ export class LoginServiceApplication extends BootMixin(
         nested: true,
       },
     }
+
   }
 
-  setupBinding (): void
-  {
+  hashRound = process.env.HASH_ROUND
+
+  setupBinding (): void {
     // Bind package.json to the application context
     this.bind( PackageKey ).to( pkg )
 
@@ -107,7 +105,7 @@ export class LoginServiceApplication extends BootMixin(
     this.bind( TokenServiceBindings.TOKEN_SERVICE ).toClass( JWTService )
 
     // Bind bcrypt hash service
-    this.bind( PasswordHasherBindings.ROUNDS ).to( 10 )
+    this.bind( PasswordHasherBindings.ROUNDS ).to( Number( this.hashRound ) )
     this.bind( PasswordHasherBindings.PASSWORD_HASHER ).toClass( BcryptHasher )
 
     this.bind( UserServiceBindings.USER_SERVICE ).toClass( MyUserService )

@@ -1,14 +1,18 @@
 import {
   DefaultCrudRepository, repository, HasManyRepositoryFactory, DataObject,
 } from '@loopback/repository'
-import { Users, VirtualUsers, Dongs, Category, UsersRels, CategoryBill } from '../models'
+import {
+  Users, VirtualUsers, Dongs, Category, UsersRels, CategoryBill
+} from '../models'
 import { ArangodbDataSource } from '../datasources'
 import { inject, Getter } from '@loopback/core'
+import { PasswordHasher } from '../services/hash.password.bcryptjs'
 import { VirtualUsersRepository } from './virtual-users.repository'
 import { DongsRepository } from './dongs.repository'
 import { CategoryRepository } from './category.repository'
 import { UsersRelsRepository } from './users-rels.repository'
 import { CategoryBillRepository } from './category-bill.repository'
+import { PasswordHasherBindings } from '../keys'
 
 export class UsersRepository extends DefaultCrudRepository<
   Users, typeof Users.prototype._key> {
@@ -24,7 +28,9 @@ export class UsersRepository extends DefaultCrudRepository<
   public readonly usersRels: HasManyRepositoryFactory<
     UsersRels, typeof Users.prototype._key>
 
-  public readonly categoryBills: HasManyRepositoryFactory<CategoryBill, typeof Users.prototype._key>
+  public readonly categoryBills: HasManyRepositoryFactory<
+    CategoryBill,
+    typeof Users.prototype._key>
 
   constructor (
     @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource,
@@ -38,6 +44,8 @@ export class UsersRepository extends DefaultCrudRepository<
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
     @repository.getter( 'CategoryBillRepository' )
     protected categoryBillRepositoryGetter: Getter<CategoryBillRepository>,
+    @inject( PasswordHasherBindings.PASSWORD_HASHER )
+    public passwordHasher: PasswordHasher,
   ) {
     super( Users, dataSource )
     this.categoryBills = this.createHasManyRepositoryFactoryFor(
@@ -129,4 +137,23 @@ export class UsersRepository extends DefaultCrudRepository<
     dong._key = dong._key[ 0 ]
     return dong
   }
+
+  /**
+   * generate a random verify code
+   */
+  // public async generateVerifyCode (
+  //   user: Users | null,
+  //   key: string,
+  //   regToken: string,
+  //   osSpec: string,
+  // ): Promise<string> {
+  //   const verifyCode = Math.floor( Math.random() * 1000000 ).toString()
+  //   const hashedPass = await this.passwordHasher.hashPassword( verifyCode )
+  //   await this.updateById( user!._key, {
+  //     registerationToken: regToken,
+  //     password: hashedPass,
+  //     osSpec: osSpec
+  //   } )
+  //   return verifyCode
+  // }
 }

@@ -85,6 +85,12 @@ export class Users extends Entity {
   registerationToken: string
 
   @property( {
+    type: 'string',
+    reqiured: true,
+  } )
+  osSpec: string
+
+  @property( {
     type: 'array',
     itemType: 'string',
     required: false,
