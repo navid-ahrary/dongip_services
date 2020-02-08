@@ -26,8 +26,8 @@ import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 import _ from 'underscore'
 import moment from 'moment'
 import admin from 'firebase-admin'
+require( 'dotenv' ).config()
 const Kavenegar = require( 'kavenegar' )
-
 
 export class UsersController {
   constructor (
@@ -109,72 +109,83 @@ export class UsersController {
     @param.header.string( 'User-Agent' ) userAgent: string,
     @param.query.string( 'phone' ) phone: string,
     @param.query.string( 'registerationToken' ) registerationToken: string,
-  ) {
+  ): Promise<object> {
     let isRegistered = false,
       user: Users | null,
       verifyCode: number,
       verifyEntity = { _key: '', createdAt: '', password: '' },
       hashedVerifyCodeObj: { password: string, salt: string },
-      payload: admin.messaging.MessagingPayload
+      payload: admin.messaging.MessagingPayload,
+      phoneNom = phone.replace( ' ', '+' )
 
-    validatePhoneNumber( phone )
+    try {
+      validatePhoneNumber( phoneNom )
+    } catch ( _err ) {
+      console.log( _err )
+      throw new HttpErrors.NotAcceptable( _err.message )
+    }
 
-    // verifyCode = Math.floor( Math.random() * 1000000 )
-    // hashedVerifyCodeObj = await this.passwordHasher
-    //   .hashPassword( verifyCode.toString() )
+    verifyCode = Math.floor( Math.random() * 1000000 )
+    hashedVerifyCodeObj = await this.passwordHasher
+      .hashPassword( verifyCode.toString() )
 
-    // verifyEntity[ '_key' ] = phone
-    // verifyEntity[ 'createdAt' ] = moment().format()
-    // verifyEntity[ 'password' ] = ( await this.passwordHasher
-    //   .hashPassword( hashedVerifyCodeObj.password ) ).password
+    verifyEntity[ '_key' ] = phoneNom
+    verifyEntity[ 'createdAt' ] = moment().format()
+    verifyEntity[ 'password' ] = ( await this.passwordHasher
+      .hashPassword( hashedVerifyCodeObj.password ) ).password
 
-    // await this.verifyRepository.create( verifyEntity )
-    //   .then( async _result => {
-    user = await this.usersRepository.findOne( {
-      where: { phone: phone },
-      fields: {
-        name: true,
-        avatar: true,
-        _rev: true,
-        _id: true,
-        _key: true
-      },
-    } )
-    if ( user ) isRegistered = true
+    await this.verifyRepository.create( verifyEntity )
+      .then( async _result => {
+        user = await this.usersRepository.findOne( {
+          where: { phone: phoneNom },
+          fields: {
+            name: true,
+            avatar: true,
+            _rev: true,
+            _id: true,
+            _key: true
+          },
+        } )
+        if ( user ) isRegistered = true
 
-    // this.smsApi.VerifyLookup( {
-    //   token: verifyCode,
-    //   template: 'dongip',
-    //   type: 'sms',
-    //   receptor: phone.replace( '+98', '0' )
-    // },
-    //   function ( response: any, status: any ) {
-    //     console.log( response )
-    //     verifyLook = status
-    //   } )
+        // this.smsApi.VerifyLookup( {
+        //   token: verifyCode,
+        //   template: 'dongip',
+        //   type: 'sms',
+        //   receptor: phone.replace( '+98', '0' )
+        // },
+        //   function ( response: any, status: any ) {
+        //     console.log( response )
+        //     verifyLook = status
+        //   } )
 
-    // payload = { data: { salt: hashedVerifyCodeObj.salt } }
-    // await admin
-    //   .messaging()
-    //   .sendToDevice( registerationToken, payload )
-    //   .then( function ( _res: any ) {
-    //     console.log( _res )
-    //   } )
-    //   .catch( function ( _err: any ) {
-    //     console.log( _err )
-    //   } )
-    // } )
-    // .catch( async _error => {
-    //   await this.verifyRepository.findById( phone )
-    //     .then( _result => {
-    //       const createdAt = _result.createdAt
-    //       const now = moment().format()
-    //       const countTime = this.TimeDiff( createdAt, now, 'second' )
-    //       const remainedTime = Number( process.env.DB_TTL ) - countTime
-    //       throw new HttpErrors.MethodNotAllowed( `Wait about ${ remainedTime } seconds` )
-    //     } )
-    // } )
-    return { isRegistered, ...user! }
+        payload = { data: { salt: hashedVerifyCodeObj.salt } }
+        await admin
+          .messaging()
+          .sendToDevice( registerationToken, payload )
+          .then( function ( _res: any ) {
+            console.log( _res )
+          } )
+          .catch( function ( _err: any ) {
+            console.log( _err )
+          } )
+      } )
+      .catch( async _error => {
+        await this.verifyRepository.findById( phoneNom )
+          .then( _result => {
+            const createdAt = _result.createdAt
+            const now = moment().format()
+            const countTime = this.TimeDiff( createdAt, now, 'second' )
+            const remainedTime = Number( process.env.DB_TTL ) - countTime
+            throw new HttpErrors.MethodNotAllowed( `Wait about ${ remainedTime } seconds` )
+          } )
+      } )
+    return {
+      ...user!,
+      isRegistered,
+      salt: hashedVerifyCodeObj.salt,
+      code: verifyCode
+    }
   }
 
 
