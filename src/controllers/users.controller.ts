@@ -306,6 +306,7 @@ export class UsersController {
       //convert a User object into a UserProfile object (reduced set of properties)
       userProfile = this.userService.convertToUserProfile( user )
       userProfile[ 'aud' ] = userAgent
+      userProfile[ 'accountType' ] = 'pro'
       //create a JWT token bas1ed on the Userprofile
       accessToken = await this.jwtService.generateToken( userProfile )
 
