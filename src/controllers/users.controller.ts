@@ -112,7 +112,7 @@ export class UsersController {
   ): Promise<object> {
     let isRegistered = false,
       user: Users | null,
-      verifyCode: number,
+      verifyCode: string,
       verifyEntity = { _key: '', createdAt: '', password: '' },
       hashedVerifyCodeObj: { password: string, salt: string },
       payload: admin.messaging.MessagingPayload
@@ -124,9 +124,9 @@ export class UsersController {
       throw new HttpErrors.NotAcceptable( _err.message )
     }
 
-    verifyCode = Math.floor( Math.random() * 1000000 )
+    verifyCode = Math.floor( Math.random() * 1000000 ).toString()
     hashedVerifyCodeObj = await this.passwordHasher
-      .hashPassword( verifyCode.toString() )
+      .hashPassword( verifyCode )
 
     verifyEntity[ '_key' ] = phone
     verifyEntity[ 'createdAt' ] = moment().format()
