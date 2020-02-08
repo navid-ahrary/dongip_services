@@ -86,7 +86,7 @@ export class UsersController {
   }
 
 
-  @get( '/apis/users/verify', {
+  @get( '/apis/users/{phone}/verify', {
     responses: {
       '200': {
         description: 'Checking this phone number has been registerd and sending verify sms',
@@ -107,7 +107,7 @@ export class UsersController {
   @authenticate.skip()
   async verify (
     @param.header.string( 'User-Agent' ) userAgent: string,
-    @param.query.string( 'phone' ) phone: string,
+    @param.path.string( 'phone' ) phone: string,
     @param.query.string( 'registerationToken' ) registerationToken: string,
   ): Promise<object> {
     let isRegistered = false,
@@ -115,11 +115,10 @@ export class UsersController {
       verifyCode: number,
       verifyEntity = { _key: '', createdAt: '', password: '' },
       hashedVerifyCodeObj: { password: string, salt: string },
-      payload: admin.messaging.MessagingPayload,
-      phoneNom = phone.replace( ' ', '+' )
+      payload: admin.messaging.MessagingPayload
 
     try {
-      validatePhoneNumber( phoneNom )
+      validatePhoneNumber( phone )
     } catch ( _err ) {
       console.log( _err )
       throw new HttpErrors.NotAcceptable( _err.message )
@@ -129,7 +128,7 @@ export class UsersController {
     hashedVerifyCodeObj = await this.passwordHasher
       .hashPassword( verifyCode.toString() )
 
-    verifyEntity[ '_key' ] = phoneNom
+    verifyEntity[ '_key' ] = phone
     verifyEntity[ 'createdAt' ] = moment().format()
     verifyEntity[ 'password' ] = ( await this.passwordHasher
       .hashPassword( hashedVerifyCodeObj.password ) ).password
@@ -137,7 +136,7 @@ export class UsersController {
     await this.verifyRepository.create( verifyEntity )
       .then( async _result => {
         user = await this.usersRepository.findOne( {
-          where: { phone: phoneNom },
+          where: { phone: phone },
           fields: {
             name: true,
             avatar: true,
@@ -171,7 +170,7 @@ export class UsersController {
           } )
       } )
       .catch( async _error => {
-        await this.verifyRepository.findById( phoneNom )
+        await this.verifyRepository.findById( phone )
           .then( _result => {
             const createdAt = _result.createdAt
             const now = moment().format()
