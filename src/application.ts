@@ -11,12 +11,13 @@ import { MyAuthenticationSequence } from './sequence'
 import { UserAuthenticationComponent } from './components/user.authentication'
 import { JWTAutehticationStrategy } from './authentication-strategies/jwt-strategy'
 import {
-  TokenServiceBindings, TokenServiceConstants, PasswordHasherBindings, UserServiceBindings
+  TokenServiceBindings, TokenServiceConstants, PasswordHasherBindings,
+  VerifyServiceBindings
 } from './keys'
 import { JWTService } from './services/jwt.service'
 import { SECURITY_SCHEME_SPEC } from './utils/security-specs'
 import { BcryptHasher } from './services/hash.password.bcryptjs'
-import { MyUserService } from './services/user.service'
+import { MyVerifyService } from './services/user.service'
 require( 'dotenv' ).config()
 
 
@@ -108,6 +109,6 @@ export class LoginServiceApplication extends BootMixin(
     this.bind( PasswordHasherBindings.ROUNDS ).to( Number( this.hashRound ) )
     this.bind( PasswordHasherBindings.PASSWORD_HASHER ).toClass( BcryptHasher )
 
-    this.bind( UserServiceBindings.USER_SERVICE ).toClass( MyUserService )
+    this.bind( VerifyServiceBindings.VERIFY_SERVICE ).toClass( MyVerifyService )
   }
 }

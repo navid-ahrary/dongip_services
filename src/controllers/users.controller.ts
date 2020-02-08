@@ -6,7 +6,7 @@ import { repository } from '@loopback/repository'
 import {
   post, getModelSchemaRef, requestBody, HttpErrors, get, param, patch
 } from '@loopback/rest'
-import { Users, Credentials, UsersRels } from '../models'
+import { Users, Credentials, UsersRels, Verify } from '../models'
 import {
   UsersRepository, BlacklistRepository, PoemRepository, VerifyRepository
 } from '../repositories'
@@ -15,7 +15,7 @@ import {
 } from '@loopback/authentication'
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security'
 import {
-  PasswordHasherBindings, UserServiceBindings, TokenServiceBindings
+  PasswordHasherBindings, VerifyServiceBindings, TokenServiceBindings
 } from '../keys'
 import { PasswordHasher } from '../services/hash.password.bcryptjs'
 import { validatePhoneNumber, validatePassword } from '../services/validator'
@@ -38,8 +38,8 @@ export class UsersController {
     @repository( PoemRepository ) public poemsRepository: PoemRepository,
     @inject( PasswordHasherBindings.PASSWORD_HASHER )
     public passwordHasher: PasswordHasher,
-    @inject( UserServiceBindings.USER_SERVICE )
-    public userService: UserService<Users, Credentials>,
+    @inject( VerifyServiceBindings.VERIFY_SERVICE )
+    public verifyService: UserService<Verify, Credentials>,
     @inject( TokenServiceBindings.TOKEN_SERVICE ) public jwtService: TokenService,
   ) { }
   smsApi = Kavenegar.KavenegarApi( {
@@ -113,7 +113,13 @@ export class UsersController {
     let isRegistered = false,
       user: Users | null,
       verifyCode: string,
-      verifyEntity = { _key: '', createdAt: '', password: '' },
+      verifyEntity = {
+        phone: '',
+        userKey: '',
+        createdAt: '',
+        password: '',
+        registerationToken: ''
+      },
       hashedVerifyCodeObj: { password: string, salt: string },
       payload: admin.messaging.MessagingPayload
 
@@ -128,24 +134,30 @@ export class UsersController {
     hashedVerifyCodeObj = await this.passwordHasher
       .hashPassword( verifyCode )
 
-    verifyEntity[ '_key' ] = phone
+    user = await this.usersRepository.findOne( {
+      where: { phone: phone },
+      fields: {
+        name: true,
+        avatar: true,
+        _rev: true,
+        _id: true,
+        _key: true
+      },
+    } )
+
+    if ( user ) {
+      isRegistered = true
+      verifyEntity[ 'userKey' ] = user._key
+    }
+
+    verifyEntity[ 'phone' ] = phone
+    verifyEntity[ 'registerationToken' ] = registerationToken
     verifyEntity[ 'createdAt' ] = moment().format()
     verifyEntity[ 'password' ] = ( await this.passwordHasher
       .hashPassword( hashedVerifyCodeObj.password ) ).password
 
     await this.verifyRepository.create( verifyEntity )
       .then( async _result => {
-        user = await this.usersRepository.findOne( {
-          where: { phone: phone },
-          fields: {
-            name: true,
-            avatar: true,
-            _rev: true,
-            _id: true,
-            _key: true
-          },
-        } )
-        if ( user ) isRegistered = true
 
         // this.smsApi.VerifyLookup( {
         //   token: verifyCode,
@@ -183,7 +195,8 @@ export class UsersController {
       ...user!,
       isRegistered,
       salt: hashedVerifyCodeObj.salt,
-      code: verifyCode
+      code: verifyCode,
+      password: hashedVerifyCodeObj.password
     }
   }
 
@@ -203,7 +216,7 @@ export class UsersController {
     },
   } )
   @authenticate.skip()
-  async create (
+  async signup (
     @param.path.string( 'phone' ) phone: string,
     @requestBody( {
       content: {
@@ -233,14 +246,15 @@ export class UsersController {
       validatePassword( user.password )
 
       // encrypt the password
-      user.password = ( await ( this.passwordHasher.hashPassword( user.password ) ) ).password
+      user.password = ( await ( this.passwordHasher
+        .hashPassword( user.password ) ) ).password
       user.registeredAt = moment().format()
       // Create a new user
       const savedUser = await this.usersRepository.createHumanKind( user )
       delete user.password
 
       // Convert a User object into a UserProfile object
-      const userProfile = this.userService.convertToUserProfile( savedUser )
+      const userProfile = this.verifyService.convertToUserProfile( savedUser )
 
       // Create a JWT token based on the user profile
       const accessToken = await this.jwtService.generateToken( userProfile )
@@ -281,9 +295,11 @@ export class UsersController {
         content: {
           'application/josn': {
             schema: {
-              type: 'object', properties: {
+              type: 'object',
+              properties: {
                 _key: 'string',
                 accessToken: 'string',
+                refreshToken: 'string',
               },
             },
           },
@@ -300,7 +316,7 @@ export class UsersController {
     : Promise<{ _key: typeof Users.prototype._key, accessToken: string }
     > {
     try {
-      let user: Users,
+      let verifyEntity: Verify,
         userProfile: UserProfile,
         accessToken: string
 
@@ -311,20 +327,22 @@ export class UsersController {
       }
 
       //ensure the user exists and the password is correct
-      user = await this.userService.verifyCredentials( credentials )
+      verifyEntity = await this.verifyService.verifyCredentials( credentials )
 
       //convert a User object into a UserProfile object (reduced set of properties)
-      userProfile = this.userService.convertToUserProfile( user )
+      userProfile = this.verifyService.convertToUserProfile( verifyEntity )
       userProfile[ 'aud' ] = userAgent
       userProfile[ 'accountType' ] = 'pro'
+
       //create a JWT token bas1ed on the Userprofile
       accessToken = await this.jwtService.generateToken( userProfile )
 
-      await this.usersRepository.updateById( user._key, {
-        registerationToken: credentials.registerationToken
+      await this.usersRepository.updateById( verifyEntity.userKey!, {
+        registerationToken: verifyEntity.registerationToken
       } )
+      await this.verifyRepository.deleteById( phone )
 
-      return { _key: user._key, accessToken }
+      return { _key: verifyEntity.userKey!, accessToken }
     } catch ( err ) {
       console.log( err )
       throw new HttpErrors.MethodNotAllowed( err.message )
@@ -394,7 +412,7 @@ export class UsersController {
     const user = await this.usersRepository.findById( currentUserProfile[ securityId ] )
     delete user.password
 
-    const userProfile = this.userService.convertToUserProfile( user )
+    const userProfile = this.verifyService.convertToUserProfile( user )
     const accessToken = await this.jwtService.generateToken( userProfile )
 
     return { _key: user._key, name: user.name, accessToken: accessToken }
@@ -431,7 +449,8 @@ export class UsersController {
               "password",
               "phone",
               "registerationToken",
-              "osSpec" ],
+              "osSpec",
+              "refreshToken" ],
           } ),
         },
       },

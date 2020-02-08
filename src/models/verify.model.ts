@@ -8,7 +8,7 @@ export class Verify extends Entity {
     generated: false,
     required: true,
   } )
-  _key: string
+  phone: string
 
   @property( {
     type: 'string',
@@ -17,10 +17,19 @@ export class Verify extends Entity {
   password: string
 
   @property( {
-    type: 'date',
-    required: true,
+    type: 'string'
   } )
-  createdAt: string
+  userKey?: string
+
+  @property( {
+    type: 'date',
+  } )
+  createdAt?: string
+
+  @property( {
+    type: 'string',
+  } )
+  registerationToken?: string
 
   constructor ( data?: Partial<Verify> ) {
     super( data )

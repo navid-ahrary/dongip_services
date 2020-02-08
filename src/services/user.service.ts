@@ -1,52 +1,45 @@
 import { UserService } from '@loopback/authentication'
-import { Users, Credentials } from '../models'
+import { Credentials, Verify } from '../models'
 import { inject } from '@loopback/core'
 import { repository } from '@loopback/repository'
-import { UsersRepository, } from '../repositories'
+import { VerifyRepository, } from '../repositories'
 import { PasswordHasherBindings } from '../keys'
 import { PasswordHasher } from './hash.password.bcryptjs'
 import { securityId } from '@loopback/security'
 import { HttpErrors } from '@loopback/rest'
 
-export class MyUserService implements UserService<Users, Credentials> {
+export class MyVerifyService implements UserService<Verify, Credentials> {
   constructor (
-    @repository( UsersRepository ) public userRepository: UsersRepository,
+    @repository( VerifyRepository ) public verifyRepository: VerifyRepository,
     @inject( PasswordHasherBindings.PASSWORD_HASHER )
     public passwordHasher: PasswordHasher,
   ) { }
 
-  async verifyCredentials ( credentials: Credentials ): Promise<Users>
-  {
+  async verifyCredentials ( credentials: Credentials ): Promise<Verify> {
     const invalidCredentialsError = `Invalid phone or password.`
 
-    const foundUser = await this.userRepository.findOne( {
-      where: { phone: credentials.phone },
-    } )
+    const foundEntity = await this.verifyRepository.findById( credentials.phone )
 
-    if ( !foundUser )
-    {
+    if ( !foundEntity ) {
       throw new HttpErrors.NotFound( invalidCredentialsError )
     }
     const passwordMatched = await this.passwordHasher.comparePassword(
       credentials.password,
-      foundUser.password,
+      foundEntity.password,
     )
 
-    if ( !passwordMatched )
-    {
+    if ( !passwordMatched ) {
       throw new HttpErrors.Unauthorized( invalidCredentialsError )
     }
 
-    return foundUser
+    return foundEntity
   }
 
-  convertToUserProfile ( user: Users )
-  {
-    if ( !user.phone || !user.password )
-    {
+  convertToUserProfile ( entity: Verify ) {
+    if ( !entity.phone || !entity.password ) {
       throw new HttpErrors.Unauthorized( 'phone/password are null' )
     }
 
-    return { [ securityId ]: user.getId() }
+    return { [ securityId ]: entity.userKey! }
   }
 }
