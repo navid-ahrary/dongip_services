@@ -11,8 +11,7 @@ const jwt = require( 'jsonwebtoken' )
 const signAsync = promisify( jwt.sign )
 const verifyAsync = promisify( jwt.verify )
 
-export class JWTService implements TokenService
-{
+export class JWTService implements TokenService {
   constructor (
     @repository( UsersRepository ) public usersRepository: UsersRepository,
     @repository( BlacklistRepository ) public blacklistRepository: BlacklistRepository,
@@ -21,17 +20,14 @@ export class JWTService implements TokenService
     @inject( TokenServiceBindings.TOKEN_ALGORITHM ) private jwtAlgorithm: string,
   ) { }
 
-  async verifyToken ( accessToken: string ): Promise<UserProfile>
-  {
-    if ( !accessToken )
-    {
+  async verifyToken ( accessToken: string ): Promise<UserProfile> {
+    if ( !accessToken ) {
       throw new HttpErrors.Unauthorized( `Error verifying access token: 'token' is null` )
     }
 
     let userProfile: UserProfile
 
-    try
-    {
+    try {
       //decode user profile from token
       const decryptedToken = await verifyAsync( accessToken, this.jwtSecret )
 
@@ -43,33 +39,27 @@ export class JWTService implements TokenService
         { [ securityId ]: '', accountType: '' },
         { [ securityId ]: decryptedToken.sub, accountType: decryptedToken.accountType },
       )
-    } catch ( error )
-    {
+    } catch ( error ) {
       throw new HttpErrors.Unauthorized( `Error verifying access token: ${ error.message }` )
     }
     return userProfile
   }
 
-  async generateToken ( userProfile: UserProfile ): Promise<string>
-  {
-    if ( !userProfile )
-    {
+  async generateToken ( userProfile: UserProfile ): Promise<string> {
+    if ( !userProfile ) {
       throw new HttpErrors.Unauthorized( 'Error generating token, userPofile is null.' )
     }
     const _key: string = userProfile[ securityId ]
-    userProfile[ 'accountType' ] = 'trial'
     //generate a JWT token
     let accessToken: string
 
-    try
-    {
+    try {
       accessToken = signAsync( userProfile, this.jwtSecret, {
         algorithm: this.jwtAlgorithm,
         expiresIn: +this.jwtExpiresIn,
         subject: _key,
       } )
-    } catch ( error )
-    {
+    } catch ( error ) {
       throw new HttpErrors.Unauthorized( `Error generating token: ${ error.message }` )
     }
     return accessToken
