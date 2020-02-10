@@ -113,7 +113,7 @@ export class UsersController {
       user: Users | null,
       verifyCode: string,
       payload: admin.messaging.MessagingPayload,
-      accessToken: string,
+      verifyToken: string,
       userProfile: UserProfile = { [ securityId ]: '' }
 
     try {
@@ -132,7 +132,7 @@ export class UsersController {
       expiresIn: 120,
       agent: userAgent
     }
-    accessToken = await this.jwtService.generateToken( userProfile )
+    verifyToken = await this.jwtService.generateToken( userProfile )
 
     user = await this.usersRepository.findOne( {
       where: { phone: phone },
@@ -150,7 +150,7 @@ export class UsersController {
 
     payload = {
       data: {
-        accessToken: accessToken
+        verifyToken: verifyToken
       }
     }
     await admin
@@ -163,10 +163,12 @@ export class UsersController {
         console.log( _err )
       } )
 
+
+
     return {
       ...user!,
       isRegistered,
-      accessToken: accessToken,
+      verifyToken: verifyToken,
       code: verifyCode,
     }
   }
