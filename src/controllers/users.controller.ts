@@ -8,7 +8,7 @@ import {
 } from '@loopback/rest'
 import { Users, Credentials, UsersRels } from '../models'
 import {
-  UsersRepository, BlacklistRepository, VerifyRepository
+  UsersRepository, BlacklistRepository
 } from '../repositories'
 import {
   authenticate, UserService, TokenService
@@ -34,7 +34,6 @@ export class UsersController {
     @repository( UsersRepository ) public usersRepository: UsersRepository,
     @repository( BlacklistRepository )
     public blacklistRepository: BlacklistRepository,
-    @repository( VerifyRepository ) public verifyRepository: VerifyRepository,
     @inject( PasswordHasherBindings.PASSWORD_HASHER )
     public passwordHasher: PasswordHasher,
     @inject( UserServiceBindings.USER_SERVICE )
@@ -113,19 +112,6 @@ export class UsersController {
     let isRegistered = false,
       user: Users | null,
       verifyCode: string,
-<<<<<<< HEAD
-      verifyEntity = {
-        phone: phone,
-        registerationToken: registerationToken,
-        userAgent: userAgent,
-        createdAt: moment().format(),
-        userKey: '',
-        password: '',
-      },
-=======
-      verifyEntity = { _key: '', createdAt: '', password: '' },
->>>>>>> parent of 2bd10d9a... login password muse hash verifyCode with salt
-      hashedVerifyCodeObj: { password: string, salt: string },
       payload: admin.messaging.MessagingPayload,
       accessToken: string,
       userProfile: UserProfile = { [ securityId ]: '' }
@@ -137,17 +123,16 @@ export class UsersController {
       throw new HttpErrors.NotAcceptable( _err.message )
     }
 
-    verifyCode = Math.floor( Math.random() * 10000 ).toString()
-    // hashedVerifyCodeObj = await this.passwordHasher
-    //   .hashPassword( verifyCode )
+    verifyCode = Math.random().toFixed( 4 ).slice( 2 )
 
-    userProfile[ securityId ] = verifyCode
+    userProfile = {
+      [ securityId ]: phone,
+      cod: verifyCode,
+      typ: 'verifyToken',
+      expiresIn: 120
+    }
     accessToken = await this.jwtService.generateToken( userProfile )
 
-    // verifyEntity[ 'password' ] = ( await this.passwordHasher
-    //   .hashPassword( hashedVerifyCodeObj.password ) ).password
-
-<<<<<<< HEAD
     user = await this.usersRepository.findOne( {
       where: { phone: phone },
       fields: {
@@ -160,71 +145,28 @@ export class UsersController {
     } )
     if ( user ) {
       isRegistered = true
-      verifyEntity[ 'userKey' ] = user._key
     }
-=======
-    verifyEntity[ '_key' ] = phone
-    verifyEntity[ 'createdAt' ] = moment().format()
-    verifyEntity[ 'password' ] = ( await this.passwordHasher
-      .hashPassword( hashedVerifyCodeObj.password ) ).password
->>>>>>> parent of 2bd10d9a... login password muse hash verifyCode with salt
 
-    await this.verifyRepository.create( verifyEntity )
-      .then( async _result => {
-        user = await this.usersRepository.findOne( {
-          where: { phone: phone },
-          fields: {
-            name: true,
-            avatar: true,
-            _rev: true,
-            _id: true,
-            _key: true
-          },
-        } )
-        if ( user ) isRegistered = true
-
-        // this.smsApi.VerifyLookup( {
-        //   token: verifyCode,
-        //   template: 'dongip',
-        //   type: 'sms',
-        //   receptor: phone.replace( '+98', '0' )
-        // },
-        //   function ( response: any, status: any ) {
-        //     console.log( response )
-        //     verifyLook = status
-        //   } )
-
-        payload = { data: { accessToken: accessToken } }
-        await admin
-          .messaging()
-          .sendToDevice( registerationToken, payload )
-          .then( function ( _res: any ) {
-            console.log( _res )
-          } )
-          .catch( function ( _err: any ) {
-            console.log( _err )
-          } )
+    payload = {
+      data: {
+        accessToken: accessToken
+      }
+    }
+    await admin
+      .messaging()
+      .sendToDevice( registerationToken, payload )
+      .then( function ( _res: any ) {
+        console.log( _res )
       } )
-      .catch( async _error => {
-        await this.verifyRepository.findById( phone )
-          .then( _result => {
-            const createdAt = _result.createdAt
-            const now = moment().format()
-            const countTime = this.TimeDiff( createdAt, now, 'second' )
-            const remainedTime = Number( process.env.DB_TTL ) - countTime
-            throw new HttpErrors.MethodNotAllowed( `Wait about ${ remainedTime } seconds` )
-          } )
+      .catch( function ( _err: any ) {
+        console.log( _err )
       } )
+
     return {
       ...user!,
       isRegistered,
-<<<<<<< HEAD
       accessToken: accessToken,
       code: verifyCode,
-=======
-      salt: hashedVerifyCodeObj.salt,
-      code: verifyCode
->>>>>>> parent of 2bd10d9a... login password muse hash verifyCode with salt
     }
   }
 
@@ -244,7 +186,7 @@ export class UsersController {
     },
   } )
   @authenticate.skip()
-  async create (
+  async signup (
     @param.path.string( 'phone' ) phone: string,
     @requestBody( {
       content: {
@@ -276,25 +218,15 @@ export class UsersController {
       }
       // ensure a valid phone and password value
       validatePhoneNumber( user.phone )
-      const verifyEntity = await this.verifyService.verifyCredentials( user )
+      const verifyEntity = await this.userService.verifyCredentials( user )
 
 
-<<<<<<< HEAD
       user[ 'registeredAt' ] = moment().format()
-=======
-      // encrypt the password
-      user.password = ( await ( this.passwordHasher.hashPassword( user.password ) ) ).password
-      user.registeredAt = moment().format()
->>>>>>> parent of 2bd10d9a... login password muse hash verifyCode with salt
       // Create a new user
       const savedUser = await this.usersRepository.createHumanKind( user )
 
       // Convert a User object into a UserProfile object
-<<<<<<< HEAD
       const userProfile = { [ securityId ]: savedUser._key }
-=======
-      const userProfile = this.userService.convertToUserProfile( savedUser )
->>>>>>> parent of 2bd10d9a... login password muse hash verifyCode with salt
 
       // Create a JWT token based on the user profile
       const refreshToken = await this.jwtService.generateToken( userProfile )
@@ -338,9 +270,11 @@ export class UsersController {
         content: {
           'application/josn': {
             schema: {
-              type: 'object', properties: {
+              type: 'object',
+              properties: {
                 _key: 'string',
                 accessToken: 'string',
+                refreshToken: 'string',
               },
             },
           },
@@ -355,13 +289,11 @@ export class UsersController {
     @requestBody( CredentialsRequestBody ) credentials: Credentials,
   )
     : Promise<{
-      _key: string,
       accessToken: string,
       refreshToken: string
     }> {
     try {
-      let user: Users,
-        userProfile: UserProfile,
+      let userProfile: UserProfile = { [ securityId ]: '' },
         refreshToken: string
 
       if ( phone !== credentials.phone ) {
@@ -371,38 +303,27 @@ export class UsersController {
       }
 
       //ensure the user exists and the password is correct
-      user = await this.userService.verifyCredentials( credentials )
+      const verifyEntity = await this.userService.verifyCredentials( credentials )
 
       //convert a User object into a UserProfile object (reduced set of properties)
-      userProfile = this.userService.convertToUserProfile( user )
+      userProfile = this.userService.convertToUserProfile( verifyEntity )
       userProfile[ 'aud' ] = userAgent
       userProfile[ 'accountType' ] = 'pro'
-<<<<<<< HEAD
+      userProfile[ 'typ' ] = 'accessToken'
 
       //create a JWT token based on the Userprofile
       refreshToken = await this.jwtService.generateToken( userProfile )
 
-      await this.usersRepository.updateById( verifyEntity.userKey!, {
-        registerationToken: verifyEntity.registerationToken,
-        userAgent: verifyEntity.userAgent
-      } )
+      // await this.usersRepository.updateById( verifyEntity.userKey!, {
+      //   registerationToken: verifyEntity.registerationToken,
+      //   userAgent: verifyEntity.userAgent
+      // } )
 
       return {
-        _key: verifyEntity.userKey!,
         accessToken: refreshToken,
         refreshToken,
       }
 
-=======
-      //create a JWT token bas1ed on the Userprofile
-      accessToken = await this.jwtService.generateToken( userProfile )
-
-      await this.usersRepository.updateById( user._key, {
-        registerationToken: credentials.registerationToken
-      } )
-
-      return { _key: user._key, accessToken }
->>>>>>> parent of 2bd10d9a... login password muse hash verifyCode with salt
     } catch ( err ) {
       console.log( err )
       throw new HttpErrors.MethodNotAllowed( err.message )
@@ -447,43 +368,6 @@ export class UsersController {
   }
 
 
-<<<<<<< HEAD
-=======
-  @get( '/apis/users/{_key}/me', {
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'The current user profile',
-        content: {
-          'application/json': {
-            schema: UserProfileSchema,
-          },
-        },
-      },
-    },
-  } )
-  @authenticate( 'jwt' )
-  async printCurrentUser (
-    @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-    @param.path.string( '_key' ) _key: typeof Users.prototype._key,
-  ): Promise<{ _key: string; name: string, accessToken: string }> {
-    if ( _key !== currentUserProfile[ securityId ] ) {
-      throw new HttpErrors.Unauthorized(
-        'Error users print current user , Token is not matched to this user _key!',
-      )
-    }
-
-    const user = await this.usersRepository.findById( currentUserProfile[ securityId ] )
-    delete user.password
-
-    const userProfile = this.userService.convertToUserProfile( user )
-    const accessToken = await this.jwtService.generateToken( userProfile )
-
-    return { _key: user._key, name: user.name, accessToken: accessToken }
-  }
-
-
->>>>>>> parent of 2bd10d9a... login password muse hash verifyCode with salt
   @patch( '/apis/users/{_key}', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -502,26 +386,10 @@ export class UsersController {
           schema: getModelSchemaRef( Users, {
             partial: true,
             exclude: [
-<<<<<<< HEAD
               "_id", "_key", "_rev", "accountType", "registeredAt", "dongsId",
               "usersRels", "categories", "geolocation", "phone", "virtualUsers",
               "registerationToken", "refreshToken", "usersRels", "userAgent"
             ],
-=======
-              "_id",
-              "_key",
-              "_rev",
-              "accountType",
-              "registeredAt",
-              "dongsId",
-              "usersRels",
-              "categories",
-              "geolocation",
-              "password",
-              "phone",
-              "registerationToken",
-              "osSpec" ],
->>>>>>> parent of 2bd10d9a... login password muse hash verifyCode with salt
           } ),
         },
       },

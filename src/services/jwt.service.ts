@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { TokenService } from '@loopback/authentication'
 import { promisify } from 'util'
 import { TokenServiceBindings } from '../keys'
@@ -22,7 +23,8 @@ export class JWTService implements TokenService {
 
   async verifyToken ( accessToken: string ): Promise<UserProfile> {
     if ( !accessToken ) {
-      throw new HttpErrors.Unauthorized( `Error verifying access token: 'token' is null` )
+      throw new HttpErrors.Unauthorized(
+        `Error verifying access token: 'token' is null` )
     }
 
     let userProfile: UserProfile
@@ -32,35 +34,59 @@ export class JWTService implements TokenService {
       const decryptedToken = await verifyAsync( accessToken, this.jwtSecret )
 
       // check token is not in blacklist
-      await this.blacklistRepository.checkTokenNotBlacklisted( { where: { _key: accessToken } } )
+      await this.blacklistRepository.checkTokenNotBlacklisted(
+        {
+          where: { _key: accessToken }
+        }
+      )
 
       // don't copy over  token field 'iat' and 'exp', nor 'email' to user profile
       userProfile = Object.assign(
-        { [ securityId ]: '', accountType: '' },
-        { [ securityId ]: decryptedToken.sub, accountType: decryptedToken.accountType },
+        {
+          [ securityId ]: '',
+          accountType: ''
+        },
+        {
+          [ securityId ]: decryptedToken.sub,
+          accountType: decryptedToken.accountType
+        },
       )
     } catch ( error ) {
-      throw new HttpErrors.Unauthorized( `Error verifying access token: ${ error.message }` )
+      throw new HttpErrors.Unauthorized(
+        `Error verifying access token: ${ error.message }` )
     }
     return userProfile
   }
 
   async generateToken ( userProfile: UserProfile ): Promise<string> {
     if ( !userProfile ) {
-      throw new HttpErrors.Unauthorized( 'Error generating token, userPofile is null.' )
+      throw new HttpErrors.Unauthorized(
+        'Error generating token, userPofile is null.' )
     }
-    const _key: string = userProfile[ securityId ]
+    let expiresIn,
+      subject = userProfile[ securityId ]
+
+    switch ( userProfile[ 'typ' ] ) {
+      case 'verifyToken':
+        expiresIn = +userProfile.expiresIn
+        delete userProfile.expiresIn
+        break
+      case 'accessToken':
+        expiresIn = +this.jwtExpiresIn
+        break
+    }
+
     //generate a JWT token
     let accessToken: string
-
     try {
       accessToken = signAsync( userProfile, this.jwtSecret, {
         algorithm: this.jwtAlgorithm,
-        expiresIn: +this.jwtExpiresIn,
-        subject: _key,
+        expiresIn: expiresIn,
+        subject: subject
       } )
     } catch ( error ) {
-      throw new HttpErrors.Unauthorized( `Error generating token: ${ error.message }` )
+      throw new HttpErrors.Unauthorized(
+        `Error generating token: ${ error.message }` )
     }
     return accessToken
   }

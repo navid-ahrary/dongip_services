@@ -39,6 +39,12 @@ export class Users extends Entity {
     type: 'string',
     required: true,
   } )
+  password: string
+
+  @property( {
+    type: 'string',
+    required: true,
+  } )
   name: string
 
   @property( {
@@ -53,6 +59,12 @@ export class Users extends Entity {
     required: false,
   } )
   locale: string
+
+  @property( {
+    type: 'string',
+    required: false,
+  } )
+  refreshToken: string
 
   @property( {
     type: 'string',
