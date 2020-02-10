@@ -39,12 +39,6 @@ export class Users extends Entity {
     type: 'string',
     required: true,
   } )
-  password: string
-
-  @property( {
-    type: 'string',
-    required: true,
-  } )
   name: string
 
   @property( {
@@ -94,7 +88,7 @@ export class Users extends Entity {
     type: 'string',
     reqiured: true,
   } )
-  osSpec: string
+  userAgent: string
 
   @property( {
     type: 'array',
