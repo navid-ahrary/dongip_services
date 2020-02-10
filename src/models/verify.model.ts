@@ -17,6 +17,12 @@ export class Verify extends Entity {
   password: string
 
   @property( {
+    type: 'string',
+    required: true,
+  } )
+  userAgent: string
+
+  @property( {
     type: 'string'
   } )
   userKey?: string
