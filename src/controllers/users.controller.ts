@@ -8,7 +8,7 @@ import {
 } from '@loopback/rest'
 import { Users, Credentials, UsersRels, Verify } from '../models'
 import {
-  UsersRepository, BlacklistRepository, PoemRepository, VerifyRepository
+  UsersRepository, BlacklistRepository, VerifyRepository
 } from '../repositories'
 import {
   authenticate, UserService, TokenService
@@ -18,9 +18,9 @@ import {
   PasswordHasherBindings, VerifyServiceBindings, TokenServiceBindings
 } from '../keys'
 import { PasswordHasher } from '../services/hash.password.bcryptjs'
-import { validatePhoneNumber, validatePassword } from '../services/validator'
+import { validatePhoneNumber } from '../services/validator'
 import {
-  CredentialsRequestBody, UserProfileSchema
+  CredentialsRequestBody
 } from './specs/user-controller.specs'
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 import _ from 'underscore'
@@ -35,7 +35,6 @@ export class UsersController {
     @repository( BlacklistRepository )
     public blacklistRepository: BlacklistRepository,
     @repository( VerifyRepository ) public verifyRepository: VerifyRepository,
-    @repository( PoemRepository ) public poemsRepository: PoemRepository,
     @inject( PasswordHasherBindings.PASSWORD_HASHER )
     public passwordHasher: PasswordHasher,
     @inject( VerifyServiceBindings.VERIFY_SERVICE )
@@ -110,18 +109,22 @@ export class UsersController {
     @param.path.string( 'phone' ) phone: string,
     @param.query.string( 'registerationToken' ) registerationToken: string,
   ): Promise<object> {
+
     let isRegistered = false,
       user: Users | null,
       verifyCode: string,
       verifyEntity = {
-        phone: '',
+        phone: phone,
+        registerationToken: registerationToken,
+        userAgent: userAgent,
+        createdAt: moment().format(),
         userKey: '',
-        createdAt: '',
         password: '',
-        registerationToken: ''
       },
       hashedVerifyCodeObj: { password: string, salt: string },
-      payload: admin.messaging.MessagingPayload
+      payload: admin.messaging.MessagingPayload,
+      accessToken: string,
+      userProfile: UserProfile = { [ securityId ]: '' }
 
     try {
       validatePhoneNumber( phone )
@@ -130,9 +133,15 @@ export class UsersController {
       throw new HttpErrors.NotAcceptable( _err.message )
     }
 
-    verifyCode = Math.floor( Math.random() * 1000000 ).toString()
-    hashedVerifyCodeObj = await this.passwordHasher
-      .hashPassword( verifyCode )
+    verifyCode = Math.floor( Math.random() * 10000 ).toString()
+    // hashedVerifyCodeObj = await this.passwordHasher
+    //   .hashPassword( verifyCode )
+
+    userProfile[ securityId ] = verifyCode
+    accessToken = await this.jwtService.generateToken( userProfile )
+
+    // verifyEntity[ 'password' ] = ( await this.passwordHasher
+    //   .hashPassword( hashedVerifyCodeObj.password ) ).password
 
     user = await this.usersRepository.findOne( {
       where: { phone: phone },
@@ -144,17 +153,10 @@ export class UsersController {
         _key: true
       },
     } )
-
     if ( user ) {
       isRegistered = true
       verifyEntity[ 'userKey' ] = user._key
     }
-
-    verifyEntity[ 'phone' ] = phone
-    verifyEntity[ 'registerationToken' ] = registerationToken
-    verifyEntity[ 'createdAt' ] = moment().format()
-    verifyEntity[ 'password' ] = ( await this.passwordHasher
-      .hashPassword( hashedVerifyCodeObj.password ) ).password
 
     await this.verifyRepository.create( verifyEntity )
       .then( async _result => {
@@ -170,7 +172,7 @@ export class UsersController {
         //     verifyLook = status
         //   } )
 
-        payload = { data: { salt: hashedVerifyCodeObj.salt } }
+        payload = { data: { accessToken: accessToken } }
         await admin
           .messaging()
           .sendToDevice( registerationToken, payload )
@@ -194,9 +196,8 @@ export class UsersController {
     return {
       ...user!,
       isRegistered,
-      salt: hashedVerifyCodeObj.salt,
+      accessToken: accessToken,
       code: verifyCode,
-      password: hashedVerifyCodeObj.password
     }
   }
 
@@ -208,7 +209,7 @@ export class UsersController {
         content: {
           'application/json': {
             schema: getModelSchemaRef( Users, {
-              exclude: [ 'osSpec', 'password', 'accountType' ]
+              exclude: [ 'userAgent', 'accountType' ]
             } ),
           },
         },
@@ -223,6 +224,11 @@ export class UsersController {
         'application/json': {
           schema: getModelSchemaRef( Users, {
             title: 'NewUser',
+            exclude: [
+              "_id", "_key", "_rev", "accountType", "categories", "categoryBills",
+              "dongs", "dongsId", "geolocation", "userAgent", "phone", "refreshToken",
+              "registerationToken", "registeredAt", "usersRels", "virtualUsers"
+            ]
           } ),
         },
       },
@@ -231,8 +237,8 @@ export class UsersController {
   ): Promise<{
     _key: typeof Users.prototype._key
     _id: typeof Users.prototype._id
-    _rev: typeof Users.prototype._rev
     accessToken: string
+    refreshToken: string
     usersRels: UsersRels
   }> {
     try {
@@ -243,21 +249,21 @@ export class UsersController {
       }
       // ensure a valid phone and password value
       validatePhoneNumber( user.phone )
-      validatePassword( user.password )
+      const verifyEntity = await this.verifyService.verifyCredentials( user )
 
-      // encrypt the password
-      user.password = ( await ( this.passwordHasher
-        .hashPassword( user.password ) ) ).password
-      user.registeredAt = moment().format()
+
+      user[ 'registeredAt' ] = moment().format()
       // Create a new user
       const savedUser = await this.usersRepository.createHumanKind( user )
-      delete user.password
 
       // Convert a User object into a UserProfile object
-      const userProfile = this.verifyService.convertToUserProfile( savedUser )
+      const userProfile = { [ securityId ]: savedUser._key }
 
       // Create a JWT token based on the user profile
-      const accessToken = await this.jwtService.generateToken( userProfile )
+      const refreshToken = await this.jwtService.generateToken( userProfile )
+      await this.usersRepository.updateById( savedUser._key, {
+        refreshToken: refreshToken
+      } )
 
       // Create self-relation for self accounting
       const usersRels = await this.usersRepository.createHumanKindUsersRels(
@@ -267,14 +273,14 @@ export class UsersController {
           _to: savedUser._id,
           alias: savedUser.name,
           avatar: savedUser.avatar,
-          type: 'self'
+          type: 'self',
         } )
 
       return {
         _key: savedUser._key,
         _id: savedUser._id,
-        _rev: savedUser._rev,
-        accessToken,
+        accessToken: refreshToken,
+        refreshToken,
         usersRels
       }
     } catch ( err ) {
@@ -313,12 +319,15 @@ export class UsersController {
     @param.header.string( 'User-Agent' ) userAgent: string,
     @requestBody( CredentialsRequestBody ) credentials: Credentials,
   )
-    : Promise<{ _key: typeof Users.prototype._key, accessToken: string }
-    > {
+    : Promise<{
+      _key: string,
+      accessToken: string,
+      refreshToken: string
+    }> {
     try {
       let verifyEntity: Verify,
         userProfile: UserProfile,
-        accessToken: string
+        refreshToken: string
 
       if ( phone !== credentials.phone ) {
         throw new Error(
@@ -334,15 +343,20 @@ export class UsersController {
       userProfile[ 'aud' ] = userAgent
       userProfile[ 'accountType' ] = 'pro'
 
-      //create a JWT token bas1ed on the Userprofile
-      accessToken = await this.jwtService.generateToken( userProfile )
+      //create a JWT token based on the Userprofile
+      refreshToken = await this.jwtService.generateToken( userProfile )
 
       await this.usersRepository.updateById( verifyEntity.userKey!, {
-        registerationToken: verifyEntity.registerationToken
+        registerationToken: verifyEntity.registerationToken,
+        userAgent: verifyEntity.userAgent
       } )
-      await this.verifyRepository.deleteById( phone )
 
-      return { _key: verifyEntity.userKey!, accessToken }
+      return {
+        _key: verifyEntity.userKey!,
+        accessToken: refreshToken,
+        refreshToken,
+      }
+
     } catch ( err ) {
       console.log( err )
       throw new HttpErrors.MethodNotAllowed( err.message )
@@ -377,45 +391,13 @@ export class UsersController {
     } catch ( err ) {
       console.log( err )
       if ( err.code === 409 ) {
-        throw new HttpErrors.Conflict( `Error logout conflict token, this token is blacklisted already` )
+        throw new HttpErrors.Conflict
+          ( `Error logout conflict token, this token is blacklisted already` )
       } else {
-        throw new HttpErrors.MethodNotAllowed( `Error logout not implemented: ${ err.message }` )
+        throw new HttpErrors.MethodNotAllowed
+          ( `Error logout not implemented: ${ err.message }` )
       }
     }
-  }
-
-
-  @get( '/apis/users/{_key}/me', {
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'The current user profile',
-        content: {
-          'application/json': {
-            schema: UserProfileSchema,
-          },
-        },
-      },
-    },
-  } )
-  @authenticate( 'jwt' )
-  async printCurrentUser (
-    @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-    @param.path.string( '_key' ) _key: typeof Users.prototype._key,
-  ): Promise<{ _key: string; name: string, accessToken: string }> {
-    if ( _key !== currentUserProfile[ securityId ] ) {
-      throw new HttpErrors.Unauthorized(
-        'Error users print current user , Token is not matched to this user _key!',
-      )
-    }
-
-    const user = await this.usersRepository.findById( currentUserProfile[ securityId ] )
-    delete user.password
-
-    const userProfile = this.verifyService.convertToUserProfile( user )
-    const accessToken = await this.jwtService.generateToken( userProfile )
-
-    return { _key: user._key, name: user.name, accessToken: accessToken }
   }
 
 
@@ -437,20 +419,10 @@ export class UsersController {
           schema: getModelSchemaRef( Users, {
             partial: true,
             exclude: [
-              "_id",
-              "_key",
-              "_rev",
-              "accountType",
-              "registeredAt",
-              "dongsId",
-              "usersRels",
-              "categories",
-              "geolocation",
-              "password",
-              "phone",
-              "registerationToken",
-              "osSpec",
-              "refreshToken" ],
+              "_id", "_key", "_rev", "accountType", "registeredAt", "dongsId",
+              "usersRels", "categories", "geolocation", "phone", "virtualUsers",
+              "registerationToken", "refreshToken", "usersRels", "userAgent"
+            ],
           } ),
         },
       },
