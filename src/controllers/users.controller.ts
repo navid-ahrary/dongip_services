@@ -109,7 +109,7 @@ export class UsersController {
     @param.query.string( 'registerationToken' ) registerationToken: string,
   ): Promise<object> {
 
-    let isRegistered = false,
+    let status = false,
       user: Users | null,
       verifyCode: string,
       payload: admin.messaging.MessagingPayload,
@@ -145,9 +145,21 @@ export class UsersController {
       },
     } )
     if ( user ) {
-      isRegistered = true
+      status = true
     }
 
+    // send verify code with sms
+    // await this.smsApi.VerifyLookup( {
+    //   token: verifyCode,
+    //   template: 'dongip',
+    //   type: 'sms',
+    //   receptor: phone.replace( '+98', '0' )
+    // },
+    //   function ( _response: any, _status: any ) {
+    //     console.log( _response, _status )
+    //   } )
+
+    // send verify token with notification
     payload = {
       data: {
         verifyToken: verifyToken
@@ -163,11 +175,9 @@ export class UsersController {
         console.log( _err )
       } )
 
-
-
     return {
       ...user!,
-      isRegistered,
+      status,
       verifyToken: verifyToken,
       code: verifyCode,
     }
