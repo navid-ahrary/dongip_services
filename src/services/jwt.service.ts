@@ -66,13 +66,15 @@ export class JWTService implements TokenService {
     let expiresIn,
       subject = userProfile[ securityId ]
 
-    switch ( userProfile[ 'typ' ] ) {
-      case 'verifyToken':
+    switch ( userProfile[ 'type' ] ) {
+      case 'verify':
         expiresIn = +userProfile.expiresIn
         delete userProfile.expiresIn
         break
-      case 'accessToken':
+      case 'access':
         expiresIn = +this.jwtExpiresIn
+        break
+      case 'refresh':
         break
     }
 

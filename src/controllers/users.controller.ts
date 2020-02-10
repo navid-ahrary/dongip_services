@@ -128,8 +128,9 @@ export class UsersController {
     userProfile = {
       [ securityId ]: phone,
       code: verifyCode,
-      type: 'verifyToken',
-      expiresIn: 120
+      type: 'verify',
+      expiresIn: 120,
+      agent: userAgent
     }
     accessToken = await this.jwtService.generateToken( userProfile )
 
