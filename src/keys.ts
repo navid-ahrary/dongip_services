@@ -1,7 +1,7 @@
 import { BindingKey } from '@loopback/context'
 import { PasswordHasher } from './services/hash.password.bcryptjs'
 import { TokenService, UserService } from '@loopback/authentication'
-import { Credentials, Verify } from './models'
+import { Users, Credentials } from './models'
 require( "dotenv" ).config()
 
 export namespace TokenServiceConstants {
@@ -31,8 +31,8 @@ export namespace PasswordHasherBindings {
 }
 
 
-export namespace VerifyServiceBindings {
-  export const VERIFY_SERVICE = BindingKey.create<UserService<Verify, Credentials>>(
+export namespace UserServiceBindings {
+  export const USER_SERVICE = BindingKey.create<UserService<Users, Credentials>>(
     'services.user.service',
   )
 }

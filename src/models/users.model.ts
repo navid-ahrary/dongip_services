@@ -70,12 +70,6 @@ export class Users extends Entity {
     type: 'string',
     required: false
   } )
-  refreshToken: string
-
-  @property( {
-    type: 'string',
-    required: false
-  } )
   accountType: string
 
   @property( {

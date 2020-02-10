@@ -8,7 +8,7 @@ export class Verify extends Entity {
     generated: false,
     required: true,
   } )
-  phone: string
+  _key: string
 
   @property( {
     type: 'string',
@@ -17,6 +17,7 @@ export class Verify extends Entity {
   password: string
 
   @property( {
+<<<<<<< HEAD
     type: 'string',
     required: true,
   } )
@@ -28,14 +29,12 @@ export class Verify extends Entity {
   userKey?: string
 
   @property( {
+=======
+>>>>>>> parent of 2bd10d9a... login password muse hash verifyCode with salt
     type: 'date',
+    required: true,
   } )
-  createdAt?: string
-
-  @property( {
-    type: 'string',
-  } )
-  registerationToken?: string
+  createdAt: string
 
   constructor ( data?: Partial<Verify> ) {
     super( data )
