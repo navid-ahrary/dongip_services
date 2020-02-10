@@ -67,14 +67,12 @@ export class JWTService implements TokenService {
       subject = userProfile[ securityId ]
 
     switch ( userProfile[ 'type' ] ) {
-      case 'verify':
+      case 'verify' || 'refresh':
         expiresIn = +userProfile.expiresIn
         delete userProfile.expiresIn
         break
       case 'access':
         expiresIn = +this.jwtExpiresIn
-        break
-      case 'refresh':
         break
     }
 
