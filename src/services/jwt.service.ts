@@ -32,6 +32,10 @@ export class JWTService implements TokenService {
     try {
       //decode user profile from token
       const decryptedToken = await verifyAsync( accessToken, this.jwtSecret )
+      // don't copy over token field 'iat' and 'exp', nor 'email'
+      delete decryptedToken.email
+      delete decryptedToken.iat
+      delete decryptedToken.exp
 
       // check token is not in blacklist
       await this.blacklistRepository.checkTokenNotBlacklisted(
@@ -40,17 +44,7 @@ export class JWTService implements TokenService {
         }
       )
 
-      // don't copy over  token field 'iat' and 'exp', nor 'email' to user profile
-      userProfile = Object.assign(
-        {
-          [ securityId ]: '',
-          accountType: ''
-        },
-        {
-          [ securityId ]: decryptedToken.sub,
-          accountType: decryptedToken.accountType
-        },
-      )
+      userProfile = Object.assign( {}, decryptedToken )
     } catch ( error ) {
       throw new HttpErrors.Unauthorized(
         `Error verifying access token: ${ error.message }` )
