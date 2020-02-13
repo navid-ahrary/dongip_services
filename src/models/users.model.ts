@@ -37,9 +37,8 @@ export class Users extends Entity {
 
   @property( {
     type: 'string',
-    required: true,
   } )
-  password: string
+  password?: string
 
   @property( {
     type: 'string',
@@ -82,7 +81,7 @@ export class Users extends Entity {
     type: 'string',
     required: false
   } )
-  accountType: string
+  accountType = 'bronze'
 
   @property( {
     type: 'string',

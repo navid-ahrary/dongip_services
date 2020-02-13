@@ -4,7 +4,8 @@ import { Entity, model, property } from '@loopback/repository'
 export class Blacklist extends Entity {
   @property( {
     type: 'string',
-    required: true,
+    required: false,
+    generated: true,
     id: true
   } )
   _key: string
@@ -15,6 +16,11 @@ export class Blacklist extends Entity {
     generated: true
   } )
   _id: string
+
+  @property( {
+    type: 'string',
+  } )
+  token: string
 
   constructor ( data?: Partial<Blacklist> ) {
     super( data )

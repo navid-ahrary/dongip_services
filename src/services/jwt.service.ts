@@ -40,7 +40,7 @@ export class JWTService implements TokenService {
       // check token is not in blacklist
       await this.blacklistRepository.checkTokenNotBlacklisted(
         {
-          where: { _key: accessToken }
+          where: { token: accessToken }
         }
       )
 

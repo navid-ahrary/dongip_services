@@ -2,7 +2,6 @@ import { DefaultCrudRepository, Filter, DataObject } from '@loopback/repository'
 import { Blacklist, BlacklistRelations } from '../models'
 import { ArangodbDataSource } from '../datasources'
 import { inject } from '@loopback/core'
-import { HttpErrors } from '@loopback/rest'
 
 export class BlacklistRepository extends DefaultCrudRepository<
   Blacklist,
@@ -20,7 +19,7 @@ export class BlacklistRepository extends DefaultCrudRepository<
     if ( exist.length === 0 ) {
       return
     } else {
-      throw new HttpErrors.NotFound( 'Token is blacklisted!' )
+      throw new Error( 'Token is blacklisted!' )
     }
   }
 
