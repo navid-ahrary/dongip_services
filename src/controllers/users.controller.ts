@@ -424,7 +424,7 @@ export class UsersController {
   }
 
 
-  @get( '/apis/users/{_key}/refresh_token', {
+  @get( '/apis/users/{_key}/refresh-token', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -433,7 +433,30 @@ export class UsersController {
     }
   } )
   @authenticate( 'jwt' )
-  async token () {
+  async refreshToken (
+    @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
+    @param.header.string( 'Authorization' ) token: string
+  ) {
+    let user: Users,
+      userProfile: UserProfile,
+      accessToken: string,
+      isMatched: boolean
 
+    user = await this.usersRepository.findById( currentUserProfile[ securityId ] )
+    isMatched = await this.passwordHasher.comparePassword(
+      token.split( ' ' )[ 1 ],
+      user.refreshToken
+    )
+
+    if ( !isMatched ) {
+      throw new HttpErrors.Unauthorized( 'Refresh tokens are not matched' )
+    }
+
+    userProfile = this.userService.convertToUserProfile( user )
+    userProfile[ 'type' ] = 'access'
+
+    accessToken = await this.jwtService.generateToken( userProfile )
+
+    return { accessToken: accessToken }
   }
 }
