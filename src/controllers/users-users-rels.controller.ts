@@ -88,8 +88,7 @@ export class UsersUsersRelsController {
     let requesterUser: Users,
       recipientUser: Users | null,
       createdVirtualUser: VirtualUsers,
-      createdUsersRelation: UsersRels,
-      notificationResponse
+      createdUsersRelation: UsersRels
 
     requesterUser = await this.usersRepository.findById( _key )
     recipientUser = await this.usersRepository.findOne( {
@@ -155,22 +154,18 @@ export class UsersUsersRelsController {
         mutableContent: false,
       }
       // send friend request notofication to recipient user client
-      await admin
-        .messaging()
+      admin.messaging()
         .sendToDevice( recipientUser.registerationToken, payload, options )
         .then( function ( _response ) {
           console.log( _response )
-          notificationResponse = _response
         } ).catch( function ( _error ) {
           console.log( _error )
-          notificationResponse = _error
         } )
     }
 
     return {
       createdVirtualUser,
       createdUsersRelation,
-      notificationResponse
     }
   }
 
@@ -209,7 +204,6 @@ export class UsersUsersRelsController {
       recipientUser: Users,
       backUr: UsersRels,
       vu: VirtualUsers,
-      notificationResponse,
       response = {}
 
     // Find the recipient user
@@ -313,22 +307,16 @@ export class UsersUsersRelsController {
       }
 
       // send response to friend request notification to the requester
-      await admin
-        .messaging()
+      admin.messaging()
         .sendToDevice( requesterUser.registerationToken, payload, options )
         .then( function ( _response ) {
           console.log( `Successfully set a friend, ${ _response }` )
-          notificationResponse = _response
         } )
         .catch( function ( _error ) {
           console.log( `Sending notification failed, ${ _error }` )
-          notificationResponse = _error
         } )
 
-      return {
-        ...response,
-        notificationResponse
-      }
+      return response
     }
   }
 

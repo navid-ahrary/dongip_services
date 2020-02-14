@@ -111,7 +111,7 @@ export class UsersController {
   @authenticate.skip()
   async verify (
     @param.header.string( 'User-Agent' ) userAgent: string,
-    @param.header.string( 'Registeration-Token' ) registerationToken: string,
+    @param.header.string( 'Registeration-Token' ) regToken: string,
     @param.path.string( 'phone' ) phone: string, ): Promise<{
       status: boolean,
       name: string | undefined,
@@ -139,14 +139,11 @@ export class UsersController {
     userProfile = {
       [ securityId ]: phone,
       password: randomStr + verifyCode,
-      registerationToken: registerationToken,
+      regToken: regToken,
       type: 'verify',
-      expiresIn: 90,
+      expiresIn: 60,
       agent: userAgent
     }
-
-    // Generate verify token based on user profile
-    verifyToken = await this.jwtService.generateToken( userProfile )
 
     user = await this.usersRepository.findOne( {
       where: { phone: phone },
@@ -158,17 +155,18 @@ export class UsersController {
     if ( user ) {
       status = true
     }
+    // Generate verify token based on user profile
+    verifyToken = await this.jwtService.generateToken( userProfile )
 
     // send verify code with sms
-    // this.smsApi.VerifyLookup( {
-    //   token: verifyCode,
-    //   template: 'dongip',
-    //   type: 'sms',
-    //   receptor: phone.replace( '+98', '0' )
-    // },
-    //   function ( _response: any, _status: any ) {
-    //     console.log( _response, _status )
-    //   } )
+    this.smsApi.VerifyLookup( {
+      token: Number( verifyCode ),
+      template: 'dongip',
+      type: 'sms',
+      receptor: phone.replace( '+98', '0' )
+    }, function ( _response: any, _status: any ) {
+      console.log( _response, _status )
+    } )
 
     try {
       // send verify token by notification
@@ -178,7 +176,7 @@ export class UsersController {
         }
       }
       admin.messaging()
-        .sendToDevice( registerationToken, payload )
+        .sendToDevice( regToken, payload )
         .then( function ( _res: any ) {
           console.log( _res )
         } )
@@ -216,15 +214,9 @@ export class UsersController {
     accessToken: string,
     refreshToken: string
   }> {
-
     let userProfile: UserProfile,
       user: Users,
       accessToken: string
-
-    // add token to blacklist
-    await this.blacklistRepository.createHumanKind( {
-      token: token.split( ' ' )[ 1 ]
-    } )
 
     if ( phone !== credentials.phone ) {
       console.log( 'Error login, Phone numbers are not matched !' )
@@ -242,8 +234,25 @@ export class UsersController {
     }
 
     try {
+      validatePhoneNumber( phone )
+    } catch ( _error ) {
+      console.log( _error )
+      throw new HttpErrors.UnprocessableEntity( _error.message )
+    }
+
+    // add token to blacklist
+    await this.blacklistRepository.createHumanKind( {
+      token: token.split( ' ' )[ 1 ]
+    } )
+
+    try {
       //ensure the user exists and the password is correct
       user = await this.userService.verifyCredentials( credentials )
+
+      await this.usersRepository.updateById( user._key, {
+        userAgent: currentUserProfile.agent,
+        registerationToken: currentUserProfile.regToken
+      } )
     } catch ( err ) {
       console.log( err )
       throw new HttpErrors.Unauthorized( err.message )
@@ -251,7 +260,6 @@ export class UsersController {
 
     //convert a User object into a UserProfile object (reduced set of properties)
     userProfile = this.userService.convertToUserProfile( user )
-    userProfile[ 'aud' ] = currentUserProfile.agent
     userProfile[ 'type' ] = 'access'
 
     try {
@@ -289,12 +297,8 @@ export class UsersController {
     let savedUser: Users,
       accessToken: string,
       userProfile: UserProfile = { [ securityId ]: '' }
-    try {
-      // add verify token to blacklist
-      await this.blacklistRepository.createHumanKind( {
-        token: token.split( ' ' )[ 1 ]
-      } )
 
+    try {
       if ( phone !== user.phone ) {
         console.log( 'Error login, Phone numbers are not matched !' )
         throw new HttpErrors.NotAcceptable(
@@ -313,22 +317,27 @@ export class UsersController {
       // ensure a valid phone and password value
       validatePhoneNumber( user.phone )
 
+      // add verify token to blacklist
+      await this.blacklistRepository.createHumanKind( {
+        token: token.split( ' ' )[ 1 ]
+      } )
+
       user[ 'registeredAt' ] = moment().format()
+      user[ 'registerationToken' ] = currentUserProfile.regToken
+      user[ 'userAgent' ] = currentUserProfile.agent
       delete user[ 'password' ]
       // Create a new user
       savedUser = await this.usersRepository.createHumanKind( user )
 
       //convert a User object into a UserProfile object (reduced set of properties)
       userProfile = this.userService.convertToUserProfile( savedUser )
-      userProfile[ 'aud' ] = currentUserProfile.agent
       userProfile[ 'type' ] = 'access'
 
       //create a JWT token based on the Userprofile
       accessToken = await this.jwtService.generateToken( userProfile )
 
       // Create self-relation for self accounting
-      await this.usersRepository.createHumanKindUsersRels(
-        savedUser._key,
+      await this.usersRepository.createHumanKindUsersRels( savedUser._key,
         {
           _from: savedUser._id,
           _to: savedUser._id,
@@ -412,5 +421,19 @@ export class UsersController {
     return this.usersRepository.findById( _key, {
       fields: { _rev: true }
     } )
+  }
+
+
+  @get( '/apis/users/{_key}/refresh_token', {
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '200': {
+        description: 'New access token'
+      }
+    }
+  } )
+  @authenticate( 'jwt' )
+  async token () {
+
   }
 }

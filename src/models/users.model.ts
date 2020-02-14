@@ -95,14 +95,6 @@ export class Users extends Entity {
   } )
   userAgent: string
 
-  @property( {
-    type: 'array',
-    itemType: 'string',
-    required: false,
-    default: [],
-  } )
-  dongsId: string[]
-
   @hasMany( () => VirtualUsers, { keyTo: 'belongsToUserKey' } )
   virtualUsers: VirtualUsers[]
 

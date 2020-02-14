@@ -68,7 +68,7 @@ export const UserSignupRequestBody = {
         title: 'NewUser',
         exclude: [
           "_id", "_key", "_rev", "accountType", "categories", "categoryBills",
-          "dongs", "dongsId", "geolocation", "userAgent", "refreshToken",
+          "dongs", "geolocation", "userAgent", "refreshToken",
           "registerationToken", "registeredAt", "usersRels", "virtualUsers"
         ]
       }
@@ -100,7 +100,7 @@ export const UserPatchRequestBody = {
       schema: getModelSchemaRef( Users, {
         partial: true,
         exclude: [
-          "_id", "_key", "_rev", "accountType", "registeredAt", "dongsId",
+          "_id", "_key", "_rev", "accountType", "registeredAt", "dongs",
           "usersRels", "categories", "geolocation", "phone", "virtualUsers",
           "registerationToken", "refreshToken", "usersRels", "userAgent"
         ]
