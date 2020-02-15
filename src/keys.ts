@@ -6,18 +6,22 @@ require( "dotenv" ).config()
 
 export namespace TokenServiceConstants {
   export const TOKEN_SECRET_VALUE = process.env.TOKEN_SECRET_VALUE
-  export const TOKEN_EXPIRES_IN_VALUE = process.env.TOKEN_EXPIRES_IN_VALUE
-  export const TOKEN_ALGORITHM_VALUE = process.env.TOKEN_ALGORITHM_VALUE
+  export const VERIFY_TOKEN_EXPIRES_IN_VALUE = process.env.VERIFY_TOKEN_EXPIRES_IN_VALUE
+  export const ACCESS_TOKEN_EXPIRES_IN_VALUE = process.env.ACCESS_TOKEN_EXPIRES_IN_VALUE
+  export const REFRESH_TOKEN_EXPIRES_IN_VALUE = process.env.REFRESH_TOKEN_EXPIRES_IN_VALUE
 }
 
 
 export namespace TokenServiceBindings {
   export const TOKEN_SECRET = BindingKey.create<string>( 'authentication.jwt.secret' )
-  export const TOKEN_EXPIRES_IN = BindingKey.create<string>(
-    'authentication.jwt.expires.in.seconds',
+  export const VERIFY_TOKEN_EXPIRES_IN = BindingKey.create<string>(
+    'authentication.jwt.verify.expires.in.seconds',
   )
-  export const TOKEN_ALGORITHM = BindingKey.create<string>(
-    'authentication.jwt.token.algorithm',
+  export const ACCESS_TOKEN_EXPIRES_IN = BindingKey.create<string>(
+    'authentication.jwt.access.expires.in.seconds',
+  )
+  export const REFRESH_TOKEN_EXPIRES_IN = BindingKey.create<string>(
+    'authentication.jwt.refresh.expires.in.seconds',
   )
   export const TOKEN_SERVICE = BindingKey.create<TokenService>(
     'services.authentication.jwt.tokenservice',

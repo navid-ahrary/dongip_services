@@ -9,9 +9,16 @@ import * as path from 'path'
 import * as admin from 'firebase-admin'
 import { MyAuthenticationSequence } from './sequence'
 import { UserAuthenticationComponent } from './components/user.authentication'
-import { JWTAutehticationStrategy } from './authentication-strategies/jwt-strategy'
 import {
-  TokenServiceBindings, TokenServiceConstants, PasswordHasherBindings, UserServiceBindings
+  JWTVerifyAutehticationStrategy,
+  JWTAccessAutehticationStrategy,
+  JWTRefreshAutehticationStrategy,
+} from './authentication-strategies/jwt-strategies'
+import {
+  TokenServiceBindings,
+  TokenServiceConstants,
+  PasswordHasherBindings,
+  UserServiceBindings
 } from './keys'
 import { JWTService } from './services/jwt.service'
 import { SECURITY_SCHEME_SPEC } from './utils/security-specs'
@@ -58,7 +65,9 @@ export class LoginServiceApplication extends BootMixin(
     //Bind authentication components related elemets
     this.component( UserAuthenticationComponent )
 
-    registerAuthenticationStrategy( this, JWTAutehticationStrategy )
+    registerAuthenticationStrategy( this, JWTAccessAutehticationStrategy )
+    registerAuthenticationStrategy( this, JWTRefreshAutehticationStrategy )
+    registerAuthenticationStrategy( this, JWTVerifyAutehticationStrategy )
 
     // Set up the custom sequence
     this.sequence( MyAuthenticationSequence )
@@ -93,15 +102,15 @@ export class LoginServiceApplication extends BootMixin(
     this.bind( TokenServiceBindings.TOKEN_SECRET ).to(
       TokenServiceConstants.TOKEN_SECRET_VALUE!,
     )
-
-    this.bind( TokenServiceBindings.TOKEN_EXPIRES_IN ).to(
-      TokenServiceConstants.TOKEN_EXPIRES_IN_VALUE!,
+    this.bind( TokenServiceBindings.VERIFY_TOKEN_EXPIRES_IN ).to(
+      TokenServiceConstants.VERIFY_TOKEN_EXPIRES_IN_VALUE!,
     )
-
-    this.bind( TokenServiceBindings.TOKEN_ALGORITHM ).to(
-      TokenServiceConstants.TOKEN_ALGORITHM_VALUE!,
+    this.bind( TokenServiceBindings.ACCESS_TOKEN_EXPIRES_IN ).to(
+      TokenServiceConstants.ACCESS_TOKEN_EXPIRES_IN_VALUE!,
     )
-
+    this.bind( TokenServiceBindings.REFRESH_TOKEN_EXPIRES_IN ).to(
+      TokenServiceConstants.REFRESH_TOKEN_EXPIRES_IN_VALUE!,
+    )
     this.bind( TokenServiceBindings.TOKEN_SERVICE ).toClass( JWTService )
 
     // Bind bcrypt hash service

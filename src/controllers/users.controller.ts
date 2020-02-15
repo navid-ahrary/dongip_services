@@ -112,14 +112,15 @@ export class UsersController {
   async verify (
     @param.header.string( 'User-Agent' ) userAgent: string,
     @param.header.string( 'Registeration-Token' ) regToken: string,
-    @param.path.string( 'phone' ) phone: string, ): Promise<{
-      status: boolean,
-      name: string | undefined,
-      avatar: string | undefined,
-      prefix: string,
-      'verifyToken(temp - will send by notification)': string,
-      'code(temp - will send by sms)': string,
-    }> {
+    @param.path.string( 'phone' ) phone: string,
+  ): Promise<{
+    status: boolean,
+    name: string | undefined,
+    avatar: string | undefined,
+    prefix: string,
+    'verifyToken(temp - will send by notification)': string,
+    'code(temp - will send by sms)': string,
+  }> {
 
     let status = false,
       user: Users | null,
@@ -127,7 +128,7 @@ export class UsersController {
       randomStr = this.generateRandomString( 3 ),
       payload: admin.messaging.MessagingPayload,
       verifyToken: string,
-      userProfile: UserProfile = { [ securityId ]: '' }
+      userProfile: UserProfile
 
     try {
       validatePhoneNumber( phone )
@@ -141,7 +142,6 @@ export class UsersController {
       password: randomStr + verifyCode,
       regToken: regToken,
       type: 'verify',
-      expiresIn: 60,
       agent: userAgent
     }
 
@@ -202,7 +202,7 @@ export class UsersController {
     security: OPERATION_SECURITY_SPEC,
     responses: UserLoginResponse,
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.verify' )
   async login (
     @param.path.string( 'phone' ) phone: string,
     @param.header.string( 'Authorization' ) token: string,
@@ -283,20 +283,22 @@ export class UsersController {
     security: OPERATION_SECURITY_SPEC,
     responses: UserSignupResponse
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.verify' )
   async signup (
     @param.path.string( 'phone' ) phone: string,
     @param.header.string( 'Authorization' ) token: string,
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-    @requestBody( UserSignupRequestBody ) user: Users ): Promise<{
-      _key: string
-      _id: string
-      accessToken: string
-      refreshToken: string
-    }> {
+    @requestBody( UserSignupRequestBody ) user: Users
+  ): Promise<{
+    _key: string
+    _id: string
+    accessToken: string
+    refreshToken: string
+  }> {
     let savedUser: Users,
       accessToken: string,
-      userProfile: UserProfile = { [ securityId ]: '' }
+      userProfile: UserProfile
+
 
     try {
       if ( phone !== user.phone ) {
@@ -371,7 +373,7 @@ export class UsersController {
       },
     },
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.access' )
   async logout (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.header.string( 'authorization' ) authorizationHeader: string,
@@ -408,12 +410,13 @@ export class UsersController {
       },
     },
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.access' )
   async updateById (
     @param.path.string( '_key' ) _key: string,
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @requestBody( UserPatchRequestBody )
     user: Omit<Users, '_key'> ): Promise<Users> {
+
     if ( _key !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized( 'Token is not matched to this user _key!' )
     }
@@ -432,7 +435,7 @@ export class UsersController {
       }
     }
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.refresh' )
   async refreshToken (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.header.string( 'Authorization' ) token: string

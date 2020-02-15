@@ -17,8 +17,12 @@ export class JWTService implements TokenService {
     @repository( UsersRepository ) public usersRepository: UsersRepository,
     @repository( BlacklistRepository ) public blacklistRepository: BlacklistRepository,
     @inject( TokenServiceBindings.TOKEN_SECRET ) private jwtSecret: string,
-    @inject( TokenServiceBindings.TOKEN_EXPIRES_IN ) private jwtExpiresIn: string,
-    @inject( TokenServiceBindings.TOKEN_ALGORITHM ) private jwtAlgorithm: string,
+    @inject( TokenServiceBindings.VERIFY_TOKEN_EXPIRES_IN )
+    private jwtVerifyExpiresIn: string,
+    @inject( TokenServiceBindings.ACCESS_TOKEN_EXPIRES_IN )
+    private jwtAccessExpiresIn: string,
+    @inject( TokenServiceBindings.REFRESH_TOKEN_EXPIRES_IN )
+    private jwtRefreshExpiresIn: string,
   ) { }
 
   async verifyToken ( accessToken: string ): Promise<UserProfile> {
@@ -60,13 +64,15 @@ export class JWTService implements TokenService {
     let expiresIn,
       subject = userProfile[ securityId ]
 
-    switch ( userProfile[ 'type' ] ) {
-      case 'verify' || 'refresh':
-        expiresIn = +userProfile.expiresIn
-        delete userProfile.expiresIn
+    switch ( userProfile.type ) {
+      case 'verify':
+        expiresIn = +this.jwtVerifyExpiresIn
         break
       case 'access':
-        expiresIn = +this.jwtExpiresIn
+        expiresIn = +this.jwtAccessExpiresIn
+        break
+      case 'refresh':
+        expiresIn = +this.jwtRefreshExpiresIn
         break
     }
 
@@ -74,7 +80,7 @@ export class JWTService implements TokenService {
     let accessToken: string
     try {
       accessToken = signAsync( userProfile, this.jwtSecret, {
-        algorithm: this.jwtAlgorithm,
+        algorithm: 'HS512',
         expiresIn: expiresIn,
         subject: subject
       } )
