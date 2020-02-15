@@ -48,7 +48,7 @@ export class MyAuthenticationSequence implements SequenceHandler {
   async handle ( context: RequestContext ) {
     try {
       const { request, response } = context
-      response.setHeader( 'Server', 'nginx/1.14.2 (Linux/SUSE)' )
+      response.setHeader( 'Server', 'nginx (Linux/SUSE)' )
       const route = this.findRoute( request )
 
       //call authentication action
