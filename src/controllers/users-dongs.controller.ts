@@ -84,7 +84,7 @@ export class UsersDongsController {
       },
     },
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.access' )
   async create (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: typeof Users.prototype._key,

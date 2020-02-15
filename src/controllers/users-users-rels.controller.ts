@@ -35,7 +35,7 @@ export class UsersUsersRelsController {
       },
     },
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.access' )
   async find (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: string,
@@ -61,7 +61,7 @@ export class UsersUsersRelsController {
     security: OPERATION_SECURITY_SPEC,
     responses: { '200': { description: 'Sending a friend request', }, },
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.access' )
   async setFriend (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: typeof Users.prototype._key,
@@ -178,7 +178,7 @@ export class UsersUsersRelsController {
       },
     },
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.access' )
   async responseToFriendRequest (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: typeof Users.prototype._key,
@@ -330,7 +330,7 @@ export class UsersUsersRelsController {
       },
     },
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.access' )
   async patch (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: string,

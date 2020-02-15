@@ -31,7 +31,7 @@ export class UsersCategoryController {
       },
     },
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.access' )
   async find (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: string,
@@ -55,7 +55,7 @@ export class UsersCategoryController {
       },
     },
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.access' )
   async create (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: typeof Users.prototype._key,
@@ -101,7 +101,7 @@ export class UsersCategoryController {
       },
     },
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.access' )
   async patch (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: string,
