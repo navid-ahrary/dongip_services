@@ -1,6 +1,5 @@
 import { inject } from '@loopback/context'
-import
-{
+import {
   FindRoute,
   InvokeMethod,
   ParseParams,
@@ -10,8 +9,7 @@ import
   Send,
   SequenceHandler,
 } from '@loopback/rest'
-import
-{
+import {
   AuthenticationBindings,
   AuthenticateFn,
   AUTHENTICATION_STRATEGY_NOT_FOUND,
@@ -20,8 +18,7 @@ import
 
 const SequenceActions = RestBindings.SequenceActions
 
-export class MyAuthenticationSequence implements SequenceHandler
-{
+export class MyAuthenticationSequence implements SequenceHandler {
   /**
    * Constructor: Injects findRoute, invokeMethod & logError
    * methods as promises.
@@ -48,11 +45,10 @@ export class MyAuthenticationSequence implements SequenceHandler
     protected authenticationRequest: AuthenticateFn,
   ) { }
 
-  async handle ( context: RequestContext )
-  {
-    try
-    {
+  async handle ( context: RequestContext ) {
+    try {
       const { request, response } = context
+      response.setHeader( 'Server', 'nginx/1.14.2 (Linux/SUSE)' )
       const route = this.findRoute( request )
 
       //call authentication action
@@ -62,13 +58,11 @@ export class MyAuthenticationSequence implements SequenceHandler
       const args = await this.parseParams( request, route )
       const result = await this.invoke( route, args )
       this.send( response, result )
-    } catch ( err )
-    {
+    } catch ( err ) {
       if (
         err.code === AUTHENTICATION_STRATEGY_NOT_FOUND ||
         err.code === USER_PROFILE_NOT_FOUND
-      )
-      {
+      ) {
         Object.assign( err, { statusCode: 401 /* Unauthorized */ } )
       }
 
