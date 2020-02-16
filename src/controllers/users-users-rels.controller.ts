@@ -88,7 +88,8 @@ export class UsersUsersRelsController {
     let requesterUser: Users,
       recipientUser: Users | null,
       createdVirtualUser: VirtualUsers,
-      createdUsersRelation: UsersRels
+      createdUsersRelation: UsersRels,
+      payload: admin.messaging.MessagingPayload
 
     requesterUser = await this.usersRepository.findById( _key )
     recipientUser = await this.usersRepository.findOne( {
@@ -112,12 +113,12 @@ export class UsersUsersRelsController {
     }
 
     try {
-      const vu = { phone: reqBody.phone, usersId: _key }
+      const vu = { phone: reqBody.phone, belongsToUserKey: _key }
       createdVirtualUser = await this.usersRepository.createHumanKindVirtualUsers( _key, vu )
       createdUsersRelation = await this.usersRepository.createHumanKindUsersRels( _key,
         {
           _from: requesterUser?._id,
-          _to: createdVirtualUser._key,
+          _to: createdVirtualUser._id,
           alias: reqBody.alias,
           avatar: reqBody.avatar,
           targetUsersId: recipientUser?._id,
@@ -131,12 +132,12 @@ export class UsersUsersRelsController {
       if ( error.code === 409 ) {
         throw new HttpErrors.Conflict( 'You are virtual friends already!' )
       } else {
-        throw new HttpErrors.NotAcceptable( error )
+        throw new HttpErrors.NotAcceptable( error.message )
       }
     }
 
     if ( requesterUser && recipientUser ) {
-      const payload: admin.messaging.MessagingPayload = {
+      payload = {
         notification: {
           title: 'دنگیپ درخواست دوستی',
           body: `${ requesterUser.name } با شماره موبایل ${ requesterUser.phone } ازشما درخواست دوستی کرده`,
@@ -264,7 +265,7 @@ export class UsersUsersRelsController {
             deleteById( bodyReq.virtualUserId.split( '/' )[ 1 ] )
         } catch ( error ) {
           console.log( 'virtualUser deletebyId error' + error )
-          throw new HttpErrors.NotAcceptable( error )
+          throw new HttpErrors.NotAcceptable( error.message )
         }
 
         try {
@@ -281,7 +282,7 @@ export class UsersUsersRelsController {
           await this.virtualUsersRepository.create( vu )
           console.log( 'Create deleted virual user again, cause of previous phase error' + vu )
           console.log( 'userRels updatebyId error' + error )
-          throw new HttpErrors.NotAcceptable( error )
+          throw new HttpErrors.NotAcceptable( error.message )
         }
 
         // Create relation from recipient to requester
