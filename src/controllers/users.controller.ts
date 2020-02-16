@@ -224,7 +224,7 @@ export class UsersController {
         'Error login, Phone numbers are not matched !',
       )
     }
-    if ( phone !== currentUserProfile.sub ) {
+    if ( phone !== currentUserProfile[ securityId ] ) {
       console.log( 'This token in not yours !' )
       throw new HttpErrors.Unauthorized( 'This token in not yours !' )
     }
@@ -307,7 +307,7 @@ export class UsersController {
           'Error login, Phone numbers are not matched !',
         )
       }
-      if ( phone !== currentUserProfile.sub ) {
+      if ( phone !== currentUserProfile[ securityId ] ) {
         console.log( 'This token in not yours !' )
         throw new HttpErrors.Unauthorized( 'This token in not yours !' )
       }
