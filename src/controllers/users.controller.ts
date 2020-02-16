@@ -172,8 +172,7 @@ export class UsersController {
       // send verify token by notification
       payload = {
         data: {
-          verifyToken: verifyToken,
-          silent: 'true'
+          verifyToken: verifyToken
         }
       }
       admin.messaging()
