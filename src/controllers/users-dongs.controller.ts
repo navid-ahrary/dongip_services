@@ -61,6 +61,7 @@ export class UsersDongsController {
       },
     },
   } )
+  @authenticate( 'jwt.access' )
   async find (
     @param.path.string( '_key' ) _key: string,
     @param.query.object( 'filter' ) filter?: Filter<Dongs>,
@@ -244,7 +245,7 @@ export class UsersDongsController {
     }
 
     //send new dong notification to the nodes
-    await admin
+    admin
       .messaging()
       .sendMulticast( message )
       .then( function ( _response ) {
