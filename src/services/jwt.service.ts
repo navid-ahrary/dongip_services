@@ -59,7 +59,7 @@ export class JWTService implements TokenService {
       delete userProfile.sub
     } catch ( error ) {
       throw new HttpErrors.Unauthorized(
-        `Error verifying access token: ${ error.message }` )
+        `Error verifying token: ${ error.message }` )
     }
     return userProfile
   }
