@@ -49,8 +49,6 @@ export class JWTService implements TokenService {
         }
       )
 
-      console.log( decryptedToken )
-
       userProfile = Object.assign(
         {},
         {
