@@ -28,7 +28,8 @@ export class JWTService implements TokenService {
   async verifyToken ( accessToken: string ): Promise<UserProfile> {
     if ( !accessToken ) {
       throw new HttpErrors.Unauthorized(
-        `Error verifying access token: 'token' is null` )
+        'Error verifying access token: token is null'
+      )
     }
 
     let userProfile: UserProfile
@@ -48,7 +49,14 @@ export class JWTService implements TokenService {
         }
       )
 
-      userProfile = Object.assign( {}, decryptedToken )
+      console.log( decryptedToken )
+
+      userProfile = Object.assign(
+        {},
+        {
+          [ securityId ]: decryptedToken.sub, ...decryptedToken
+        } )
+      delete userProfile.sub
     } catch ( error ) {
       throw new HttpErrors.Unauthorized(
         `Error verifying access token: ${ error.message }` )
@@ -61,8 +69,7 @@ export class JWTService implements TokenService {
       throw new HttpErrors.Unauthorized(
         'Error generating token, userPofile is null.' )
     }
-    let expiresIn,
-      subject = userProfile[ securityId ]
+    let expiresIn
 
     switch ( userProfile.type ) {
       case 'verify':
@@ -82,7 +89,7 @@ export class JWTService implements TokenService {
       accessToken = signAsync( userProfile, this.jwtSecret, {
         algorithm: 'HS512',
         expiresIn: expiresIn,
-        subject: subject
+        subject: userProfile[ securityId ]
       } )
     } catch ( error ) {
       throw new HttpErrors.Unauthorized(
