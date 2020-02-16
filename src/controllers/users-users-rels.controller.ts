@@ -117,7 +117,7 @@ export class UsersUsersRelsController {
       createdVirtualUser = await this.usersRepository.createHumanKindVirtualUsers( _key, vu )
       createdUsersRelation = await this.usersRepository.createHumanKindUsersRels( _key,
         {
-          _from: requesterUser?._id,
+          _from: requesterUser._id,
           _to: createdVirtualUser._id,
           alias: reqBody.alias,
           avatar: reqBody.avatar,
