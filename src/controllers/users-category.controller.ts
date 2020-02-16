@@ -121,6 +121,14 @@ export class UsersCategoryController {
       )
     }
 
-    return this.usersRepository.categories( _key ).patch( category, where )
+    try {
+      return await this.usersRepository.categories( _key ).patch( category, where )
+    } catch ( _error ) {
+      console.log( _error )
+      if ( _error.code === 409 ) {
+        throw new HttpErrors.Conflict( 'This title for this user key is exist' )
+      }
+      throw new HttpErrors.NotAcceptable( _error.message )
+    }
   }
 }
