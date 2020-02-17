@@ -183,9 +183,9 @@ export class UsersController {
         .catch( function ( _err: any ) {
           console.log( _err )
         } )
-    } catch ( err ) {
-      console.log( err.message )
-      throw new HttpErrors.UnprocessableEntity( err.message )
+    } catch ( _err ) {
+      console.log( _err )
+      throw new HttpErrors.UnprocessableEntity( _err.message )
     }
 
     return {
@@ -235,9 +235,9 @@ export class UsersController {
 
     try {
       validatePhoneNumber( phone )
-    } catch ( _error ) {
-      console.log( _error )
-      throw new HttpErrors.UnprocessableEntity( _error.message )
+    } catch ( _err ) {
+      console.log( _err )
+      throw new HttpErrors.UnprocessableEntity( _err.message )
     }
 
     // add token to blacklist
@@ -253,9 +253,9 @@ export class UsersController {
         userAgent: currentUserProfile.agent,
         registerationToken: currentUserProfile.regToken
       } )
-    } catch ( err ) {
-      console.log( err )
-      throw new HttpErrors.Unauthorized( err.message )
+    } catch ( _err ) {
+      console.log( _err )
+      throw new HttpErrors.Unauthorized( _err.message )
     }
 
     //convert a User object into a UserProfile object (reduced set of properties)
@@ -265,9 +265,9 @@ export class UsersController {
     try {
       //create a JWT token based on the Userprofile
       accessToken = await this.jwtService.generateToken( userProfile )
-    } catch ( err ) {
-      console.log( err )
-      throw new HttpErrors.NotImplemented( err )
+    } catch ( _err ) {
+      console.log( _err )
+      throw new HttpErrors.NotImplemented( _err.message )
     }
 
     return {
@@ -355,7 +355,7 @@ export class UsersController {
         refreshToken: user.refreshToken
       }
     } catch ( _err ) {
-      console.log( _err.response.body )
+      console.log( _err )
       if ( _err.code === 409 ) {
         throw new HttpErrors.Conflict( _err.response.body.errorMessage )
       } else {
@@ -393,7 +393,7 @@ export class UsersController {
       )
 
     } catch ( _err ) {
-      console.log( _err.response.body )
+      console.log( _err )
       if ( _err.code === 409 ) {
         throw new HttpErrors.Conflict( _err.response.body.errorMessage )
       } else {
