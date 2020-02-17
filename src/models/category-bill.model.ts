@@ -1,68 +1,96 @@
 import { Entity, model, property, belongsTo } from '@loopback/repository'
 import { Category } from './category.model'
 import { Dongs } from './dongs.model'
-import {Users} from './users.model';
+import { Users } from './users.model'
 
 @model()
 export class CategoryBill extends Entity {
-  @property({
+  @property( {
     type: 'string',
     id: true,
     generated: true,
-  })
+  } )
   _key: string
 
-  @property({
+  @property( {
     type: 'string',
     generated: true,
     required: false,
-  })
+  } )
   _id: string
 
-  @property({
+  @property( {
     type: 'string',
     generated: true,
     required: false,
-  })
+  } )
   _rev: string
 
-  @property({
-    type: 'string',
-  })
+  @belongsTo( () => Dongs, { name: 'belongsToDong' } )
   _from: string
 
-  @property({
-    type: 'string',
-  })
+  @belongsTo( () => Users, { name: 'belongsToUser' } )
   _to: string
 
-  @property({
-    type: 'number',
-  })
-  dong: number
-
-  @property({
-    type: 'number',
-  })
-  paidCost: number
-
-  @property({
-    type: 'number',
-    required: false,
-  })
-  calculation: number
-
-  @belongsTo(() => Category, {name: 'belongsToCategory'})
+  @belongsTo( () => Category, { name: 'belongsToCategory' } )
   belongsToCategoryKey: string
 
-  @belongsTo(() => Dongs, {name: 'belongsToDong'})
-  belongsToDongKey: string
+  @property( {
+    type: 'number',
+    requred: false
+  } )
+  dong: number
 
-  @belongsTo(() => Users, {name: 'belongsToUser'})
-  belongsToUserKey: string;
+  @property( {
+    type: 'number',
+    required: true
+  } )
+  paid: number
 
-  constructor(data?: Partial<CategoryBill>) {
-    super(data)
+  @property( {
+    type: 'string',
+  } )
+  guest?: string
+
+  @property( {
+    type: 'string',
+    required: true,
+  } )
+  usersRelId: string
+
+  @property( {
+    type: 'string',
+    required: false
+  } )
+  userId: string
+
+  @property( {
+    type: 'number',
+    required: true
+  } )
+  factor: number
+
+  @property( {
+    type: 'number',
+    required: false,
+  } )
+  calculation: number
+
+  @property( {
+    type: 'boolean',
+    required: true,
+  } )
+  settled: boolean
+
+  @property( {
+    type: 'date',
+    required: false
+  } )
+  settledAt: 'string'
+
+
+  constructor ( data?: Partial<CategoryBill> ) {
+    super( data )
   }
 }
 

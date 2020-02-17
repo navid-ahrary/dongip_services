@@ -80,14 +80,12 @@ export class UsersCategoryController {
     try {
       const createdCat = await this.usersRepository.createHumanKindCategory( _key, category )
       return createdCat
-    } catch ( error ) {
-      console.log( error )
-      if ( error.code === 409 ) {
-        throw new HttpErrors.Conflict(
-          "Conflict category's title, this category exists",
-        )
+    } catch ( _err ) {
+      console.log( _err.response.bodye )
+      if ( _err.code === 409 ) {
+        throw new HttpErrors.Conflict( _err.response.body.errorMessage )
       } else {
-        throw new HttpErrors.NotAcceptable( error )
+        throw new HttpErrors.NotAcceptable( _err )
       }
     }
   }
@@ -123,12 +121,12 @@ export class UsersCategoryController {
 
     try {
       return await this.usersRepository.categories( _key ).patch( category, where )
-    } catch ( _error ) {
-      console.log( _error )
-      if ( _error.code === 409 ) {
-        throw new HttpErrors.Conflict( 'This title for this user key is exist' )
+    } catch ( _err ) {
+      console.log( _err.response.body )
+      if ( _err.code === 409 ) {
+        throw new HttpErrors.Conflict( _err.response.body.errorMessage )
       }
-      throw new HttpErrors.NotAcceptable( _error.message )
+      throw new HttpErrors.NotAcceptable( _err.message )
     }
   }
 }

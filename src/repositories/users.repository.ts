@@ -13,6 +13,7 @@ import { CategoryRepository } from './category.repository'
 import { UsersRelsRepository } from './users-rels.repository'
 import { CategoryBillRepository } from './category-bill.repository'
 import { PasswordHasherBindings } from '../keys'
+import { HttpErrors } from '@loopback/rest'
 
 export class UsersRepository extends DefaultCrudRepository<
   Users, typeof Users.prototype._key> {
@@ -29,8 +30,7 @@ export class UsersRepository extends DefaultCrudRepository<
     UsersRels, typeof Users.prototype._key>
 
   public readonly categoryBills: HasManyRepositoryFactory<
-    CategoryBill,
-    typeof Users.prototype._key>
+    CategoryBill, typeof Users.prototype._id>
 
   constructor (
     @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource,
@@ -120,10 +120,15 @@ export class UsersRepository extends DefaultCrudRepository<
   public async createHumanKindCategoryBills (
     _key: typeof Users.prototype._key,
     entity: DataObject<CategoryBill> ): Promise<CategoryBill> {
-    const categoryBill = await this.categoryBills( _key ).create( entity )
-    categoryBill._id = categoryBill._key[ 1 ]
-    categoryBill._key = categoryBill._key[ 0 ]
-    return categoryBill
+    try {
+      const categoryBill = await this.categoryBills( _key ).create( entity )
+      categoryBill._id = categoryBill._key[ 1 ]
+      categoryBill._key = categoryBill._key[ 0 ]
+      return categoryBill
+    } catch ( _err ) {
+      console.log( _err )
+      throw new HttpErrors[ 422 ]( _err.message )
+    }
   }
 
   /**
@@ -132,10 +137,19 @@ export class UsersRepository extends DefaultCrudRepository<
   public async createHumanKindDongs (
     _key: typeof Users.prototype._key,
     entity: DataObject<Dongs> ): Promise<Dongs> {
-    const dong = await this.dongs( _key ).create( entity )
-    dong._id = dong._key[ 1 ]
-    dong._key = dong._key[ 0 ]
-    return dong
+    try {
+      const dong = await this.dongs( _key ).create( entity )
+      dong._id = dong._key[ 1 ]
+      dong._key = dong._key[ 0 ]
+      return dong
+    } catch ( _err ) {
+      console.log( _err )
+      if ( _err.code === 409 ) {
+        throw new HttpErrors.Conflict( _err.response.body.errorMessage )
+      } else {
+        throw new HttpErrors.NotAcceptable( _err )
+      }
+    }
   }
 
   /**

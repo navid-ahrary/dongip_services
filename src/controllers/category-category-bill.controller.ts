@@ -23,7 +23,7 @@ export class CategoryCategoryBillController {
       },
     },
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.access' )
   async find (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: string,

@@ -354,12 +354,12 @@ export class UsersController {
         accessToken: accessToken,
         refreshToken: user.refreshToken
       }
-    } catch ( err ) {
-      console.log( err )
-      if ( err.code === 409 ) {
-        throw new HttpErrors.Conflict( 'This phone number is already taken.' )
+    } catch ( _err ) {
+      console.log( _err.response.body )
+      if ( _err.code === 409 ) {
+        throw new HttpErrors.Conflict( _err.response.body.errorMessage )
       } else {
-        throw new HttpErrors.NotAcceptable( err.message )
+        throw new HttpErrors.NotAcceptable( _err )
       }
     }
   }
@@ -389,14 +389,13 @@ export class UsersController {
         { token: authorizationHeader.split( ' ' )[ 1 ] }
       )
 
-    } catch ( err ) {
-      console.log( err )
-      if ( err.code === 409 ) {
-        throw new HttpErrors.Conflict
-          ( `Error logout conflict token, this token is blacklisted already` )
+    } catch ( _err ) {
+      console.log( _err.response.body )
+      if ( _err.code === 409 ) {
+        throw new HttpErrors.Conflict( _err.response.body.errorMessage )
       } else {
         throw new HttpErrors.MethodNotAllowed
-          ( `Error logout not implemented: ${ err.message }` )
+          ( `Error logout not implemented: ${ _err.message }` )
       }
     }
   }

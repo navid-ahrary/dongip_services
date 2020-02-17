@@ -127,12 +127,12 @@ export class UsersUsersRelsController {
       )
       delete createdUsersRelation.targetUsersId
 
-    } catch ( error ) {
-      console.log( error )
-      if ( error.code === 409 ) {
-        throw new HttpErrors.Conflict( 'You are virtual friends already!' )
+    } catch ( _err ) {
+      console.log( _err.response.body )
+      if ( _err.code === 409 ) {
+        throw new HttpErrors.Conflict( _err.response.body.errorMessage )
       } else {
-        throw new HttpErrors.NotAcceptable( error.message )
+        throw new HttpErrors.NotAcceptable( _err.message )
       }
     }
 

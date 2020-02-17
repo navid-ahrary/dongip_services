@@ -7,6 +7,7 @@ import { ArangodbDataSource } from '../datasources'
 import { inject, Getter } from '@loopback/core'
 import { UsersRepository } from './users.repository'
 import { CategoryRepository } from './category.repository'
+import { HttpErrors } from '@loopback/rest'
 
 export class DongsRepository extends DefaultCrudRepository<
   Dongs, typeof Dongs.prototype._key, DongsRelations> {
@@ -35,9 +36,18 @@ export class DongsRepository extends DefaultCrudRepository<
   * create model like a human being
   */
   public async createHumanKind ( entity: DataObject<Dongs> ): Promise<Dongs> {
-    const dong = await this.create( entity )
-    dong._id = dong._key[ 1 ]
-    dong._key = dong._key[ 0 ]
-    return dong
+    try {
+      const dong = await this.create( entity )
+      dong._id = dong._key[ 1 ]
+      dong._key = dong._key[ 0 ]
+      return dong
+    } catch ( _err ) {
+      console.log( _err )
+      if ( _err.code === 409 ) {
+        throw new HttpErrors.Conflict( _err.response.body.errorMessage )
+      } else {
+        throw new HttpErrors.NotAcceptable( _err )
+      }
+    }
   }
 }

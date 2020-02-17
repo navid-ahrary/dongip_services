@@ -1,6 +1,7 @@
 import { Entity, model, property, belongsTo } from '@loopback/repository'
 import { Users } from './users.model'
 import { Category } from './category.model'
+import { CategoryBill } from './category-bill.model'
 
 @model()
 export class Dongs extends Entity {
@@ -63,18 +64,10 @@ export class Dongs extends Entity {
   pong: number
 
   @property( {
-    required: true,
     type: 'array',
     itemType: 'object',
   } )
-  eqip: {
-    usersRelId: string,
-    userId: string,
-    guests?: string,
-    factor: number,
-    paidCost: number,
-    dong: number
-  }[]
+  bill: CategoryBill[]
 
   @property( {
     type: 'string',
@@ -83,7 +76,6 @@ export class Dongs extends Entity {
 
   @belongsTo( () => Users, { name: 'belongsToUser' } )
   belongsToUserKey: string
-
 
   @property( {
     type: 'string',

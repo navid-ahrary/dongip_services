@@ -9,14 +9,15 @@ import { authenticate } from '@loopback/authentication'
 import { inject } from '@loopback/core'
 import * as admin from 'firebase-admin'
 import { Users, Dongs, Category, UsersRels } from '../models'
-import { UsersRepository, CategoryRepository } from '../repositories'
+import { UsersRepository, CategoryBillRepository } from '../repositories'
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 
 
 export class UsersDongsController {
   constructor (
     @repository( UsersRepository ) private usersRepository: UsersRepository,
-    @repository( CategoryRepository ) private categoryRepository: CategoryRepository,
+    @repository( CategoryBillRepository )
+    private categoryBillRepository: CategoryBillRepository
   ) { }
 
 
@@ -112,34 +113,36 @@ export class UsersDongsController {
       xManKey: string,
       xManUsersRelId = dongs.xManUsersRelId,
       usersRelsIdsList: string[] = [],
-      eqip = dongs.eqip,
+      bill = dongs.bill,
       nodes: string[] | false,
       pong = 0,
       dong = 0,
       factorNodes = 0,
       transaction: Dongs,
       categoryId: string = dongs.categoryId,
+      categoryBillKeysList: string[] = [],
       xManCategory: Category,
-      registrationTokens: string[] = []
+      registrationTokens: string[] = [],
+      findedCategoryList: Category[]
 
     delete dongs.categoryId
     delete dongs.xManUsersRelId
+    delete dongs.bill
 
     usersRelsIdsList.push( xManUsersRelId )
-    for ( const _node of eqip ) {
+    for ( const _b of bill ) {
+      usersRelsIdsList.push( _b.usersRelId )
+
       const relList = await this.usersRepository.usersRels( _key )
-        .find( { where: { _id: _node.usersRelId } } )
+        .find( { where: { _id: _b.usersRelId } } )
 
       if ( relList.length === 0 ) {
         throw new HttpErrors.NotAcceptable(
           'You have not relation with some of users!' )
       } else {
-        _node[ 'userId' ] = ( relList[ 0 ]._to )
+        _b.userId = ( relList[ 0 ]._to )
       }
     }
-    eqip.forEach( _item => {
-      usersRelsIdsList.push( _item.usersRelId )
-    } )
 
     // Get eqip users ids
     nodes = await this.getNodesIds( _key, usersRelsIdsList )
@@ -153,8 +156,8 @@ export class UsersDongsController {
       .find( { where: { _id: xManUsersRelId } } )
     xManKey = xManUsersRel[ 0 ]._to.split( '/' )[ 1 ]
 
-    // If current user and xManare different user
-    // check that xMan has relation with all eqip user
+    // If current user is not the same as the xMan,
+    // check that xMan has relation with all eqip users
     if ( _key !== xManKey ) {
       usersRelsIdsList = []
       for ( const __id in nodes ) {
@@ -168,8 +171,8 @@ export class UsersDongsController {
       }
     }
 
-    // find category name in current suer's caetgories list
-    const findedCategoryList = await this.usersRepository.categories( _key )
+    // find category name in current suer's categories list
+    findedCategoryList = await this.usersRepository.categories( _key )
       .find( { where: { _id: categoryId }, } )
 
     if ( findedCategoryList.length !== 1 ) {
@@ -179,15 +182,15 @@ export class UsersDongsController {
 
     switch ( dongs.factorType ) {
       case 'coefficient':
-        eqip.forEach( n => {
-          factorNodes += n.factor
-          pong += n.paidCost
-        } )
-        dongs[ 'pong' ] = pong
+        for ( const _b of bill ) {
+          factorNodes += _b.factor
+          pong += _b.paid
+        }
+        dongs.pong = pong
         dong = pong / factorNodes
-        eqip.forEach( n => {
-          n[ 'dong' ] = dong * n.factor
-        } )
+        for ( const _b of bill ) {
+          _b.dong = dong * _b.factor
+        }
         break
 
       case 'amount':
@@ -196,16 +199,18 @@ export class UsersDongsController {
       case 'percent':
         throw new HttpErrors.NotImplemented( 'Not implemented yet!' )
     }
-    transaction = await this.usersRepository.createHumanKindDongs( xManKey, dongs )
 
-    for ( const n of eqip ) {
-      let nodeCategory: Category
-      const findCategory = await this.usersRepository.categories( n.userId.split( '/' )[ 1 ] )
+    transaction = await this.usersRepository.createHumanKindDongs( xManKey, dongs )
+    for ( const _b of bill ) {
+      let nodeCategory: Category,
+        nodeCategoryBill
+
+      const findCategory = await this.usersRepository.categories( _b.userId.split( '/' )[ 1 ] )
         .find( { where: { title: xManCategory.title } } )
 
       if ( findCategory.length !== 1 ) {
         nodeCategory = await this.usersRepository.createHumanKindCategory(
-          n.userId.split( '/' )[ 1 ], {
+          _b.userId.split( '/' )[ 1 ], {
           title: xManCategory.title,
           icon: xManCategory.icon
         } )
@@ -213,20 +218,35 @@ export class UsersDongsController {
         nodeCategory = findCategory[ 0 ]
       }
 
-      await this.usersRepository.createHumanKindCategoryBills(
-        n.userId.split( '/' )[ 1 ], {
+      nodeCategoryBill = {
         _from: transaction._id,
-        _to: categoryId,
-        dong: n.dong,
-        paidCost: n.paidCost,
+        usersRelId: _b.usersRelId,
+        dong: - _b.dong,
+        paid: _b.paid,
         belongsToCategoryKey: nodeCategory._key,
-        belongsToUserKey: n.userId.split( '/' )[ 1 ],
-        belongsToDongKey: transaction._key
-      } )
+        factor: _b.factor,
+        guest: _b.guest,
+        calculation: _b.paid - _b.dong,
+        settled: false
+      }
+      if ( nodeCategoryBill.calculation >= 0 ) {
+        Object.assign( nodeCategoryBill,
+          { 'settledAt': dongs.createdAt, settled: true } )
+      }
 
-      const user = await this.usersRepository.findById( n.userId.split( '/' )[ 1 ] )
+      try {
+        const catBill = await this.usersRepository.createHumanKindCategoryBills(
+          _b.userId, nodeCategoryBill )
+        categoryBillKeysList.push( catBill._key )
+      } catch ( _err ) {
+        await this.usersRepository.dongs( xManKey ).delete( { _key: transaction._key } )
+        await this.categoryBillRepository.deleteAll( { _from: transaction._id } )
+        throw new HttpErrors[ 422 ]( _err.message )
+      }
+
+      const user = await this.usersRepository.findById( _b.userId.split( '/' )[ 1 ] )
       // Do not add expenses manager to the reciever notification list
-      if ( n.userId.split( '/' )[ 1 ] !== xManKey ) {
+      if ( _b.userId.split( '/' )[ 1 ] !== xManKey ) {
         registrationTokens.push( user.registerationToken )
       }
     }
@@ -239,7 +259,7 @@ export class UsersDongsController {
       },
       data: {
         name: xManUsersRel[ 0 ].alias,
-        _key: xManUsersRel[ 0 ]._to.split( '/' )[ 0 ],
+        _key: xManUsersRel[ 0 ]._to.split( '/' )[ 1 ],
       },
       tokens: registrationTokens,
     }
