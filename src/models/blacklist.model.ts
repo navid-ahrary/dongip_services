@@ -19,8 +19,15 @@ export class Blacklist extends Entity {
 
   @property( {
     type: 'string',
+    required: true
   } )
   token: string
+
+  @property( {
+    type: 'date',
+    required: true
+  } )
+  createdAt: string
 
   constructor ( data?: Partial<Blacklist> ) {
     super( data )

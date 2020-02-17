@@ -386,7 +386,10 @@ export class UsersController {
         )
       }
       return await this.blacklistRepository.createHumanKind(
-        { token: authorizationHeader.split( ' ' )[ 1 ] }
+        {
+          token: authorizationHeader.split( ' ' )[ 1 ],
+          createdAt: moment().format()
+        }
       )
 
     } catch ( _err ) {
