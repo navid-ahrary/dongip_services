@@ -97,16 +97,16 @@ export class UsersUsersRelsController {
       where: { phone: reqBody.phone },
     } )
 
-    if ( _key === recipientUser?._key ) {
-      throw new HttpErrors.NotAcceptable( 'You are the best friend of yourself! :)' )
-    }
+    if ( recipientUser ) {
+      if ( _key === recipientUser?._key ) {
+        throw new HttpErrors.NotAcceptable( 'You are the best friend of yourself! :)' )
+      }
 
-    const isRealFriend = await this.usersRepository
-      .usersRels( requesterUser?._id ).find( {
-        where: { _to: recipientUser?._id }
-      } )
-    if ( isRealFriend.length !== 0 ) {
-      throw new HttpErrors.NotAcceptable( 'You are real friends already!' )
+      const isRealFriend = await this.usersRepository
+        .usersRels( requesterUser?._id ).find( { where: { _to: recipientUser?._id } } )
+      if ( isRealFriend.length !== 0 ) {
+        throw new HttpErrors.NotAcceptable( 'You are real friends already!' )
+      }
     }
 
     try {
