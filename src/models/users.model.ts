@@ -104,7 +104,7 @@ export class Users extends Entity {
   @hasMany( () => Category, { keyTo: 'belongsToUserKey' } )
   categories: Category[]
 
-  @hasMany( () => UsersRels, { keyTo: 'belongsToUserKey' } )
+  @hasMany( () => UsersRels, { keyTo: '_from' } )
   usersRels: UsersRels[]
 
   @hasMany( () => CategoryBill, { keyTo: '_to' } )

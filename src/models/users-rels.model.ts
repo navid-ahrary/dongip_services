@@ -25,9 +25,7 @@ export class UsersRels extends Entity {
   } )
   _rev: string
 
-  @property( {
-    type: 'string',
-  } )
+  @belongsTo( () => Users, { name: 'belongsToUser' } )
   _from: string
 
   @property( {
@@ -54,9 +52,6 @@ export class UsersRels extends Entity {
     type: 'string',
   } )
   type: string
-
-  @belongsTo( () => Users, { name: 'belongsToUser' } )
-  belongsToUserKey: string
 
   constructor ( data?: Partial<UsersRels> ) {
     super( data )

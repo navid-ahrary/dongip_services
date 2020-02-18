@@ -10,7 +10,7 @@ export class UsersRelsRepository extends DefaultCrudRepository<
   UsersRels, typeof UsersRels.prototype._key, UsersRelsRelations> {
 
   public readonly belongsToUser: BelongsToAccessor<
-    Users, typeof UsersRels.prototype._key>
+    Users, typeof UsersRels.prototype._id>
 
   constructor (
     @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource,

@@ -74,7 +74,7 @@ export class CategoryBill extends Entity {
     type: 'number',
     required: false,
   } )
-  calculation: number
+  invoice: number
 
   @property( {
     type: 'boolean',

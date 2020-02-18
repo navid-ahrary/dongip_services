@@ -27,7 +27,7 @@ export class UsersRepository extends DefaultCrudRepository<
     Category, typeof Users.prototype._key>
 
   public readonly usersRels: HasManyRepositoryFactory<
-    UsersRels, typeof Users.prototype._key>
+    UsersRels, typeof Users.prototype._id>
 
   public readonly categoryBills: HasManyRepositoryFactory<
     CategoryBill, typeof Users.prototype._id>
@@ -82,9 +82,9 @@ export class UsersRepository extends DefaultCrudRepository<
   * create users rels belong to user like a human being
   */
   public async createHumanKindUsersRels (
-    _key: typeof Users.prototype._key,
+    _id: typeof Users.prototype._id,
     entity: DataObject<UsersRels> ): Promise<UsersRels> {
-    const userRel = await this.usersRels( _key ).create( entity )
+    const userRel = await this.usersRels( _id ).create( entity )
     userRel._id = userRel._key[ 1 ]
     userRel._key = userRel._key[ 0 ]
     return userRel
@@ -118,10 +118,10 @@ export class UsersRepository extends DefaultCrudRepository<
  * create category bills belong to user like a human being
  */
   public async createHumanKindCategoryBills (
-    _key: typeof Users.prototype._key,
+    _id: typeof Users.prototype._id,
     entity: DataObject<CategoryBill> ): Promise<CategoryBill> {
     try {
-      const categoryBill = await this.categoryBills( _key ).create( entity )
+      const categoryBill = await this.categoryBills( _id ).create( entity )
       categoryBill._id = categoryBill._key[ 1 ]
       categoryBill._key = categoryBill._key[ 0 ]
       return categoryBill

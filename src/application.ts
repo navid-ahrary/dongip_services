@@ -6,7 +6,6 @@ import { RestApplication } from '@loopback/rest'
 import { ServiceMixin } from '@loopback/service-proxy'
 import { registerAuthenticationStrategy } from '@loopback/authentication'
 import * as path from 'path'
-import * as admin from 'firebase-admin'
 import { MyAuthenticationSequence } from './sequence'
 import { UserAuthenticationComponent } from './components/user.authentication'
 import {
@@ -18,20 +17,10 @@ import {
   TokenServiceBindings,
   TokenServiceConstants,
   PasswordHasherBindings,
-  UserServiceBindings
+  UserServiceBindings,
 } from './keys'
-import { JWTService } from './services/jwt.service'
+import { JWTService, BcryptHasher, MyUserService } from './services'
 import { SECURITY_SCHEME_SPEC } from './utils/security-specs'
-import { BcryptHasher } from './services/hash.password.bcryptjs'
-import { MyUserService } from './services/user.service'
-require( 'dotenv' ).config()
-
-
-const serviceAccount = require( `${ process.env.GOOGLE_APPLICATION_CREDENTIALS }` )
-admin.initializeApp( {
-  credential: admin.credential.cert( serviceAccount ),
-  databaseURL: process.env.GOOGLE_APPLICATION_DATABASEURL,
-} )
 
 
 /**
@@ -46,7 +35,7 @@ export const PackageKey = BindingKey.create<PackageInfo>( 'application.package' 
 
 const pkg: PackageInfo = require( '../package.json' )
 
-export class LoginServiceApplication extends BootMixin(
+export class MyApplication extends BootMixin(
   ServiceMixin( RepositoryMixin( RestApplication ) ),
 ) {
   constructor ( options: ApplicationConfig = {} ) {

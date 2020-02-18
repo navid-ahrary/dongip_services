@@ -5,14 +5,13 @@ import {
 } from '@loopback/rest'
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security'
 import { authenticate } from '@loopback/authentication'
-import { inject } from '@loopback/core'
-import * as admin from 'firebase-admin'
+import { inject, service } from '@loopback/core'
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 import { Users, UsersRels, FriendRequest, VirtualUsers } from '../models'
 import {
   UsersRepository, VirtualUsersRepository, BlacklistRepository, UsersRelsRepository
 } from '../repositories'
-import { validatePhoneNumber } from "../services/validator"
+import { NotificationService, validatePhoneNumber } from '../services'
 
 export class UsersUsersRelsController {
   constructor (
@@ -20,6 +19,7 @@ export class UsersUsersRelsController {
     @repository( VirtualUsersRepository ) public virtualUsersRepository: VirtualUsersRepository,
     @repository( BlacklistRepository ) public blacklistRepository: BlacklistRepository,
     @repository( UsersRelsRepository ) public usersRelsRepository: UsersRelsRepository,
+    @service( NotificationService ) private notificationService: NotificationService
   ) { }
 
   @get( '/apis/users/{_key}/users-rels', {
@@ -46,10 +46,11 @@ export class UsersUsersRelsController {
         'Error find category, Token is not matched to this user _key!',
       )
     }
-    const usersRelsList = await this.usersRepository.usersRels( _key ).find( filter )
+    const usersRelsList = await this.usersRepository
+      .usersRels( `Users/${ _key }` ).find( filter )
     usersRelsList.forEach( function ( usersRel ) {
       delete usersRel._to
-      delete usersRel.belongsToUserKey
+      delete usersRel._from
       delete usersRel.targetUsersId
 
     } )
@@ -89,7 +90,7 @@ export class UsersUsersRelsController {
       recipientUser: Users | null,
       createdVirtualUser: VirtualUsers,
       createdUsersRelation: UsersRels,
-      payload: admin.messaging.MessagingPayload
+      payload
 
     requesterUser = await this.usersRepository.findById( _key )
     recipientUser = await this.usersRepository.findOne( {
@@ -100,14 +101,10 @@ export class UsersUsersRelsController {
       throw new HttpErrors.NotAcceptable( 'You are the best friend of yourself! :)' )
     }
 
-    const isRealFriend = await this.usersRepository.usersRels( _key ).find( {
-      where: {
-        and: [
-          { _from: requesterUser?._id },
-          { _to: recipientUser?._id }
-        ]
-      }
-    } )
+    const isRealFriend = await this.usersRepository
+      .usersRels( requesterUser?._id ).find( {
+        where: { _to: recipientUser?._id }
+      } )
     if ( isRealFriend.length !== 0 ) {
       throw new HttpErrors.NotAcceptable( 'You are real friends already!' )
     }
@@ -115,9 +112,9 @@ export class UsersUsersRelsController {
     try {
       const vu = { phone: reqBody.phone, belongsToUserKey: _key }
       createdVirtualUser = await this.usersRepository.createHumanKindVirtualUsers( _key, vu )
-      createdUsersRelation = await this.usersRepository.createHumanKindUsersRels( _key,
+      createdUsersRelation = await this.usersRepository.createHumanKindUsersRels(
+        `Users/${ _key }`,
         {
-          _from: requesterUser._id,
           _to: createdVirtualUser._id,
           alias: reqBody.alias,
           avatar: reqBody.avatar,
@@ -128,7 +125,7 @@ export class UsersUsersRelsController {
       delete createdUsersRelation.targetUsersId
 
     } catch ( _err ) {
-      console.log( _err.response.body )
+      console.log( _err )
       if ( _err.code === 409 ) {
         throw new HttpErrors.Conflict( _err.response.body.errorMessage )
       } else {
@@ -149,19 +146,15 @@ export class UsersUsersRelsController {
           phone: requesterUser.phone,
         },
       }
-      const options: admin.messaging.MessagingOptions = {
+      const options = {
         priority: 'normal',
         contentAvailable: true,
         mutableContent: false,
       }
       // send friend request notofication to recipient user client
-      admin.messaging()
-        .sendToDevice( recipientUser.registerationToken, payload, options )
-        .then( function ( _response ) {
-          console.log( _response )
-        } ).catch( function ( _error ) {
-          console.log( _error )
-        } )
+      this.notificationService.sendToDeviceMessage(
+        recipientUser.registerationToken, payload, options )
+
     }
 
     return {
@@ -237,7 +230,7 @@ export class UsersUsersRelsController {
     }
 
     if ( recipientUser && requesterUser ) {
-      const payload: admin.messaging.MessagingPayload = {
+      const payload = {
         notification: { title: '', body: '', },
         data: {
           alias: ur.alias,
@@ -245,7 +238,7 @@ export class UsersUsersRelsController {
           usersRelationId: ur._key[ 1 ]
         },
       }
-      const options: admin.messaging.MessagingOptions = {
+      const options = {
         priority: 'normal',
         contentAvailable: true,
         mutableContent: false,
@@ -308,14 +301,8 @@ export class UsersUsersRelsController {
       }
 
       // send response to friend request notification to the requester
-      admin.messaging()
-        .sendToDevice( requesterUser.registerationToken, payload, options )
-        .then( function ( _response ) {
-          console.log( `Successfully set a friend, ${ _response }` )
-        } )
-        .catch( function ( _error ) {
-          console.log( `Sending notification failed, ${ _error }` )
-        } )
+      this.notificationService.sendToDeviceMessage(
+        requesterUser.registerationToken, payload, options )
 
       return response
     }
@@ -341,7 +328,7 @@ export class UsersUsersRelsController {
           schema: getModelSchemaRef( UsersRels, {
             partial: true,
             exclude: [
-              "_from", "_to", "_rev", "type", "belongsToUserKey", "targetUsersId" ],
+              "_from", "_to", "_rev", "type", "targetUsersId" ],
           } ),
         },
       },
@@ -354,6 +341,7 @@ export class UsersUsersRelsController {
         'Error users response to friend request ,Token is not matched to this user _key!',
       )
     }
-    return this.usersRepository.usersRels( _key ).patch( usersRels, where )
+    return this.usersRepository.usersRels( `Users/${ _key }` )
+      .patch( usersRels, where )
   }
 }

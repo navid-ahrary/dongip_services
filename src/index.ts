@@ -1,11 +1,10 @@
-import { LoginServiceApplication } from './application'
+import { MyApplication } from './application'
 import { ApplicationConfig } from '@loopback/core'
 
-export { LoginServiceApplication }
+export { MyApplication }
 
-export async function main ( options: ApplicationConfig = {} )
-{
-  const app = new LoginServiceApplication( options )
+export async function main ( options: ApplicationConfig = {} ) {
+  const app = new MyApplication( options )
   await app.boot()
   await app.start()
 
