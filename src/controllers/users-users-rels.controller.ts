@@ -87,9 +87,10 @@ export class UsersUsersRelsController {
     validatePhoneNumber( reqBody.phone )
 
     let requesterUser: Users,
-      recipientUser: Users | null,
+      recipientUser: Users | VirtualUsers | null,
       createdVirtualUser: VirtualUsers,
       createdUsersRelation: UsersRels,
+      vu,
       payload
 
     requesterUser = await this.usersRepository.findById( _key )
@@ -110,7 +111,7 @@ export class UsersUsersRelsController {
     }
 
     try {
-      const vu = { phone: reqBody.phone, belongsToUserKey: _key }
+      vu = { phone: reqBody.phone, belongsToUserKey: _key }
       createdVirtualUser = await this.usersRepository.createHumanKindVirtualUsers( _key, vu )
       createdUsersRelation = await this.usersRepository.createHumanKindUsersRels(
         `Users/${ _key }`,
@@ -127,7 +128,8 @@ export class UsersUsersRelsController {
     } catch ( _err ) {
       console.log( _err )
       if ( _err.code === 409 ) {
-        throw new HttpErrors.Conflict( _err.response.body.errorMessage )
+        const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
+        throw new HttpErrors.Conflict( _err.response.body.errorMessage.slice( index ) )
       } else {
         throw new HttpErrors.NotAcceptable( _err.message )
       }

@@ -83,7 +83,8 @@ export class UsersCategoryController {
     } catch ( _err ) {
       console.log( _err )
       if ( _err.code === 409 ) {
-        throw new HttpErrors.Conflict( _err.response.body.errorMessage )
+        const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
+        throw new HttpErrors.Conflict( _err.response.body.errorMessage.slice( index ) )
       } else {
         throw new HttpErrors.NotAcceptable( _err )
       }
@@ -124,7 +125,8 @@ export class UsersCategoryController {
     } catch ( _err ) {
       console.log( _err )
       if ( _err.code === 409 ) {
-        throw new HttpErrors.Conflict( _err.response.body.errorMessage )
+        const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
+        throw new HttpErrors.Conflict( _err.response.body.errorMessage.slice( index ) )
       }
       throw new HttpErrors.NotAcceptable( _err.message )
     }
