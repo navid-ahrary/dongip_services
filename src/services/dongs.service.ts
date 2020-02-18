@@ -4,7 +4,7 @@ import { UsersRepository, CategoryBillRepository } from '../repositories'
 import { repository } from '@loopback/repository'
 import { Dongs, UsersRels, Category } from '../models'
 import { HttpErrors } from '@loopback/rest'
-import { NotificationService } from './notification.service'
+import { NotificationService } from './'
 
 @bind( { scope: BindingScope.SINGLETON } )
 export class DongsService {
@@ -165,15 +165,16 @@ export class DongsService {
           { 'settledAt': newDong.createdAt, settled: true } )
       }
 
-      try {
-        const catBill = await this.usersRepository.createHumanKindCategoryBills(
-          _b.userId, nodeCategoryBill )
-        categoryBillKeysList.push( catBill._key )
-      } catch ( _err ) {
-        await this.usersRepository.dongs( xManKey ).delete( { _key: transaction._key } )
-        await this.categoryBillRepository.deleteAll( { _from: transaction._id } )
-        throw new HttpErrors[ 422 ]( _err.message )
-      }
+      await this.usersRepository.createHumanKindCategoryBills(
+        _b.userId, nodeCategoryBill )
+        .then( _catBill => {
+          categoryBillKeysList.push( _catBill._key )
+        } )
+        .catch( async _err => {
+          await this.usersRepository.dongs( xManKey ).delete( { _key: transaction._key } )
+          await this.categoryBillRepository.deleteAll( { _from: transaction._id } )
+          throw new HttpErrors[ 422 ]( _err.message )
+        } )
 
       const user = await this.usersRepository.findById( _b.userId.split( '/' )[ 1 ] )
       // Do not add expenses manager to the reciever notification list

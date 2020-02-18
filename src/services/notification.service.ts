@@ -1,13 +1,22 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { bind, BindingScope } from '@loopback/core'
-import { messaging, initializeApp, credential } from 'firebase-admin'
+import {
+  messaging,
+  initializeApp,
+  credential,
+  ServiceAccount
+} from 'firebase-admin'
 import { HttpErrors } from '@loopback/rest'
 require( 'dotenv' ).config()
 
 @bind( { scope: BindingScope.SINGLETON } )
 export class NotificationService {
-  constructor (/* Add @inject to inject parameters */ ) {
+  constructor () {
     const serviceAccount = require( `${ process.env.GOOGLE_APPLICATION_CREDENTIALS }` )
+    this.initializeApp( serviceAccount )
+  }
+
+  initializeApp ( serviceAccount: ServiceAccount ) {
     initializeApp( {
       credential: credential.cert( serviceAccount ),
       databaseURL: process.env.GOOGLE_APPLICATION_DATABASEURL,

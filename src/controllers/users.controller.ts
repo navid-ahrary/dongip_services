@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prefer-const */
 /* eslint-disable require-atomic-updates */
-import { inject } from '@loopback/core'
+import { inject, service } from '@loopback/core'
 import { repository } from '@loopback/repository'
 import {
   post,
@@ -47,7 +47,7 @@ import {
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 import _ from 'underscore'
 import moment from 'moment'
-import admin from 'firebase-admin'
+import { NotificationService } from '../services'
 require( 'dotenv' ).config()
 const Kavenegar = require( 'kavenegar' )
 
@@ -61,6 +61,7 @@ export class UsersController {
     @inject( UserServiceBindings.USER_SERVICE )
     public userService: UserService<Users, Credentials>,
     @inject( TokenServiceBindings.TOKEN_SERVICE ) public jwtService: TokenService,
+    @service( NotificationService ) private notificationService: NotificationService
   ) { }
   smsApi = Kavenegar.KavenegarApi( {
     apikey: process.env.KAVENEGAR_API
@@ -126,7 +127,7 @@ export class UsersController {
       user: Users | null,
       verifyCode = Math.random().toFixed( 5 ).slice( 3 ),
       randomStr = this.generateRandomString( 3 ),
-      payload: admin.messaging.MessagingPayload,
+      payload,
       verifyToken: string,
       userProfile: UserProfile
 
@@ -175,14 +176,8 @@ export class UsersController {
           verifyToken: verifyToken
         }
       }
-      admin.messaging()
-        .sendToDevice( regToken, payload )
-        .then( function ( _res: any ) {
-          console.log( _res )
-        } )
-        .catch( function ( _err: any ) {
-          console.log( _err )
-        } )
+      this.notificationService.sendToDeviceMessage( regToken, payload )
+
     } catch ( _err ) {
       console.log( _err )
       throw new HttpErrors.UnprocessableEntity( _err.message )
