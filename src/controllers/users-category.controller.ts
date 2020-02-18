@@ -81,7 +81,7 @@ export class UsersCategoryController {
       const createdCat = await this.usersRepository.createHumanKindCategory( _key, category )
       return createdCat
     } catch ( _err ) {
-      console.log( _err.response.bodye )
+      console.log( _err )
       if ( _err.code === 409 ) {
         throw new HttpErrors.Conflict( _err.response.body.errorMessage )
       } else {
@@ -122,7 +122,7 @@ export class UsersCategoryController {
     try {
       return await this.usersRepository.categories( _key ).patch( category, where )
     } catch ( _err ) {
-      console.log( _err.response.body )
+      console.log( _err )
       if ( _err.code === 409 ) {
         throw new HttpErrors.Conflict( _err.response.body.errorMessage )
       }
