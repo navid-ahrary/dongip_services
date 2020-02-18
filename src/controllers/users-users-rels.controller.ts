@@ -110,30 +110,37 @@ export class UsersUsersRelsController {
       }
     }
 
-    try {
-      vu = { phone: reqBody.phone, belongsToUserKey: _key }
-      createdVirtualUser = await this.usersRepository.createHumanKindVirtualUsers( _key, vu )
-      createdUsersRelation = await this.usersRepository.createHumanKindUsersRels(
-        `Users/${ _key }`,
-        {
-          _to: createdVirtualUser._id,
-          alias: reqBody.alias,
-          avatar: reqBody.avatar,
-          targetUsersId: recipientUser?._id,
-          type: 'virtual',
+    vu = { phone: reqBody.phone, belongsToUserKey: _key }
+    createdVirtualUser = await this.usersRepository
+      .createHumanKindVirtualUsers( _key, vu )
+      .catch( _err => {
+        console.log( _err )
+        if ( _err.code === 409 ) {
+          const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
+          throw new HttpErrors.Conflict(
+            'Error create virtual user ' + _err.response.body.errorMessage.slice( index ) )
         }
-      )
-      delete createdUsersRelation.targetUsersId
+        throw new HttpErrors.NotAcceptable( _err )
+      } )
 
-    } catch ( _err ) {
-      console.log( _err )
-      if ( _err.code === 409 ) {
-        const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
-        throw new HttpErrors.Conflict( _err.response.body.errorMessage.slice( index ) )
-      } else {
-        throw new HttpErrors.NotAcceptable( _err.message )
-      }
-    }
+    createdUsersRelation = await this.usersRepository.createHumanKindUsersRels(
+      `Users/${ _key }`,
+      {
+        _to: createdVirtualUser._id,
+        alias: reqBody.alias,
+        avatar: reqBody.avatar,
+        targetUsersId: recipientUser?._id,
+        type: 'virtual',
+      } ).catch( _err => {
+        console.log( _err )
+        if ( _err.code === 409 ) {
+          const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
+          throw new HttpErrors.Conflict(
+            'Error create user relation ' + _err.response.body.errorMessage.slice( index ) )
+        }
+        throw new HttpErrors.NotAcceptable( _err )
+      } )
+    delete createdUsersRelation.targetUsersId
 
     if ( requesterUser && recipientUser ) {
       payload = {
@@ -156,7 +163,6 @@ export class UsersUsersRelsController {
       // send friend request notofication to recipient user client
       this.notificationService.sendToDeviceMessage(
         recipientUser.registerationToken, payload, options )
-
     }
 
     return {
