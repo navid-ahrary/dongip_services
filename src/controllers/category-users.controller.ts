@@ -1,16 +1,28 @@
 import { repository } from '@loopback/repository'
 import { param, get, getModelSchemaRef, HttpErrors } from '@loopback/rest'
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security'
-import { Category, Users } from '../models'
-import { CategoryRepository } from '../repositories'
 import { authenticate } from '@loopback/authentication'
 import { inject } from '@loopback/core'
+
+import { Category, Users, VirtualUsers } from '../models'
+import { CategoryRepository } from '../repositories'
 
 export class CategoryUsersController {
   constructor (
     @repository( CategoryRepository )
     public categoryRepository: CategoryRepository,
+    @inject( SecurityBindings.USER ) private currentUserProfile: UserProfile,
   ) { }
+
+
+  private checkUserKey ( key: string ) {
+    if ( key !== this.currentUserProfile[ securityId ] ) {
+      throw new HttpErrors.Unauthorized(
+        'Token is not matched to this user _key!',
+      )
+    }
+  }
+
 
   @get( '/apis/categories/{_key}/users', {
     responses: {
@@ -24,17 +36,15 @@ export class CategoryUsersController {
       },
     },
   } )
-  @authenticate( 'jwt' )
+  @authenticate( 'jwt.access' )
   async getUsers (
-    @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_key' ) _key: typeof Category.prototype._key,
-  ): Promise<Users> {
-    currentUserProfile._key = currentUserProfile[ securityId ]
-    delete currentUserProfile[ securityId ]
+  ): Promise<Users | VirtualUsers> {
+    this.checkUserKey( _key )
 
-    if ( _key !== currentUserProfile._key ) {
-      throw new HttpErrors.Unauthorized( 'Token is not matched to this user _key!' )
-    }
-    return this.categoryRepository.belongsToUser( _key )
+    this.currentUserProfile._key = this.currentUserProfile[ securityId ]
+    delete this.currentUserProfile[ securityId ]
+
+    return this.categoryRepository.belongsToUser( 'Users/' + _key )
   }
 }

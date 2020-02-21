@@ -1,8 +1,17 @@
 import {
-  DefaultCrudRepository, repository, BelongsToAccessor, HasManyRepositoryFactory,
+  DefaultCrudRepository,
+  repository,
+  BelongsToAccessor,
+  HasManyRepositoryFactory,
   DataObject
 } from '@loopback/repository'
-import { Category, CategoryRelations, Users, CategoryBill } from '../models'
+import {
+  Category,
+  CategoryRelations,
+  Users,
+  CategoryBill,
+  VirtualUsers,
+} from '../models'
 import { ArangodbDataSource } from '../datasources'
 import { inject, Getter } from '@loopback/core'
 import { UsersRepository } from './users.repository'
@@ -12,9 +21,10 @@ export class CategoryRepository extends DefaultCrudRepository<
   Category, typeof Category.prototype._key, CategoryRelations> {
 
   public readonly belongsToUser: BelongsToAccessor<
-    Users, typeof Category.prototype._key>
+    Users | VirtualUsers, typeof Category.prototype._id>
+
   public readonly categoryBills: HasManyRepositoryFactory<
-    CategoryBill, typeof Category.prototype._key>
+    CategoryBill, typeof Category.prototype._id>
 
   constructor (
     @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource,
@@ -26,9 +36,15 @@ export class CategoryRepository extends DefaultCrudRepository<
     super( Category, dataSource )
 
     this.categoryBills = this.createHasManyRepositoryFactoryFor(
-      'categoryBills', categoryBillRepositoryGetter )
+      'categoryBills', categoryBillRepositoryGetter
+    )
+    this.registerInclusionResolver(
+      'categoryBills', this.categoryBills.inclusionResolver
+    )
+
     this.belongsToUser = this.createBelongsToAccessorFor(
-      'belongsToUser', usersRepositoryGetter )
+      'belongsToUser', usersRepositoryGetter
+    )
   }
 
   /**
@@ -46,9 +62,9 @@ export class CategoryRepository extends DefaultCrudRepository<
  * create category bill like a human being
  */
   public async createHumanKindCategoryBill (
-    _key: typeof Category.prototype._key,
+    categoryId: typeof Category.prototype._id,
     entity: DataObject<Category> ): Promise<CategoryBill> {
-    const categoryBill = await this.categoryBills( _key ).create( entity )
+    const categoryBill = await this.categoryBills( categoryId ).create( entity )
     categoryBill._id = categoryBill._key[ 1 ]
     categoryBill._key = categoryBill._key[ 0 ]
     return categoryBill

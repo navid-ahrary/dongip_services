@@ -1,21 +1,30 @@
 import {
-  DefaultCrudRepository, repository, BelongsToAccessor,
+  DefaultCrudRepository,
+  repository,
+  BelongsToAccessor,
   DataObject
 } from '@loopback/repository'
-import { Dongs, DongsRelations, Users, Category } from '../models'
+import {
+  inject,
+  Getter
+} from '@loopback/core'
+
 import { ArangodbDataSource } from '../datasources'
-import { inject, Getter } from '@loopback/core'
-import { UsersRepository } from './users.repository'
-import { CategoryRepository } from './category.repository'
-import { HttpErrors } from '@loopback/rest'
+import {
+  Dongs,
+  DongsRelations,
+  Users,
+} from '../models'
+import {
+  UsersRepository,
+  CategoryRepository
+} from './'
 
 export class DongsRepository extends DefaultCrudRepository<
   Dongs, typeof Dongs.prototype._key, DongsRelations> {
 
   public readonly belongsToUser: BelongsToAccessor<
-    Users, typeof Dongs.prototype._key>
-  public readonly belongsToCategory: BelongsToAccessor<
-    Category, typeof Dongs.prototype._key>
+    Users, typeof Dongs.prototype._id>
 
   constructor (
     @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource,
@@ -27,27 +36,17 @@ export class DongsRepository extends DefaultCrudRepository<
     super( Dongs, dataSource )
 
     this.belongsToUser = this.createBelongsToAccessorFor(
-      'belongsToUser', usersRepositoryGetter )
-    this.belongsToCategory = this.createBelongsToAccessorFor(
-      'belongsToCategory', categoryRepositoryGetter )
+      'belongsToUser', usersRepositoryGetter
+    )
   }
 
   /**
   * create model like a human being
   */
   public async createHumanKind ( entity: DataObject<Dongs> ): Promise<Dongs> {
-    try {
-      const dong = await this.create( entity )
-      dong._id = dong._key[ 1 ]
-      dong._key = dong._key[ 0 ]
-      return dong
-    } catch ( _err ) {
-      console.log( _err )
-      if ( _err.code === 409 ) {
-        throw new HttpErrors.Conflict( _err.response.body.errorMessage )
-      } else {
-        throw new HttpErrors.NotAcceptable( _err )
-      }
-    }
+    const dong = await this.create( entity )
+    dong._id = dong._key[ 1 ]
+    dong._key = dong._key[ 0 ]
+    return dong
   }
 }

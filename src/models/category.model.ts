@@ -1,6 +1,16 @@
-import { Entity, model, property, belongsTo, hasMany } from '@loopback/repository'
-import { Users } from './users.model'
-import { CategoryBill } from './category-bill.model'
+import {
+  Entity,
+  model,
+  property,
+  belongsTo,
+  hasMany
+} from '@loopback/repository'
+
+import {
+  Users,
+  VirtualUsers,
+  CategoryBill
+} from './'
 
 @model()
 export class Category extends Entity {
@@ -38,10 +48,10 @@ export class Category extends Entity {
   } )
   icon: string
 
-  @belongsTo( () => Users, { name: 'belongsToUser' } )
-  belongsToUserKey: string
+  @belongsTo( () => Users || VirtualUsers, { name: 'belongsToUser' } )
+  belongsToUserId: string
 
-  @hasMany( () => CategoryBill, { keyTo: 'belongsToCategoryKey' } )
+  @hasMany( () => CategoryBill, { keyTo: 'belongsToCategoryId' } )
   categoryBills: CategoryBill[]
 
   constructor ( data?: Partial<Category> ) {
@@ -49,7 +59,6 @@ export class Category extends Entity {
   }
 }
 
-export interface CategoryRelations {
-}
+export interface CategoryRelations { }
 
 export type CategoryWithRelations = Category & CategoryRelations

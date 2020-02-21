@@ -1,7 +1,16 @@
-import { Entity, model, property, belongsTo } from '@loopback/repository'
-import { Category } from './category.model'
-import { Dongs } from './dongs.model'
-import { Users } from './users.model'
+import {
+  Entity,
+  model,
+  property,
+  belongsTo
+} from '@loopback/repository'
+
+import {
+  Category,
+  Dongs,
+  Users,
+  UsersRels
+} from './'
 
 @model()
 export class CategoryBill extends Entity {
@@ -33,7 +42,7 @@ export class CategoryBill extends Entity {
   _to: string
 
   @belongsTo( () => Category, { name: 'belongsToCategory' } )
-  belongsToCategoryKey: string
+  belongsToCategoryId: string
 
   @property( {
     type: 'number',
@@ -51,12 +60,6 @@ export class CategoryBill extends Entity {
     type: 'string',
   } )
   guest?: string
-
-  @property( {
-    type: 'string',
-    required: true,
-  } )
-  usersRelId: string
 
   @property( {
     type: 'string',
@@ -88,6 +91,8 @@ export class CategoryBill extends Entity {
   } )
   settledAt: 'string'
 
+  @belongsTo( () => UsersRels )
+  belongsToUserRelsId: string
 
   constructor ( data?: Partial<CategoryBill> ) {
     super( data )

@@ -1,4 +1,9 @@
-import { Entity, model, property } from '@loopback/repository'
+import {
+  Entity,
+  model,
+  property
+} from '@loopback/repository'
+import moment from 'moment'
 
 @model()
 export class Blacklist extends Entity {
@@ -25,9 +30,9 @@ export class Blacklist extends Entity {
 
   @property( {
     type: 'date',
-    required: true
+    required: false
   } )
-  createdAt: string
+  createdAt: string = moment().format()
 
   constructor ( data?: Partial<Blacklist> ) {
     super( data )

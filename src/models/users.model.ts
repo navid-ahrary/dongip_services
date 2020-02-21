@@ -1,9 +1,17 @@
-import { Entity, model, property, hasMany } from '@loopback/repository'
-import { VirtualUsers } from './virtual-users.model'
-import { Dongs } from './dongs.model'
-import { Category } from './category.model'
-import { UsersRels } from './users-rels.model'
-import { CategoryBill } from './category-bill.model'
+import {
+  Entity,
+  model,
+  property,
+  hasMany
+} from '@loopback/repository'
+
+import {
+  VirtualUsers,
+  Dongs,
+  Category,
+  CategoryBill,
+  UsersRels
+} from './'
 
 @model()
 export class Users extends Entity {
@@ -95,13 +103,13 @@ export class Users extends Entity {
   } )
   userAgent: string
 
-  @hasMany( () => VirtualUsers, { keyTo: 'belongsToUserKey' } )
+  @hasMany( () => VirtualUsers, { keyTo: 'belongsToUserId' } )
   virtualUsers: VirtualUsers[]
 
-  @hasMany( () => Dongs, { keyTo: 'belongsToUserKey' } )
+  @hasMany( () => Dongs, { keyTo: 'belongsToExManId' } )
   dongs: Dongs[]
 
-  @hasMany( () => Category, { keyTo: 'belongsToUserKey' } )
+  @hasMany( () => Category, { keyTo: 'belongsToUserId' } )
   categories: Category[]
 
   @hasMany( () => UsersRels, { keyTo: '_from' } )

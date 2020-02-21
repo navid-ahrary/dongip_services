@@ -2,7 +2,9 @@ import { AuthenticationStrategy, TokenService } from '@loopback/authentication'
 import { inject } from '@loopback/core'
 import { UserProfile } from '@loopback/security'
 import { HttpErrors, Request } from '@loopback/rest'
+
 import { TokenServiceBindings } from '../keys'
+
 
 export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
   name = 'jwt.access'
@@ -12,7 +14,9 @@ export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
     public tokenService: TokenService,
   ) { }
 
-  async authenticate ( request: Request ): Promise<UserProfile | undefined> {
+  public async authenticate ( request: Request )
+    : Promise<UserProfile | undefined> {
+
     const token: string = this.extractCredentials( request )
     const userProfile: UserProfile = await this.tokenService.verifyToken( token )
 
@@ -22,7 +26,7 @@ export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
     return userProfile
   }
 
-  extractCredentials ( request: Request ): string {
+  private extractCredentials ( request: Request ): string {
     if ( !request.headers.authorization ) {
       throw new HttpErrors.Unauthorized( 'Authorization header not found.' )
     }
@@ -31,14 +35,16 @@ export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
     const authHeaderValue = request.headers.authorization
 
     if ( !authHeaderValue.startsWith( 'Bearer' ) ) {
-      throw new HttpErrors.Unauthorized( 'Authorization header is not type of Bearer.' )
+      throw new HttpErrors.Unauthorized(
+        'Authorization header is not type of Bearer.' )
     }
 
     // split the authHeaderValue into 2 parts, 'Bearer ' and the xxx.yyy.zzz
     const parts = authHeaderValue.split( ' ' )
     if ( parts.length !== 2 ) {
       throw new HttpErrors.Unauthorized(
-        "Authorization header value must follow this pattern: 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
+        "Authorization header value must follow this pattern:" +
+        " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
       )
     }
     const token = parts[ 1 ]
@@ -56,17 +62,19 @@ export class JWTRefreshAutehticationStrategy implements AuthenticationStrategy {
     public tokenService: TokenService,
   ) { }
 
-  async authenticate ( request: Request ): Promise<UserProfile | undefined> {
+  public async authenticate ( request: Request )
+    : Promise<UserProfile | undefined> {
+
     const token: string = this.extractCredentials( request )
     const userProfile: UserProfile = await this.tokenService.verifyToken( token )
 
     if ( userProfile[ 'type' ] !== 'refresh' ) {
-      throw new HttpErrors.Unauthorized( 'Access token is not provided!' )
+      throw new HttpErrors.Unauthorized( 'Refresh token is not provided!' )
     }
     return userProfile
   }
 
-  extractCredentials ( request: Request ): string {
+  private extractCredentials ( request: Request ): string {
     if ( !request.headers.authorization ) {
       throw new HttpErrors.Unauthorized( 'Authorization header not found.' )
     }
@@ -75,14 +83,16 @@ export class JWTRefreshAutehticationStrategy implements AuthenticationStrategy {
     const authHeaderValue = request.headers.authorization
 
     if ( !authHeaderValue.startsWith( 'Bearer' ) ) {
-      throw new HttpErrors.Unauthorized( 'Authorization header is not type of Bearer.' )
+      throw new HttpErrors.Unauthorized(
+        'Authorization header is not type of Bearer.' )
     }
 
     // split the authHeaderValue into 2 parts, 'Bearer ' and the xxx.yyy.zzz
     const parts = authHeaderValue.split( ' ' )
     if ( parts.length !== 2 ) {
       throw new HttpErrors.Unauthorized(
-        "Authorization header value must follow this pattern: 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
+        "Authorization header value must follow this pattern:" +
+        " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
       )
     }
     const token = parts[ 1 ]
@@ -100,17 +110,19 @@ export class JWTVerifyAutehticationStrategy implements AuthenticationStrategy {
     public tokenService: TokenService,
   ) { }
 
-  async authenticate ( request: Request ): Promise<UserProfile | undefined> {
+  public async authenticate ( request: Request )
+    : Promise<UserProfile | undefined> {
+
     const token: string = this.extractCredentials( request )
     const userProfile: UserProfile = await this.tokenService.verifyToken( token )
 
     if ( userProfile[ 'type' ] !== 'verify' ) {
-      throw new HttpErrors.Unauthorized( 'Access token is not provided!' )
+      throw new HttpErrors.Unauthorized( 'Verify token is not provided!' )
     }
     return userProfile
   }
 
-  extractCredentials ( request: Request ): string {
+  private extractCredentials ( request: Request ): string {
     if ( !request.headers.authorization ) {
       throw new HttpErrors.Unauthorized( 'Authorization header not found.' )
     }
@@ -119,14 +131,16 @@ export class JWTVerifyAutehticationStrategy implements AuthenticationStrategy {
     const authHeaderValue = request.headers.authorization
 
     if ( !authHeaderValue.startsWith( 'Bearer' ) ) {
-      throw new HttpErrors.Unauthorized( 'Authorization header is not type of Bearer.' )
+      throw new HttpErrors.Unauthorized(
+        'Authorization header is not type of Bearer.' )
     }
 
     // split the authHeaderValue into 2 parts, 'Bearer ' and the xxx.yyy.zzz
     const parts = authHeaderValue.split( ' ' )
     if ( parts.length !== 2 ) {
       throw new HttpErrors.Unauthorized(
-        "Authorization header value must follow this pattern: 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
+        "Authorization header value must follow this pattern:" +
+        " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
       )
     }
     const token = parts[ 1 ]

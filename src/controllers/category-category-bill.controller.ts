@@ -48,7 +48,7 @@ export class CategoryCategoryBillController {
           schema: getModelSchemaRef( CategoryBill, {
             title: 'NewCategoryBillInCategory',
             exclude: [ '_key' ],
-            optional: [ 'belongsToCategoryKey' ],
+            optional: [ 'belongsToCategoryId' ],
           } ),
         },
       },

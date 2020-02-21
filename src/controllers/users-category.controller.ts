@@ -2,23 +2,43 @@ import {
   Count, CountSchema, Filter, repository, Where
 } from '@loopback/repository'
 import {
-  get, getModelSchemaRef, getWhereSchemaFor, param,
-  patch, post, requestBody, HttpErrors,
+  get,
+  getModelSchemaRef,
+  getWhereSchemaFor,
+  param,
+  patch,
+  post,
+  requestBody,
+  HttpErrors,
 } from '@loopback/rest'
-import { Users, Category } from '../models'
-import { UsersRepository, CategoryRepository } from '../repositories'
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security'
-import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 import { authenticate } from '@loopback/authentication'
 import { inject } from '@loopback/core'
 
+import { Users, Category } from '../models'
+import { UsersRepository, CategoryRepository } from '../repositories'
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
+
 export class UsersCategoryController {
   constructor (
-    @repository( UsersRepository ) protected usersRepository: UsersRepository,
-    @repository( CategoryRepository ) protected categoryRepository: CategoryRepository,
+    @repository( UsersRepository )
+    protected usersRepository: UsersRepository,
+    @repository( CategoryRepository )
+    protected categoryRepository: CategoryRepository,
+    @inject( SecurityBindings.USER )
+    protected currentUserProfile: UserProfile
   ) { }
 
-  @get( '/apis/users/{_key}/categories', {
+  private checkUserKey ( key: string ) {
+    if ( key !== this.currentUserProfile[ securityId ] ) {
+      throw new HttpErrors.Unauthorized(
+        'Token is not matched to this user _key!',
+      )
+    }
+  }
+
+
+  @get( '/apis/users/{_userKey}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -33,65 +53,70 @@ export class UsersCategoryController {
   } )
   @authenticate( 'jwt.access' )
   async find (
-    @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-    @param.path.string( '_key' ) _key: string,
+    @param.path.string( '_userKey' ) _userKey: string,
     @param.query.object( 'filter' ) filter?: Filter<Category>,
   ): Promise<Category[]> {
-    if ( _key !== currentUserProfile[ securityId ] ) {
-      throw new HttpErrors.Unauthorized(
-        'Error find category, Token is not matched to this user _key!',
-      )
-    }
-
-    return this.usersRepository.categories( _key ).find( filter )
+    this.checkUserKey( _userKey )
+    const userId = 'Users/' + _userKey
+    return this.usersRepository.categories( userId ).find( filter )
   }
 
-  @post( '/apis/users/{_key}/categories', {
+
+  @post( '/apis/users/{_userKey}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Users model instance',
-        content: { 'application/json': { schema: getModelSchemaRef( Category ) } },
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef( Category )
+          }
+        },
       },
     },
   } )
   @authenticate( 'jwt.access' )
   async create (
-    @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-    @param.path.string( '_key' ) _key: typeof Users.prototype._key,
+    @param.path.string( '_userKey' ) _userKey: typeof Users.prototype._key,
     @requestBody( {
       content: {
         'application/json': {
           schema: getModelSchemaRef( Category, {
             title: 'NewCategoryInUsers',
-            exclude: [ '_key', '_id', '_rev', 'categoryBills', 'belongsToUserKey' ],
+            exclude: [
+              '_key',
+              '_id',
+              '_rev',
+              'categoryBills',
+              'belongsToUserId' ],
           } ),
         },
       },
     } )
     category: Omit<Category, '_key'>,
   ): Promise<Category> {
-    if ( _key !== currentUserProfile[ securityId ] ) {
-      throw new HttpErrors.Unauthorized(
-        'Error create a category, Token is not matched to this user _key!',
-      )
-    }
+    this.checkUserKey( _userKey )
 
-    try {
-      const createdCat = await this.usersRepository.createHumanKindCategory( _key, category )
-      return createdCat
-    } catch ( _err ) {
-      console.log( _err )
-      if ( _err.code === 409 ) {
-        const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
-        throw new HttpErrors.Conflict( _err.response.body.errorMessage.slice( index ) )
-      } else {
-        throw new HttpErrors.NotAcceptable( _err )
-      }
-    }
+    const userId = 'Users/' + _userKey
+
+    const createdCat = await this.usersRepository
+      .createHumanKindCategory( userId, category )
+      .catch( _err => {
+        console.log( _err )
+        if ( _err.code === 409 ) {
+          const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
+          throw new HttpErrors.Conflict(
+            _err.response.body.errorMessage.slice( index )
+          )
+        } else {
+          throw new HttpErrors.NotAcceptable( _err )
+        }
+      } )
+    return createdCat
   }
 
-  @patch( '/apis/users/{_key}/categories', {
+
+  @patch( '/apis/users/{_userKey}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -102,31 +127,39 @@ export class UsersCategoryController {
   } )
   @authenticate( 'jwt.access' )
   async patch (
-    @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-    @param.path.string( '_key' ) _key: string,
+    @param.path.string( '_userKey' ) _userKey: string,
     @requestBody( {
       content: {
         'application/json': {
-          schema: getModelSchemaRef( Category, { partial: true } ),
+          schema: getModelSchemaRef( Category, {
+            partial: true,
+            exclude: [
+              "_rev",
+              "_id",
+              "_key",
+              "belongsToUserId",
+            ]
+          } ),
         },
       },
     } )
     category: Partial<Category>,
-    @param.query.object( 'where', getWhereSchemaFor( Category ) ) where?: Where<Category>,
+    @param.query.object( 'where', getWhereSchemaFor( Category ) )
+    where?: Where<Category>,
   ): Promise<Count> {
-    if ( _key !== currentUserProfile[ securityId ] ) {
-      throw new HttpErrors.Unauthorized(
-        'Error find category, Token is not matched to this user _key!',
-      )
-    }
+    this.checkUserKey( _userKey )
 
     try {
-      return await this.usersRepository.categories( _key ).patch( category, where )
+      const _userId = 'Users/' + _userKey
+      return await this.usersRepository.categories( _userId )
+        .patch( category, where )
     } catch ( _err ) {
       console.log( _err )
       if ( _err.code === 409 ) {
         const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
-        throw new HttpErrors.Conflict( _err.response.body.errorMessage.slice( index ) )
+        throw new HttpErrors.Conflict(
+          _err.response.body.errorMessage.slice( index )
+        )
       }
       throw new HttpErrors.NotAcceptable( _err.message )
     }

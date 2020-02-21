@@ -10,9 +10,11 @@ import { HttpErrors } from '@loopback/rest'
 require( 'dotenv' ).config()
 
 @bind( { scope: BindingScope.SINGLETON } )
-export class NotificationService {
+export class FirebaseService {
   constructor () {
-    const serviceAccount = require( `${ process.env.GOOGLE_APPLICATION_CREDENTIALS }` )
+    const serviceAccount = require(
+      `${ process.env.GOOGLE_APPLICATION_CREDENTIALS }`
+    )
     this.initializeApp( serviceAccount )
   }
 
@@ -58,7 +60,9 @@ export class NotificationService {
       } )
       .catch( function ( _error ) {
         console.log( `Error sending notifications, ${ _error }` )
-        throw new HttpErrors.NotImplemented( `Error sending notifications, ${ _error }` )
+        throw new HttpErrors.NotImplemented(
+          `Error sending notifications, ${ _error }`
+        )
       } )
   }
 }

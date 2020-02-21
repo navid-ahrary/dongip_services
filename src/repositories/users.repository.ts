@@ -1,30 +1,40 @@
 import {
-  DefaultCrudRepository, repository, HasManyRepositoryFactory, DataObject,
+  DefaultCrudRepository,
+  repository,
+  HasManyRepositoryFactory,
+  DataObject,
 } from '@loopback/repository'
-import {
-  Users, VirtualUsers, Dongs, Category, UsersRels, CategoryBill
-} from '../models'
-import { ArangodbDataSource } from '../datasources'
 import { inject, Getter } from '@loopback/core'
-import { PasswordHasher } from '../services/hash.password.bcryptjs'
-import { VirtualUsersRepository } from './virtual-users.repository'
-import { DongsRepository } from './dongs.repository'
-import { CategoryRepository } from './category.repository'
-import { UsersRelsRepository } from './users-rels.repository'
-import { CategoryBillRepository } from './category-bill.repository'
+
+import { ArangodbDataSource } from '../datasources'
+import { PasswordHasher } from '../services'
+import {
+  VirtualUsersRepository,
+  DongsRepository,
+  CategoryBillRepository,
+  CategoryRepository,
+  UsersRelsRepository
+} from './'
 import { PasswordHasherBindings } from '../keys'
-import { HttpErrors } from '@loopback/rest'
+import {
+  Users,
+  VirtualUsers,
+  Dongs,
+  Category,
+  UsersRels,
+  CategoryBill
+} from '../models'
 
 export class UsersRepository extends DefaultCrudRepository<
   Users, typeof Users.prototype._key> {
   public readonly virtualUsers: HasManyRepositoryFactory<
-    VirtualUsers, typeof Users.prototype._key>
+    VirtualUsers, typeof Users.prototype._id>
 
   public readonly dongs: HasManyRepositoryFactory<
-    Dongs, typeof Users.prototype._key>
+    Dongs, typeof Users.prototype._id>
 
   public readonly categories: HasManyRepositoryFactory<
-    Category, typeof Users.prototype._key>
+    Category, typeof Users.prototype._id>
 
   public readonly usersRels: HasManyRepositoryFactory<
     UsersRels, typeof Users.prototype._id>
@@ -49,23 +59,36 @@ export class UsersRepository extends DefaultCrudRepository<
   ) {
     super( Users, dataSource )
     this.categoryBills = this.createHasManyRepositoryFactoryFor(
-      'categoryBills', categoryBillRepositoryGetter )
+      'categoryBills', categoryBillRepositoryGetter
+    )
+    this.registerInclusionResolver(
+      'categoryBills', this.categoryBills.inclusionResolver
+    )
 
     this.usersRels = this.createHasManyRepositoryFactoryFor(
-      'usersRels', usersRelsRepositoryGetter )
-    this.registerInclusionResolver( 'usersRels', this.usersRels.inclusionResolver )
+      'usersRels', usersRelsRepositoryGetter
+    )
+    this.registerInclusionResolver(
+      'usersRels', this.usersRels.inclusionResolver
+    )
 
     this.categories = this.createHasManyRepositoryFactoryFor(
-      'categories', categoryRepositoryGetter )
-    this.registerInclusionResolver( 'categories', this.categories.inclusionResolver )
+      'categories', categoryRepositoryGetter
+    )
+    this.registerInclusionResolver(
+      'categories', this.categories.inclusionResolver
+    )
 
     this.dongs = this.createHasManyRepositoryFactoryFor(
       'dongs', dongsRepositoryGetter )
     this.registerInclusionResolver( 'dongs', this.dongs.inclusionResolver )
 
     this.virtualUsers = this.createHasManyRepositoryFactoryFor(
-      'virtualUsers', virtualUsersRepositoryGetter )
-    this.registerInclusionResolver( 'virtualUsers', this.virtualUsers.inclusionResolver )
+      'virtualUsers', virtualUsersRepositoryGetter
+    )
+    this.registerInclusionResolver(
+      'virtualUsers', this.virtualUsers.inclusionResolver
+    )
   }
 
   /**
@@ -82,9 +105,9 @@ export class UsersRepository extends DefaultCrudRepository<
   * create users rels belong to user like a human being
   */
   public async createHumanKindUsersRels (
-    _id: typeof Users.prototype._id,
+    userId: typeof Users.prototype._id,
     entity: DataObject<UsersRels> ): Promise<UsersRels> {
-    const userRel = await this.usersRels( _id ).create( entity )
+    const userRel = await this.usersRels( userId ).create( entity )
     userRel._id = userRel._key[ 1 ]
     userRel._key = userRel._key[ 0 ]
     return userRel
@@ -94,9 +117,9 @@ export class UsersRepository extends DefaultCrudRepository<
   * create virtual user belong to user like a human being
   */
   public async createHumanKindVirtualUsers (
-    _key: typeof Users.prototype._key,
+    userId: typeof Users.prototype._id,
     entity: DataObject<VirtualUsers> ): Promise<VirtualUsers> {
-    const virtualUser = await this.virtualUsers( _key ).create( entity )
+    const virtualUser = await this.virtualUsers( userId ).create( entity )
     virtualUser._id = virtualUser._key[ 1 ]
     virtualUser._key = virtualUser._key[ 0 ]
     return virtualUser
@@ -106,9 +129,9 @@ export class UsersRepository extends DefaultCrudRepository<
   * create category belong to user like a human being
   */
   public async createHumanKindCategory (
-    _key: typeof Users.prototype._key,
+    userId: typeof Users.prototype._id,
     entity: DataObject<Category> ): Promise<Category> {
-    const category = await this.categories( _key ).create( entity )
+    const category = await this.categories( userId ).create( entity )
     category._id = category._key[ 1 ]
     category._key = category._key[ 0 ]
     return category
@@ -118,56 +141,23 @@ export class UsersRepository extends DefaultCrudRepository<
  * create category bills belong to user like a human being
  */
   public async createHumanKindCategoryBills (
-    _id: typeof Users.prototype._id,
+    userId: typeof Users.prototype._id,
     entity: DataObject<CategoryBill> ): Promise<CategoryBill> {
-    try {
-      const categoryBill = await this.categoryBills( _id ).create( entity )
-      categoryBill._id = categoryBill._key[ 1 ]
-      categoryBill._key = categoryBill._key[ 0 ]
-      return categoryBill
-    } catch ( _err ) {
-      console.log( _err )
-      throw new HttpErrors[ 422 ]( _err.message )
-    }
+    const categoryBill = await this.categoryBills( userId ).create( entity )
+    categoryBill._id = categoryBill._key[ 1 ]
+    categoryBill._key = categoryBill._key[ 0 ]
+    return categoryBill
   }
 
   /**
   * create dongs belong to user like a human being
   */
   public async createHumanKindDongs (
-    _key: typeof Users.prototype._key,
+    userId: typeof Users.prototype._key,
     entity: DataObject<Dongs> ): Promise<Dongs> {
-    try {
-      const dong = await this.dongs( _key ).create( entity )
-      dong._id = dong._key[ 1 ]
-      dong._key = dong._key[ 0 ]
-      return dong
-    } catch ( _err ) {
-      console.log( _err )
-      if ( _err.code === 409 ) {
-        throw new HttpErrors.Conflict( _err.response.body.errorMessage )
-      } else {
-        throw new HttpErrors.NotAcceptable( _err )
-      }
-    }
+    const dong = await this.dongs( userId ).create( entity )
+    dong._id = dong._key[ 1 ]
+    dong._key = dong._key[ 0 ]
+    return dong
   }
-
-  /**
-   * generate a random verify code
-   */
-  // public async generateVerifyCode (
-  //   user: Users | null,
-  //   key: string,
-  //   regToken: string,
-  //   osSpec: string,
-  // ): Promise<string> {
-  //   const verifyCode = Math.floor( Math.random() * 1000000 ).toString()
-  //   const hashedPass = await this.passwordHasher.hashPassword( verifyCode )
-  //   await this.updateById( user!._key, {
-  //     registerationToken: regToken,
-  //     password: hashedPass,
-  //     osSpec: osSpec
-  //   } )
-  //   return verifyCode
-  // }
 }

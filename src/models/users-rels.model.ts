@@ -1,5 +1,16 @@
-import { Entity, model, property, belongsTo } from '@loopback/repository'
-import { Users } from './users.model'
+import {
+  Entity,
+  model,
+  property,
+  belongsTo,
+  hasMany
+} from '@loopback/repository'
+
+import {
+  Users,
+  CategoryBill,
+  VirtualUsers
+} from './'
 
 @model()
 export class UsersRels extends Entity {
@@ -25,7 +36,7 @@ export class UsersRels extends Entity {
   } )
   _rev: string
 
-  @belongsTo( () => Users, { name: 'belongsToUser' } )
+  @belongsTo( () => Users || VirtualUsers, { name: 'belongsToUser' } )
   _from: string
 
   @property( {
@@ -52,6 +63,9 @@ export class UsersRels extends Entity {
     type: 'string',
   } )
   type: string
+
+  @hasMany( () => CategoryBill, { keyTo: 'belongsToUserRelsId' } )
+  categoryBills: CategoryBill[]
 
   constructor ( data?: Partial<UsersRels> ) {
     super( data )

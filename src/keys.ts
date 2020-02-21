@@ -1,19 +1,29 @@
 import { BindingKey } from '@loopback/context'
-import { PasswordHasher } from './services/hash.password.bcryptjs'
 import { TokenService, UserService } from '@loopback/authentication'
-import { Users, Credentials } from './models'
 require( "dotenv" ).config()
+
+import { Users, Credentials } from './models'
+import { PasswordHasher } from './services'
 
 export namespace TokenServiceConstants {
   export const TOKEN_SECRET_VALUE = process.env.TOKEN_SECRET_VALUE
-  export const VERIFY_TOKEN_EXPIRES_IN_VALUE = process.env.VERIFY_TOKEN_EXPIRES_IN_VALUE
-  export const ACCESS_TOKEN_EXPIRES_IN_VALUE = process.env.ACCESS_TOKEN_EXPIRES_IN_VALUE
-  export const REFRESH_TOKEN_EXPIRES_IN_VALUE = process.env.REFRESH_TOKEN_EXPIRES_IN_VALUE
+  export const START_TOKEN_SECRET_VALUE = process.env.START_TOKEN_SECRET_VALUE
+  export const VERIFY_TOKEN_EXPIRES_IN_VALUE =
+    process.env.VERIFY_TOKEN_EXPIRES_IN_VALUE
+  export const ACCESS_TOKEN_EXPIRES_IN_VALUE =
+    process.env.ACCESS_TOKEN_EXPIRES_IN_VALUE
+  export const REFRESH_TOKEN_EXPIRES_IN_VALUE =
+    process.env.REFRESH_TOKEN_EXPIRES_IN_VALUE
 }
 
 
 export namespace TokenServiceBindings {
-  export const TOKEN_SECRET = BindingKey.create<string>( 'authentication.jwt.secret' )
+  export const TOKEN_SECRET = BindingKey.create<string>(
+    'authentication.jwt.secret'
+  )
+  export const START_TOKEN_SECRET = BindingKey.create<string>(
+    'authentication.jwt.secret'
+  )
   export const VERIFY_TOKEN_EXPIRES_IN = BindingKey.create<string>(
     'authentication.jwt.verify.expires.in.seconds',
   )
@@ -30,7 +40,9 @@ export namespace TokenServiceBindings {
 
 
 export namespace PasswordHasherBindings {
-  export const PASSWORD_HASHER = BindingKey.create<PasswordHasher>( 'services.hasher' )
+  export const PASSWORD_HASHER = BindingKey.create<PasswordHasher>(
+    'services.hasher'
+  )
   export const ROUNDS = BindingKey.create<number>( 'services.hasher.round' )
 }
 

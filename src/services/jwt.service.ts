@@ -1,21 +1,22 @@
 /* eslint-disable prefer-const */
 import { TokenService } from '@loopback/authentication'
 import { promisify } from 'util'
-import { TokenServiceBindings } from '../keys'
 import { inject } from '@loopback/core'
 import { UserProfile, securityId } from '@loopback/security'
 import { HttpErrors } from '@loopback/rest'
 import { repository } from '@loopback/repository'
-import { UsersRepository, BlacklistRepository } from '../repositories'
-
 const jwt = require( 'jsonwebtoken' )
 const signAsync = promisify( jwt.sign )
 const verifyAsync = promisify( jwt.verify )
 
+import { UsersRepository, BlacklistRepository } from '../repositories'
+import { TokenServiceBindings } from '../keys'
+
 export class JWTService implements TokenService {
   constructor (
     @repository( UsersRepository ) public usersRepository: UsersRepository,
-    @repository( BlacklistRepository ) public blacklistRepository: BlacklistRepository,
+    @repository( BlacklistRepository )
+    public blacklistRepository: BlacklistRepository,
     @inject( TokenServiceBindings.TOKEN_SECRET ) private jwtSecret: string,
     @inject( TokenServiceBindings.VERIFY_TOKEN_EXPIRES_IN )
     private jwtVerifyExpiresIn: string,
@@ -25,7 +26,7 @@ export class JWTService implements TokenService {
     private jwtRefreshExpiresIn: string,
   ) { }
 
-  async verifyToken ( accessToken: string ): Promise<UserProfile> {
+  public async verifyToken ( accessToken: string ): Promise<UserProfile> {
     if ( !accessToken ) {
       throw new HttpErrors.Unauthorized(
         'Error verifying access token: token is null'
@@ -62,7 +63,7 @@ export class JWTService implements TokenService {
     return userProfile
   }
 
-  async generateToken ( userProfile: UserProfile ): Promise<string> {
+  public async generateToken ( userProfile: UserProfile ): Promise<string> {
     if ( !userProfile ) {
       throw new HttpErrors.Unauthorized(
         'Error generating token, userPofile is null.' )

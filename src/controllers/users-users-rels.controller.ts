@@ -1,7 +1,20 @@
 /* eslint-disable prefer-const */
-import { Count, CountSchema, Filter, repository, Where } from '@loopback/repository'
 import {
-  get, getModelSchemaRef, getWhereSchemaFor, param, patch, post, requestBody, HttpErrors,
+  Count,
+  CountSchema,
+  Filter,
+  repository,
+  Where
+} from '@loopback/repository'
+import {
+  get,
+  getModelSchemaRef,
+  getWhereSchemaFor,
+  param,
+  patch,
+  post,
+  requestBody,
+  HttpErrors,
 } from '@loopback/rest'
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security'
 import { authenticate } from '@loopback/authentication'
@@ -9,24 +22,39 @@ import { inject, service } from '@loopback/core'
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 import { Users, UsersRels, FriendRequest, VirtualUsers } from '../models'
 import {
-  UsersRepository, VirtualUsersRepository, BlacklistRepository, UsersRelsRepository
+  UsersRepository,
+  VirtualUsersRepository,
+  BlacklistRepository,
+  UsersRelsRepository
 } from '../repositories'
-import { NotificationService, validatePhoneNumber } from '../services'
+import { FirebaseService, validatePhoneNumber } from '../services'
+import { SetFriend } from './specs/user-controller.specs'
 
 export class UsersUsersRelsController {
   constructor (
     @repository( UsersRepository ) protected usersRepository: UsersRepository,
-    @repository( VirtualUsersRepository ) public virtualUsersRepository: VirtualUsersRepository,
+    @repository( VirtualUsersRepository )
+    public virtualUsersRepository: VirtualUsersRepository,
     @repository( BlacklistRepository ) public blacklistRepository: BlacklistRepository,
     @repository( UsersRelsRepository ) public usersRelsRepository: UsersRelsRepository,
-    @service( NotificationService ) private notificationService: NotificationService
+    @service( FirebaseService ) private firebaseService: FirebaseService,
+    @inject( SecurityBindings.USER ) private currentUserProfile: UserProfile,
   ) { }
 
-  @get( '/apis/users/{_key}/users-rels', {
+  private checkUserKey ( key: string ) {
+    if ( key !== this.currentUserProfile[ securityId ] ) {
+      throw new HttpErrors.Unauthorized(
+        'Token is not matched to this user _key!',
+      )
+    }
+  }
+
+
+  @get( '/apis/users/{_userKey}/users-rels', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Array of Users has many UsersRels',
+        description: 'Array of Users has many UsersRels based on optional filter',
         content: {
           'application/json': {
             schema: { type: 'array', items: getModelSchemaRef( UsersRels ) },
@@ -37,17 +65,14 @@ export class UsersUsersRelsController {
   } )
   @authenticate( 'jwt.access' )
   async find (
-    @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-    @param.path.string( '_key' ) _key: string,
+    @param.path.string( '_userKey' ) _userKey: string,
     @param.query.object( 'filter' ) filter?: Filter<UsersRels>,
   ): Promise<UsersRels[]> {
-    if ( _key !== currentUserProfile[ securityId ] ) {
-      throw new HttpErrors.Unauthorized(
-        'Error find category, Token is not matched to this user _key!',
-      )
-    }
+    this.checkUserKey( _userKey )
+    const _userId = 'Users/' + _userKey
+
     const usersRelsList = await this.usersRepository
-      .usersRels( `Users/${ _key }` ).find( filter )
+      .usersRels( _userId ).find( filter )
     usersRelsList.forEach( function ( usersRel ) {
       delete usersRel._to
       delete usersRel._from
@@ -58,14 +83,13 @@ export class UsersUsersRelsController {
   }
 
 
-  @post( '/apis/users/{_key}/users-rels/set-friend', {
+  @post( '/apis/users/{_userKey}/users-rels/set-friend', {
     security: OPERATION_SECURITY_SPEC,
-    responses: { '200': { description: 'Sending a friend request', }, },
+    responses: SetFriend
   } )
   @authenticate( 'jwt.access' )
   async setFriend (
-    @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-    @param.path.string( '_key' ) _key: typeof Users.prototype._key,
+    @param.path.string( '_userKey' ) _userKey: string,
     @requestBody( {
       content: {
         'application/json': {
@@ -74,14 +98,12 @@ export class UsersUsersRelsController {
           } ),
         },
       },
-    } )
-    reqBody: FriendRequest,
-  ) {
-    if ( _key !== currentUserProfile[ securityId ] ) {
-      throw new HttpErrors.Unauthorized(
-        'Error users friend request ,Token is not matched to this user _key!',
-      )
-    }
+    } ) reqBody: FriendRequest,
+  ): Promise<{
+    createdVirtualUser: VirtualUsers,
+    createdUsersRelation: UsersRels
+  }> {
+    this.checkUserKey( _userKey )
 
     // validate recipient phone number
     validatePhoneNumber( reqBody.phone )
@@ -90,63 +112,86 @@ export class UsersUsersRelsController {
       recipientUser: Users | VirtualUsers | null,
       createdVirtualUser: VirtualUsers,
       createdUsersRelation: UsersRels,
-      vu,
+      _userId = 'Users/' + _userKey,
       payload
 
-    requesterUser = await this.usersRepository.findById( _key )
+    requesterUser = await this.usersRepository.findById( _userKey )
     recipientUser = await this.usersRepository.findOne( {
       where: { phone: reqBody.phone },
     } )
 
     if ( recipientUser ) {
-      if ( _key === recipientUser?._key ) {
-        throw new HttpErrors.NotAcceptable( 'You are the best friend of yourself! :)' )
+      if ( _userKey === recipientUser?._key ) {
+        throw new HttpErrors.NotAcceptable(
+          'You are the best friend of yourself! :)' )
       }
 
       const isRealFriend = await this.usersRepository
-        .usersRels( requesterUser?._id ).find( { where: { _to: recipientUser?._id } } )
+        .usersRels( requesterUser?._id ).find(
+          { where: { _to: recipientUser?._id } } )
       if ( isRealFriend.length !== 0 ) {
         throw new HttpErrors.NotAcceptable( 'You are real friends already!' )
       }
     }
 
-    vu = { phone: reqBody.phone, belongsToUserKey: _key }
     createdVirtualUser = await this.usersRepository
-      .createHumanKindVirtualUsers( _key, vu )
-      .catch( _err => {
+      .createHumanKindVirtualUsers( _userId, { phone: reqBody.phone } )
+      .catch( async _err => {
         console.log( _err )
         if ( _err.code === 409 ) {
-          const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
+          const index = _err.response.body.errorMessage
+            .indexOf( 'conflicting key: ' ) + 17
+
+          const virtualUserId =
+            'VirtualUsers/' + _err.response.body.errorMessage.slice( index )
+
+          const rel = await this.usersRepository.usersRels( _userId )
+            .find( { where: { _to: virtualUserId } } )
+
           throw new HttpErrors.Conflict(
-            'Error create virtual user ' + _err.response.body.errorMessage.slice( index ) )
+            'You have relation with _key: ' + rel[ 0 ]._key )
         }
         throw new HttpErrors.NotAcceptable( _err )
       } )
 
-    createdUsersRelation = await this.usersRepository.createHumanKindUsersRels(
-      `Users/${ _key }`,
-      {
-        _to: createdVirtualUser._id,
-        alias: reqBody.alias,
-        avatar: reqBody.avatar,
-        targetUsersId: recipientUser?._id,
-        type: 'virtual',
-      } ).catch( _err => {
-        console.log( _err )
-        if ( _err.code === 409 ) {
-          const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
-          throw new HttpErrors.Conflict(
-            'Error create user relation ' + _err.response.body.errorMessage.slice( index ) )
-        }
-        throw new HttpErrors.NotAcceptable( _err )
-      } )
+    createdUsersRelation = await this.usersRepository
+      .createHumanKindUsersRels( _userId,
+        {
+          _to: createdVirtualUser._id,
+          alias: reqBody.alias,
+          avatar: reqBody.avatar,
+          targetUsersId: recipientUser?._id,
+          type: 'virtual',
+        } ).catch( _err => {
+          console.log( _err )
+          if ( _err.code === 409 ) {
+            const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
+            throw new HttpErrors.Conflict(
+              'Error create user relation ' + _err.response.body.errorMessage.
+                slice( index ) )
+          }
+          throw new HttpErrors.NotAcceptable( _err )
+        } )
     delete createdUsersRelation.targetUsersId
+
+    await this.virtualUsersRepository.createHumanKindUsersRels(
+      createdVirtualUser._id,
+      {
+        _to: requesterUser._id,
+        alias: requesterUser.name,
+        avatar: requesterUser.avatar,
+        type: 'virtual'
+      }
+    )
 
     if ( requesterUser && recipientUser ) {
       payload = {
         notification: {
           title: 'دنگیپ درخواست دوستی',
-          body: `${ requesterUser.name } با شماره موبایل ${ requesterUser.phone } ازشما درخواست دوستی کرده`,
+          body: requesterUser.name +
+            'با شماره موبایل' +
+            requesterUser.phone +
+            'ازشما درخواست دوستی کرده'
         },
         data: {
           virtualUserId: createdVirtualUser._key[ 1 ],
@@ -161,7 +206,7 @@ export class UsersUsersRelsController {
         mutableContent: false,
       }
       // send friend request notofication to recipient user client
-      this.notificationService.sendToDeviceMessage(
+      this.firebaseService.sendToDeviceMessage(
         recipientUser.registerationToken, payload, options )
     }
 
@@ -172,7 +217,7 @@ export class UsersUsersRelsController {
   }
 
 
-  @post( '/apis/users/{_key}/users-rels/response-friend-request', {
+  @post( '/apis/users/{_userKey}/users-rels/response-friend-request', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -183,7 +228,7 @@ export class UsersUsersRelsController {
   @authenticate( 'jwt.access' )
   async responseToFriendRequest (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-    @param.path.string( '_key' ) _key: typeof Users.prototype._key,
+    @param.path.string( '_userKey' ) _userKey: string,
     @requestBody( {
       content: {
         'application/json': {
@@ -195,21 +240,18 @@ export class UsersUsersRelsController {
     } )
     bodyReq: FriendRequest,
   ) {
-    if ( _key !== currentUserProfile[ securityId ] ) {
-      throw new HttpErrors.Unauthorized(
-        'Error users response to friend request ,Token is not matched to this user _key!',
-      )
-    }
+    this.checkUserKey( _userKey )
 
     let requesterUser: Users | null,
+      _userId = 'Users/' + _userKey,
       ur: UsersRels | null,
       recipientUser: Users,
-      backUr: UsersRels,
+      backUserRel: UsersRels,
       vu: VirtualUsers,
       response = {}
 
     // Find the recipient user
-    recipientUser = await this.usersRepository.findById( _key )
+    recipientUser = await this.usersRepository.findById( _userKey )
     // Find the user relation edge
     ur = await this.usersRelsRepository.findOne(
       {
@@ -226,9 +268,10 @@ export class UsersUsersRelsController {
       throw new HttpErrors.NotFound( 'There is not fired friend request!' )
     }
     // Check requester and recipient is not the same
-    if ( _key === ur._from.split( '/' )[ 1 ] ) {
+    if ( _userId === ur._from ) {
       console.log( "requester's key and recipient's key is the same! " )
-      throw new HttpErrors.NotAcceptable( "requester's key and recipient's key is the same! " )
+      throw new HttpErrors.NotAcceptable(
+        "requester's key and recipient's key is the same! " )
     }
     // Find the requester user
     requesterUser = await this.usersRepository.findById( ur._from.split( '/' )[ 1 ] )
@@ -255,7 +298,10 @@ export class UsersUsersRelsController {
       if ( bodyReq.status ) {
         payload.notification = {
           title: 'دنگیپ قبول درخواست دوستی',
-          body: `${ ur.alias } با موبایل ${ recipientUser.phone } در خواست دوستیتون رو پذیرفت`,
+          body: ur.alias +
+            'با موبایل' +
+            recipientUser.phone +
+            'در خواست دوستیتون رو پذیرفت'
         }
 
         try {
@@ -287,29 +333,32 @@ export class UsersUsersRelsController {
         }
 
         // Create relation from recipient to requester
-        backUr = await this.usersRepository.createHumanKindUsersRels( _key,
+        backUserRel = await this.usersRepository.createHumanKindUsersRels(
+          recipientUser._id,
           {
-            _from: recipientUser._id,
             _to: requesterUser._id,
             alias: bodyReq.alias,
             type: 'real',
             avatar: requesterUser.avatar
           } )
         response = {
-          ...backUr,
+          ...backUserRel,
           message: 'You are friends together right now'
         }
       } else {
         payload.notification = {
           title: 'دنگیپ رد درخواست دوستی',
-          body: `${ ur.alias } با موبایل ${ recipientUser.phone } در خواست دوستیتون رو رد کرد`,
+          body: ur.alias +
+            'با موبایل' +
+            recipientUser.phone +
+            'در خواست دوستیتون رو رد کرد'
 
         }
         response = { message: 'Friend request has been rejected' }
       }
 
       // send response to friend request notification to the requester
-      this.notificationService.sendToDeviceMessage(
+      this.firebaseService.sendToDeviceMessage(
         requesterUser.registerationToken, payload, options )
 
       return response
@@ -344,11 +393,8 @@ export class UsersUsersRelsController {
     usersRels: Partial<UsersRels>,
     @param.query.object( 'where', getWhereSchemaFor( UsersRels ) ) where?: Where<UsersRels>,
   ): Promise<Count> {
-    if ( _key !== currentUserProfile[ securityId ] ) {
-      throw new HttpErrors.Unauthorized(
-        'Error users response to friend request ,Token is not matched to this user _key!',
-      )
-    }
+    this.checkUserKey( _key )
+
     return this.usersRepository.usersRels( `Users/${ _key }` )
       .patch( usersRels, where )
   }
