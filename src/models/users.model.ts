@@ -1,17 +1,6 @@
-import {
-  Entity,
-  model,
-  property,
-  hasMany
-} from '@loopback/repository'
+import { Entity, model, property, hasMany } from '@loopback/repository'
 
-import {
-  VirtualUsers,
-  Dongs,
-  Category,
-  CategoryBill,
-  UsersRels
-} from './'
+import { VirtualUsers, Dongs, Category, CategoryBill, UsersRels } from './'
 
 @model()
 export class Users extends Entity {

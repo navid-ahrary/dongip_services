@@ -1,7 +1,12 @@
 /* eslint-disable prefer-const */
 import { Filter, repository } from '@loopback/repository'
 import {
-  get, getModelSchemaRef, param, post, requestBody, HttpErrors
+  get,
+  getModelSchemaRef,
+  param,
+  post,
+  requestBody,
+  HttpErrors
 } from '@loopback/rest'
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security'
 import { authenticate } from '@loopback/authentication'
@@ -15,8 +20,8 @@ import { DongsService } from '../services'
 
 export class UsersDongsController {
   constructor (
-    @service( DongsService ) private dongsService: DongsService,
-    @repository( UsersRepository ) private usersRepository: UsersRepository,
+    @service( DongsService ) public dongsService: DongsService,
+    @repository( UsersRepository ) public usersRepository: UsersRepository,
     @inject( SecurityBindings.USER ) private currentUserProfile: UserProfile,
   ) { }
 
@@ -36,7 +41,10 @@ export class UsersDongsController {
         description: "Array of Dongs's belonging to Users",
         content: {
           'application/json': {
-            schema: { type: 'array', items: getModelSchemaRef( Dongs ) },
+            schema: {
+              type: 'array',
+              items: getModelSchemaRef( Dongs )
+            },
           },
         },
       },
@@ -48,12 +56,13 @@ export class UsersDongsController {
     @param.query.object( 'filter' ) filter?: Filter<Dongs>,
   ): Promise<Dongs[]> {
     this.checkUserKey( _userKey )
+
     const _userId = 'Users/' + _userKey
     return this.usersRepository.dongs( _userId ).find( filter )
   }
 
 
-  @post( '/apis/users/{_key}/dongs', {
+  @post( '/apis/users/{_userKey}/dongs', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -70,8 +79,7 @@ export class UsersDongsController {
   } )
   @authenticate( 'jwt.access' )
   async create (
-    @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-    @param.path.string( '_key' ) _key: typeof Users.prototype._key,
+    @param.path.string( '_userKey' ) _userKey: typeof Users.prototype._key,
     @requestBody( {
       content: {
         'application/json': {
@@ -90,7 +98,9 @@ export class UsersDongsController {
     } )
     dongs: Omit<Dongs, '_key'>,
   ): Promise<Dongs> {
-    this.checkUserKey( _key )
-    return this.dongsService.createNewDong( _key, dongs )
+    this.checkUserKey( _userKey )
+
+    const userId = 'Users/' + _userKey
+    return this.dongsService.createNewDong( userId, dongs )
   }
 }

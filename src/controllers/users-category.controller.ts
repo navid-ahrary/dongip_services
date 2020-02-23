@@ -98,7 +98,6 @@ export class UsersCategoryController {
     this.checkUserKey( _userKey )
 
     const userId = 'Users/' + _userKey
-
     const createdCat = await this.usersRepository
       .createHumanKindCategory( userId, category )
       .catch( _err => {

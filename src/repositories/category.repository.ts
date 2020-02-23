@@ -5,6 +5,8 @@ import {
   HasManyRepositoryFactory,
   DataObject
 } from '@loopback/repository'
+import { inject, Getter } from '@loopback/core'
+
 import {
   Category,
   CategoryRelations,
@@ -13,9 +15,7 @@ import {
   VirtualUsers,
 } from '../models'
 import { ArangodbDataSource } from '../datasources'
-import { inject, Getter } from '@loopback/core'
-import { UsersRepository } from './users.repository'
-import { CategoryBillRepository } from './category-bill.repository'
+import { UsersRepository, CategoryBillRepository } from './'
 
 export class CategoryRepository extends DefaultCrudRepository<
   Category, typeof Category.prototype._key, CategoryRelations> {
@@ -38,9 +38,9 @@ export class CategoryRepository extends DefaultCrudRepository<
     this.categoryBills = this.createHasManyRepositoryFactoryFor(
       'categoryBills', categoryBillRepositoryGetter
     )
-    this.registerInclusionResolver(
-      'categoryBills', this.categoryBills.inclusionResolver
-    )
+    // this.registerInclusionResolver(
+    //   'categoryBills', this.categoryBills.inclusionResolver
+    // )
 
     this.belongsToUser = this.createBelongsToAccessorFor(
       'belongsToUser', usersRepositoryGetter

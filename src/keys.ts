@@ -1,6 +1,7 @@
 import { BindingKey } from '@loopback/context'
 import { TokenService, UserService } from '@loopback/authentication'
-require( "dotenv" ).config()
+import { config } from 'dotenv'
+config()
 
 import { Users, Credentials } from './models'
 import { PasswordHasher } from './services'

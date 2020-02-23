@@ -1,32 +1,37 @@
+import { Filter, repository, } from '@loopback/repository'
 import {
-  Count,
-  CountSchema,
-  Filter,
-  repository,
-  Where,
-} from '@loopback/repository'
-import {
-  del,
   get,
   getModelSchemaRef,
-  getWhereSchemaFor,
   param,
-  patch,
   post,
   requestBody,
+  HttpErrors,
 } from '@loopback/rest'
-import {
-  Users,
-  CategoryBill,
-} from '../models'
+import { inject } from '@loopback/core'
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security'
+import { authenticate } from '@loopback/authentication'
+
+import { Users, CategoryBill, } from '../models'
 import { UsersRepository } from '../repositories'
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 
 export class UsersCategoryBillController {
   constructor (
     @repository( UsersRepository ) protected usersRepository: UsersRepository,
+    @inject( SecurityBindings.USER ) protected currentUserProfile: UserProfile
   ) { }
 
-  @get( '/users/{id}/category-bills', {
+  private checkUserKey ( key: string ) {
+    if ( key !== this.currentUserProfile[ securityId ] ) {
+      throw new HttpErrors.Unauthorized(
+        'Token is not matched to this user _key!',
+      )
+    }
+  }
+
+
+  @get( 'apis/users/{_userKey}/category-bills', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Array of Users has many CategoryBill',
@@ -38,23 +43,34 @@ export class UsersCategoryBillController {
       },
     },
   } )
+  @authenticate( 'jwt.access' )
   async find (
-    @param.path.string( 'id' ) id: string,
+    @param.path.string( '_userKey' ) _userKey: typeof Users.prototype._key,
     @param.query.object( 'filter' ) filter?: Filter<CategoryBill>,
   ): Promise<CategoryBill[]> {
-    return this.usersRepository.categoryBills( id ).find( filter )
+    this.checkUserKey( _userKey )
+
+    const userId = 'Users/' + _userKey
+    return this.usersRepository.categoryBills( userId ).find( filter )
   }
 
-  @post( '/users/{id}/category-bills', {
+
+  @post( '/apis/users/{_userKey}/category-bills', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Users model instance',
-        content: { 'application/json': { schema: getModelSchemaRef( CategoryBill ) } },
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef( CategoryBill )
+          }
+        },
       },
     },
   } )
+  @authenticate( 'jwt.access' )
   async create (
-    @param.path.string( 'id' ) id: typeof Users.prototype._key,
+    @param.path.string( '_userKey' ) _userKey: typeof Users.prototype._key,
     @requestBody( {
       content: {
         'application/json': {
@@ -67,44 +83,9 @@ export class UsersCategoryBillController {
       },
     } ) categoryBill: Omit<CategoryBill, '_key'>,
   ): Promise<CategoryBill> {
-    return this.usersRepository.categoryBills( id ).create( categoryBill )
-  }
+    this.checkUserKey( _userKey )
 
-  @patch( '/users/{id}/category-bills', {
-    responses: {
-      '200': {
-        description: 'Users.CategoryBill PATCH success count',
-        content: { 'application/json': { schema: CountSchema } },
-      },
-    },
-  } )
-  async patch (
-    @param.path.string( 'id' ) id: string,
-    @requestBody( {
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef( CategoryBill, { partial: true } ),
-        },
-      },
-    } )
-    categoryBill: Partial<CategoryBill>,
-    @param.query.object( 'where', getWhereSchemaFor( CategoryBill ) ) where?: Where<CategoryBill>,
-  ): Promise<Count> {
-    return this.usersRepository.categoryBills( id ).patch( categoryBill, where )
-  }
-
-  @del( '/users/{id}/category-bills', {
-    responses: {
-      '200': {
-        description: 'Users.CategoryBill DELETE success count',
-        content: { 'application/json': { schema: CountSchema } },
-      },
-    },
-  } )
-  async delete (
-    @param.path.string( 'id' ) id: string,
-    @param.query.object( 'where', getWhereSchemaFor( CategoryBill ) ) where?: Where<CategoryBill>,
-  ): Promise<Count> {
-    return this.usersRepository.categoryBills( id ).delete( where )
+    const userId = 'Users/' + _userKey
+    return this.usersRepository.categoryBills( userId ).create( categoryBill )
   }
 }

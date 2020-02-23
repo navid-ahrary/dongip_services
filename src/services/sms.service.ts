@@ -1,11 +1,14 @@
 import { bind, BindingScope } from '@loopback/core'
+import { config } from 'dotenv'
 const Kavenegar = require( 'kavenegar' )
-require( 'dotenv' ).config()
 
 @bind( { scope: BindingScope.SINGLETON } )
 export class SmsService {
   constructor (
-  ) { }
+  ) {
+    config()
+  }
+
   smsApi = Kavenegar.KavenegarApi(
     { apikey: process.env.KAVENEGAR_API } )
 

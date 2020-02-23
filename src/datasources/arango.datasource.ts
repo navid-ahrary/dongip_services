@@ -1,38 +1,37 @@
-import
-{
+import {
   inject,
   lifeCycleObserver,
   LifeCycleObserver,
   ValueOrPromise,
 } from '@loopback/core'
 import { juggler } from '@loopback/repository'
-import settings from './arango.datasource.config.json'
 import { config } from 'dotenv'
-config()
 
-settings.username = String( process.env.ARANGODB_USERNAME )
-settings.password = String( process.env.ARANGODB_PASSWORD )
-settings.database = String( process.env.ARANGODB_DATABASE )
+import settings from './arango.datasource.config.json'
+
 
 @lifeCycleObserver( 'datasource' )
 export class ArangodbDataSource extends juggler.DataSource
-  implements LifeCycleObserver
-{
+  implements LifeCycleObserver {
   static dataSourceName = 'arangodb';
 
   constructor (
     @inject( 'datasources.config.arangodb', { optional: true } )
-    dsConfig: object = settings,
-  )
-  {
+    dsConfig: typeof settings = settings,
+  ) {
+    config()
+
+    dsConfig.username = String( process.env.ARANGODB_USERNAME )
+    dsConfig.password = String( process.env.ARANGODB_PASSWORD )
+    dsConfig.database = String( process.env.ARANGODB_DATABASE )
+
     super( dsConfig )
   }
 
   /**
    * Start the datasource when application is started
    */
-  start (): ValueOrPromise<void>
-  {
+  start (): ValueOrPromise<void> {
     // Add your logic here to be invoked when the application is started
   }
 
@@ -40,8 +39,7 @@ export class ArangodbDataSource extends juggler.DataSource
    * Disconnect the datasource when application is stopped. This allows the
    * application to be shut down gracefully.
    */
-  stop (): ValueOrPromise<void>
-  {
+  stop (): ValueOrPromise<void> {
     return super.disconnect()
   }
 }

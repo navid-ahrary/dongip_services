@@ -19,6 +19,7 @@ import {
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security'
 import { authenticate } from '@loopback/authentication'
 import { inject, service } from '@loopback/core'
+
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
 import { Users, UsersRels, FriendRequest, VirtualUsers } from '../models'
 import {
@@ -35,10 +36,12 @@ export class UsersUsersRelsController {
     @repository( UsersRepository ) protected usersRepository: UsersRepository,
     @repository( VirtualUsersRepository )
     public virtualUsersRepository: VirtualUsersRepository,
-    @repository( BlacklistRepository ) public blacklistRepository: BlacklistRepository,
-    @repository( UsersRelsRepository ) public usersRelsRepository: UsersRelsRepository,
+    @repository( BlacklistRepository )
+    public blacklistRepository: BlacklistRepository,
+    @repository( UsersRelsRepository )
+    public usersRelsRepository: UsersRelsRepository,
     @service( FirebaseService ) private firebaseService: FirebaseService,
-    @inject( SecurityBindings.USER ) private currentUserProfile: UserProfile,
+    @inject( SecurityBindings.USER ) protected currentUserProfile: UserProfile,
   ) { }
 
   private checkUserKey ( key: string ) {
@@ -54,7 +57,7 @@ export class UsersUsersRelsController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Array of Users has many UsersRels based on optional filter',
+        description: 'Array of Users has many rels based on optional filter',
         content: {
           'application/json': {
             schema: { type: 'array', items: getModelSchemaRef( UsersRels ) },
@@ -165,7 +168,8 @@ export class UsersUsersRelsController {
         } ).catch( _err => {
           console.log( _err )
           if ( _err.code === 409 ) {
-            const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
+            const index = _err.response.body.errorMessage
+              .indexOf( 'conflicting' )
             throw new HttpErrors.Conflict(
               'Error create user relation ' + _err.response.body.errorMessage.
                 slice( index ) )
@@ -227,7 +231,6 @@ export class UsersUsersRelsController {
   } )
   @authenticate( 'jwt.access' )
   async responseToFriendRequest (
-    @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.path.string( '_userKey' ) _userKey: string,
     @requestBody( {
       content: {
@@ -237,8 +240,7 @@ export class UsersUsersRelsController {
           } ),
         },
       },
-    } )
-    bodyReq: FriendRequest,
+    } ) bodyReq: FriendRequest,
   ) {
     this.checkUserKey( _userKey )
 
@@ -274,7 +276,9 @@ export class UsersUsersRelsController {
         "requester's key and recipient's key is the same! " )
     }
     // Find the requester user
-    requesterUser = await this.usersRepository.findById( ur._from.split( '/' )[ 1 ] )
+    requesterUser = await this.usersRepository.findById(
+      ur._from.split( '/' )[ 1 ]
+    )
     if ( !requesterUser ) {
       console.log( 'Requester user is not found! ' )
       throw new HttpErrors.NotFound( 'Requester user is not found! ' )
@@ -317,7 +321,8 @@ export class UsersUsersRelsController {
 
         try {
           // Update relation _to property with real-user's _id
-          await this.usersRelsRepository.updateById( bodyReq.relationId.split( '/' )[ 1 ],
+          await this.usersRelsRepository.updateById(
+            bodyReq.relationId.split( '/' )[ 1 ],
             {
               _to: recipientUser._id,
               avatar: recipientUser.avatar,
@@ -327,7 +332,10 @@ export class UsersUsersRelsController {
         } catch ( error ) {
           // Create deleted virtual user in previous phase
           await this.virtualUsersRepository.create( vu )
-          console.log( 'Create deleted virual user again, cause of previous phase error' + vu )
+          console.log(
+            'Create deleted virual user again, cause of previous phase error'
+            + vu
+          )
           console.log( 'userRels updatebyId error' + error )
           throw new HttpErrors.NotAcceptable( error.message )
         }
@@ -366,7 +374,7 @@ export class UsersUsersRelsController {
   }
 
 
-  @patch( '/apis/users/{_key}/users-rels', {
+  @patch( '/apis/users/{_userKey}/users-rels', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -377,8 +385,7 @@ export class UsersUsersRelsController {
   } )
   @authenticate( 'jwt.access' )
   async patch (
-    @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-    @param.path.string( '_key' ) _key: string,
+    @param.path.string( '_userKey' ) _userKey: string,
     @requestBody( {
       content: {
         'application/json': {
@@ -391,11 +398,13 @@ export class UsersUsersRelsController {
       },
     } )
     usersRels: Partial<UsersRels>,
-    @param.query.object( 'where', getWhereSchemaFor( UsersRels ) ) where?: Where<UsersRels>,
+    @param.query.object( 'where', getWhereSchemaFor( UsersRels ) )
+    where?: Where<UsersRels>,
   ): Promise<Count> {
-    this.checkUserKey( _key )
+    this.checkUserKey( _userKey )
 
-    return this.usersRepository.usersRels( `Users/${ _key }` )
+    const userId = 'Users/' + _userKey
+    return this.usersRepository.usersRels( userId )
       .patch( usersRels, where )
   }
 }

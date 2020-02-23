@@ -1,16 +1,6 @@
-import {
-  Entity,
-  model,
-  property,
-  belongsTo
-} from '@loopback/repository'
+import { Entity, model, property, belongsTo } from '@loopback/repository'
 
-import {
-  Category,
-  Dongs,
-  Users,
-  UsersRels
-} from './'
+import { Category, Dongs, Users, UsersRels } from './'
 
 @model()
 export class CategoryBill extends Entity {

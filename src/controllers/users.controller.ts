@@ -17,8 +17,6 @@ import {
   TokenService
 } from '@loopback/authentication'
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security'
-import _ from 'underscore'
-import moment from 'moment'
 
 import {
   PasswordHasherBindings,
@@ -40,7 +38,8 @@ import {
   FirebaseService,
   SmsService,
   validatePhoneNumber,
-  PasswordHasher
+  PasswordHasher,
+  TimeService
 } from '../services'
 
 
@@ -56,35 +55,9 @@ export class UsersController {
     @inject( TokenServiceBindings.TOKEN_SERVICE )
     public jwtService: TokenService,
     @service( FirebaseService ) public firebaseService: FirebaseService,
-    @service( SmsService ) public smsService: SmsService
+    @service( SmsService ) public smsService: SmsService,
+    @service( TimeService ) public timeService: TimeService
   ) { }
-
-
-  private TimeDiff ( startTime: any, endTime: any, format: any ) {
-    startTime = moment( startTime, 'YYYY-MM-DD HH:mm:ss' )
-    endTime = moment( endTime, 'YYYY-MM-DD HH:mm:ss' )
-    return endTime.diff( startTime, format )
-  }
-
-
-  private arrayHasObject ( arr: object[], obj: object ): boolean {
-    for ( const ele of arr ) {
-      if ( _.isEqual( ele, obj ) ) {
-        return true
-      }
-    }
-    return false
-  }
-
-  private arrayRemoveItem ( arr: object[], obj: object ) {
-    arr.forEach( function ( ele ) {
-      if ( _.isEqual( ele, obj ) ) {
-        arr.splice( arr.indexOf( ele ) )
-      }
-    } )
-    return arr
-  }
-
 
   private generateRandomString ( length: number ) {
     let result = '',
@@ -314,7 +287,7 @@ export class UsersController {
         token: token.split( ' ' )[ 1 ]
       } )
 
-      user[ 'registeredAt' ] = moment().format()
+      user[ 'registeredAt' ] = this.timeService.now()
       user[ 'registerationToken' ] = currentUserProfile.regToken
       user[ 'userAgent' ] = currentUserProfile.agent
       delete user[ 'password' ]
@@ -354,7 +327,7 @@ export class UsersController {
   }
 
 
-  @get( '/apis/users/{_key}/logout', {
+  @get( '/apis/users/{_userKey}/logout', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -366,14 +339,12 @@ export class UsersController {
   async logout (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
     @param.header.string( 'authorization' ) authorizationHeader: string,
-    @param.path.string( '_key' ) _key: string,
+    @param.path.string( '_userKey' ) _userKey: string,
   ): Promise<Blacklist> {
-    this.checkUserKey( _key, currentUserProfile )
+    this.checkUserKey( _userKey, currentUserProfile )
 
     return this.blacklistRepository.createHumanKind(
-      {
-        token: authorizationHeader.split( ' ' )[ 1 ],
-      }
+      { token: authorizationHeader.split( ' ' )[ 1 ], }
     ).catch( _err => {
       console.log( _err )
       if ( _err.code === 409 ) {
@@ -386,7 +357,7 @@ export class UsersController {
   }
 
 
-  @patch( '/apis/users/{_key}', {
+  @patch( '/apis/users/{_userKey}', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -397,20 +368,19 @@ export class UsersController {
   @authenticate( 'jwt.access' )
   async updateById (
     @inject( SecurityBindings.USER ) currentUserProfile: UserProfile,
-    @param.path.string( '_key' ) _key: string,
+    @param.path.string( '_userKey' ) _userKey: string,
     @requestBody( UserPatchRequestBody ) user: Omit<Users, '_key'>
   ): Promise<Users> {
+    this.checkUserKey( _userKey, currentUserProfile )
 
-    this.checkUserKey( _key, currentUserProfile )
-
-    await this.usersRepository.updateById( _key, user )
-    return this.usersRepository.findById( _key, {
+    await this.usersRepository.updateById( _userKey, user )
+    return this.usersRepository.findById( _userKey, {
       fields: { _rev: true }
     } )
   }
 
 
-  @get( '/apis/users/{_key}/refresh-token', {
+  @get( '/apis/users/{_userKey}/refresh-token', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {

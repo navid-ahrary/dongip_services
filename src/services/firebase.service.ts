@@ -7,11 +7,13 @@ import {
   ServiceAccount
 } from 'firebase-admin'
 import { HttpErrors } from '@loopback/rest'
-require( 'dotenv' ).config()
+import { config } from 'dotenv'
 
 @bind( { scope: BindingScope.SINGLETON } )
 export class FirebaseService {
   constructor () {
+    config()
+
     const serviceAccount = require(
       `${ process.env.GOOGLE_APPLICATION_CREDENTIALS }`
     )

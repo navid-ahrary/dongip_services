@@ -1,15 +1,7 @@
-import {
-  repository,
-} from '@loopback/repository'
-import {
-  param,
-  get,
-  getModelSchemaRef,
-} from '@loopback/rest'
-import {
-  CategoryBill,
-  UsersRels,
-} from '../models'
+import { repository, } from '@loopback/repository'
+import { param, get, getModelSchemaRef, } from '@loopback/rest'
+
+import { CategoryBill, UsersRels, } from '../models'
 import { CategoryBillRepository } from '../repositories'
 
 export class CategoryBillUsersRelsController {

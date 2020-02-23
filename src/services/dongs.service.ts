@@ -50,11 +50,10 @@ export class DongsService {
   }
 
 
-  public async createNewDong ( _key: string, newDong: Omit<Dongs, '_key'> )
+  public async createNewDong ( currentUserId: string, newDong: Omit<Dongs, '_key'> )
     : Promise<Dongs> {
 
     let exManUsersRel: UsersRels[],
-      currentUserId = 'Users/' + _key,
       exManKey: string,
       exManId: string,
       exManUsersRelId = newDong.exManUsersRelId,
@@ -102,7 +101,7 @@ export class DongsService {
 
     // If current user is not the same as the xMan,
     // check that xMan has relation with all eqip users
-    if ( _key !== exManKey ) {
+    if ( currentUserId !== exManId ) {
       usersRelsIdsList = []
       for ( const __id in nodes ) {
         const relList = await this.usersRepository.usersRels( exManKey )
@@ -186,6 +185,24 @@ export class DongsService {
           }
           nodeCategoryBill[ 'belongsToCategoryId' ] = nodeCategory._id
 
+          if ( nodeCategoryBill.invoice >= 0 ) {
+            Object.assign( nodeCategoryBill,
+              { 'settledAt': newDong.createdAt, settled: true } )
+          }
+
+          await this.usersRepository.createHumanKindCategoryBills(
+            _b.userId, nodeCategoryBill )
+            .then( _catBill => {
+              categoryBillKeysList.push( _catBill._key )
+            } )
+            .catch( async _err => {
+              await this.usersRepository.dongs( exManId )
+                .delete( { _key: transaction._key } )
+              await this.categoryBillRepository
+                .deleteAll( { _from: transaction._id } )
+              throw new HttpErrors[ 422 ]( _err.message )
+            } )
+
           // Do not add current user to the reciever notification
           if ( _b.userId.split( '/' )[ 1 ] === exManKey ) continue
 
@@ -229,26 +246,28 @@ export class DongsService {
             nodeCategory = findCategory[ 0 ]
           }
           nodeCategoryBill[ 'belongsToCategoryId' ] = nodeCategory._id
+
+
+          if ( nodeCategoryBill.invoice >= 0 ) {
+            Object.assign( nodeCategoryBill,
+              { 'settledAt': newDong.createdAt, settled: true } )
+          }
+
+          await this.usersRepository.createHumanKindCategoryBills(
+            _b.userId, nodeCategoryBill )
+            .then( _catBill => {
+              categoryBillKeysList.push( _catBill._key )
+            } )
+            .catch( async _err => {
+              await this.usersRepository.dongs( exManId )
+                .delete( { _key: transaction._key } )
+              await this.categoryBillRepository
+                .deleteAll( { _from: transaction._id } )
+              throw new HttpErrors[ 422 ]( _err.message )
+            } )
           break
       }
 
-      if ( nodeCategoryBill.invoice >= 0 ) {
-        Object.assign( nodeCategoryBill,
-          { 'settledAt': newDong.createdAt, settled: true } )
-      }
-
-      await this.usersRepository.createHumanKindCategoryBills(
-        _b.userId, nodeCategoryBill )
-        .then( _catBill => {
-          categoryBillKeysList.push( _catBill._key )
-        } )
-        .catch( async _err => {
-          await this.usersRepository.dongs( exManId )
-            .delete( { _key: transaction._key } )
-          await this.categoryBillRepository
-            .deleteAll( { _from: transaction._id } )
-          throw new HttpErrors[ 422 ]( _err.message )
-        } )
     }
     return transaction
   }

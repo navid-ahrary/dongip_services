@@ -14,28 +14,33 @@ import {
   post,
   requestBody,
 } from '@loopback/rest'
-import {
-  UsersRels,
-  CategoryBill,
-} from '../models'
-import { UsersRelsRepository } from '../repositories'
 import { authenticate } from '@loopback/authentication'
 import { inject } from '@loopback/core'
 import { UserProfile, SecurityBindings } from "@loopback/security"
 
+import { UsersRels, CategoryBill, } from '../models'
+import { UsersRelsRepository } from '../repositories'
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
+
+
 export class UsersRelsCategoryBillController {
   constructor (
-    @repository( UsersRelsRepository ) protected usersRelsRepository: UsersRelsRepository,
+    @repository( UsersRelsRepository )
+    public usersRelsRepository: UsersRelsRepository,
     @inject( SecurityBindings.USER ) protected currentUserProfile: UserProfile
   ) { }
 
-  @get( '/apis/users-rels/{_key}/category-bills', {
+  @get( '/apis/users-rels/{_relkey}/category-bills', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Array of UsersRels has many CategoryBill',
         content: {
           'application/json': {
-            schema: { type: 'array', items: getModelSchemaRef( CategoryBill ) },
+            schema: {
+              type: 'array',
+              items: getModelSchemaRef( CategoryBill )
+            },
           },
         },
       },
@@ -43,22 +48,29 @@ export class UsersRelsCategoryBillController {
   } )
   @authenticate( 'jwt.access' )
   async find (
-    @param.path.string( '_key' ) _key: string,
+    @param.path.string( '_relkey' ) _relkey: string,
     @param.query.object( 'filter' ) filter?: Filter<CategoryBill>,
   ): Promise<CategoryBill[]> {
-    return this.usersRelsRepository.categoryBills( `UsersRels/${ _key }` ).find( filter )
+    const relId = 'UsersRels/' + _relkey
+    return this.usersRelsRepository.categoryBills( relId ).find( filter )
   }
 
-  @post( '/users-rels/{id}/category-bills', {
+  @post( '/apis/users-rels/{_relkey}/category-bills', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'UsersRels model instance',
-        content: { 'application/json': { schema: getModelSchemaRef( CategoryBill ) } },
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef( CategoryBill )
+          }
+        },
       },
     },
   } )
+  @authenticate( 'jwt.access' )
   async create (
-    @param.path.string( 'id' ) id: typeof UsersRels.prototype._key,
+    @param.path.string( '_relkey' ) _relkey: typeof UsersRels.prototype._key,
     @requestBody( {
       content: {
         'application/json': {
@@ -71,10 +83,13 @@ export class UsersRelsCategoryBillController {
       },
     } ) categoryBill: Omit<CategoryBill, '_key'>,
   ): Promise<CategoryBill> {
-    return this.usersRelsRepository.categoryBills( id ).create( categoryBill )
+    const relId = 'UsersRels/' + _relkey
+    return this.usersRelsRepository.categoryBills( relId )
+      .create( categoryBill )
   }
 
-  @patch( '/users-rels/{id}/category-bills', {
+  @patch( '/apis/users-rels/{_relkey}/category-bills', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'UsersRels.CategoryBill PATCH success count',
@@ -82,8 +97,9 @@ export class UsersRelsCategoryBillController {
       },
     },
   } )
+  @authenticate( 'jwt.access' )
   async patch (
-    @param.path.string( 'id' ) id: string,
+    @param.path.string( '_relkey' ) _relkey: string,
     @requestBody( {
       content: {
         'application/json': {
@@ -92,8 +108,11 @@ export class UsersRelsCategoryBillController {
       },
     } )
     categoryBill: Partial<CategoryBill>,
-    @param.query.object( 'where', getWhereSchemaFor( CategoryBill ) ) where?: Where<CategoryBill>,
+    @param.query.object( 'where', getWhereSchemaFor( CategoryBill ) )
+    where?: Where<CategoryBill>,
   ): Promise<Count> {
-    return this.usersRelsRepository.categoryBills( id ).patch( categoryBill, where )
+    const relId = 'UsersRels/' + _relkey
+    return this.usersRelsRepository.categoryBills( relId )
+      .patch( categoryBill, where )
   }
 }
