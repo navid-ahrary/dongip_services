@@ -1,10 +1,10 @@
 import { repository, } from '@loopback/repository'
 import { param, get, getModelSchemaRef, } from '@loopback/rest'
+import { authenticate } from '@loopback/authentication'
 
 import { CategoryBill, UsersRels, } from '../models'
 import { CategoryBillRepository } from '../repositories'
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
-import { authenticate } from '@loopback/authentication'
 
 export class CategoryBillUsersRelsController {
   constructor (
