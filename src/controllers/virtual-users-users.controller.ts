@@ -1,7 +1,11 @@
 import { repository } from '@loopback/repository'
 import { param, get, getModelSchemaRef, } from '@loopback/rest'
+import { authenticate } from '@loopback/authentication'
+
 import { VirtualUsers, Users } from '../models'
 import { VirtualUsersRepository } from '../repositories'
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
+
 
 export class VirtualUsersUsersController {
   constructor (
@@ -9,7 +13,8 @@ export class VirtualUsersUsersController {
     public virtualUsersRepository: VirtualUsersRepository,
   ) { }
 
-  @get( '/virtual-users/{id}/users', {
+  @get( '/apis/virtual-users/{_virtualUserKey}/users', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Users belonging to VirtualUsers',
@@ -21,9 +26,11 @@ export class VirtualUsersUsersController {
       },
     },
   } )
+  @authenticate( 'jwt.access' )
   async getUsers (
-    @param.path.string( 'id' ) id: typeof VirtualUsers.prototype._key,
-  ): Promise<Users> {
-    return this.virtualUsersRepository.belongsToUser( id )
+    @param.path.string( 'i_virtualUserKeyd' )
+    _virtualUserKey: typeof VirtualUsers.prototype._key, ): Promise<Users> {
+    const virtualUserId = 'VirtualUsers/' + _virtualUserKey
+    return this.virtualUsersRepository.belongsToUser( virtualUserId )
   }
 }

@@ -44,8 +44,8 @@ export class UsersUsersRelsController {
     @inject( SecurityBindings.USER ) protected currentUserProfile: UserProfile,
   ) { }
 
-  private checkUserKey ( key: string ) {
-    if ( key !== this.currentUserProfile[ securityId ] ) {
+  private checkUserKey ( userKey: string ) {
+    if ( userKey !== this.currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized(
         'Token is not matched to this user _key!',
       )
@@ -72,10 +72,10 @@ export class UsersUsersRelsController {
     @param.query.object( 'filter' ) filter?: Filter<UsersRels>,
   ): Promise<UsersRels[]> {
     this.checkUserKey( _userKey )
-    const _userId = 'Users/' + _userKey
 
+    const userId = 'Users/' + _userKey
     const usersRelsList = await this.usersRepository
-      .usersRels( _userId ).find( filter )
+      .usersRels( userId ).find( filter )
     usersRelsList.forEach( function ( usersRel ) {
       delete usersRel._to
       delete usersRel._from
@@ -115,7 +115,7 @@ export class UsersUsersRelsController {
       recipientUser: Users | VirtualUsers | null,
       createdVirtualUser: VirtualUsers,
       createdUsersRelation: UsersRels,
-      _userId = 'Users/' + _userKey,
+      userId = 'Users/' + _userKey,
       payload
 
     requesterUser = await this.usersRepository.findById( _userKey )
@@ -138,7 +138,7 @@ export class UsersUsersRelsController {
     }
 
     createdVirtualUser = await this.usersRepository
-      .createHumanKindVirtualUsers( _userId, { phone: reqBody.phone } )
+      .createHumanKindVirtualUsers( userId, { phone: reqBody.phone } )
       .catch( async _err => {
         console.log( _err )
         if ( _err.code === 409 ) {
@@ -148,7 +148,7 @@ export class UsersUsersRelsController {
           const virtualUserId =
             'VirtualUsers/' + _err.response.body.errorMessage.slice( index )
 
-          const rel = await this.usersRepository.usersRels( _userId )
+          const rel = await this.usersRepository.usersRels( userId )
             .find( { where: { _to: virtualUserId } } )
 
           throw new HttpErrors.Conflict(
@@ -158,7 +158,7 @@ export class UsersUsersRelsController {
       } )
 
     createdUsersRelation = await this.usersRepository
-      .createHumanKindUsersRels( _userId,
+      .createHumanKindUsersRels( userId,
         {
           _to: createdVirtualUser._id,
           alias: reqBody.alias,

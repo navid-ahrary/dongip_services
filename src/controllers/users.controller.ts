@@ -72,8 +72,8 @@ export class UsersController {
   }
 
 
-  private checkUserKey ( key: string, currentUserProfile: UserProfile ) {
-    if ( key !== currentUserProfile[ securityId ] ) {
+  private checkUserKey ( userKey: string, currentUserProfile: UserProfile ) {
+    if ( userKey !== currentUserProfile[ securityId ] ) {
       throw new HttpErrors.Unauthorized(
         'Token is not matched to this user _key!',
       )
@@ -344,7 +344,10 @@ export class UsersController {
     this.checkUserKey( _userKey, currentUserProfile )
 
     return this.blacklistRepository.createHumanKind(
-      { token: authorizationHeader.split( ' ' )[ 1 ], }
+      {
+        token: authorizationHeader.split( ' ' )[ 1 ],
+        createdAt: this.timeService.now()
+      }
     ).catch( _err => {
       console.log( _err )
       if ( _err.code === 409 ) {

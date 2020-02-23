@@ -3,6 +3,8 @@ import { param, get, getModelSchemaRef, } from '@loopback/rest'
 
 import { CategoryBill, UsersRels, } from '../models'
 import { CategoryBillRepository } from '../repositories'
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
+import { authenticate } from '@loopback/authentication'
 
 export class CategoryBillUsersRelsController {
   constructor (
@@ -10,7 +12,8 @@ export class CategoryBillUsersRelsController {
     public categoryBillRepository: CategoryBillRepository,
   ) { }
 
-  @get( '/category-bills/{id}/users-rels', {
+  @get( '/apis/category-bills/{_billKey}/users-rels', {
+    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'UsersRels belonging to CategoryBill',
@@ -22,9 +25,11 @@ export class CategoryBillUsersRelsController {
       },
     },
   } )
+  @authenticate( 'jwt.access' )
   async getUsersRels (
-    @param.path.string( 'id' ) id: typeof CategoryBill.prototype._key,
-  ): Promise<UsersRels> {
-    return this.categoryBillRepository.belongsToUserRels( id )
+    @param.path.string( '_billKey' )
+    _billKey: typeof CategoryBill.prototype._key, ): Promise<UsersRels> {
+    const billId = 'CategoryBill/' + _billKey
+    return this.categoryBillRepository.belongsToUserRels( billId )
   }
 }
