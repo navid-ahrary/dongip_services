@@ -20,6 +20,12 @@ export class Verify extends Entity {
     type: 'string',
     required: true,
   })
+  phone: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
   regToken: string;
 
   @property({
