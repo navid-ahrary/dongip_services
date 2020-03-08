@@ -6,3 +6,4 @@ export * from './category.repository'
 export * from './category-bill.repository'
 export * from './users-rels.repository'
 export * from './poems.repository'
+export * from './verify.repository';
