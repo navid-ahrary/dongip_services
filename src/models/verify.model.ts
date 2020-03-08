@@ -30,7 +30,7 @@ export class Verify extends Entity {
 
   @property({
     type: 'date',
-    required: true,
+    required: false,
   })
   date = new Date();
 
