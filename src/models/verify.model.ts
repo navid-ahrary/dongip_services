@@ -17,11 +17,16 @@ export class Verify extends Entity {
   code: string;
 
   @property({
-    type: 'number',
-    required: false,
-    default: 0,
+    type: 'string',
+    required: true,
   })
-  try: number;
+  regToken: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  agent: string;
 
   constructor(data?: Partial<Verify>) {
     super(data);
