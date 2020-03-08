@@ -28,6 +28,12 @@ export class Verify extends Entity {
   })
   agent: string;
 
+  @property({
+    type: 'date',
+    required: true,
+  })
+  date = new Date();
+
   constructor(data?: Partial<Verify>) {
     super(data);
   }
