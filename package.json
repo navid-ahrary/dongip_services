@@ -3,8 +3,8 @@
   "version": "0.7.5",
   "description": "personal accounting and split money between friends",
   "keywords": [
-    "loopback-application",
-    "loopback"
+    "dongip",
+    "loopback-application"
   ],
   "main": "index.js",
   "engines": {
