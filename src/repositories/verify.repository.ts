@@ -17,7 +17,6 @@ export class VerifyRepository extends DefaultCrudRepository<
 */
   public async createHumanKind (entity: DataObject<Verify>): Promise<Verify> {
     const verify = await this.create(entity)
-    verify._id = verify._key[1]
     verify._key = verify._key[0]
     return verify
   }
