@@ -33,8 +33,7 @@ export class Users extends Entity {
   phone: string;
 
   @property({
-    type: 'string',
-    required: true
+    type: 'string'
   })
   password: string;
 
