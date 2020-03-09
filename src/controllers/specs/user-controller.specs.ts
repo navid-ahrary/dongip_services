@@ -1,8 +1,7 @@
-import {getModelSchemaRef} from '@loopback/rest';
+import {getModelSchemaRef} from '@loopback/rest'
 
-import {Users, UsersRels, VirtualUsers} from '../../models';
+import {Users} from '../../models'
 
-// TODO(jannyHou): This should be moved to @loopback/authentication
 export const UserLoginResponse = {
   '200': {
     description: 'Login user',
@@ -26,7 +25,7 @@ export const UserLoginResponse = {
       },
     },
   },
-};
+}
 
 export const UserVerifyResponse = {
   '200': {
@@ -52,7 +51,7 @@ export const UserVerifyResponse = {
       },
     },
   },
-};
+}
 
 export const UserSignupRequestBody = {
   required: true,
@@ -87,7 +86,7 @@ export const UserSignupRequestBody = {
       }),
     },
   },
-};
+}
 
 export const UserSignupResponse = {
   '200': {
@@ -114,7 +113,7 @@ export const UserSignupResponse = {
       },
     },
   },
-};
+}
 
 export const UserPatchRequestBody = {
   content: {
@@ -141,7 +140,7 @@ export const UserPatchRequestBody = {
       }),
     },
   },
-};
+}
 
 // TODO(jannyHou): This is a workaround to manually
 // describe the request body of 'Users/login'.
@@ -171,7 +170,7 @@ export const CredentialsRequestBody = {
       },
     },
   },
-};
+}
 
 export const SetFriend = {
   '200': {
@@ -207,4 +206,4 @@ export const SetFriend = {
       },
     },
   },
-};
+}
