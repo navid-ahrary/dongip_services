@@ -1,6 +1,6 @@
 import {getModelSchemaRef} from '@loopback/rest'
 
-import {Users} from '../../models'
+import {Users, Verify} from '../../models'
 
 export const UserLoginResponse = {
   '200': {
@@ -27,10 +27,23 @@ export const UserLoginResponse = {
   },
 }
 
+export const verifyNumberRequestBody = {
+  description: 'Verify phone number',
+  required: true,
+  content: {
+    'application/json': {
+      schema: getModelSchemaRef(Verify, {
+        partial: false,
+        exclude: ["_key", "agent", "password", "issuedAt"],
+      }),
+    },
+  }
+}
+
 export const UserVerifyResponse = {
   '200': {
     description:
-      'Checking this phone number has been registerd and sending verify sms',
+      'Checking this phone number has been registered and sending verify sms',
     content: {
       'application/json': {
         example: {
