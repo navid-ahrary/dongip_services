@@ -14,7 +14,7 @@ export class Verify extends Entity {
     type: 'string',
     required: true,
   })
-  code: string
+  password: string
 
   @property({
     type: 'string',
@@ -38,7 +38,7 @@ export class Verify extends Entity {
     type: 'object',
     required: true,
   })
-  date: object
+  issuedAt: object
 
   constructor (data?: Partial<Verify>) {
     super(data)

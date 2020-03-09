@@ -25,6 +25,7 @@ export class MyUserService implements UserService<Users, Credentials> {
   async verifyCredentials (credentials: Credentials): Promise<Users> {
     const invalidCredentialsError = 'Invalid phone/password !'
 
+
     const foundVerify = await this.verifyRepo.findOne({
       where: {
         and: [
@@ -32,7 +33,7 @@ export class MyUserService implements UserService<Users, Credentials> {
             phone: credentials.phone
           },
           {
-            code: credentials.code
+            password: await this.passwordHasher.hashPassword(credentials.password)
           }
         ]
       }

@@ -1,21 +1,21 @@
-import { Model, model, property } from '@loopback/repository'
+import {Model, model, property} from '@loopback/repository'
 
 @model()
 export class Credentials extends Model {
-  @property( {
+  @property({
     type: 'string',
     required: true,
-  } )
+  })
   phone: string
 
-  @property( {
+  @property({
     type: 'string',
     required: true,
-  } )
-  code: string
+  })
+  password: string
 
-  constructor ( data?: Partial<Credentials> ) {
-    super( data )
+  constructor (data?: Partial<Credentials>) {
+    super(data)
   }
 }
 
