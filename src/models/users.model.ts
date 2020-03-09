@@ -1,114 +1,114 @@
-import { Entity, model, property, hasMany } from '@loopback/repository'
+import {Entity, model, property, hasMany} from '@loopback/repository'
 
-import { VirtualUsers, Dongs, Category, CategoryBill, UsersRels } from './'
+import {VirtualUsers, Dongs, Category, CategoryBill, UsersRels} from './'
 
 @model()
 export class Users extends Entity {
-  @property( {
+  @property({
     type: 'string',
     id: true,
     required: false,
     generated: true,
-  } )
+  })
   _key: string
 
-  @property( {
+  @property({
     type: 'string',
     required: false,
     generated: true,
-  } )
+  })
   _id: string
 
-  @property( {
+  @property({
     type: 'string',
     required: false,
     generated: true,
-  } )
+  })
   _rev: string
 
-  @property( {
+  @property({
     type: 'string',
     required: true,
-  } )
+  })
   phone: string
 
-  @property( {
+  @property({
     type: 'string',
-  } )
+  })
   password?: string
 
-  @property( {
+  @property({
     type: 'string',
     required: true,
-  } )
+  })
   name: string
 
-  @property( {
+  @property({
     type: 'string',
     default: '',
     required: true,
-  } )
+  })
   avatar: string
 
-  @property( {
+  @property({
     type: 'string',
     required: false,
-  } )
+  })
   locale: string
 
-  @property( {
+  @property({
     type: 'string',
     required: false,
-  } )
+  })
   refreshToken: string
 
-  @property( {
+  @property({
     type: 'string',
     required: false,
-  } )
+  })
   geolocation: string
 
-  @property( {
-    type: 'date',
+  @property({
+    type: 'object',
     required: false,
-  } )
-  registeredAt: string
+  })
+  registeredAt: object
 
-  @property( {
+  @property({
     type: 'string',
     required: false
-  } )
+  })
   accountType = 'bronze'
 
-  @property( {
+  @property({
     type: 'string',
     reqiured: true,
-  } )
+  })
   registerationToken: string
 
-  @property( {
+  @property({
     type: 'string',
     reqiured: true,
-  } )
+  })
   userAgent: string
 
-  @hasMany( () => VirtualUsers, { keyTo: 'belongsToUserId' } )
+  @hasMany(() => VirtualUsers, {keyTo: 'belongsToUserId'})
   virtualUsers: VirtualUsers[]
 
-  @hasMany( () => Dongs, { keyTo: 'belongsToExManId' } )
+  @hasMany(() => Dongs, {keyTo: 'belongsToExManId'})
   dongs: Dongs[]
 
-  @hasMany( () => Category, { keyTo: 'belongsToUserId' } )
+  @hasMany(() => Category, {keyTo: 'belongsToUserId'})
   categories: Category[]
 
-  @hasMany( () => UsersRels, { keyTo: '_from' } )
+  @hasMany(() => UsersRels, {keyTo: '_from'})
   usersRels: UsersRels[]
 
-  @hasMany( () => CategoryBill, { keyTo: '_to' } )
+  @hasMany(() => CategoryBill, {keyTo: '_to'})
   categoryBills: CategoryBill[]
 
-  constructor ( data?: Partial<Users> ) {
-    super( data )
+  constructor (data?: Partial<Users>) {
+    super(data)
   }
 }
 
