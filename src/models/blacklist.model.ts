@@ -2,43 +2,43 @@ import {
   Entity,
   model,
   property
-} from '@loopback/repository'
+} from '@loopback/repository';
 
 @model()
 export class Blacklist extends Entity {
-  @property( {
+  @property({
     type: 'string',
     required: false,
     generated: true,
     id: true
-  } )
-  _key: string
+  })
+  _key: string;
 
-  @property( {
+  @property({
     type: 'string',
     required: false,
     generated: true
-  } )
-  _id: string
+  })
+  _id: string;
 
-  @property( {
+  @property({
     type: 'string',
     required: true
-  } )
-  token: string
+  })
+  token: string;
 
-  @property( {
+  @property({
     type: 'date',
     required: false,
-    geenrated: true
-  } )
-  createdAt: string
+    generated: true,
+  })
+  createdAt: object = new Date();
 
-  constructor ( data?: Partial<Blacklist> ) {
-    super( data )
+  constructor (data?: Partial<Blacklist>) {
+    super(data);
   }
 }
 
-export interface BlacklistRelations { }
+export interface BlacklistRelations {}
 
-export type BlacklistWithRelations = Blacklist & BlacklistRelations
+export type BlacklistWithRelations = Blacklist & BlacklistRelations;
