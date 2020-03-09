@@ -1,4 +1,4 @@
-import {Entity, model, property} from '@loopback/repository'
+import {Entity, model, property} from '@loopback/repository';
 
 @model()
 export class Verify extends Entity {
@@ -8,40 +8,46 @@ export class Verify extends Entity {
     generated: true,
     required: false,
   })
-  _key: string
+  _key: string;
 
   @property({
     type: 'string',
     required: true,
   })
-  password: string
+  password: string;
+
+  @property({
+    type: 'boolean',
+    requried: true
+  })
+  registered: boolean;
 
   @property({
     type: 'string',
     required: true,
   })
-  phone: string
+  phone: string;
 
   @property({
     type: 'string',
     required: true,
   })
-  regToken: string
+  regToken: string;
 
   @property({
     type: 'string',
     required: true,
   })
-  agent: string
+  agent: string;
 
   @property({
     type: 'object',
     required: true,
   })
-  issuedAt: object
+  issuedAt: object;
 
   constructor (data?: Partial<Verify>) {
-    super(data)
+    super(data);
   }
 }
 
@@ -49,4 +55,4 @@ export interface VerifyRelations {
   // describe navigational properties here
 }
 
-export type VerifyWithRelations = Verify & VerifyRelations
+export type VerifyWithRelations = Verify & VerifyRelations;
