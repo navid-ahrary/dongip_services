@@ -7,12 +7,6 @@ export const UserLoginResponse = {
     description: 'Login user',
     content: {
       'application/josn': {
-        example: {
-          _key: '123456',
-          _id: 'Users/123456',
-          accessToken: 'abc.defghijklmnopqrstuvwyz',
-          refreshToken: 'zyw.abcdefghijklmnopqrstuv',
-        },
         schema: {
           type: 'object',
           properties: {
@@ -46,19 +40,12 @@ export const UserVerifyResponse = {
       'Checking this phone number has been registered and sending verify sms',
     content: {
       'application/json': {
-        example: {
-          status: 'true',
-          name: 'navid',
-          avatar: 'avatar_10',
-          prefix: 'GOD',
-        },
         schema: {
           type: 'object',
           properties: {
             status: {type: 'boolean'},
             name: {type: 'string'},
             avatar: {type: 'string'},
-            prefix: {type: 'string'},
           },
         },
       },
@@ -70,14 +57,6 @@ export const UserSignupRequestBody = {
   required: true,
   content: {
     'application/json': {
-      example: {
-        phone: '+989332141024',
-        password: 'KQM9876',
-        name: 'asra',
-        locale: 'fa_IR.UTF-8',
-        accountType: 'personal',
-        avatar: 'girl_guitar',
-      },
       schema: getModelSchemaRef(Users, {
         title: 'NewUser',
         exclude: [
@@ -164,15 +143,11 @@ export const CredentialsRequestBody = {
   required: true,
   content: {
     'application/json': {
-      example: {
-        phone: '+989171234567',
-        code: 'HEY400689',
-      },
       schema: {
         type: 'object',
         required: ['code', 'phone'],
         properties: {
-          code: {
+          password: {
             type: 'string',
             length: 9,
           },
