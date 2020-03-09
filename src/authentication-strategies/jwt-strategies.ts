@@ -116,11 +116,15 @@ export class JWTVerifyAutehticationStrategy implements AuthenticationStrategy {
     request: Request,
   ): Promise<UserProfile | undefined> {
     const token: string = this.extractCredentials(request);
+
     const userProfile: UserProfile = await this.tokenService.verifyToken(token);
 
     if (userProfile['type'] !== 'verify') {
       throw new HttpErrors.Unauthorized('Verify token is not provided!');
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.blacklistRepo.create({token: token});
 
     return userProfile;
   }
