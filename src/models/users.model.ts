@@ -1,6 +1,6 @@
-import {Entity, model, property, hasMany} from '@loopback/repository'
+import {Entity, model, property, hasMany} from '@loopback/repository';
 
-import {VirtualUsers, Dongs, Category, CategoryBill, UsersRels} from './'
+import {VirtualUsers, Dongs, Category, CategoryBill, UsersRels} from './';
 
 @model()
 export class Users extends Entity {
@@ -10,109 +10,110 @@ export class Users extends Entity {
     required: false,
     generated: true,
   })
-  _key: string
+  _key: string;
 
   @property({
     type: 'string',
     required: false,
     generated: true,
   })
-  _id: string
+  _id: string;
 
   @property({
     type: 'string',
     required: false,
     generated: true,
   })
-  _rev: string
+  _rev: string;
 
   @property({
     type: 'string',
     required: true,
   })
-  phone: string
+  phone: string;
 
   @property({
     type: 'string',
+    required: true
   })
-  password?: string
+  password: string;
 
   @property({
     type: 'string',
     required: true,
   })
-  name: string
+  name: string;
 
   @property({
     type: 'string',
     default: '',
     required: true,
   })
-  avatar: string
+  avatar: string;
 
   @property({
     type: 'string',
     required: false,
   })
-  locale: string
+  locale: string;
 
   @property({
     type: 'string',
     required: false,
   })
-  refreshToken: string
+  refreshToken: string;
 
   @property({
     type: 'string',
     required: false,
   })
-  geolocation: string
+  geolocation: string;
 
   @property({
     type: 'object',
     required: false,
   })
-  registeredAt: object
+  registeredAt: object;
 
   @property({
     type: 'string',
     required: false
   })
-  accountType = 'bronze'
+  accountType = 'bronze';
 
   @property({
     type: 'string',
     reqiured: true,
   })
-  registerationToken: string
+  registerationToken: string;
 
   @property({
     type: 'string',
     reqiured: true,
   })
-  userAgent: string
+  userAgent: string;
 
   @hasMany(() => VirtualUsers, {keyTo: 'belongsToUserId'})
-  virtualUsers: VirtualUsers[]
+  virtualUsers: VirtualUsers[];
 
   @hasMany(() => Dongs, {keyTo: 'belongsToExManId'})
-  dongs: Dongs[]
+  dongs: Dongs[];
 
   @hasMany(() => Category, {keyTo: 'belongsToUserId'})
-  categories: Category[]
+  categories: Category[];
 
   @hasMany(() => UsersRels, {keyTo: '_from'})
-  usersRels: UsersRels[]
+  usersRels: UsersRels[];
 
   @hasMany(() => CategoryBill, {keyTo: '_to'})
-  categoryBills: CategoryBill[]
+  categoryBills: CategoryBill[];
 
   constructor (data?: Partial<Users>) {
-    super(data)
+    super(data);
   }
 }
 
 export interface UsersRelations {
 }
 
-export type UsersWithRelations = Users & UsersRelations
+export type UsersWithRelations = Users & UsersRelations;
