@@ -20,7 +20,7 @@ export function validatePassword (code: Credentials[ 'code' ]) {
   // Validate Password Length
   if (code.length !== 9 || typeof code !== 'string') {
     throw new Error(
-      'Password must be exact 4 string characters',
+      'Password must be exact 9 string characters',
     )
   }
   return

@@ -116,12 +116,6 @@ export class UsersController {
       throw new HttpErrors.NotAcceptable(_err.message)
     }
 
-    userProfile = {
-      [ securityId ]: body.phone,
-      type: 'verify',
-      agent: userAgent,
-    }
-
     user = await this.usersRepository.findOne({
       where: { phone: body.phone },
       fields: {
@@ -132,15 +126,22 @@ export class UsersController {
     if (user) {
       status = true
     }
-    // Generate verify token based on user profile
-    verifyToken = await this.jwtService.generateToken(userProfile)
 
-    await this.verifyRepo.create({
+    const createdVerify = await this.verifyRepo.create({
       code: await this.passwordHasher.hashPassword(verifyCode),
       phone: body.phone,
       regToken: regToken,
       agent: userAgent,
     })
+
+    userProfile = {
+      [ securityId ]: createdVerify._key[ 0 ],
+      type: 'verify',
+      agent: userAgent,
+    }
+    // Generate verify token based on user profile
+    verifyToken = await this.jwtService.generateToken(userProfile)
+
     // send verify code with sms
     this.smsService.sendSms('dongip', verifyCode, body.phone)
 
@@ -182,11 +183,6 @@ export class UsersController {
   }> {
     let userProfile: UserProfile, user: Users, accessToken: string
 
-    if (credentials.phone !== currentUserProfile[ securityId ]) {
-      console.log('This token in not yours !')
-      throw new HttpErrors.Unauthorized('This token in not yours !')
-    }
-
     const foundVerification = await this.verifyRepo.findOne({
       where: {
         and: [
@@ -199,6 +195,11 @@ export class UsersController {
         ],
       },
     })
+
+    if (credentials.phone !== foundVerification?.phone) {
+      console.log('This token in not yours !')
+      throw new HttpErrors.Unauthorized('This token in not yours !')
+    }
 
     try {
       validatePhoneNumber(credentials.phone)
