@@ -12,7 +12,7 @@ export class Credentials extends Model {
     type: 'string',
     required: true,
   } )
-  password: string
+  code: string
 
   constructor ( data?: Partial<Credentials> ) {
     super( data )
