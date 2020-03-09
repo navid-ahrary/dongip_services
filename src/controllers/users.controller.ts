@@ -122,8 +122,9 @@ export class UsersController {
     }
 
     const createdVerify = await this.verifyRepo.createHumanKind({
-      password: await this.passwordHasher.hashPassword(randomStr + randomCode),
       phone: body.phone,
+      password: await this.passwordHasher.hashPassword(randomStr + randomCode),
+      registered: status,
       regToken: body.regToken,
       agent: userAgent,
       issuedAt: new Date()
@@ -168,7 +169,6 @@ export class UsersController {
   })
   @authenticate('jwt.verify')
   async login (
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody(CredentialsRequestBody) credentials: Credentials,
   ): Promise<{
     _key: string;
@@ -194,7 +194,7 @@ export class UsersController {
       //ensure the user exists and the password is correct
       user = await this.userService.verifyCredentials(credentials);
 
-      await this.usersRepository.updateById(user._key, {
+      this.usersRepository.updateById(user._key, {
         userAgent: verify.agent,
         registerationToken: verify.regToken,
       });
@@ -229,8 +229,6 @@ export class UsersController {
   })
   @authenticate('jwt.verify')
   async signup (
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.header.string('Authorization') token: string,
     @requestBody(UserSignupRequestBody) newUser: Users,
   ): Promise<{
     _key: string;
@@ -238,20 +236,30 @@ export class UsersController {
     accessToken: string;
     refreshToken: string;
   }> {
-    let savedUser: Users, accessToken: string, userProfile: UserProfile;
+    let savedUser: Users,
+      verify: Verify,
+      accessToken: string,
+      userProfile: UserProfile,
+      credentials = Object.assign(
+        new Credentials,
+        {
+          phone: newUser.phone,
+          password: newUser.password
+        }
+      );
 
     try {
-      if (newUser.phone !== currentUserProfile[securityId]) {
-        console.log('This token in not yours !');
-        throw new HttpErrors.Unauthorized('This token in not yours !');
-      }
+      validatePhoneNumber(credentials.phone);
+    } catch (_err) {
+      console.log(_err);
+      throw new HttpErrors.UnprocessableEntity(_err.message);
+    }
 
-      // ensure a valid phone and password value
-      validatePhoneNumber(newUser.phone);
-
+    verify = await this.verifySerivce.verifyCredentials(credentials);
+    try {
       newUser['registeredAt'] = new Date();
-      newUser['registerationToken'] = currentUserProfile.regToken;
-      newUser['userAgent'] = currentUserProfile.agent;
+      newUser['registerationToken'] = verify.regToken;
+      newUser['userAgent'] = verify.agent;
       delete newUser['password'];
 
       // Create a new user
