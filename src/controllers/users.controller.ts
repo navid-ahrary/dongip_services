@@ -102,8 +102,8 @@ export class UsersController {
     let status = false,
       user: Users | null,
       verifyCode = Math.random()
-        .toFixed(5)
-        .slice(5),
+        .toFixed(7)
+        .slice(3),
       randomStr = this.generateRandomString(3),
       payload,
       verifyToken: string,
