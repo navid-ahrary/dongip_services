@@ -121,44 +121,49 @@ export class UsersController {
       status = true;
     }
 
-    const createdVerify = await this.verifyRepo.createHumanKind({
+
+    await this.verifyRepo.createHumanKind({
       phone: body.phone,
       password: await this.passwordHasher.hashPassword(randomStr + randomCode),
       registered: status,
       registerationToken: body.registerationToken,
       agent: userAgent,
       issuedAt: new Date()
-    });
-
-    userProfile = {
-      [securityId]: createdVerify._key,
-      type: 'verify'
-    };
-    // Generate verify token based on user profile
-    verifyToken = await this.jwtService.generateToken(userProfile);
+    })
+      .then(async _res => {
+        userProfile = {
+          [securityId]: _res._key,
+          type: 'verify'
+        };
+        // Generate verify token based on user profile
+        verifyToken = await this.jwtService.generateToken(userProfile);
+        try {
+          // send verify token and prefix by notification
+          payload = {
+            data: {
+              verifyToken: verifyToken,
+              prefix: randomStr
+            },
+          };
+          this.firebaseService.sendToDeviceMessage(body.registerationToken, payload);
+        } catch (_err) {
+          console.log(_err);
+          throw new HttpErrors.UnprocessableEntity(_err.message);
+        }
+      })
+      .catch(_err => {
+        console.log(_err);
+        throw new HttpErrors.Conflict(_err.message);
+      });
 
     // send verify code with sms
     this.smsService.sendSms('dongip', randomCode, body.phone);
-
-    try {
-      // send verify token and prefix by notification
-      payload = {
-        data: {
-          verifyToken: verifyToken,
-          prefix: randomStr
-        },
-      };
-      this.firebaseService.sendToDeviceMessage(body.registerationToken, payload);
-    } catch (_err) {
-      console.log(_err);
-      throw new HttpErrors.UnprocessableEntity(_err.message);
-    }
 
     return {
       ...user!,
       status: status,
       prefix: randomStr,
-      verifyToken: verifyToken,
+      verifyToken: verifyToken!,
       code: randomCode,
     };
   }
