@@ -21,7 +21,7 @@ export const UserLoginResponse = {
   },
 };
 
-export const verifyNumberRequestBody = {
+export const VerifyPhoneRequestBody = {
   description: 'Verify phone number',
   required: true,
   content: {
@@ -34,7 +34,7 @@ export const verifyNumberRequestBody = {
   }
 };
 
-export const UserVerifyResponse = {
+export const VerifyPhoneResponse = {
   '200': {
     description:
       'Checking this phone number has been registered and sending verify sms',

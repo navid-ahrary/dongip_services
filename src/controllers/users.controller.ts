@@ -20,11 +20,11 @@ import {
 import {
   CredentialsRequestBody,
   UserLoginResponse,
-  UserVerifyResponse,
+  VerifyPhoneResponse,
   UserSignupRequestBody,
   UserPatchRequestBody,
   UserSignupResponse,
-  verifyNumberRequestBody,
+  VerifyPhoneRequestBody,
 } from './specs/user-controller.specs';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {Users, Credentials, Blacklist, Verify} from '../models';
@@ -79,11 +79,11 @@ export class UsersController {
   }
 
   @post('/apis/users/verify', {
-    responses: UserVerifyResponse,
+    responses: VerifyPhoneResponse,
   })
   @authenticate.skip()
   async verify (
-    @requestBody(verifyNumberRequestBody) body: Verify,
+    @requestBody(VerifyPhoneRequestBody) body: Verify,
     @param.header.string('User-Agent') userAgent?: string,
   ): Promise<{
     status: boolean;
@@ -120,7 +120,6 @@ export class UsersController {
     if (user) {
       status = true;
     }
-
 
     await this.verifyRepo.createHumanKind({
       phone: body.phone,
