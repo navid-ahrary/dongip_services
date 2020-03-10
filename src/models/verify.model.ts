@@ -32,7 +32,7 @@ export class Verify extends Entity {
     type: 'string',
     required: true,
   })
-  regToken: string;
+  registerationToken: string;
 
   @property({
     type: 'string',

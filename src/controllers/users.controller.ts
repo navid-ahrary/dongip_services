@@ -125,7 +125,7 @@ export class UsersController {
       phone: body.phone,
       password: await this.passwordHasher.hashPassword(randomStr + randomCode),
       registered: status,
-      regToken: body.regToken,
+      registerationToken: body.registerationToken,
       agent: userAgent,
       issuedAt: new Date()
     });
@@ -148,7 +148,7 @@ export class UsersController {
           prefix: randomStr
         },
       };
-      this.firebaseService.sendToDeviceMessage(body.regToken, payload);
+      this.firebaseService.sendToDeviceMessage(body.registerationToken, payload);
     } catch (_err) {
       console.log(_err);
       throw new HttpErrors.UnprocessableEntity(_err.message);
@@ -196,7 +196,7 @@ export class UsersController {
 
       this.usersRepository.updateById(user._key, {
         userAgent: verify.agent,
-        registerationToken: verify.regToken,
+        registerationToken: verify.registerationToken,
       });
     } catch (_err) {
       console.log(_err);
@@ -258,7 +258,7 @@ export class UsersController {
     verify = await this.verifySerivce.verifyCredentials(credentials);
     try {
       newUser['registeredAt'] = new Date();
-      newUser['registerationToken'] = verify.regToken;
+      newUser['registerationToken'] = verify.registerationToken;
       newUser['userAgent'] = verify.agent;
       delete newUser['password'];
 
