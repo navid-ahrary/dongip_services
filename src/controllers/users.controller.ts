@@ -78,7 +78,7 @@ export class UsersController {
     }
   }
 
-  @post('/apis/users/verify', {
+  @post('/api/users/verify', {
     responses: VerifyPhoneResponse,
   })
   @authenticate.skip()
@@ -167,7 +167,7 @@ export class UsersController {
     };
   }
 
-  @post('/apis/users/login', {
+  @post('/api/users/login', {
     security: OPERATION_SECURITY_SPEC,
     responses: UserLoginResponse,
   })
@@ -227,7 +227,7 @@ export class UsersController {
     };
   }
 
-  @post('/apis/users/signup', {
+  @post('/api/users/signup', {
     security: OPERATION_SECURITY_SPEC,
     responses: UserSignupResponse,
   })
@@ -300,7 +300,7 @@ export class UsersController {
     }
   }
 
-  @get('/apis/users/{_userKey}/logout', {
+  @get('/api/users/{_userKey}/logout', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -333,7 +333,7 @@ export class UsersController {
       });
   }
 
-  @patch('/apis/users/{_userKey}', {
+  @patch('/api/users/{_userKey}', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -355,7 +355,7 @@ export class UsersController {
     });
   }
 
-  @get('/apis/users/{_userKey}/refresh-token', {
+  @get('/api/users/{_userKey}/refresh-token', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {

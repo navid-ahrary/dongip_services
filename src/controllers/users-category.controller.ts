@@ -1,6 +1,6 @@
 import {
   Count, CountSchema, Filter, repository, Where
-} from '@loopback/repository'
+} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -10,127 +10,127 @@ import {
   post,
   requestBody,
   HttpErrors,
-} from '@loopback/rest'
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security'
-import { authenticate } from '@loopback/authentication'
-import { inject } from '@loopback/core'
+} from '@loopback/rest';
+import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
+import {authenticate} from '@loopback/authentication';
+import {inject} from '@loopback/core';
 
-import { Users, Category } from '../models'
-import { UsersRepository, CategoryRepository } from '../repositories'
-import { OPERATION_SECURITY_SPEC } from '../utils/security-specs'
+import {Users, Category} from '../models';
+import {UsersRepository, CategoryRepository} from '../repositories';
+import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
 export class UsersCategoryController {
   constructor (
-    @repository( UsersRepository )
+    @repository(UsersRepository)
     protected usersRepository: UsersRepository,
-    @repository( CategoryRepository )
+    @repository(CategoryRepository)
     protected categoryRepository: CategoryRepository,
-    @inject( SecurityBindings.USER )
+    @inject(SecurityBindings.USER)
     protected currentUserProfile: UserProfile
-  ) { }
+  ) {}
 
-  private checkUserKey ( key: string ) {
-    if ( key !== this.currentUserProfile[ securityId ] ) {
+  private checkUserKey (key: string) {
+    if (key !== this.currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
         'Token is not matched to this user _key!',
-      )
+      );
     }
   }
 
 
-  @get( '/apis/users/{_userKey}/categories', {
+  @get('/api/users/{_userKey}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: "Array of Category's belonging to Users",
         content: {
           'application/json': {
-            schema: { type: 'array', items: getModelSchemaRef( Category ) },
+            schema: {type: 'array', items: getModelSchemaRef(Category)},
           },
         },
       },
     },
-  } )
-  @authenticate( 'jwt.access' )
+  })
+  @authenticate('jwt.access')
   async find (
-    @param.path.string( '_userKey' ) _userKey: string,
-    @param.query.object( 'filter' ) filter?: Filter<Category>,
+    @param.path.string('_userKey') _userKey: string,
+    @param.query.object('filter') filter?: Filter<Category>,
   ): Promise<Category[]> {
-    this.checkUserKey( _userKey )
-    const userId = 'Users/' + _userKey
-    return this.usersRepository.categories( userId ).find( filter )
+    this.checkUserKey(_userKey);
+    const userId = 'Users/' + _userKey;
+    return this.usersRepository.categories(userId).find(filter);
   }
 
 
-  @post( '/apis/users/{_userKey}/categories', {
+  @post('/api/users/{_userKey}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Users model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef( Category )
+            schema: getModelSchemaRef(Category)
           }
         },
       },
     },
-  } )
-  @authenticate( 'jwt.access' )
+  })
+  @authenticate('jwt.access')
   async create (
-    @param.path.string( '_userKey' ) _userKey: typeof Users.prototype._key,
-    @requestBody( {
+    @param.path.string('_userKey') _userKey: typeof Users.prototype._key,
+    @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef( Category, {
+          schema: getModelSchemaRef(Category, {
             title: 'NewCategoryInUsers',
             exclude: [
               '_key',
               '_id',
               '_rev',
               'categoryBills',
-              'belongsToUserId' ],
-          } ),
+              'belongsToUserId'],
+          }),
         },
       },
-    } )
+    })
     category: Omit<Category, '_key'>,
   ): Promise<Category> {
-    this.checkUserKey( _userKey )
+    this.checkUserKey(_userKey);
 
-    const userId = 'Users/' + _userKey
+    const userId = 'Users/' + _userKey;
     const createdCat = await this.usersRepository
-      .createHumanKindCategory( userId, category )
-      .catch( _err => {
-        console.log( _err )
-        if ( _err.code === 409 ) {
-          const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
+      .createHumanKindCategory(userId, category)
+      .catch(_err => {
+        console.log(_err);
+        if (_err.code === 409) {
+          const index = _err.response.body.errorMessage.indexOf('conflicting');
           throw new HttpErrors.Conflict(
-            _err.response.body.errorMessage.slice( index )
-          )
+            _err.response.body.errorMessage.slice(index)
+          );
         } else {
-          throw new HttpErrors.NotAcceptable( _err )
+          throw new HttpErrors.NotAcceptable(_err);
         }
-      } )
-    return createdCat
+      });
+    return createdCat;
   }
 
 
-  @patch( '/apis/users/{_userKey}/categories', {
+  @patch('/api/users/{_userKey}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Users.Category PATCH success count',
-        content: { 'application/json': { schema: CountSchema } },
+        content: {'application/json': {schema: CountSchema}},
       },
     },
-  } )
-  @authenticate( 'jwt.access' )
+  })
+  @authenticate('jwt.access')
   async patch (
-    @param.path.string( '_userKey' ) _userKey: string,
-    @requestBody( {
+    @param.path.string('_userKey') _userKey: string,
+    @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef( Category, {
+          schema: getModelSchemaRef(Category, {
             partial: true,
             exclude: [
               "_rev",
@@ -138,29 +138,29 @@ export class UsersCategoryController {
               "_key",
               "belongsToUserId",
             ]
-          } ),
+          }),
         },
       },
-    } )
+    })
     category: Partial<Category>,
-    @param.query.object( 'where', getWhereSchemaFor( Category ) )
+    @param.query.object('where', getWhereSchemaFor(Category))
     where?: Where<Category>,
   ): Promise<Count> {
-    this.checkUserKey( _userKey )
+    this.checkUserKey(_userKey);
 
     try {
-      const _userId = 'Users/' + _userKey
-      return await this.usersRepository.categories( _userId )
-        .patch( category, where )
-    } catch ( _err ) {
-      console.log( _err )
-      if ( _err.code === 409 ) {
-        const index = _err.response.body.errorMessage.indexOf( 'conflicting' )
+      const _userId = 'Users/' + _userKey;
+      return await this.usersRepository.categories(_userId)
+        .patch(category, where);
+    } catch (_err) {
+      console.log(_err);
+      if (_err.code === 409) {
+        const index = _err.response.body.errorMessage.indexOf('conflicting');
         throw new HttpErrors.Conflict(
-          _err.response.body.errorMessage.slice( index )
-        )
+          _err.response.body.errorMessage.slice(index)
+        );
       }
-      throw new HttpErrors.NotAcceptable( _err.message )
+      throw new HttpErrors.NotAcceptable(_err.message);
     }
   }
 }
