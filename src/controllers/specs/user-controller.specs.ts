@@ -1,6 +1,6 @@
-import {getModelSchemaRef} from '@loopback/rest'
+import {getModelSchemaRef} from '@loopback/rest';
 
-import {Users, Verify} from '../../models'
+import {Users, Verify} from '../../models';
 
 export const UserLoginResponse = {
   '200': {
@@ -19,7 +19,7 @@ export const UserLoginResponse = {
       },
     },
   },
-}
+};
 
 export const verifyNumberRequestBody = {
   description: 'Verify phone number',
@@ -28,11 +28,11 @@ export const verifyNumberRequestBody = {
     'application/json': {
       schema: getModelSchemaRef(Verify, {
         partial: false,
-        exclude: ["_key", "agent", "password", "issuedAt"],
+        exclude: ["_key", "agent", "password", "issuedAt", "registered"],
       }),
     },
   }
-}
+};
 
 export const UserVerifyResponse = {
   '200': {
@@ -51,7 +51,7 @@ export const UserVerifyResponse = {
       },
     },
   },
-}
+};
 
 export const UserSignupRequestBody = {
   required: true,
@@ -78,7 +78,7 @@ export const UserSignupRequestBody = {
       }),
     },
   },
-}
+};
 
 export const UserSignupResponse = {
   '200': {
@@ -105,7 +105,7 @@ export const UserSignupResponse = {
       },
     },
   },
-}
+};
 
 export const UserPatchRequestBody = {
   content: {
@@ -132,12 +132,8 @@ export const UserPatchRequestBody = {
       }),
     },
   },
-}
+};
 
-// TODO(jannyHou): This is a workaround to manually
-// describe the request body of 'Users/login'.
-// We should either create a Credential model, or
-// infer the spec from User model
 export const CredentialsRequestBody = {
   description: 'The input of login function',
   required: true,
@@ -145,7 +141,7 @@ export const CredentialsRequestBody = {
     'application/json': {
       schema: {
         type: 'object',
-        required: ['code', 'phone'],
+        required: ['password', 'phone'],
         properties: {
           password: {
             type: 'string',
@@ -158,7 +154,7 @@ export const CredentialsRequestBody = {
       },
     },
   },
-}
+};
 
 export const SetFriend = {
   '200': {
@@ -194,4 +190,4 @@ export const SetFriend = {
       },
     },
   },
-}
+};
