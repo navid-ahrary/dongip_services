@@ -100,7 +100,7 @@ export class UsersController {
         .slice(3),
       randomStr = this.generateRandomString(3),
       payload,
-      verifyToken: string,
+      token: string,
       userProfile: UserProfile;
 
     try {
@@ -136,12 +136,12 @@ export class UsersController {
           type: 'verify'
         };
         // Generate verify token based on user profile
-        verifyToken = await this.jwtService.generateToken(userProfile);
+        token = await this.jwtService.generateToken(userProfile);
         try {
           // send verify token and prefix by notification
           payload = {
             data: {
-              verifyToken: verifyToken,
+              verifyToken: token,
               prefix: randomStr
             },
           };
@@ -163,8 +163,8 @@ export class UsersController {
       ...user!,
       status: status,
       prefix: randomStr,
-      verifyToken: verifyToken!,
       code: randomCode,
+      verifyToken: token!,
     };
   }
 
