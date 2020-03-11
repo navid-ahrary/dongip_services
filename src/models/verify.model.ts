@@ -41,7 +41,7 @@ export class Verify extends Entity {
   agent: string;
 
   @property({
-    type: 'object',
+    type: 'date',
     required: true,
   })
   issuedAt: object;

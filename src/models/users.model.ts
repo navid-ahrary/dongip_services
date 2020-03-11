@@ -63,13 +63,13 @@ export class Users extends Entity {
   refreshToken: string;
 
   @property({
-    type: 'string',
+    type: 'object',
     required: false,
   })
-  geolocation: string;
+  geolocation: object;
 
   @property({
-    type: 'object',
+    type: 'date',
     required: false,
   })
   registeredAt: object;
