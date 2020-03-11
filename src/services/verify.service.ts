@@ -27,7 +27,7 @@ export class VerifyService {
     }
 
     const isMatched = await this.passwordHasher.comparePassword(
-      credentials.password, foundVerify?.password
+      credentials.password, foundVerify.password
     );
 
     if (!isMatched) {
