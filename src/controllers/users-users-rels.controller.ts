@@ -124,14 +124,14 @@ export class UsersUsersRelsController {
     });
 
     if (recipientUser) {
-      if (_userKey === recipientUser?._key) {
+      if (_userKey === recipientUser._key) {
         throw new HttpErrors.NotAcceptable(
           'You are the best friend of yourself! :)');
       }
 
       const isRealFriend = await this.usersRepository
-        .usersRels(requesterUser?._id).find(
-          {where: {_to: recipientUser?._id}});
+        .usersRels(requesterUser._id).find(
+          {where: {_to: recipientUser._id}});
       if (isRealFriend.length !== 0) {
         throw new HttpErrors.NotAcceptable('You are real friends already!');
       }
