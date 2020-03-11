@@ -127,7 +127,7 @@ export class UsersController {
       registered: status,
       registerationToken: body.registerationToken,
       agent: userAgent,
-      issuedAt: this.timeService.now()
+      issuedAt: new Date()
     })
       .then(async _res => {
         userProfile = {
@@ -261,7 +261,7 @@ export class UsersController {
 
     verify = await this.verifySerivce.verifyCredentials(credentials);
     try {
-      newUser['registeredAt'] = this.timeService.now();
+      newUser['registeredAt'] = new Date();
       newUser['registerationToken'] = verify.registerationToken;
       newUser['userAgent'] = verify.agent;
       delete newUser['password'];
@@ -319,7 +319,7 @@ export class UsersController {
     return this.blacklistRepository
       .createHumanKind({
         token: authorizationHeader.split(' ')[1],
-        createdAt: this.timeService.now(),
+        createdAt: new Date(),
       })
       .catch(_err => {
         console.log(_err);
