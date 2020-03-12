@@ -163,7 +163,7 @@ export class UsersController {
       status: status,
       avatar: avatar,
       name: name,
-      ...user!,
+      ...user,
       prefix: randomStr,
       code: randomCode,
       verifyToken: token!,
