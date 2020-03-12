@@ -46,6 +46,7 @@ export const VerifyPhoneResponse = {
             status: {type: 'boolean'},
             name: {type: 'string'},
             avatar: {type: 'string'},
+            prefix: {type: 'string'}
           },
         },
       },

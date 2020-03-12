@@ -87,13 +87,15 @@ export class UsersController {
     @param.header.string('User-Agent') userAgent?: string,
   ): Promise<{
     status: boolean;
-    name: string | undefined;
-    avatar: string | undefined;
+    name: string;
+    avatar: string;
     prefix: string;
     verifyToken: string;
     code: string;
   }> {
     let status = false,
+      avatar = 'dongip',
+      name = 'noob',
       user: Users | null,
       randomCode = Math.random()
         .toFixed(7)
@@ -140,8 +142,7 @@ export class UsersController {
           // send verify token and prefix by notification
           payload = {
             data: {
-              verifyToken: token,
-              prefix: randomStr
+              verifyToken: token
             },
           };
           this.firebaseService.sendToDeviceMessage(body.registerationToken, payload);
@@ -159,8 +160,10 @@ export class UsersController {
     this.smsService.sendSms('dongip', randomCode, body.phone);
 
     return {
-      ...user!,
       status: status,
+      avatar: avatar,
+      name: name,
+      ...user!,
       prefix: randomStr,
       code: randomCode,
       verifyToken: token!,
