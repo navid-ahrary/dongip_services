@@ -21,7 +21,7 @@ export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
     const token: string = this.extractCredentials(request);
     const userProfile: UserProfile = await this.tokenService.verifyToken(token);
 
-    if (userProfile['type'] !== 'access') {
+    if (userProfile.aud !== 'access') {
       throw new HttpErrors.Unauthorized('Access token is not provided!');
     }
     return userProfile;
@@ -69,7 +69,7 @@ export class JWTRefreshAutehticationStrategy implements AuthenticationStrategy {
     const token: string = this.extractCredentials(request);
     const userProfile: UserProfile = await this.tokenService.verifyToken(token);
 
-    if (userProfile['type'] !== 'refresh') {
+    if (userProfile.aud !== 'refresh') {
       throw new HttpErrors.Unauthorized('Refresh token is not provided!');
     }
     return userProfile;
@@ -119,7 +119,7 @@ export class JWTVerifyAutehticationStrategy implements AuthenticationStrategy {
 
     const userProfile: UserProfile = await this.tokenService.verifyToken(token);
 
-    if (userProfile['type'] !== 'verify') {
+    if (userProfile.aud !== 'verify') {
       throw new HttpErrors.Unauthorized('Verify token is not provided!');
     }
 
