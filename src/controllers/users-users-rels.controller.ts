@@ -163,7 +163,7 @@ export class UsersUsersRelsController {
           _to: createdVirtualUser._id,
           alias: reqBody.alias,
           avatar: reqBody.avatar,
-          targetUsersId: recipientUser?._id,
+          targetUsersId: recipientUser!._id,
           type: 'virtual',
         }).catch(_err => {
           console.log(_err);
@@ -261,7 +261,7 @@ export class UsersUsersRelsController {
           and: [
             {_key: bodyReq.relationId.split('/')[1]},
             {_to: bodyReq.virtualUserId},
-            {targetUsersId: recipientUser?._id}
+            {targetUsersId: recipientUser._id}
           ]
         }
       });
