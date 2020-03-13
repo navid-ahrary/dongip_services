@@ -1,99 +1,96 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prefer-const */
-import { TokenService } from '@loopback/authentication'
-import { promisify } from 'util'
-import { inject } from '@loopback/core'
-import { UserProfile, securityId } from '@loopback/security'
-import { HttpErrors } from '@loopback/rest'
-import { repository } from '@loopback/repository'
-const jwt = require( 'jsonwebtoken' )
-const signAsync = promisify( jwt.sign )
-const verifyAsync = promisify( jwt.verify )
-
-import { UsersRepository, BlacklistRepository } from '../repositories'
-import { TokenServiceBindings } from '../keys'
+import {TokenService} from '@loopback/authentication';
+import {inject} from '@loopback/core';
+import {UserProfile, securityId} from '@loopback/security';
+import {HttpErrors} from '@loopback/rest';
+import {repository} from '@loopback/repository';
+import {sign, verify} from 'jsonwebtoken';
+import {UsersRepository, BlacklistRepository} from '../repositories';
+import {TokenServiceBindings} from '../keys';
 
 export class JWTService implements TokenService {
   constructor (
-    @repository( UsersRepository ) public usersRepository: UsersRepository,
-    @repository( BlacklistRepository )
+    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(BlacklistRepository)
     public blacklistRepository: BlacklistRepository,
-    @inject( TokenServiceBindings.TOKEN_SECRET ) private jwtSecret: string,
-    @inject( TokenServiceBindings.VERIFY_TOKEN_EXPIRES_IN )
+    @inject(TokenServiceBindings.TOKEN_SECRET) private jwtSecret: string,
+    @inject(TokenServiceBindings.VERIFY_TOKEN_EXPIRES_IN)
     private jwtVerifyExpiresIn: string,
-    @inject( TokenServiceBindings.ACCESS_TOKEN_EXPIRES_IN )
+    @inject(TokenServiceBindings.ACCESS_TOKEN_EXPIRES_IN)
     private jwtAccessExpiresIn: string,
-    @inject( TokenServiceBindings.REFRESH_TOKEN_EXPIRES_IN )
+    @inject(TokenServiceBindings.REFRESH_TOKEN_EXPIRES_IN)
     private jwtRefreshExpiresIn: string,
-  ) { }
+  ) {}
 
-  public async verifyToken ( accessToken: string ): Promise<UserProfile> {
-    if ( !accessToken ) {
+  public async verifyToken (accessToken: string): Promise<UserProfile> {
+    if (!accessToken) {
       throw new HttpErrors.Unauthorized(
         'Error verifying access token: token is null'
-      )
+      );
     }
 
-    let userProfile: UserProfile
+    let userProfile: UserProfile,
+      decryptedToken: any;
 
     try {
-      //decode user profile from token
-      const decryptedToken = await verifyAsync( accessToken, this.jwtSecret )
-      // don't copy over token field 'iat' and 'exp', nor 'email'
-      delete decryptedToken.email
-      delete decryptedToken.iat
-      delete decryptedToken.exp
-
       // check token is not in blacklist
       await this.blacklistRepository.checkTokenNotBlacklisted(
         {
-          where: { token: accessToken }
+          where: {token: accessToken}
         }
-      )
+      );
 
+      //decode user profile from token
+      decryptedToken = verify(accessToken, this.jwtSecret);
       userProfile = Object.assign(
-        {},
-        {
-          [ securityId ]: decryptedToken.sub, ...decryptedToken
-        } )
-      delete userProfile.sub
-    } catch ( error ) {
+        {[securityId]: '', aud: ''},
+        {[securityId]: decryptedToken.sub, aud: decryptedToken.aud}
+      );
+    } catch (error) {
       throw new HttpErrors.Unauthorized(
-        `Error verifying token: ${ error.message }` )
+        `Error verifying token: ${error.message}`);
     }
-    return userProfile
+
+    return userProfile;
   }
 
-  public async generateToken ( userProfile: UserProfile ): Promise<string> {
-    if ( !userProfile ) {
+  public async generateToken (userProfile: UserProfile): Promise<string> {
+    if (!userProfile) {
       throw new HttpErrors.Unauthorized(
-        'Error generating token, userPofile is null.' )
+        'Error generating token, userPofile is null.');
     }
-    let expiresIn
+    let expiresIn;
 
-    switch ( userProfile.type ) {
+    switch (userProfile.aud) {
       case 'verify':
-        expiresIn = +this.jwtVerifyExpiresIn
-        break
+        expiresIn = +this.jwtVerifyExpiresIn;
+        break;
       case 'access':
-        expiresIn = +this.jwtAccessExpiresIn
-        break
+        expiresIn = +this.jwtAccessExpiresIn;
+        break;
       case 'refresh':
-        expiresIn = +this.jwtRefreshExpiresIn
-        break
+        expiresIn = +this.jwtRefreshExpiresIn;
+        break;
+      default:
+        throw new HttpErrors.Unauthorized(
+          'Error generating token, supported audience is not provided'
+        );
     }
 
     //generate a JWT token
-    let accessToken: string
+    let accessToken: string;
     try {
-      accessToken = signAsync( userProfile, this.jwtSecret, {
+      accessToken = sign(userProfile, this.jwtSecret, {
         algorithm: 'HS512',
         expiresIn: expiresIn,
-        subject: userProfile[ securityId ]
-      } )
-    } catch ( error ) {
+        subject: userProfile[securityId]
+      });
+    } catch (error) {
       throw new HttpErrors.Unauthorized(
-        `Error generating token: ${ error.message }` )
+        `Error generating token: ${error.message}`);
     }
-    return accessToken
+    await this.verifyToken(accessToken);
+    return accessToken;
   }
 }

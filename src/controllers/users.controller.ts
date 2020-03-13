@@ -134,7 +134,7 @@ export class UsersController {
       .then(async _res => {
         userProfile = {
           [securityId]: _res._key,
-          type: 'verify'
+          aud: 'verify'
         };
         // Generate verify token based on user profile
         token = await this.jwtService.generateToken(userProfile);
@@ -212,7 +212,7 @@ export class UsersController {
 
     //convert a User object to a UserProfile object (reduced set of properties)
     userProfile = this.userService.convertToUserProfile(user);
-    userProfile['type'] = 'access';
+    userProfile['aud'] = 'access';
 
     try {
       //create a JWT token based on the Userprofile
@@ -274,7 +274,7 @@ export class UsersController {
 
       //convert user object to a UserProfile object (reduced set of properties)
       userProfile = this.userService.convertToUserProfile(savedUser);
-      userProfile['type'] = 'access';
+      userProfile['aud'] = 'access';
 
       //create a JWT token based on the Userprofile
       accessToken = await this.jwtService.generateToken(userProfile);
