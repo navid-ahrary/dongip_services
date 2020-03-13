@@ -387,7 +387,7 @@ export class UsersController {
     }
 
     userProfile = this.userService.convertToUserProfile(user);
-    userProfile['type'] = 'access';
+    userProfile.aud = 'access';
 
     accessToken = await this.jwtService.generateToken(userProfile);
 
