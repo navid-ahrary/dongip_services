@@ -15,11 +15,11 @@ export class VerifyService {
     @repository(VerifyRepository) public verifyRepo: VerifyRepository
   ) {}
 
-  public async verifyCredentials (credentials: Credentials): Promise<Verify> {
-    const invalidCredentialsError = 'Invalid phone/password !';
+  public async verifyCredentials (credentials: Credentials, ip: string): Promise<Verify> {
+    const invalidCredentialsError = 'Invalid credentials! ';
 
     const foundVerify = await this.verifyRepo.findOne({
-      where: {phone: credentials.phone},
+      where: {phone: credentials.phone, ip: ip},
     });
 
     if (!foundVerify) {

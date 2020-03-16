@@ -41,6 +41,12 @@ export class Verify extends Entity {
   agent: string;
 
   @property({
+    type: 'string',
+    required: false
+  })
+  ip: string;
+
+  @property({
     type: 'date',
     required: true,
   })

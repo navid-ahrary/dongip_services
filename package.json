@@ -60,6 +60,7 @@
     "@loopback/rest-explorer": "^2.0.0",
     "@loopback/service-proxy": "^2.0.0",
     "awesome-phonenumber": "^2.27.0",
+    "axios": "^0.19.2",
     "bcryptjs": "^2.4.3",
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",

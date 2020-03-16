@@ -4,7 +4,7 @@
 /* eslint-disable require-atomic-updates */
 import {inject, service} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {post, requestBody, HttpErrors, get, param, patch} from '@loopback/rest';
+import {post, requestBody, HttpErrors, get, param, patch, RequestContext} from '@loopback/rest';
 import {
   authenticate,
   UserService,
@@ -39,11 +39,13 @@ import {
   validatePhoneNumber,
   PasswordHasher,
   TimeService,
-  VerifyService
+  VerifyService,
+  IpInfoService,
 } from '../services';
 
 export class UsersController {
   constructor (
+    @inject.context() public ctx: RequestContext,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(BlacklistRepository)
     public blacklistRepository: BlacklistRepository,
@@ -58,6 +60,7 @@ export class UsersController {
     @service(VerifyService) public verifySerivce: VerifyService,
     @service(SmsService) public smsService: SmsService,
     @service(TimeService) public timeService: TimeService,
+    @service(IpInfoService) public ipInfoService: IpInfoService,
   ) {}
 
   private generateRandomString (length: number) {
@@ -96,13 +99,12 @@ export class UsersController {
     let status = false,
       avatar = 'dongip',
       name = 'noob',
-      user: Users | null,
-      randomCode = Math.random()
-        .toFixed(7)
-        .slice(3),
+      randomCode = Math.random().toFixed(7).slice(3),
       randomStr = this.generateRandomString(3),
       payload,
       token: string,
+      userIp = this.ctx.request.connection.remoteAddress,
+      user: Users | null,
       userProfile: UserProfile;
 
     try {
@@ -129,6 +131,7 @@ export class UsersController {
       registered: status,
       registerationToken: body.registerationToken,
       agent: userAgent,
+      ip: userIp,
       issuedAt: new Date()
     })
       .then(async _res => {
@@ -186,6 +189,8 @@ export class UsersController {
     let userProfile: UserProfile,
       user: Users,
       verify: Verify,
+      userIp = this.ctx.request.connection.remoteAddress,
+      userIpInfo: any,
       accessToken: string;
 
     try {
@@ -196,14 +201,22 @@ export class UsersController {
     }
 
     try {
-      verify = await this.verifySerivce.verifyCredentials(credentials);
+      verify = await this.verifySerivce.verifyCredentials(credentials, userIp!);
 
       //ensure the user exists and the password is correct
       user = await this.userService.verifyCredentials(credentials);
 
+      userIpInfo = await this.ipInfoService.getIpData(userIp!);
+
       this.usersRepository.updateById(user._key, {
         userAgent: verify.agent,
         registerationToken: verify.registerationToken,
+        timezone: userIpInfo.timezone,
+        location: userIpInfo.loc.split(','),
+        country: userIpInfo.country,
+        city: userIpInfo.city,
+        region: userIpInfo.region,
+        organization: userIpInfo.org
       });
     } catch (_err) {
       console.log(_err);
@@ -247,6 +260,8 @@ export class UsersController {
       verify: Verify,
       accessToken: string,
       userProfile: UserProfile,
+      userIp = this.ctx.request.connection.remoteAddress,
+      userIpInfo: any,
       credentials = Object.assign(
         new Credentials,
         {
@@ -262,12 +277,26 @@ export class UsersController {
       throw new HttpErrors.UnprocessableEntity(_err.message);
     }
 
-    verify = await this.verifySerivce.verifyCredentials(credentials);
+    verify = await this.verifySerivce.verifyCredentials(credentials, userIp!);
+
+    if (userIp === '127.0.0.1') userIp = '5.115.188.251';
+    userIpInfo = await this.ipInfoService.getIpData(userIp!);
+
     try {
-      newUser['registeredAt'] = new Date();
-      newUser['registerationToken'] = verify.registerationToken;
-      newUser['userAgent'] = verify.agent;
-      delete newUser['password'];
+      Object.assign(newUser, {
+        registeredAt: new Date(),
+        registerationToken: verify.registerationToken,
+        userAgent: verify.agent,
+        timezone: userIpInfo.timezone,
+        location: userIpInfo.loc.split(','),
+        country: userIpInfo.country,
+        city: userIpInfo.city,
+        region: userIpInfo.region,
+        organization: userIpInfo.org
+      });
+      delete newUser.password;
+
+      console.log(newUser);
 
       // Create a new user
       savedUser = await this.usersRepository.createHumanKind(newUser);

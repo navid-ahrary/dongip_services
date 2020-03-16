@@ -54,25 +54,50 @@ export class Users extends Entity {
     type: 'string',
     required: false,
   })
-  locale: string;
+  timezone: string;
+
+  @property({
+    type: 'array',
+    itemType: 'string',
+    required: false,
+  })
+  location: string[];
 
   @property({
     type: 'string',
     required: false,
   })
-  refreshToken: string;
+  region: string;
 
   @property({
-    type: 'object',
+    type: 'string',
     required: false,
   })
-  geolocation: object;
+  country: string;
+
+  @property({
+    type: 'string',
+    required: false,
+  })
+  city: string;
+
+  @property({
+    type: 'string',
+    required: false,
+  })
+  organization: string;
 
   @property({
     type: 'date',
     required: false,
   })
   registeredAt: object;
+
+  @property({
+    type: 'string',
+    required: false,
+  })
+  refreshToken: string;
 
   @property({
     type: 'string',
