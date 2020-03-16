@@ -6,6 +6,10 @@ import {UserProfile, securityId} from '@loopback/security';
 import {HttpErrors} from '@loopback/rest';
 import {repository} from '@loopback/repository';
 import {sign, verify} from 'jsonwebtoken';
+
+import Debug from 'debug';
+const debug = Debug('dongip');
+
 import {UsersRepository, BlacklistRepository} from '../repositories';
 import {TokenServiceBindings} from '../keys';
 
@@ -24,10 +28,11 @@ export class JWTService implements TokenService {
   ) {}
 
   public async verifyToken (accessToken: string): Promise<UserProfile> {
+    const nullToken = 'Error verifying access token: token is null';
+
     if (!accessToken) {
-      throw new HttpErrors.Unauthorized(
-        'Error verifying access token: token is null'
-      );
+      debug(nullToken);
+      throw new HttpErrors.Unauthorized(nullToken);
     }
 
     let userProfile: UserProfile,
@@ -47,18 +52,22 @@ export class JWTService implements TokenService {
         {[securityId]: '', aud: ''},
         {[securityId]: decryptedToken.sub, aud: decryptedToken.aud}
       );
-    } catch (error) {
+    } catch (_err) {
+      debug(_err);
       throw new HttpErrors.Unauthorized(
-        `Error verifying token: ${error.message}`);
+        `Error verifying token: ${_err.message}`);
     }
 
     return userProfile;
   }
 
   public async generateToken (userProfile: UserProfile): Promise<string> {
+    const nullUserProfle = 'Error generating token, userPofile is null.',
+      nullAudience = 'Error generating token, supported audience is not provided';
+
     if (!userProfile) {
-      throw new HttpErrors.Unauthorized(
-        'Error generating token, userPofile is null.');
+      debug(nullUserProfle);
+      throw new HttpErrors.Unauthorized(nullUserProfle);
     }
     let expiresIn;
 
@@ -73,9 +82,8 @@ export class JWTService implements TokenService {
         expiresIn = +this.jwtRefreshExpiresIn;
         break;
       default:
-        throw new HttpErrors.Unauthorized(
-          'Error generating token, supported audience is not provided'
-        );
+        debug(nullAudience);
+        throw new HttpErrors.Unauthorized(nullAudience);
     }
 
     //generate a JWT token
@@ -86,9 +94,10 @@ export class JWTService implements TokenService {
         expiresIn: expiresIn,
         subject: userProfile[securityId]
       });
-    } catch (error) {
+    } catch (_err) {
+      debug(_err);
       throw new HttpErrors.Unauthorized(
-        `Error generating token: ${error.message}`);
+        `Error generating token: ${_err.message}`);
     }
     await this.verifyToken(accessToken);
     return accessToken;

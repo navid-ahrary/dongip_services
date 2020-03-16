@@ -1,27 +1,31 @@
-import { bind, BindingScope } from '@loopback/core'
-import { config } from 'dotenv'
-const Kavenegar = require( 'kavenegar' )
+import {bind, BindingScope} from '@loopback/core';
+const Kavenegar = require('kavenegar');
 
-@bind( { scope: BindingScope.SINGLETON } )
+import Debug from 'debug';
+const debug = Debug('dongip-sms');
+
+import {config} from 'dotenv';
+config();
+
+@bind({scope: BindingScope.TRANSIENT})
 export class SmsService {
   constructor (
   ) {
-    config()
   }
 
   smsApi = Kavenegar.KavenegarApi(
-    { apikey: process.env.KAVENEGAR_API } )
+    {apikey: process.env.KAVENEGAR_API});
 
 
-  public sendSms ( template: string, token: string, receptor: string ) {
-    this.smsApi.VerifyLookup( {
+  public sendSms (template: string, token: string, receptor: string) {
+    this.smsApi.VerifyLookup({
       token: token,
       template: template,
       type: 'sms',
-      receptor: receptor.replace( '+98', '0' )
+      receptor: receptor.replace('+98', '0')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }, function ( _response: any, _status: any ) {
-      console.log( _response, _status )
-    } )
+    }, function (_response: any, _status: any) {
+      debug(_response, _status);
+    });
   }
 }

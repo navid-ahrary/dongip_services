@@ -2,12 +2,15 @@ import {bind, BindingScope, inject} from '@loopback/core';
 import {HttpErrors} from '@loopback/rest';
 import {repository} from '@loopback/repository';
 
+import Debug from 'debug';
+const debug = Debug('dongip');
+
 import {VerifyRepository} from '../repositories';
 import {Credentials, Verify} from '../models';
 import {PasswordHasher} from '../services';
 import {PasswordHasherBindings} from '../keys';
 
-@bind({scope: BindingScope.SINGLETON})
+@bind({scope: BindingScope.TRANSIENT})
 export class VerifyService {
   constructor (
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
@@ -23,6 +26,7 @@ export class VerifyService {
     });
 
     if (!foundVerify) {
+      debug(invalidCredentialsError);
       throw new HttpErrors.Unauthorized(invalidCredentialsError);
     }
 
@@ -31,6 +35,7 @@ export class VerifyService {
     );
 
     if (!isMatched) {
+      debug(invalidCredentialsError);
       throw new HttpErrors.Unauthorized(invalidCredentialsError);
     }
 
