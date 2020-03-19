@@ -4,7 +4,15 @@
 /* eslint-disable require-atomic-updates */
 import {inject, service} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {post, requestBody, HttpErrors, get, param, patch, RequestContext} from '@loopback/rest';
+import {
+  post,
+  requestBody,
+  HttpErrors,
+  get,
+  param,
+  patch,
+  RequestContext,
+} from '@loopback/rest';
 import {
   authenticate,
   UserService,
@@ -44,7 +52,7 @@ import {
 } from '../services';
 
 export class UsersController {
-  constructor (
+  constructor(
     @inject.context() public ctx: RequestContext,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(BlacklistRepository)
@@ -63,7 +71,7 @@ export class UsersController {
     @service(IpInfoService) public ipInfoService: IpInfoService,
   ) {}
 
-  private generateRandomString (length: number) {
+  private generateRandomString(length: number) {
     let result = '',
       characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
       charactersLength = characters.length;
@@ -73,7 +81,7 @@ export class UsersController {
     return result;
   }
 
-  private checkUserKey (userKey: string, currentUserProfile: UserProfile) {
+  private checkUserKey(userKey: string, currentUserProfile: UserProfile) {
     if (userKey !== currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
         'Token is not matched to this user _key!',
@@ -85,7 +93,7 @@ export class UsersController {
     responses: VerifyPhoneResponse,
   })
   @authenticate.skip()
-  async verify (
+  async verify(
     @requestBody(VerifyPhoneRequestBody) body: Verify,
     @param.header.string('User-Agent') userAgent?: string,
   ): Promise<{
@@ -99,13 +107,16 @@ export class UsersController {
     let status = false,
       avatar = 'dongip',
       name = 'noob',
-      randomCode = Math.random().toFixed(7).slice(3),
+      randomCode = Math.random()
+        .toFixed(7)
+        .slice(3),
       randomStr = this.generateRandomString(3),
       payload,
       token: string,
       userIp = this.ctx.request.connection.remoteAddress,
       user: Users | null,
       userProfile: UserProfile;
+    if (userIp === '127.0.0.1') userIp = '5.115.188.251';
 
     try {
       validatePhoneNumber(body.phone);
@@ -125,19 +136,22 @@ export class UsersController {
       status = true;
     }
 
-    await this.verifyRepo.createHumanKind({
-      phone: body.phone,
-      password: await this.passwordHasher.hashPassword(randomStr + randomCode),
-      registered: status,
-      registerationToken: body.registerationToken,
-      agent: userAgent,
-      ip: userIp,
-      issuedAt: new Date()
-    })
+    await this.verifyRepo
+      .createHumanKind({
+        phone: body.phone,
+        password: await this.passwordHasher.hashPassword(
+          randomStr + randomCode,
+        ),
+        registered: status,
+        registerationToken: body.registerationToken,
+        agent: userAgent,
+        ip: userIp,
+        issuedAt: new Date(),
+      })
       .then(async _res => {
         userProfile = {
           [securityId]: _res._key,
-          aud: 'verify'
+          aud: 'verify',
         };
         // Generate verify token based on user profile
         token = await this.jwtService.generateToken(userProfile);
@@ -145,10 +159,13 @@ export class UsersController {
           // send verify token and prefix by notification
           payload = {
             data: {
-              verifyToken: token
+              verifyToken: token,
             },
           };
-          this.firebaseService.sendToDeviceMessage(body.registerationToken, payload);
+          this.firebaseService.sendToDeviceMessage(
+            body.registerationToken,
+            payload,
+          );
         } catch (_err) {
           console.log(_err);
           throw new HttpErrors.UnprocessableEntity(_err.message);
@@ -178,7 +195,7 @@ export class UsersController {
     responses: UserLoginResponse,
   })
   @authenticate('jwt.verify')
-  async login (
+  async login(
     @requestBody(CredentialsRequestBody) credentials: Credentials,
   ): Promise<{
     _key: string;
@@ -192,6 +209,7 @@ export class UsersController {
       userIp = this.ctx.request.connection.remoteAddress,
       userIpInfo: any,
       accessToken: string;
+    if (userIp === '127.0.0.1') userIp = '5.115.188.251';
 
     try {
       validatePhoneNumber(credentials.phone);
@@ -216,7 +234,7 @@ export class UsersController {
         country: userIpInfo.country,
         city: userIpInfo.city,
         region: userIpInfo.region,
-        organization: userIpInfo.org
+        organization: userIpInfo.org,
       });
     } catch (_err) {
       console.log(_err);
@@ -248,7 +266,7 @@ export class UsersController {
     responses: UserSignupResponse,
   })
   @authenticate('jwt.verify')
-  async signup (
+  async signup(
     @requestBody(UserSignupRequestBody) newUser: Users,
   ): Promise<{
     _key: string;
@@ -262,13 +280,11 @@ export class UsersController {
       userProfile: UserProfile,
       userIp = this.ctx.request.connection.remoteAddress,
       userIpInfo: any,
-      credentials = Object.assign(
-        new Credentials,
-        {
-          phone: newUser.phone,
-          password: newUser.password
-        }
-      );
+      credentials = Object.assign(new Credentials(), {
+        phone: newUser.phone,
+        password: newUser.password,
+      });
+    if (userIp === '127.0.0.1') userIp = '5.115.188.251';
 
     try {
       validatePhoneNumber(credentials.phone);
@@ -279,7 +295,6 @@ export class UsersController {
 
     verify = await this.verifySerivce.verifyCredentials(credentials, userIp!);
 
-    if (userIp === '127.0.0.1') userIp = '5.115.188.251';
     userIpInfo = await this.ipInfoService.getIpData(userIp!);
 
     try {
@@ -292,11 +307,9 @@ export class UsersController {
         country: userIpInfo.country,
         city: userIpInfo.city,
         region: userIpInfo.region,
-        organization: userIpInfo.org
+        organization: userIpInfo.org,
       });
       delete newUser.password;
-
-      console.log(newUser);
 
       // Create a new user
       savedUser = await this.usersRepository.createHumanKind(newUser);
@@ -341,7 +354,7 @@ export class UsersController {
     },
   })
   @authenticate('jwt.access')
-  async logout (
+  async logout(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.header.string('authorization') authorizationHeader: string,
     @param.path.string('_userKey') _userKey: string,
@@ -374,7 +387,7 @@ export class UsersController {
     },
   })
   @authenticate('jwt.access')
-  async updateById (
+  async updateById(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.path.string('_userKey') _userKey: string,
     @requestBody(UserPatchRequestBody) user: Omit<Users, '_key'>,
@@ -396,7 +409,7 @@ export class UsersController {
     },
   })
   @authenticate('jwt.refresh')
-  async refreshToken (
+  async refreshToken(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.header.string('Authorization') token: string,
   ) {

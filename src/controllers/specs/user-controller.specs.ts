@@ -28,17 +28,10 @@ export const VerifyPhoneRequestBody = {
     'application/json': {
       schema: getModelSchemaRef(Verify, {
         partial: false,
-        exclude: [
-          "_key",
-          "agent",
-          "password",
-          "issuedAt",
-          "registered",
-          "ip"
-        ],
+        exclude: ['_key', 'agent', 'password', 'issuedAt', 'registered', 'ip'],
       }),
     },
-  }
+  },
 };
 
 export const VerifyPhoneResponse = {
@@ -53,7 +46,7 @@ export const VerifyPhoneResponse = {
             status: {type: 'boolean'},
             name: {type: 'string'},
             avatar: {type: 'string'},
-            prefix: {type: 'string'}
+            prefix: {type: 'string'},
           },
         },
       },
@@ -82,6 +75,7 @@ export const UserSignupRequestBody = {
           'timezone',
           'userAgent',
           'refreshToken',
+          'organization',
           'registerationToken',
           'registeredAt',
           'usersRels',
