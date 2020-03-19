@@ -137,7 +137,7 @@ export class UsersController {
     }
 
     await this.verifyRepo
-      .createHumanKind({
+      .create({
         phone: body.phone,
         password: await this.passwordHasher.hashPassword(
           randomStr + randomCode,
@@ -312,7 +312,7 @@ export class UsersController {
       delete newUser.password;
 
       // Create a new user
-      savedUser = await this.usersRepository.createHumanKind(newUser);
+      savedUser = await this.usersRepository.create(newUser);
 
       //convert user object to a UserProfile object (reduced set of properties)
       userProfile = this.userService.convertToUserProfile(savedUser);
@@ -362,7 +362,7 @@ export class UsersController {
     this.checkUserKey(_userKey, currentUserProfile);
 
     return this.blacklistRepository
-      .createHumanKind({
+      .create({
         token: authorizationHeader.split(' ')[1],
         createdAt: new Date(),
       })

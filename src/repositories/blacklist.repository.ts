@@ -1,36 +1,33 @@
-import { DefaultCrudRepository, Filter, DataObject } from '@loopback/repository'
-import { Blacklist, BlacklistRelations } from '../models'
-import { ArangodbDataSource } from '../datasources'
-import { inject } from '@loopback/core'
+import {DefaultCrudRepository, Filter, DataObject} from '@loopback/repository';
+import {Blacklist, BlacklistRelations} from '../models';
+import {ArangodbDataSource} from '../datasources';
+import {inject} from '@loopback/core';
 
 export class BlacklistRepository extends DefaultCrudRepository<
   Blacklist,
   typeof Blacklist.prototype._key,
   BlacklistRelations
-  > {
-  constructor (
-    @inject( 'datasources.arangodb' ) dataSource: ArangodbDataSource,
-  ) {
-    super( Blacklist, dataSource )
+> {
+  constructor(@inject('datasources.arangodb') dataSource: ArangodbDataSource) {
+    super(Blacklist, dataSource);
   }
 
-  public async checkTokenNotBlacklisted ( filter: Filter ): Promise<void> {
-    const exist = await this.find( filter )
-    if ( exist.length === 0 ) {
-      return
+  public async checkTokenNotBlacklisted(filter: Filter): Promise<void> {
+    const exist = await this.find(filter);
+    if (exist.length === 0) {
+      return;
     } else {
-      throw new Error( 'Token is blacklisted!' )
+      throw new Error('Token is blacklisted!');
     }
   }
 
   /**
-  * create model like a human being
-  */
-  public async createHumanKind ( entity: DataObject<Blacklist> )
-    : Promise<Blacklist> {
-    const blackList = await this.create( entity )
-    blackList._id = blackList._key[ 1 ]
-    blackList._key = blackList._key[ 0 ]
-    return blackList
+   * override super class's create method
+   */
+  public async create(entity: DataObject<Blacklist>): Promise<Blacklist> {
+    const blackList = await this.create(entity);
+    blackList._id = blackList._key[1];
+    blackList._key = blackList._key[0];
+    return blackList;
   }
 }
