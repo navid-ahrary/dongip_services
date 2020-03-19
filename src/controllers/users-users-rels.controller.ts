@@ -4,7 +4,7 @@ import {
   CountSchema,
   Filter,
   repository,
-  Where
+  Where,
 } from '@loopback/repository';
 import {
   get,
@@ -26,13 +26,13 @@ import {
   UsersRepository,
   VirtualUsersRepository,
   BlacklistRepository,
-  UsersRelsRepository
+  UsersRelsRepository,
 } from '../repositories';
 import {FirebaseService, validatePhoneNumber} from '../services';
 import {SetFriend} from './specs/user-controller.specs';
 
 export class UsersUsersRelsController {
-  constructor (
+  constructor(
     @repository(UsersRepository) protected usersRepository: UsersRepository,
     @repository(VirtualUsersRepository)
     public virtualUsersRepository: VirtualUsersRepository,
@@ -44,14 +44,13 @@ export class UsersUsersRelsController {
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {}
 
-  private checkUserKey (userKey: string) {
+  private checkUserKey(userKey: string) {
     if (userKey !== this.currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
         'Token is not matched to this user _key!',
       );
     }
   }
-
 
   @get('/api/users/{_userKey}/users-rels', {
     security: OPERATION_SECURITY_SPEC,
@@ -67,7 +66,7 @@ export class UsersUsersRelsController {
     },
   })
   @authenticate('jwt.access')
-  async find (
+  async find(
     @param.path.string('_userKey') _userKey: string,
     @param.query.object('filter') filter?: Filter<UsersRels>,
   ): Promise<UsersRels[]> {
@@ -75,35 +74,35 @@ export class UsersUsersRelsController {
 
     const userId = 'Users/' + _userKey;
     const usersRelsList = await this.usersRepository
-      .usersRels(userId).find(filter);
-    usersRelsList.forEach(function (usersRel) {
+      .usersRels(userId)
+      .find(filter);
+    usersRelsList.forEach(function(usersRel) {
       delete usersRel._to;
       delete usersRel._from;
       delete usersRel.targetUsersId;
-
     });
     return usersRelsList;
   }
 
-
   @post('/api/users/{_userKey}/users-rels/set-friend', {
     security: OPERATION_SECURITY_SPEC,
-    responses: SetFriend
+    responses: SetFriend,
   })
   @authenticate('jwt.access')
-  async setFriend (
+  async setFriend(
     @param.path.string('_userKey') _userKey: string,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(FriendRequest, {
-            exclude: ["relationId", "status", "virtualUserId"],
+            exclude: ['relationId', 'status', 'virtualUserId'],
           }),
         },
       },
-    }) reqBody: FriendRequest,
+    })
+    reqBody: FriendRequest,
   ): Promise<{
-    createdVirtualUser: VirtualUsers,
+    createdVirtualUser: VirtualUsers;
     createdUsersRelation: UsersRels;
   }> {
     this.checkUserKey(_userKey);
@@ -126,12 +125,13 @@ export class UsersUsersRelsController {
     if (recipientUser) {
       if (_userKey === recipientUser._key) {
         throw new HttpErrors.NotAcceptable(
-          'You are the best friend of yourself! :)');
+          'You are the best friend of yourself! :)',
+        );
       }
 
       const isRealFriend = await this.usersRepository
-        .usersRels(requesterUser._id).find(
-          {where: {_to: recipientUser._id}});
+        .usersRels(requesterUser._id)
+        .find({where: {_to: recipientUser._id}});
       if (isRealFriend.length !== 0) {
         throw new HttpErrors.NotAcceptable('You are real friends already!');
       }
@@ -142,40 +142,42 @@ export class UsersUsersRelsController {
       .catch(async _err => {
         console.log(_err);
         if (_err.code === 409) {
-          const index = _err.response.body.errorMessage
-            .indexOf('conflicting key: ') + 17;
+          const index =
+            _err.response.body.errorMessage.indexOf('conflicting key: ') + 17;
 
           const virtualUserId =
             'VirtualUsers/' + _err.response.body.errorMessage.slice(index);
 
-          const rel = await this.usersRepository.usersRels(userId)
+          const rel = await this.usersRepository
+            .usersRels(userId)
             .find({where: {_to: virtualUserId}});
 
           throw new HttpErrors.Conflict(
-            'You have relation with _key: ' + rel[0]._key);
+            'You have relation with _key: ' + rel[0]._key,
+          );
         }
         throw new HttpErrors.NotAcceptable(_err);
       });
 
     createdUsersRelation = await this.usersRepository
-      .createHumanKindUsersRels(userId,
-        {
-          _to: createdVirtualUser._id,
-          alias: reqBody.alias,
-          avatar: reqBody.avatar,
-          targetUsersId: recipientUser!._id,
-          type: 'virtual',
-        }).catch(_err => {
-          console.log(_err);
-          if (_err.code === 409) {
-            const index = _err.response.body.errorMessage
-              .indexOf('conflicting');
-            throw new HttpErrors.Conflict(
-              'Error create user relation ' + _err.response.body.errorMessage.
-                slice(index));
-          }
-          throw new HttpErrors.NotAcceptable(_err);
-        });
+      .createHumanKindUsersRels(userId, {
+        _to: createdVirtualUser._id,
+        alias: reqBody.alias,
+        avatar: reqBody.avatar,
+        targetUsersId: recipientUser!._id,
+        type: 'virtual',
+      })
+      .catch(_err => {
+        console.log(_err);
+        if (_err.code === 409) {
+          const index = _err.response.body.errorMessage.indexOf('conflicting');
+          throw new HttpErrors.Conflict(
+            'Error create user relation ' +
+              _err.response.body.errorMessage.slice(index),
+          );
+        }
+        throw new HttpErrors.NotAcceptable(_err);
+      });
     delete createdUsersRelation.targetUsersId;
 
     await this.virtualUsersRepository.createHumanKindUsersRels(
@@ -184,18 +186,19 @@ export class UsersUsersRelsController {
         _to: requesterUser._id,
         alias: requesterUser.name,
         avatar: requesterUser.avatar,
-        type: 'virtual'
-      }
+        type: 'virtual',
+      },
     );
 
     if (requesterUser && recipientUser) {
       payload = {
         notification: {
           title: 'دنگیپ درخواست دوستی',
-          body: requesterUser.name +
+          body:
+            requesterUser.name +
             'با شماره موبایل' +
             requesterUser.phone +
-            'ازشما درخواست دوستی کرده'
+            'ازشما درخواست دوستی کرده',
         },
         data: {
           virtualUserId: createdVirtualUser._key[1],
@@ -211,7 +214,10 @@ export class UsersUsersRelsController {
       };
       // send friend request notofication to recipient user client
       this.firebaseService.sendToDeviceMessage(
-        recipientUser.registerationToken, payload, options);
+        recipientUser.registerationToken,
+        payload,
+        options,
+      );
     }
 
     return {
@@ -219,7 +225,6 @@ export class UsersUsersRelsController {
       createdUsersRelation,
     };
   }
-
 
   @post('/api/users/{_userKey}/users-rels/response-friend-request', {
     security: OPERATION_SECURITY_SPEC,
@@ -230,17 +235,18 @@ export class UsersUsersRelsController {
     },
   })
   @authenticate('jwt.access')
-  async responseToFriendRequest (
+  async responseToFriendRequest(
     @param.path.string('_userKey') _userKey: string,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(FriendRequest, {
-            exclude: ["avatar", "phone"]
+            exclude: ['avatar', 'phone'],
           }),
         },
       },
-    }) bodyReq: FriendRequest,
+    })
+    bodyReq: FriendRequest,
   ) {
     this.checkUserKey(_userKey);
 
@@ -255,16 +261,15 @@ export class UsersUsersRelsController {
     // Find the recipient user
     recipientUser = await this.usersRepository.findById(_userKey);
     // Find the user relation edge
-    ur = await this.usersRelsRepository.findOne(
-      {
-        where: {
-          and: [
-            {_key: bodyReq.relationId.split('/')[1]},
-            {_to: bodyReq.virtualUserId},
-            {targetUsersId: recipientUser._id}
-          ]
-        }
-      });
+    ur = await this.usersRelsRepository.findOne({
+      where: {
+        and: [
+          {_key: bodyReq.relationId.split('/')[1]},
+          {_to: bodyReq.virtualUserId},
+          {targetUsersId: recipientUser._id},
+        ],
+      },
+    });
     if (!ur) {
       console.log('There is not friend request fired!');
       throw new HttpErrors.NotFound('There is not fired friend request!');
@@ -273,12 +278,11 @@ export class UsersUsersRelsController {
     if (_userId === ur._from) {
       console.log("requester's key and recipient's key is the same! ");
       throw new HttpErrors.NotAcceptable(
-        "requester's key and recipient's key is the same! ");
+        "requester's key and recipient's key is the same! ",
+      );
     }
     // Find the requester user
-    requesterUser = await this.usersRepository.findById(
-      ur._from.split('/')[1]
-    );
+    requesterUser = await this.usersRepository.findById(ur._from.split('/')[1]);
     if (!requesterUser) {
       console.log('Requester user is not found! ');
       throw new HttpErrors.NotFound('Requester user is not found! ');
@@ -286,11 +290,11 @@ export class UsersUsersRelsController {
 
     if (recipientUser && requesterUser) {
       const payload = {
-        notification: {title: '', body: '', },
+        notification: {title: '', body: ''},
         data: {
           alias: ur.alias,
           avatar: recipientUser.avatar,
-          usersRelationId: ur._key[1]
+          usersRelationId: ur._key[1],
         },
       };
       const options = {
@@ -302,18 +306,21 @@ export class UsersUsersRelsController {
       if (bodyReq.status) {
         payload.notification = {
           title: 'دنگیپ قبول درخواست دوستی',
-          body: ur.alias +
+          body:
+            ur.alias +
             'با موبایل' +
             recipientUser.phone +
-            'در خواست دوستیتون رو پذیرفت'
+            'در خواست دوستیتون رو پذیرفت',
         };
 
         try {
-          vu = await this.virtualUsersRepository
-            .findById(bodyReq.virtualUserId.split('/')[1]);
+          vu = await this.virtualUsersRepository.findById(
+            bodyReq.virtualUserId.split('/')[1],
+          );
           // Delete created virtual user
-          await this.virtualUsersRepository.
-            deleteById(bodyReq.virtualUserId.split('/')[1]);
+          await this.virtualUsersRepository.deleteById(
+            bodyReq.virtualUserId.split('/')[1],
+          );
         } catch (error) {
           console.log('virtualUser deletebyId error' + error);
           throw new HttpErrors.NotAcceptable(error.message);
@@ -327,14 +334,14 @@ export class UsersUsersRelsController {
               _to: recipientUser._id,
               avatar: recipientUser.avatar,
               type: 'real',
-            }
+            },
           );
         } catch (error) {
           // Create deleted virtual user in previous phase
           await this.virtualUsersRepository.create(vu);
           console.log(
-            'Create deleted virual user again, cause of previous phase error'
-            + vu
+            'Create deleted virual user again, cause of previous phase error' +
+              vu,
           );
           console.log('userRels updatebyId error' + error);
           throw new HttpErrors.NotAcceptable(error.message);
@@ -347,32 +354,35 @@ export class UsersUsersRelsController {
             _to: requesterUser._id,
             alias: bodyReq.alias,
             type: 'real',
-            avatar: requesterUser.avatar
-          });
+            avatar: requesterUser.avatar,
+          },
+        );
         response = {
           ...backUserRel,
-          message: 'You are friends together right now'
+          message: 'You are friends together right now',
         };
       } else {
         payload.notification = {
           title: 'دنگیپ رد درخواست دوستی',
-          body: ur.alias +
+          body:
+            ur.alias +
             'با موبایل' +
             recipientUser.phone +
-            'در خواست دوستیتون رو رد کرد'
-
+            'در خواست دوستیتون رو رد کرد',
         };
         response = {message: 'Friend request has been rejected'};
       }
 
       // send response to friend request notification to the requester
       this.firebaseService.sendToDeviceMessage(
-        requesterUser.registerationToken, payload, options);
+        requesterUser.registerationToken,
+        payload,
+        options,
+      );
 
       return response;
     }
   }
-
 
   @patch('/api/users/{_userKey}/users-rels', {
     security: OPERATION_SECURITY_SPEC,
@@ -384,15 +394,14 @@ export class UsersUsersRelsController {
     },
   })
   @authenticate('jwt.access')
-  async patch (
+  async patch(
     @param.path.string('_userKey') _userKey: string,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             partial: true,
-            exclude: [
-              "_from", "_to", "_rev", "type", "targetUsersId"],
+            exclude: ['_from', '_to', '_rev', 'type', 'targetUsersId'],
           }),
         },
       },
@@ -404,7 +413,6 @@ export class UsersUsersRelsController {
     this.checkUserKey(_userKey);
 
     const userId = 'Users/' + _userKey;
-    return this.usersRepository.usersRels(userId)
-      .patch(usersRels, where);
+    return this.usersRepository.usersRels(userId).patch(usersRels, where);
   }
 }
