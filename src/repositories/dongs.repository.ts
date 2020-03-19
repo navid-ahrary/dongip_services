@@ -39,7 +39,7 @@ export class DongsRepository extends DefaultCrudRepository<
    * override super class's create method
    */
   public async create(entity: DataObject<Dongs>): Promise<Dongs> {
-    const dong = await this.create(entity);
+    const dong = await super.create(entity);
     dong._id = dong._key[1];
     dong._key = dong._key[0];
     return dong;

@@ -25,7 +25,7 @@ export class BlacklistRepository extends DefaultCrudRepository<
    * override super class's create method
    */
   public async create(entity: DataObject<Blacklist>): Promise<Blacklist> {
-    const blackList = await this.create(entity);
+    const blackList = await super.create(entity);
     blackList._id = blackList._key[1];
     blackList._key = blackList._key[0];
     return blackList;

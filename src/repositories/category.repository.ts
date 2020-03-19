@@ -59,7 +59,7 @@ export class CategoryRepository extends DefaultCrudRepository<
    * override super class's create method
    */
   public async create(entity: DataObject<Category>): Promise<Category> {
-    const category = await this.create(entity);
+    const category = await super.create(entity);
     category._id = category._key[1];
     category._key = category._key[0];
     return category;

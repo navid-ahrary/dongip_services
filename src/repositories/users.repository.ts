@@ -117,7 +117,7 @@ export class UsersRepository extends DefaultCrudRepository<
    * override super class's create method
    */
   public async create(entity: DataObject<Users>): Promise<Users> {
-    const user = await this.create(entity);
+    const user = await super.create(entity);
     user._id = user._key[1];
     user._key = user._key[0];
     return user;

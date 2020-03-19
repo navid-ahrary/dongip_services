@@ -16,7 +16,7 @@ export class VerifyRepository extends DefaultCrudRepository<
    * override super class's create method
    */
   public async create(entity: DataObject<Verify>): Promise<Verify> {
-    const verify = await this.create(entity);
+    const verify = await super.create(entity);
     verify._key = verify._key[0];
     return verify;
   }

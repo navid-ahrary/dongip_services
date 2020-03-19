@@ -17,7 +17,6 @@ import {inject, Getter} from '@loopback/core';
 import {CategoryRepository} from './category.repository';
 import {DongsRepository} from './dongs.repository';
 import {UsersRepository} from './users.repository';
-import {HttpErrors} from '@loopback/rest';
 import {UsersRelsRepository} from './users-rels.repository';
 
 export class CategoryBillRepository extends DefaultCrudRepository<
