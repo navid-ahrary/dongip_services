@@ -19,6 +19,8 @@ import {
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {inject, service} from '@loopback/core';
+import Debug from 'debug';
+const debug = Debug('dongip');
 
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {Users, UsersRels, FriendRequest, VirtualUsers} from '../models';
@@ -115,7 +117,14 @@ export class UsersUsersRelsController {
       createdVirtualUser: VirtualUsers,
       createdUsersRelation: UsersRels,
       userId = 'Users/' + _userKey,
-      payload;
+      payload,
+      userRel = {
+        _to: '',
+        alias: reqBody.alias,
+        avatar: reqBody.avatar,
+        targetUsersId: '',
+        type: 'virtual',
+      };
 
     requesterUser = await this.usersRepository.findById(_userKey);
     recipientUser = await this.usersRepository.findOne({
@@ -123,6 +132,7 @@ export class UsersUsersRelsController {
     });
 
     if (recipientUser) {
+      userRel.targetUsersId = recipientUser._id;
       if (_userKey === recipientUser._key) {
         throw new HttpErrors.NotAcceptable(
           'You are the best friend of yourself! :)',
@@ -140,7 +150,7 @@ export class UsersUsersRelsController {
     createdVirtualUser = await this.usersRepository
       .createHumanKindVirtualUsers(userId, {phone: reqBody.phone})
       .catch(async _err => {
-        console.log(_err);
+        debug(_err);
         if (_err.code === 409) {
           const index =
             _err.response.body.errorMessage.indexOf('conflicting key: ') + 17;
@@ -159,16 +169,12 @@ export class UsersUsersRelsController {
         throw new HttpErrors.NotAcceptable(_err);
       });
 
+    userRel._to = createdVirtualUser._id;
+
     createdUsersRelation = await this.usersRepository
-      .createHumanKindUsersRels(userId, {
-        _to: createdVirtualUser._id,
-        alias: reqBody.alias,
-        avatar: reqBody.avatar,
-        targetUsersId: recipientUser!._id,
-        type: 'virtual',
-      })
+      .createHumanKindUsersRels(userId, userRel)
       .catch(_err => {
-        console.log(_err);
+        debug(_err);
         if (_err.code === 409) {
           const index = _err.response.body.errorMessage.indexOf('conflicting');
           throw new HttpErrors.Conflict(
@@ -271,12 +277,12 @@ export class UsersUsersRelsController {
       },
     });
     if (!ur) {
-      console.log('There is not friend request fired!');
+      debug('There is not friend request fired!');
       throw new HttpErrors.NotFound('There is not fired friend request!');
     }
     // Check requester and recipient is not the same
     if (_userId === ur._from) {
-      console.log("requester's key and recipient's key is the same! ");
+      debug("requester's key and recipient's key is the same! ");
       throw new HttpErrors.NotAcceptable(
         "requester's key and recipient's key is the same! ",
       );
@@ -284,7 +290,7 @@ export class UsersUsersRelsController {
     // Find the requester user
     requesterUser = await this.usersRepository.findById(ur._from.split('/')[1]);
     if (!requesterUser) {
-      console.log('Requester user is not found! ');
+      debug('Requester user is not found! ');
       throw new HttpErrors.NotFound('Requester user is not found! ');
     }
 
@@ -322,7 +328,7 @@ export class UsersUsersRelsController {
             bodyReq.virtualUserId.split('/')[1],
           );
         } catch (error) {
-          console.log('virtualUser deletebyId error' + error);
+          debug('virtualUser deletebyId error' + error);
           throw new HttpErrors.NotAcceptable(error.message);
         }
 
@@ -339,11 +345,11 @@ export class UsersUsersRelsController {
         } catch (error) {
           // Create deleted virtual user in previous phase
           await this.virtualUsersRepository.create(vu);
-          console.log(
+          debug(
             'Create deleted virual user again, cause of previous phase error' +
               vu,
           );
-          console.log('userRels updatebyId error' + error);
+          debug('userRels updatebyId error' + error);
           throw new HttpErrors.NotAcceptable(error.message);
         }
 
