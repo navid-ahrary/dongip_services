@@ -35,7 +35,7 @@ export class MyAuthenticationSequence implements SequenceHandler {
    * promise result (injected via SequenceActions.REJECT).
    */
 
-  constructor (
+  constructor(
     @inject(SequenceActions.FIND_ROUTE) protected findRoute: FindRoute,
     @inject(SequenceActions.PARSE_PARAMS) protected parseParams: ParseParams,
     @inject(SequenceActions.INVOKE_METHOD) protected invoke: InvokeMethod,
@@ -45,11 +45,10 @@ export class MyAuthenticationSequence implements SequenceHandler {
     protected authenticationRequest: AuthenticateFn,
   ) {}
 
-  async handle (context: RequestContext) {
+  async handle(context: RequestContext) {
     try {
       const {request, response} = context;
       const route = this.findRoute(request);
-      response.setHeader('X-Powered-By', ['Express', 'nginx Linux/SUSE']);
 
       //call authentication action
       await this.authenticationRequest(request);
