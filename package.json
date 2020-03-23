@@ -69,8 +69,7 @@
     "kavenegar": "^1.1.4",
     "loopback-connector": "^4.10.1",
     "loopback-connector-arangodb": "https://gitlab.com/navid_ahrary/loopback-connector-arangodb.git",
-    "moment": "^2.24.0",
-    "pm2": "^4.2.3"
+    "moment": "^2.24.0"
   },
   "devDependencies": {
     "@loopback/build": "^4.0.0",
