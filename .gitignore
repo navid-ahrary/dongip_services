@@ -27,11 +27,8 @@ coverage
 # Bower dependency directory (https://bower.io/)
 bower_components
 
-# node-waf configuration
-.lock-wscript
-
-# Compiled binary addons (http://nodejs.org/api/addons.html)
-build/Release
+# node-waf configu
+      response.setHeader('X-Powered-By', ['Express', 'nginx Linux/SUSE']);
 
 # Dependency directories
 node_modules/
@@ -64,3 +61,5 @@ typings/
 
 # Cache used by TypeScript's incremental build
 *.tsbuildinfo
+
+.directory
