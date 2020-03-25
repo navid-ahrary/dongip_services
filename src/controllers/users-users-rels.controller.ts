@@ -109,8 +109,13 @@ export class UsersUsersRelsController {
   }> {
     this.checkUserKey(_userKey);
 
-    // validate recipient phone number
-    validatePhoneNumber(reqBody.phone);
+    try {
+      // validate recipient phone number
+      validatePhoneNumber(reqBody.phone);
+    } catch (_err) {
+      console.log(_err);
+      throw new HttpErrors.UnprocessableEntity(_err.message);
+    }
 
     let requesterUser: Users,
       recipientUser: Users | VirtualUsers | null,
