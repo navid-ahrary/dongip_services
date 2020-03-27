@@ -129,6 +129,7 @@ export class UsersUsersRelsController {
         avatar: reqBody.avatar,
         targetUsersId: '',
         type: 'virtual',
+        phone: '',
       };
 
     requesterUser = await this.usersRepository.findById(_userKey);
@@ -176,6 +177,7 @@ export class UsersUsersRelsController {
       });
 
     userRel._to = createdVirtualUser._id;
+    userRel.phone = createdVirtualUser.phone;
 
     createdUsersRelation = await this.usersRepository
       .usersRels(userId)
@@ -198,6 +200,7 @@ export class UsersUsersRelsController {
       alias: requesterUser.name,
       avatar: requesterUser.avatar,
       type: 'virtual',
+      phone: requesterUser.phone,
     });
 
     if (requesterUser && recipientUser) {

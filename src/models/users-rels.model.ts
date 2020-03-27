@@ -3,72 +3,73 @@ import {
   model,
   property,
   belongsTo,
-  hasMany
-} from '@loopback/repository'
+  hasMany,
+} from '@loopback/repository';
 
-import {
-  Users,
-  CategoryBill,
-  VirtualUsers
-} from './'
+import {Users, CategoryBill, VirtualUsers} from './';
 
 @model()
 export class UsersRels extends Entity {
-  @property( {
+  @property({
     type: 'string',
     id: true,
     generated: true,
-    required: false
-  } )
-  _key: string
+    required: false,
+  })
+  _key: string;
 
-  @property( {
+  @property({
     type: 'string',
     required: false,
-    generated: true
-  } )
-  _id: string
+    generated: true,
+  })
+  _id: string;
 
-  @property( {
+  @property({
     type: 'string',
     required: false,
-    generated: true
-  } )
-  _rev: string
+    generated: true,
+  })
+  _rev: string;
 
-  @belongsTo( () => Users || VirtualUsers, { name: 'belongsToUser' } )
-  _from: string
+  @belongsTo(() => Users || VirtualUsers, {name: 'belongsToUser'})
+  _from: string;
 
-  @property( {
+  @property({
     type: 'string',
-  } )
-  _to: string
+  })
+  _to: string;
 
-  @property( {
+  @property({
     type: 'string',
-  } )
-  targetUsersId?: string
+  })
+  targetUsersId?: string;
 
-  @property( {
+  @property({
     type: 'string',
-  } )
-  alias: string
+  })
+  alias: string;
 
-  @property( {
+  @property({
     type: 'string',
-  } )
-  avatar: string
+  })
+  avatar: string;
 
-  @property( {
+  @property({
     type: 'string',
-  } )
-  type: string
+  })
+  type: string;
 
-  @hasMany( () => CategoryBill, { keyTo: 'belongsToUserRelsId' } )
-  categoryBills: CategoryBill[]
+  @property({
+    type: 'string',
+  })
+  phone: string;
 
-  constructor ( data?: Partial<UsersRels> ) {
-    super( data )
+  @hasMany(() => CategoryBill, {keyTo: 'belongsToUserRelsId'})
+  categoryBills: CategoryBill[];
+
+  constructor(data?: Partial<UsersRels>) {
+    super(data);
   }
 }
 
@@ -76,4 +77,4 @@ export interface UsersRelsRelations {
   // describe navigational properties here
 }
 
-export type UsersRelsWithRelations = UsersRels & UsersRelsRelations
+export type UsersRelsWithRelations = UsersRels & UsersRelsRelations;
