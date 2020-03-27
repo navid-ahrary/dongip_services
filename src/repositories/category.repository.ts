@@ -64,17 +64,4 @@ export class CategoryRepository extends DefaultCrudRepository<
     category._key = category._key[0];
     return category;
   }
-
-  /**
-   * create category bill like a human being
-   */
-  public async createHumanKindCategoryBill(
-    categoryId: typeof Category.prototype._id,
-    entity: DataObject<Category>,
-  ): Promise<CategoryBill> {
-    const categoryBill = await this.categoryBills(categoryId).create(entity);
-    categoryBill._id = categoryBill._key[1];
-    categoryBill._key = categoryBill._key[0];
-    return categoryBill;
-  }
 }

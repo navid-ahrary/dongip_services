@@ -1,5 +1,9 @@
 import {
-  Count, CountSchema, Filter, repository, Where
+  Count,
+  CountSchema,
+  Filter,
+  repository,
+  Where,
 } from '@loopback/repository';
 import {
   get,
@@ -20,23 +24,22 @@ import {UsersRepository, CategoryRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
 export class UsersCategoryController {
-  constructor (
+  constructor(
     @repository(UsersRepository)
     protected usersRepository: UsersRepository,
     @repository(CategoryRepository)
     protected categoryRepository: CategoryRepository,
     @inject(SecurityBindings.USER)
-    protected currentUserProfile: UserProfile
+    protected currentUserProfile: UserProfile,
   ) {}
 
-  private checkUserKey (key: string) {
+  private checkUserKey(key: string) {
     if (key !== this.currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
         'Token is not matched to this user _key!',
       );
     }
   }
-
 
   @get('/api/users/{_userKey}/categories', {
     security: OPERATION_SECURITY_SPEC,
@@ -52,7 +55,7 @@ export class UsersCategoryController {
     },
   })
   @authenticate('jwt.access')
-  async find (
+  async find(
     @param.path.string('_userKey') _userKey: string,
     @param.query.object('filter') filter?: Filter<Category>,
   ): Promise<Category[]> {
@@ -61,7 +64,6 @@ export class UsersCategoryController {
     return this.usersRepository.categories(userId).find(filter);
   }
 
-
   @post('/api/users/{_userKey}/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -69,14 +71,14 @@ export class UsersCategoryController {
         description: 'Users model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Category)
-          }
+            schema: getModelSchemaRef(Category),
+          },
         },
       },
     },
   })
   @authenticate('jwt.access')
-  async create (
+  async create(
     @param.path.string('_userKey') _userKey: typeof Users.prototype._key,
     @requestBody({
       content: {
@@ -88,7 +90,8 @@ export class UsersCategoryController {
               '_id',
               '_rev',
               'categoryBills',
-              'belongsToUserId'],
+              'belongsToUserId',
+            ],
           }),
         },
       },
@@ -99,13 +102,14 @@ export class UsersCategoryController {
 
     const userId = 'Users/' + _userKey;
     const createdCat = await this.usersRepository
-      .createHumanKindCategory(userId, category)
+      .categories(userId)
+      .create(category)
       .catch(_err => {
         console.log(_err);
         if (_err.code === 409) {
           const index = _err.response.body.errorMessage.indexOf('conflicting');
           throw new HttpErrors.Conflict(
-            _err.response.body.errorMessage.slice(index)
+            _err.response.body.errorMessage.slice(index),
           );
         } else {
           throw new HttpErrors.NotAcceptable(_err);
@@ -113,7 +117,6 @@ export class UsersCategoryController {
       });
     return createdCat;
   }
-
 
   @patch('/api/users/{_userKey}/categories', {
     security: OPERATION_SECURITY_SPEC,
@@ -125,19 +128,14 @@ export class UsersCategoryController {
     },
   })
   @authenticate('jwt.access')
-  async patch (
+  async patch(
     @param.path.string('_userKey') _userKey: string,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(Category, {
             partial: true,
-            exclude: [
-              "_rev",
-              "_id",
-              "_key",
-              "belongsToUserId",
-            ]
+            exclude: ['_rev', '_id', '_key', 'belongsToUserId'],
           }),
         },
       },
@@ -150,14 +148,15 @@ export class UsersCategoryController {
 
     try {
       const _userId = 'Users/' + _userKey;
-      return await this.usersRepository.categories(_userId)
+      return await this.usersRepository
+        .categories(_userId)
         .patch(category, where);
     } catch (_err) {
       console.log(_err);
       if (_err.code === 409) {
         const index = _err.response.body.errorMessage.indexOf('conflicting');
         throw new HttpErrors.Conflict(
-          _err.response.body.errorMessage.slice(index)
+          _err.response.body.errorMessage.slice(index),
         );
       }
       throw new HttpErrors.NotAcceptable(_err.message);

@@ -1,13 +1,13 @@
-import {repository, } from '@loopback/repository';
-import {param, get, getModelSchemaRef, } from '@loopback/rest';
+import {repository} from '@loopback/repository';
+import {param, get, getModelSchemaRef} from '@loopback/rest';
 import {authenticate} from '@loopback/authentication';
 
-import {CategoryBill, UsersRels, } from '../models';
+import {CategoryBill, UsersRels} from '../models';
 import {CategoryBillRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
 export class CategoryBillUsersRelsController {
-  constructor (
+  constructor(
     @repository(CategoryBillRepository)
     public categoryBillRepository: CategoryBillRepository,
   ) {}
@@ -26,9 +26,10 @@ export class CategoryBillUsersRelsController {
     },
   })
   @authenticate('jwt.access')
-  async getUsersRels (
+  async getUsersRels(
     @param.path.string('_billKey')
-    _billKey: typeof CategoryBill.prototype._key, ): Promise<UsersRels> {
+    _billKey: typeof CategoryBill.prototype._key,
+  ): Promise<UsersRels> {
     const billId = 'CategoryBill/' + _billKey;
     return this.categoryBillRepository.belongsToUserRels(billId);
   }

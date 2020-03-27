@@ -153,7 +153,8 @@ export class UsersUsersRelsController {
     }
 
     createdVirtualUser = await this.usersRepository
-      .createHumanKindVirtualUsers(userId, {phone: reqBody.phone})
+      .virtualUsers(userId)
+      .create({phone: reqBody.phone})
       .catch(async _err => {
         debug(_err);
         if (_err.code === 409) {
@@ -177,7 +178,8 @@ export class UsersUsersRelsController {
     userRel._to = createdVirtualUser._id;
 
     createdUsersRelation = await this.usersRepository
-      .createHumanKindUsersRels(userId, userRel)
+      .usersRels(userId)
+      .create(userRel)
       .catch(_err => {
         debug(_err);
         if (_err.code === 409) {
@@ -191,15 +193,12 @@ export class UsersUsersRelsController {
       });
     delete createdUsersRelation.targetUsersId;
 
-    await this.virtualUsersRepository.createHumanKindUsersRels(
-      createdVirtualUser._id,
-      {
-        _to: requesterUser._id,
-        alias: requesterUser.name,
-        avatar: requesterUser.avatar,
-        type: 'virtual',
-      },
-    );
+    await this.virtualUsersRepository.usersRels(createdVirtualUser._id).create({
+      _to: requesterUser._id,
+      alias: requesterUser.name,
+      avatar: requesterUser.avatar,
+      type: 'virtual',
+    });
 
     if (requesterUser && recipientUser) {
       payload = {
@@ -359,15 +358,14 @@ export class UsersUsersRelsController {
         }
 
         // Create relation from recipient to requester
-        backUserRel = await this.usersRepository.createHumanKindUsersRels(
-          recipientUser._id,
-          {
+        backUserRel = await this.usersRepository
+          .usersRels(recipientUser._id)
+          .create({
             _to: requesterUser._id,
             alias: bodyReq.alias,
             type: 'real',
             avatar: requesterUser.avatar,
-          },
-        );
+          });
         response = {
           ...backUserRel,
           message: 'You are friends together right now',

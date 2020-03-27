@@ -8,21 +8,19 @@ import {Users} from '../models';
 import {DongsRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
-
 export class DongsUsersController {
-  constructor (
+  constructor(
     @repository(DongsRepository) public dongsRepository: DongsRepository,
-    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile
+    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
   ) {}
 
-  private checkUserKey (key: string) {
+  private checkUserKey(key: string) {
     if (key !== this.currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
         'Token is not matched to this user _key!',
       );
     }
   }
-
 
   @get('/api/dongs/{_dongKey}/users', {
     security: OPERATION_SECURITY_SPEC,
@@ -38,8 +36,9 @@ export class DongsUsersController {
     },
   })
   @authenticate('jwt.access')
-  async getUsers (@param.path.string('_dongKey') _dongKey: string)
-    : Promise<Users> {
+  async getUsers(
+    @param.path.string('_dongKey') _dongKey: string,
+  ): Promise<Users> {
     const dongId = 'Dongs/' + _dongKey;
     const exManUser = await this.dongsRepository.belongsToUser(dongId);
 

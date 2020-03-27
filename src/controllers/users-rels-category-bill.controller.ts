@@ -16,18 +16,17 @@ import {
 } from '@loopback/rest';
 import {authenticate} from '@loopback/authentication';
 import {inject} from '@loopback/core';
-import {UserProfile, SecurityBindings} from "@loopback/security";
+import {UserProfile, SecurityBindings} from '@loopback/security';
 
-import {UsersRels, CategoryBill, } from '../models';
+import {UsersRels, CategoryBill} from '../models';
 import {UsersRelsRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
-
 export class UsersRelsCategoryBillController {
-  constructor (
+  constructor(
     @repository(UsersRelsRepository)
     public usersRelsRepository: UsersRelsRepository,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile
+    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {}
 
   @get('/api/users-rels/{_relkey}/category-bills', {
@@ -39,7 +38,7 @@ export class UsersRelsCategoryBillController {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(CategoryBill)
+              items: getModelSchemaRef(CategoryBill),
             },
           },
         },
@@ -47,7 +46,7 @@ export class UsersRelsCategoryBillController {
     },
   })
   @authenticate('jwt.access')
-  async find (
+  async find(
     @param.path.string('_relkey') _relkey: string,
     @param.query.object('filter') filter?: Filter<CategoryBill>,
   ): Promise<CategoryBill[]> {
@@ -62,14 +61,14 @@ export class UsersRelsCategoryBillController {
         description: 'UsersRels model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(CategoryBill)
-          }
+            schema: getModelSchemaRef(CategoryBill),
+          },
         },
       },
     },
   })
   @authenticate('jwt.access')
-  async create (
+  async create(
     @param.path.string('_relkey') _relkey: typeof UsersRels.prototype._key,
     @requestBody({
       content: {
@@ -77,15 +76,15 @@ export class UsersRelsCategoryBillController {
           schema: getModelSchemaRef(CategoryBill, {
             title: 'NewCategoryBillInUsersRels',
             exclude: ['_key'],
-            optional: ['belongsToUserRelsId']
+            optional: ['belongsToUserRelsId'],
           }),
         },
       },
-    }) categoryBill: Omit<CategoryBill, '_key'>,
+    })
+    categoryBill: Omit<CategoryBill, '_key'>,
   ): Promise<CategoryBill> {
     const relId = 'UsersRels/' + _relkey;
-    return this.usersRelsRepository.categoryBills(relId)
-      .create(categoryBill);
+    return this.usersRelsRepository.categoryBills(relId).create(categoryBill);
   }
 
   @patch('/api/users-rels/{_relkey}/category-bills', {
@@ -98,7 +97,7 @@ export class UsersRelsCategoryBillController {
     },
   })
   @authenticate('jwt.access')
-  async patch (
+  async patch(
     @param.path.string('_relkey') _relkey: string,
     @requestBody({
       content: {
@@ -112,7 +111,8 @@ export class UsersRelsCategoryBillController {
     where?: Where<CategoryBill>,
   ): Promise<Count> {
     const relId = 'UsersRels/' + _relkey;
-    return this.usersRelsRepository.categoryBills(relId)
+    return this.usersRelsRepository
+      .categoryBills(relId)
       .patch(categoryBill, where);
   }
 }

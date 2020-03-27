@@ -322,7 +322,7 @@ export class UsersController {
       accessToken = await this.jwtService.generateToken(userProfile);
 
       // Create self-relation for self accounting
-      await this.usersRepository.createHumanKindUsersRels(savedUser._id, {
+      await this.usersRepository.usersRels(savedUser._id).create({
         _to: savedUser._id,
         alias: savedUser.name,
         avatar: savedUser.avatar,

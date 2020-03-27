@@ -1,4 +1,4 @@
-import {Filter, repository, } from '@loopback/repository';
+import {Filter, repository} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -11,24 +11,23 @@ import {inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 
-import {Users, CategoryBill, } from '../models';
+import {Users, CategoryBill} from '../models';
 import {UsersRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
 export class UsersCategoryBillController {
-  constructor (
+  constructor(
     @repository(UsersRepository) protected usersRepository: UsersRepository,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile
+    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {}
 
-  private checkUserKey (key: string) {
+  private checkUserKey(key: string) {
     if (key !== this.currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
         'Token is not matched to this user _key!',
       );
     }
   }
-
 
   @get('api/users/{_userKey}/category-bills', {
     security: OPERATION_SECURITY_SPEC,
@@ -44,7 +43,7 @@ export class UsersCategoryBillController {
     },
   })
   @authenticate('jwt.access')
-  async find (
+  async find(
     @param.path.string('_userKey') _userKey: typeof Users.prototype._key,
     @param.query.object('filter') filter?: Filter<CategoryBill>,
   ): Promise<CategoryBill[]> {
@@ -54,7 +53,6 @@ export class UsersCategoryBillController {
     return this.usersRepository.categoryBills(userId).find(filter);
   }
 
-
   @post('/api/users/{_userKey}/category-bills', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -62,14 +60,14 @@ export class UsersCategoryBillController {
         description: 'Users model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(CategoryBill)
-          }
+            schema: getModelSchemaRef(CategoryBill),
+          },
         },
       },
     },
   })
   @authenticate('jwt.access')
-  async create (
+  async create(
     @param.path.string('_userKey') _userKey: typeof Users.prototype._key,
     @requestBody({
       content: {
@@ -77,11 +75,12 @@ export class UsersCategoryBillController {
           schema: getModelSchemaRef(CategoryBill, {
             title: 'NewCategoryBillInUsers',
             exclude: ['_key'],
-            optional: ['_from']
+            optional: ['_from'],
           }),
         },
       },
-    }) categoryBill: Omit<CategoryBill, '_key'>,
+    })
+    categoryBill: Omit<CategoryBill, '_key'>,
   ): Promise<CategoryBill> {
     this.checkUserKey(_userKey);
 

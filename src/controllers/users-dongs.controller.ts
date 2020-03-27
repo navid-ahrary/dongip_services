@@ -6,33 +6,31 @@ import {
   param,
   post,
   requestBody,
-  HttpErrors
+  HttpErrors,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {inject, service} from '@loopback/core';
 
-import {Users, Dongs, } from '../models';
-import {UsersRepository, } from '../repositories';
+import {Users, Dongs} from '../models';
+import {UsersRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {DongsService} from '../services';
 
-
 export class UsersDongsController {
-  constructor (
+  constructor(
     @service(DongsService) public dongsService: DongsService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
   ) {}
 
-  private checkUserKey (key: string) {
+  private checkUserKey(key: string) {
     if (key !== this.currentUserProfile[securityId]) {
       throw new HttpErrors.Unauthorized(
         'Token is not matched to this user _key!',
       );
     }
   }
-
 
   @get('/api/users/{_userKey}/dongs', {
     security: OPERATION_SECURITY_SPEC,
@@ -43,7 +41,7 @@ export class UsersDongsController {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(Dongs)
+              items: getModelSchemaRef(Dongs),
             },
           },
         },
@@ -51,7 +49,7 @@ export class UsersDongsController {
     },
   })
   @authenticate('jwt.access')
-  async find (
+  async find(
     @param.path.string('_userKey') _userKey: string,
     @param.query.object('filter') filter?: Filter<Dongs>,
   ): Promise<Dongs[]> {
@@ -61,7 +59,6 @@ export class UsersDongsController {
     return this.usersRepository.dongs(_userId).find(filter);
   }
 
-
   @post('/api/users/{_userKey}/dongs', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -70,31 +67,25 @@ export class UsersDongsController {
         content: {
           'application/json': {
             schema: getModelSchemaRef(Dongs, {
-              exclude: ["belongsToExManId"]
-            })
-          }
+              exclude: ['belongsToExManId'],
+            }),
+          },
         },
       },
     },
   })
   @authenticate('jwt.access')
-  async create (
+  async create(
     @param.path.string('_userKey') _userKey: typeof Users.prototype._key,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(Dongs, {
             title: 'NewDongsInUsers',
-            exclude: [
-              "_key",
-              "_id",
-              "_rev",
-              "costs",
-              "belongsToExManId"
-            ]
-          })
-        }
-      }
+            exclude: ['_key', '_id', '_rev', 'costs', 'belongsToExManId'],
+          }),
+        },
+      },
     })
     dongs: Omit<Dongs, '_key'>,
   ): Promise<Dongs> {

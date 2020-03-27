@@ -97,38 +97,10 @@ export class VirtualUsersRepository extends DefaultCrudRepository<
   /**
    * create model like a human being
    */
-  public async createHumanKind(
-    entity: DataObject<VirtualUsers>,
-  ): Promise<VirtualUsers> {
+  public async create(entity: DataObject<VirtualUsers>): Promise<VirtualUsers> {
     const virtualUser = await super.create(entity);
     virtualUser._id = virtualUser._key[1];
     virtualUser._key = virtualUser._key[0];
     return virtualUser;
-  }
-
-  /**
-   * create users rels belong to virtual user like a human being
-   */
-  public async createHumanKindUsersRels(
-    virtualUserId: typeof Users.prototype._id,
-    entity: DataObject<UsersRels>,
-  ): Promise<UsersRels> {
-    const userRel = await this.usersRels(virtualUserId).create(entity);
-    userRel._id = userRel._key[1];
-    userRel._key = userRel._key[0];
-    return userRel;
-  }
-
-  /**
-   * create category belong to user like a human being
-   */
-  public async createHumanKindCategory(
-    virtualUserId: typeof VirtualUsers.prototype._id,
-    entity: DataObject<Category>,
-  ): Promise<Category> {
-    const category = await this.categories(virtualUserId).create(entity);
-    category._id = category._key[1];
-    category._key = category._key[0];
-    return category;
   }
 }
