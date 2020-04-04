@@ -107,9 +107,7 @@ export class UsersController {
     let status = false,
       avatar = 'dongip',
       name = 'noob',
-      randomCode = Math.random()
-        .toFixed(7)
-        .slice(3),
+      randomCode = Math.random().toFixed(7).slice(3),
       randomStr = this.generateRandomString(3),
       payload,
       token: string,
@@ -148,7 +146,7 @@ export class UsersController {
         ip: userIp,
         issuedAt: new Date(),
       })
-      .then(async _res => {
+      .then(async (_res) => {
         userProfile = {
           [securityId]: _res._key,
           aud: 'verify',
@@ -171,7 +169,7 @@ export class UsersController {
           throw new HttpErrors.UnprocessableEntity(_err.message);
         }
       })
-      .catch(_err => {
+      .catch((_err) => {
         console.log(_err);
         throw new HttpErrors.Conflict(_err.message);
       });
@@ -345,7 +343,7 @@ export class UsersController {
     }
   }
 
-  @get('/api/users/{_userKey}/logout', {
+  @get('/api/users/logout', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -355,18 +353,14 @@ export class UsersController {
   })
   @authenticate('jwt.access')
   async logout(
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.header.string('authorization') authorizationHeader: string,
-    @param.path.string('_userKey') _userKey: string,
   ): Promise<Blacklist> {
-    this.checkUserKey(_userKey, currentUserProfile);
-
     return this.blacklistRepository
       .create({
         token: authorizationHeader.split(' ')[1],
         createdAt: new Date(),
       })
-      .catch(_err => {
+      .catch((_err) => {
         console.log(_err);
         if (_err.code === 409) {
           throw new HttpErrors.Conflict(_err.response.body.errorMessage);
@@ -378,7 +372,7 @@ export class UsersController {
       });
   }
 
-  @patch('/api/users/{_userKey}', {
+  @patch('/api/users', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -389,10 +383,9 @@ export class UsersController {
   @authenticate('jwt.access')
   async updateById(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.path.string('_userKey') _userKey: string,
     @requestBody(UserPatchRequestBody) user: Omit<Users, '_key'>,
   ): Promise<Users> {
-    this.checkUserKey(_userKey, currentUserProfile);
+    const _userKey = currentUserProfile[securityId];
 
     await this.usersRepository.updateById(_userKey, user);
     return this.usersRepository.findById(_userKey, {
@@ -400,7 +393,7 @@ export class UsersController {
     });
   }
 
-  @get('/api/users/{_userKey}/refresh-token', {
+  @get('/api/users/refresh-token', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -415,10 +408,11 @@ export class UsersController {
   ) {
     let user: Users,
       userProfile: UserProfile,
+      _userKey = currentUserProfile[securityId],
       accessToken: string,
       isMatched: boolean;
 
-    user = await this.usersRepository.findById(currentUserProfile[securityId]);
+    user = await this.usersRepository.findById(_userKey);
     isMatched = await this.passwordHasher.comparePassword(
       token.split(' ')[1],
       user.refreshToken,

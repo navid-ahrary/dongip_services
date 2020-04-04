@@ -12,7 +12,7 @@ import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {inject, service} from '@loopback/core';
 
-import {Users, Dongs} from '../models';
+import {Dongs} from '../models';
 import {UsersRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {DongsService} from '../services';
@@ -32,7 +32,7 @@ export class UsersDongsController {
     }
   }
 
-  @get('/api/users/{_userKey}/dongs', {
+  @get('/api/users/dongs', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -50,16 +50,15 @@ export class UsersDongsController {
   })
   @authenticate('jwt.access')
   async find(
-    @param.path.string('_userKey') _userKey: string,
     @param.query.object('filter') filter?: Filter<Dongs>,
   ): Promise<Dongs[]> {
-    this.checkUserKey(_userKey);
-
+    const _userKey = this.currentUserProfile[securityId];
     const _userId = 'Users/' + _userKey;
+
     return this.usersRepository.dongs(_userId).find(filter);
   }
 
-  @post('/api/users/{_userKey}/dongs', {
+  @post('/api/users/dongs', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -76,7 +75,6 @@ export class UsersDongsController {
   })
   @authenticate('jwt.access')
   async create(
-    @param.path.string('_userKey') _userKey: typeof Users.prototype._key,
     @requestBody({
       content: {
         'application/json': {
@@ -89,9 +87,9 @@ export class UsersDongsController {
     })
     dongs: Omit<Dongs, '_key'>,
   ): Promise<Dongs> {
-    this.checkUserKey(_userKey);
-
+    const _userKey = this.currentUserProfile[securityId];
     const userId = 'Users/' + _userKey;
+
     return this.dongsService.createNewDong(userId, dongs);
   }
 }

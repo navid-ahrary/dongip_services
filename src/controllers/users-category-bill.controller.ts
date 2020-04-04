@@ -11,7 +11,7 @@ import {inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 
-import {Users, CategoryBill} from '../models';
+import {CategoryBill} from '../models';
 import {UsersRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
@@ -29,7 +29,7 @@ export class UsersCategoryBillController {
     }
   }
 
-  @get('api/users/{_userKey}/category-bills', {
+  @get('api/users/category-bills', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -44,16 +44,15 @@ export class UsersCategoryBillController {
   })
   @authenticate('jwt.access')
   async find(
-    @param.path.string('_userKey') _userKey: typeof Users.prototype._key,
     @param.query.object('filter') filter?: Filter<CategoryBill>,
   ): Promise<CategoryBill[]> {
-    this.checkUserKey(_userKey);
-
+    const _userKey = this.currentUserProfile[securityId];
     const userId = 'Users/' + _userKey;
+
     return this.usersRepository.categoryBills(userId).find(filter);
   }
 
-  @post('/api/users/{_userKey}/category-bills', {
+  @post('/api/users/category-bills', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -68,7 +67,6 @@ export class UsersCategoryBillController {
   })
   @authenticate('jwt.access')
   async create(
-    @param.path.string('_userKey') _userKey: typeof Users.prototype._key,
     @requestBody({
       content: {
         'application/json': {
@@ -82,9 +80,9 @@ export class UsersCategoryBillController {
     })
     categoryBill: Omit<CategoryBill, '_key'>,
   ): Promise<CategoryBill> {
-    this.checkUserKey(_userKey);
-
+    const _userKey = this.currentUserProfile[securityId];
     const userId = 'Users/' + _userKey;
+
     return this.usersRepository.categoryBills(userId).create(categoryBill);
   }
 }

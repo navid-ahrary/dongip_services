@@ -19,7 +19,7 @@ import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 
-import {Users, Category} from '../models';
+import {Category} from '../models';
 import {UsersRepository, CategoryRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
@@ -41,7 +41,7 @@ export class UsersCategoryController {
     }
   }
 
-  @get('/api/users/{_userKey}/categories', {
+  @get('/api/users/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -56,15 +56,15 @@ export class UsersCategoryController {
   })
   @authenticate('jwt.access')
   async find(
-    @param.path.string('_userKey') _userKey: string,
     @param.query.object('filter') filter?: Filter<Category>,
   ): Promise<Category[]> {
-    this.checkUserKey(_userKey);
+    const _userKey = this.currentUserProfile[securityId];
     const userId = 'Users/' + _userKey;
+
     return this.usersRepository.categories(userId).find(filter);
   }
 
-  @post('/api/users/{_userKey}/categories', {
+  @post('/api/users/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -79,7 +79,6 @@ export class UsersCategoryController {
   })
   @authenticate('jwt.access')
   async create(
-    @param.path.string('_userKey') _userKey: typeof Users.prototype._key,
     @requestBody({
       content: {
         'application/json': {
@@ -98,13 +97,13 @@ export class UsersCategoryController {
     })
     category: Omit<Category, '_key'>,
   ): Promise<Category> {
-    this.checkUserKey(_userKey);
-
+    const _userKey = this.currentUserProfile[securityId];
     const userId = 'Users/' + _userKey;
+
     const createdCat = await this.usersRepository
       .categories(userId)
       .create(category)
-      .catch(_err => {
+      .catch((_err) => {
         console.log(_err);
         if (_err.code === 409) {
           const index = _err.response.body.errorMessage.indexOf('conflicting');
@@ -118,7 +117,7 @@ export class UsersCategoryController {
     return createdCat;
   }
 
-  @patch('/api/users/{_userKey}/categories', {
+  @patch('/api/users/categories', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -129,7 +128,6 @@ export class UsersCategoryController {
   })
   @authenticate('jwt.access')
   async patch(
-    @param.path.string('_userKey') _userKey: string,
     @requestBody({
       content: {
         'application/json': {
@@ -144,10 +142,10 @@ export class UsersCategoryController {
     @param.query.object('where', getWhereSchemaFor(Category))
     where?: Where<Category>,
   ): Promise<Count> {
-    this.checkUserKey(_userKey);
+    const _userKey = this.currentUserProfile[securityId];
+    const _userId = 'Users/' + _userKey;
 
     try {
-      const _userId = 'Users/' + _userKey;
       return await this.usersRepository
         .categories(_userId)
         .patch(category, where);

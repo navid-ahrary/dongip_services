@@ -54,7 +54,7 @@ export class UsersUsersRelsController {
     }
   }
 
-  @get('/api/users/{_userKey}/users-rels', {
+  @get('/api/users/users-rels', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -69,16 +69,15 @@ export class UsersUsersRelsController {
   })
   @authenticate('jwt.access')
   async find(
-    @param.path.string('_userKey') _userKey: string,
     @param.query.object('filter') filter?: Filter<UsersRels>,
   ): Promise<UsersRels[]> {
-    this.checkUserKey(_userKey);
+    const _userKey = this.currentUserProfile[securityId];
 
     const userId = 'Users/' + _userKey;
     const usersRelsList = await this.usersRepository
       .usersRels(userId)
       .find(filter);
-    usersRelsList.forEach(function(usersRel) {
+    usersRelsList.forEach(function (usersRel) {
       delete usersRel._to;
       delete usersRel._from;
       delete usersRel.targetUsersId;
@@ -86,13 +85,12 @@ export class UsersUsersRelsController {
     return usersRelsList;
   }
 
-  @post('/api/users/{_userKey}/users-rels/set-friend', {
+  @post('/api/users/users-rels/set-friend', {
     security: OPERATION_SECURITY_SPEC,
     responses: SetFriend,
   })
   @authenticate('jwt.access')
   async setFriend(
-    @param.path.string('_userKey') _userKey: string,
     @requestBody({
       content: {
         'application/json': {
@@ -107,7 +105,7 @@ export class UsersUsersRelsController {
     createdVirtualUser: VirtualUsers;
     createdUsersRelation: UsersRels;
   }> {
-    this.checkUserKey(_userKey);
+    const _userKey = this.currentUserProfile[securityId];
 
     try {
       // validate recipient phone number
@@ -156,7 +154,7 @@ export class UsersUsersRelsController {
     createdVirtualUser = await this.usersRepository
       .virtualUsers(userId)
       .create({phone: reqBody.phone})
-      .catch(async _err => {
+      .catch(async (_err) => {
         debug(_err);
         if (_err.code === 409) {
           const index =
@@ -182,7 +180,7 @@ export class UsersUsersRelsController {
     createdUsersRelation = await this.usersRepository
       .usersRels(userId)
       .create(userRel)
-      .catch(_err => {
+      .catch((_err) => {
         debug(_err);
         if (_err.code === 409) {
           const index = _err.response.body.errorMessage.indexOf('conflicting');
@@ -239,7 +237,7 @@ export class UsersUsersRelsController {
     };
   }
 
-  @post('/api/users/{_userKey}/users-rels/response-friend-request', {
+  @post('/api/users/users-rels/response-friend-request', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -249,7 +247,6 @@ export class UsersUsersRelsController {
   })
   @authenticate('jwt.access')
   async responseToFriendRequest(
-    @param.path.string('_userKey') _userKey: string,
     @requestBody({
       content: {
         'application/json': {
@@ -261,7 +258,7 @@ export class UsersUsersRelsController {
     })
     bodyReq: FriendRequest,
   ) {
-    this.checkUserKey(_userKey);
+    const _userKey = this.currentUserProfile[securityId];
 
     let requesterUser: Users | null,
       _userId = 'Users/' + _userKey,
@@ -396,7 +393,7 @@ export class UsersUsersRelsController {
     }
   }
 
-  @patch('/api/users/{_userKey}/users-rels', {
+  @patch('/api/users/users-rels', {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -407,7 +404,6 @@ export class UsersUsersRelsController {
   })
   @authenticate('jwt.access')
   async patch(
-    @param.path.string('_userKey') _userKey: string,
     @requestBody({
       content: {
         'application/json': {
@@ -422,7 +418,7 @@ export class UsersUsersRelsController {
     @param.query.object('where', getWhereSchemaFor(UsersRels))
     where?: Where<UsersRels>,
   ): Promise<Count> {
-    this.checkUserKey(_userKey);
+    const _userKey = this.currentUserProfile[securityId];
 
     const userId = 'Users/' + _userKey;
     return this.usersRepository.usersRels(userId).patch(usersRels, where);
