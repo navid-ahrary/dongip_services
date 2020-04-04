@@ -29,7 +29,7 @@
     "docker :run": "docker run -p 8080:8080 -d dongip_services",
     "migrate": "node ./dist/migrate",
     "prestart": "yarn run build",
-    "start": "node -r source-map-support/register .",
+    "start": "nodemon -r source-map-support/register .",
     "deploy": "pm2 start ecosystem.config.js --env production",
     "stop": "pm2 stop ecosystem.config.js --env production",
     "prepublishOnly": "yarn run test"
@@ -87,6 +87,7 @@
     "eslint-config-prettier": "^6.10.0",
     "eslint-plugin-eslint-plugin": "^2.2.1",
     "eslint-plugin-mocha": "^6.3.0",
+    "nodemon": "^2.0.2",
     "pm2": "^4.2.3",
     "source-map-support": "^0.5.16",
     "typescript": "~3.8.3"
