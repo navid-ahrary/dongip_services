@@ -1,23 +1,19 @@
+/* eslint-disable prefer-const */
 import {Filter, repository} from '@loopback/repository';
-import {
-  get,
-  getModelSchemaRef,
-  param,
-  post,
-  requestBody,
-  HttpErrors,
-} from '@loopback/rest';
+import {get, getModelSchemaRef, param, HttpErrors} from '@loopback/rest';
 import {inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 
 import {CategoryBill} from '../models';
-import {UsersRepository} from '../repositories';
+import {UsersRepository, UsersRelsRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
 export class UsersCategoryBillController {
   constructor(
     @repository(UsersRepository) protected usersRepository: UsersRepository,
+    @repository(UsersRelsRepository)
+    protected userRelRepository: UsersRelsRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {}
 
@@ -46,43 +42,53 @@ export class UsersCategoryBillController {
   async find(
     @param.query.object('filter') filter?: Filter<CategoryBill>,
   ): Promise<CategoryBill[]> {
-    const _userKey = this.currentUserProfile[securityId];
-    const userId = 'Users/' + _userKey;
+    let _userKey = this.currentUserProfile[securityId],
+      userId = 'Users/' + _userKey,
+      categoryBillList: CategoryBill[] = [];
 
-    return this.usersRepository.categoryBills(userId).find(filter);
+    const userSelfRel = await this.userRelRepository.findOne({
+      where: {_from: userId},
+    });
+
+    if (userSelfRel) {
+      categoryBillList = await this.usersRepository
+        .categoryBills(userSelfRel._from)
+        .find(filter);
+    }
+    return categoryBillList;
   }
 
-  @post('/api/users/category-bills', {
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'Users model instance',
-        content: {
-          'application/json': {
-            schema: getModelSchemaRef(CategoryBill),
-          },
-        },
-      },
-    },
-  })
-  @authenticate('jwt.access')
-  async create(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(CategoryBill, {
-            title: 'NewCategoryBillInUsers',
-            exclude: ['_key'],
-            optional: ['_from'],
-          }),
-        },
-      },
-    })
-    categoryBill: Omit<CategoryBill, '_key'>,
-  ): Promise<CategoryBill> {
-    const _userKey = this.currentUserProfile[securityId];
-    const userId = 'Users/' + _userKey;
+  // @post('/api/users/category-bills', {
+  //   security: OPERATION_SECURITY_SPEC,
+  //   responses: {
+  //     '200': {
+  //       description: 'Users model instance',
+  //       content: {
+  //         'application/json': {
+  //           schema: getModelSchemaRef(CategoryBill),
+  //         },
+  //       },
+  //     },
+  //   },
+  // })
+  // @authenticate('jwt.access')
+  // async create(
+  //   @requestBody({
+  //     content: {
+  //       'application/json': {
+  //         schema: getModelSchemaRef(CategoryBill, {
+  //           title: 'NewCategoryBillInUsers',
+  //           exclude: ['_key'],
+  //           optional: ['_from'],
+  //         }),
+  //       },
+  //     },
+  //   })
+  //   categoryBill: Omit<CategoryBill, '_key'>,
+  // ): Promise<CategoryBill> {
+  //   const _userKey = this.currentUserProfile[securityId];
+  //   const userId = 'Users/' + _userKey;
 
-    return this.usersRepository.categoryBills(userId).create(categoryBill);
-  }
+  //   return this.usersRepository.categoryBills(userId).create(categoryBill);
+  // }
 }
