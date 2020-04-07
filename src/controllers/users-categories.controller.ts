@@ -23,7 +23,7 @@ import {Category} from '../models';
 import {UsersRepository, CategoryRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
-export class UsersCategoryController {
+export class UsersCategoriesController {
   constructor(
     @repository(UsersRepository)
     protected usersRepository: UsersRepository,
@@ -65,10 +65,11 @@ export class UsersCategoryController {
   }
 
   @post('/api/users/categories', {
+    summary: 'Create new categories',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Users model instance',
+        description: 'Array of categories model instance',
         content: {
           'application/json': {
             schema: getModelSchemaRef(Category),
@@ -78,12 +79,13 @@ export class UsersCategoryController {
     },
   })
   @authenticate('jwt.access')
-  async create(
+  async createCategories(
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(Category, {
-            title: 'NewCategoryInUsers',
+            title: 'NewCategories',
+            partial: false,
             exclude: [
               '_key',
               '_id',
@@ -92,23 +94,35 @@ export class UsersCategoryController {
               'belongsToUserId',
             ],
           }),
+          example: [
+            {
+              title: 'مسافرت',
+              icon: 'assets/images/icons/travel/ic_normal_travel_03.png',
+            },
+          ],
         },
       },
     })
-    category: Omit<Category, '_key'>,
-  ): Promise<Category> {
+    newCategories: Omit<Category, '_key'>[],
+  ): Promise<Category[]> {
     const _userKey = this.currentUserProfile[securityId];
     const userId = 'Users/' + _userKey;
 
-    const createdCat = await this.usersRepository
-      .categories(userId)
-      .create(category)
-      .catch((_err) => {
-        console.log(_err);
-        if (_err.code === 409) {
-          const index = _err.response.body.errorMessage.indexOf('conflicting');
+    newCategories.forEach(cat => {
+      cat.belongsToUserId = userId;
+    });
+
+    const createdCat = await this.categoryRepository
+      .createAll(newCategories)
+      .catch(_err => {
+        console.log('Error: ', _err[0].response.body.errorMessage);
+        if (_err[0].code === 409) {
+          const index = _err[0].response.body.errorMessage.indexOf(
+            'conflicting',
+          );
+
           throw new HttpErrors.Conflict(
-            _err.response.body.errorMessage.slice(index),
+            _err[0].response.body.errorMessage.slice(index),
           );
         } else {
           throw new HttpErrors.NotAcceptable(_err);
