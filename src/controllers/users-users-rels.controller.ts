@@ -72,17 +72,18 @@ export class UsersUsersRelsController {
     @param.query.object('filter') filter?: Filter<UsersRels>,
   ): Promise<UsersRels[]> {
     const _userKey = this.currentUserProfile[securityId];
-
     const userId = 'Users/' + _userKey;
-    const usersRelsList = await this.usersRepository
-      .usersRels(userId)
-      .find(filter);
-    usersRelsList.forEach(function (usersRel) {
-      delete usersRel._to;
-      delete usersRel._from;
-      delete usersRel.targetUsersId;
+
+    // ignoring some props
+    filter = Object.assign(filter, {
+      fields: {
+        _from: false,
+        _to: false,
+        targetUsersId: false,
+      },
     });
-    return usersRelsList;
+
+    return this.usersRepository.usersRels(userId).find(filter);
   }
 
   @post('/api/users/users-rels/set-friend', {
@@ -147,14 +148,14 @@ export class UsersUsersRelsController {
         .usersRels(requesterUser._id)
         .find({where: {_to: recipientUser._id}});
       if (isRealFriend.length !== 0) {
-        throw new HttpErrors.NotAcceptable('You are real friends already!');
+        throw new HttpErrors.Conflict('Friendship relation is exist already!');
       }
     }
 
     createdVirtualUser = await this.usersRepository
       .virtualUsers(userId)
       .create({phone: reqBody.phone})
-      .catch(async (_err) => {
+      .catch(async _err => {
         debug(_err);
         if (_err.code === 409) {
           const index =
@@ -180,7 +181,7 @@ export class UsersUsersRelsController {
     createdUsersRelation = await this.usersRepository
       .usersRels(userId)
       .create(userRel)
-      .catch((_err) => {
+      .catch(_err => {
         debug(_err);
         if (_err.code === 409) {
           const index = _err.response.body.errorMessage.indexOf('conflicting');
