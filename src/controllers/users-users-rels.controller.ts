@@ -75,7 +75,8 @@ export class UsersUsersRelsController {
     const userId = 'Users/' + _userKey;
 
     // ignoring some props
-    filter = Object.assign(filter, {
+    filter = Object.assign({}, {
+      ...filter,
       fields: {
         _from: false,
         _to: false,
@@ -187,7 +188,7 @@ export class UsersUsersRelsController {
           const index = _err.response.body.errorMessage.indexOf('conflicting');
           throw new HttpErrors.Conflict(
             'Error create user relation ' +
-              _err.response.body.errorMessage.slice(index),
+            _err.response.body.errorMessage.slice(index),
           );
         }
         throw new HttpErrors.NotAcceptable(_err);
@@ -352,7 +353,7 @@ export class UsersUsersRelsController {
           await this.virtualUsersRepository.create(vu);
           debug(
             'Create deleted virual user again, cause of previous phase error' +
-              vu,
+            vu,
           );
           debug('userRels updatebyId error' + error);
           throw new HttpErrors.NotAcceptable(error.message);
