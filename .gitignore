@@ -28,7 +28,6 @@ coverage
 bower_components
 
 # node-waf configu
-      response.setHeader('X-Powered-By', ['Express', 'nginx Linux/SUSE']);
 
 # Dependency directories
 node_modules/
@@ -63,3 +62,4 @@ typings/
 *.tsbuildinfo
 
 .directory
+dongip-firebase-adminsdk.json
