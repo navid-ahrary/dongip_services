@@ -65,7 +65,70 @@ export class UsersCategoriesController {
   }
 
   @post('/api/users/categories', {
-    summary: 'Create new categories',
+    summary: 'Create a new category',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '200': {
+        description: 'A category model instance',
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(Category),
+          },
+        },
+      },
+    },
+  })
+  @authenticate('jwt.access')
+  async createCategory(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Category, {
+            title: 'NewCategory',
+            partial: false,
+            exclude: [
+              '_key',
+              '_id',
+              '_rev',
+              'categoryBills',
+              'belongsToUserId',
+            ],
+          }),
+          example: {
+            title: 'مسافرت',
+            icon: 'assets/images/icons/travel/ic_normal_travel_03.png',
+          },
+        },
+      },
+    })
+    newCategories: Omit<Category, '_key'>,
+  ): Promise<Category> {
+    const _userKey = this.currentUserProfile[securityId];
+    const userId = 'Users/' + _userKey;
+
+    newCategories.belongsToUserId = userId;
+
+    const createdCat = await this.categoryRepository
+      .create(newCategories)
+      .catch((_err) => {
+        console.log('Error: ', _err[0].response.body.errorMessage);
+        if (_err[0].code === 409) {
+          const index = _err[0].response.body.errorMessage.indexOf(
+            'conflicting',
+          );
+
+          throw new HttpErrors.Conflict(
+            _err[0].response.body.errorMessage.slice(index),
+          );
+        } else {
+          throw new HttpErrors.NotAcceptable(_err);
+        }
+      });
+    return createdCat;
+  }
+
+  @post('/api/users/categories/bunch', {
+    summary: 'Create bunch of new categories',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -79,7 +142,7 @@ export class UsersCategoriesController {
     },
   })
   @authenticate('jwt.access')
-  async createCategories(
+  async createSomeCategories(
     @requestBody({
       content: {
         'application/json': {
@@ -108,13 +171,13 @@ export class UsersCategoriesController {
     const _userKey = this.currentUserProfile[securityId];
     const userId = 'Users/' + _userKey;
 
-    newCategories.forEach(cat => {
+    newCategories.forEach((cat) => {
       cat.belongsToUserId = userId;
     });
 
     const createdCat = await this.categoryRepository
       .createAll(newCategories)
-      .catch(_err => {
+      .catch((_err) => {
         console.log('Error: ', _err[0].response.body.errorMessage);
         if (_err[0].code === 409) {
           const index = _err[0].response.body.errorMessage.indexOf(
