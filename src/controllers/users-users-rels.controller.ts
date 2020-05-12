@@ -75,14 +75,17 @@ export class UsersUsersRelsController {
     const userId = 'Users/' + _userKey;
 
     // ignoring some props
-    filter = Object.assign({}, {
-      ...filter,
-      fields: {
-        _from: false,
-        _to: false,
-        targetUsersId: false,
+    filter = Object.assign(
+      {},
+      {
+        ...filter,
+        fields: {
+          _from: false,
+          _to: false,
+          targetUsersId: false,
+        },
       },
-    });
+    );
 
     return this.usersRepository.usersRels(userId).find(filter);
   }
@@ -156,7 +159,7 @@ export class UsersUsersRelsController {
     createdVirtualUser = await this.usersRepository
       .virtualUsers(userId)
       .create({phone: reqBody.phone})
-      .catch(async _err => {
+      .catch(async (_err) => {
         debug(_err);
         if (_err.code === 409) {
           const index =
@@ -182,13 +185,13 @@ export class UsersUsersRelsController {
     createdUsersRelation = await this.usersRepository
       .usersRels(userId)
       .create(userRel)
-      .catch(_err => {
+      .catch((_err) => {
         debug(_err);
         if (_err.code === 409) {
           const index = _err.response.body.errorMessage.indexOf('conflicting');
           throw new HttpErrors.Conflict(
             'Error create user relation ' +
-            _err.response.body.errorMessage.slice(index),
+              _err.response.body.errorMessage.slice(index),
           );
         }
         throw new HttpErrors.NotAcceptable(_err);
@@ -353,7 +356,7 @@ export class UsersUsersRelsController {
           await this.virtualUsersRepository.create(vu);
           debug(
             'Create deleted virual user again, cause of previous phase error' +
-            vu,
+              vu,
           );
           debug('userRels updatebyId error' + error);
           throw new HttpErrors.NotAcceptable(error.message);
@@ -395,7 +398,10 @@ export class UsersUsersRelsController {
     }
   }
 
-  @patch('/api/users/users-rels', {
+  @patch('/api/users/users-rels/{userRelKey}', {
+    summary: 'Update a userRel by key in path',
+    description:
+      'برای تغییر در یک پراپرتی یا چند پراپ، فقط همان فیلدها مورد نظر با مقادیر تغییر یافته اش ارسال میشه',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -411,18 +417,49 @@ export class UsersUsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             partial: true,
-            exclude: ['_from', '_to', '_rev', 'type', 'targetUsersId'],
+            exclude: [
+              '_key',
+              '_id',
+              '_from',
+              '_to',
+              '_rev',
+              'type',
+              'targetUsersId',
+              'phone',
+            ],
           }),
+          examples: {
+            multiProps: {
+              summary: 'آپدیت چند پراپس همزمان',
+              value: {
+                alias: 'عبدالعلی',
+                avatar: 'assets/avatar/avatar_1.png',
+              },
+            },
+          },
         },
       },
     })
     usersRels: Partial<UsersRels>,
-    @param.query.object('where', getWhereSchemaFor(UsersRels))
-    where?: Where<UsersRels>,
+    @param.path.string('userRelKey')
+    userRelKey: typeof UsersRels.prototype._key,
   ): Promise<Count> {
     const _userKey = this.currentUserProfile[securityId];
-
     const userId = 'Users/' + _userKey;
-    return this.usersRepository.usersRels(userId).patch(usersRels, where);
+
+    try {
+      return await this.usersRepository.usersRels(userId).patch(usersRels, {
+        and: [{targetUsersId: userId}, {_key: userRelKey}],
+      });
+    } catch (_err) {
+      console.log(_err);
+      if (_err.code === 409) {
+        const index = _err.response.body.errorMessage.indexOf('conflicting');
+        throw new HttpErrors.Conflict(
+          _err.response.body.errorMessage.slice(index),
+        );
+      }
+      throw new HttpErrors.NotAcceptable(_err.message);
+    }
   }
 }
