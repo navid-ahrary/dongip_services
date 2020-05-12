@@ -194,7 +194,10 @@ export class UsersCategoriesController {
     return createdCat;
   }
 
-  @patch('/api/users/categories', {
+  @patch('/api/users/categories/{categoryKey}', {
+    summary: 'Update a category by key in path',
+    description:
+      'برای تغییر در یک پراپرتی یا چند پراپ، فقط همان فیلدها مورد نظر با مقادیر تغییر یافته اش ارسال میشه',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -205,6 +208,8 @@ export class UsersCategoriesController {
   })
   @authenticate('jwt.access')
   async patch(
+    @param.path.string('categoryKey')
+    categoryKey: typeof Category.prototype._key,
     @requestBody({
       content: {
         'application/json': {
@@ -212,20 +217,35 @@ export class UsersCategoriesController {
             partial: true,
             exclude: ['_rev', '_id', '_key', 'belongsToUserId'],
           }),
+          examples: {
+            oneProp: {
+              summary: 'مثالی برای تغییر تنها یک فیلد',
+              value: {
+                icon: 'assets/cat4/icon_3.png',
+              },
+            },
+            multiProps: {
+              summary: 'تغییر چند فیلد همزمان',
+              value: {
+                title: 'قسط',
+                icon: 'assets/cat4/icon_3.png',
+              },
+            },
+          },
         },
       },
     })
     category: Partial<Category>,
-    @param.query.object('where', getWhereSchemaFor(Category))
-    where?: Where<Category>,
   ): Promise<Count> {
-    const _userKey = this.currentUserProfile[securityId];
-    const _userId = 'Users/' + _userKey;
+    const userKey = this.currentUserProfile[securityId];
+    const userId = 'Users/' + userKey;
 
     try {
       return await this.usersRepository
-        .categories(_userId)
-        .patch(category, where);
+        .categories(userId)
+        .patch(category, {
+          and: [{_key: categoryKey}, {belongsToUserId: userId}],
+        });
     } catch (_err) {
       console.log(_err);
       if (_err.code === 409) {
