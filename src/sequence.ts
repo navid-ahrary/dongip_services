@@ -15,8 +15,14 @@ import {
   AUTHENTICATION_STRATEGY_NOT_FOUND,
   USER_PROFILE_NOT_FOUND,
 } from '@loopback/authentication';
+import {Middleware} from '@loopback/express';
+import helmet from 'helmet'; // for security
 
 const SequenceActions = RestBindings.SequenceActions;
+
+const middlewareList: ExpressMiddleware[] = [
+  helmet({}), // options fixed and can not be chaged at runtime
+];
 
 export class MyAuthenticationSequence implements SequenceHandler {
   /**
@@ -41,6 +47,8 @@ export class MyAuthenticationSequence implements SequenceHandler {
     @inject(SequenceActions.INVOKE_METHOD) protected invoke: InvokeMethod,
     @inject(SequenceActions.SEND) public send: Send,
     @inject(SequenceActions.REJECT) public reject: Reject,
+    @inject(SequenceActions.MIDDLEWARE, {optional: true})
+    protected invokeMiddleware: InvokeMiddleware = () => false,
     @inject(AuthenticationBindings.AUTH_ACTION)
     protected authenticationRequest: AuthenticateFn,
   ) {}
@@ -48,6 +56,9 @@ export class MyAuthenticationSequence implements SequenceHandler {
   async handle(context: RequestContext) {
     try {
       const {request, response} = context;
+      const finished = await this.invokeMiddleware(context, middlewareList);
+      if (finished) return;
+
       const route = this.findRoute(request);
 
       //call authentication action
