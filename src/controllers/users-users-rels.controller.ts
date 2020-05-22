@@ -159,7 +159,7 @@ export class UsersUsersRelsController {
     createdVirtualUser = await this.usersRepository
       .virtualUsers(userId)
       .create({phone: reqBody.phone})
-      .catch(async (_err) => {
+      .catch(async _err => {
         debug(_err);
         if (_err.code === 409) {
           const index =
@@ -185,7 +185,7 @@ export class UsersUsersRelsController {
     createdUsersRelation = await this.usersRepository
       .usersRels(userId)
       .create(userRel)
-      .catch((_err) => {
+      .catch(_err => {
         debug(_err);
         if (_err.code === 409) {
           const index = _err.response.body.errorMessage.indexOf('conflicting');
@@ -401,12 +401,11 @@ export class UsersUsersRelsController {
   @patch('/api/users/users-rels/{userRelKey}', {
     summary: 'Update a userRel by key in path',
     description:
-      'برای تغییر در یک پراپرتی یا چند پراپ، فقط همان فیلدها مورد نظر با مقادیر تغییر یافته اش ارسال میشه',
+      'برای تغییر در یک پراپرتی یا چند پراپ، فقط فیلدهای مورد نظر با مقادیر تغییر یافته اش ارسال می شود',
     security: OPERATION_SECURITY_SPEC,
     responses: {
-      '200': {
+      '204': {
         description: 'Users.UsersRels PATCH success count',
-        content: {'application/json': {schema: CountSchema}},
       },
     },
   })
@@ -430,7 +429,7 @@ export class UsersUsersRelsController {
           }),
           examples: {
             multiProps: {
-              summary: 'آپدیت چند پراپس همزمان',
+              summary: 'آپدیت چند پراپرتیس همزمان',
               value: {
                 alias: 'عبدالعلی',
                 avatar: 'assets/avatar/avatar_1.png',
@@ -443,13 +442,14 @@ export class UsersUsersRelsController {
     usersRels: Partial<UsersRels>,
     @param.path.string('userRelKey')
     userRelKey: typeof UsersRels.prototype._key,
-  ): Promise<Count> {
+  ): Promise<void> {
     const _userKey = this.currentUserProfile[securityId];
     const userId = 'Users/' + _userKey;
+    let count;
 
     try {
-      return await this.usersRepository.usersRels(userId).patch(usersRels, {
-        and: [{targetUsersId: userId}, {_key: userRelKey}],
+      count = await this.usersRepository.usersRels(userId).patch(usersRels, {
+        and: [{_from: userId}, {_key: userRelKey}],
       });
     } catch (_err) {
       console.log(_err);
@@ -460,6 +460,9 @@ export class UsersUsersRelsController {
         );
       }
       throw new HttpErrors.NotAcceptable(_err.message);
+    }
+    if (!count.count) {
+      throw new HttpErrors.NotFound('UserRelKey not found!');
     }
   }
 }
