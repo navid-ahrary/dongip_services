@@ -145,6 +145,21 @@ export const UserPatchRequestBody = {
           'organization',
         ],
       }),
+      examples: {
+        multiProps: {
+          summary: 'Update some properties',
+          value: {
+            name: 'Aref',
+            avatar: 'assets/avatar/avatar_1.png',
+          },
+        },
+        sigleProp: {
+          summary: 'Update a property',
+          value: {
+            avatar: 'assets/avatar/avatar_1.png',
+          },
+        },
+      },
     },
   },
 };

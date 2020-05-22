@@ -375,6 +375,8 @@ export class UsersController {
   }
 
   @patch('/api/users', {
+    summary: 'Update user properties',
+    description: 'Request body includes desired properties to update',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
