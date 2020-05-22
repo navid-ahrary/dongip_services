@@ -141,6 +141,8 @@ export const UserPatchRequestBody = {
           'refreshToken',
           'usersRels',
           'userAgent',
+          'password',
+          'organization',
         ],
       }),
     },

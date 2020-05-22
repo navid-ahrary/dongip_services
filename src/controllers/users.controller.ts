@@ -107,7 +107,9 @@ export class UsersController {
     let status = false,
       avatar = 'dongip',
       name = 'noob',
-      randomCode = Math.random().toFixed(7).slice(3),
+      randomCode = Math.random()
+        .toFixed(7)
+        .slice(3),
       randomStr = this.generateRandomString(3),
       payload,
       token: string,
@@ -146,7 +148,7 @@ export class UsersController {
         ip: userIp,
         issuedAt: new Date(),
       })
-      .then(async (_res) => {
+      .then(async _res => {
         userProfile = {
           [securityId]: _res._key,
           aud: 'verify',
@@ -169,7 +171,7 @@ export class UsersController {
           throw new HttpErrors.UnprocessableEntity(_err.message);
         }
       })
-      .catch((_err) => {
+      .catch(_err => {
         console.log(_err);
         throw new HttpErrors.Conflict(_err.message);
       });
@@ -360,7 +362,7 @@ export class UsersController {
         token: authorizationHeader.split(' ')[1],
         createdAt: new Date(),
       })
-      .catch((_err) => {
+      .catch(_err => {
         console.log(_err);
         if (_err.code === 409) {
           throw new HttpErrors.Conflict(_err.response.body.errorMessage);
@@ -384,13 +386,14 @@ export class UsersController {
   async updateById(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody(UserPatchRequestBody) user: Omit<Users, '_key'>,
-  ): Promise<Users> {
+  ): Promise<void> {
     const _userKey = currentUserProfile[securityId];
 
-    await this.usersRepository.updateById(_userKey, user);
-    return this.usersRepository.findById(_userKey, {
-      fields: {_rev: true},
-    });
+    try {
+      return await this.usersRepository.updateById(_userKey, user);
+    } catch (err) {
+      throw new HttpErrors.NotAcceptable(err.message);
+    }
   }
 
   @get('/api/users/refresh-token', {
