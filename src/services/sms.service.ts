@@ -13,16 +13,16 @@ export class SmsService {
 
   smsApi = Kavenegar.KavenegarApi({apikey: process.env.KAVENEGAR_API});
 
-  public sendSms(template: string, token: string, receptor: string) {
+  public sendSms(template: string, payload: string, receptor: string) {
     this.smsApi.VerifyLookup(
       {
-        token: token,
+        token: payload,
         template: template,
         type: 'sms',
         receptor: receptor.replace('+98', '0'),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       },
-      function(_response: any, _status: any) {
+      function (_response: any, _status: any) {
         debug(_response, _status);
       },
     );
