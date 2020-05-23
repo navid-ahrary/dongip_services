@@ -44,8 +44,6 @@ export class MyApplication extends BootMixin(
   constructor(options: ApplicationConfig = {}) {
     super(options);
 
-    this.hashRound = Number(process.env.HASH_ROUND);
-
     this.api({
       openapi: '3.0.0',
       info: {title: pkg.name, version: pkg.version},
@@ -105,7 +103,7 @@ export class MyApplication extends BootMixin(
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
 
     // Bind bcrypt hash service
-    this.bind(PasswordHasherBindings.ROUNDS).to(this.hashRound);
+    this.bind(PasswordHasherBindings.ROUNDS).to(Number(process.env.HASH_ROUND));
     this.bind(PasswordHasherBindings.PASSWORD_HASHER).toClass(BcryptHasher);
 
     this.bind(UserServiceBindings.USER_SERVICE).toClass(MyUserService);
