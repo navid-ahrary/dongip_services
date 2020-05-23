@@ -12,17 +12,17 @@ import {PasswordHasherBindings} from '../keys';
 
 @bind({scope: BindingScope.TRANSIENT})
 export class VerifyService {
-  constructor (
+  constructor(
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
     public passwordHasher: PasswordHasher,
-    @repository(VerifyRepository) public verifyRepo: VerifyRepository
+    @repository(VerifyRepository) public verifyRepo: VerifyRepository,
   ) {}
 
-  public async verifyCredentials (credentials: Credentials, ip: string): Promise<Verify> {
+  public async verifyCredentials(credentials: Credentials): Promise<Verify> {
     const invalidCredentialsError = 'Invalid credentials! ';
 
     const foundVerify = await this.verifyRepo.findOne({
-      where: {phone: credentials.phone, ip: ip},
+      where: {phone: credentials.phone},
     });
 
     if (!foundVerify) {
@@ -31,7 +31,8 @@ export class VerifyService {
     }
 
     const isMatched = await this.passwordHasher.comparePassword(
-      credentials.password, foundVerify.password
+      credentials.password,
+      foundVerify.password,
     );
 
     if (!isMatched) {

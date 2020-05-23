@@ -107,16 +107,12 @@ export class UsersController {
     let status = false,
       avatar = 'dongip',
       name = 'noob',
-      randomCode = Math.random()
-        .toFixed(7)
-        .slice(3),
+      randomCode = Math.random().toFixed(7).slice(3),
       randomStr = this.generateRandomString(3),
       payload,
       token: string,
-      userIp = this.ctx.request.connection.remoteAddress,
       user: Users | null,
       userProfile: UserProfile;
-    if (userIp === '127.0.0.1') userIp = '5.115.188.251';
 
     try {
       validatePhoneNumber(body.phone);
@@ -145,10 +141,9 @@ export class UsersController {
         registered: status,
         registerationToken: body.registerationToken,
         agent: userAgent,
-        ip: userIp,
         issuedAt: new Date(),
       })
-      .then(async _res => {
+      .then(async (_res) => {
         userProfile = {
           [securityId]: _res._key,
           aud: 'verify',
@@ -171,7 +166,7 @@ export class UsersController {
           throw new HttpErrors.UnprocessableEntity(_err.message);
         }
       })
-      .catch(_err => {
+      .catch((_err) => {
         console.log(_err);
         throw new HttpErrors.Conflict(_err.message);
       });
@@ -206,10 +201,7 @@ export class UsersController {
     let userProfile: UserProfile,
       user: Users,
       verify: Verify,
-      userIp = this.ctx.request.connection.remoteAddress,
-      userIpInfo: any,
       accessToken: string;
-    if (userIp === '127.0.0.1') userIp = '5.115.188.251';
 
     try {
       validatePhoneNumber(credentials.phone);
@@ -219,22 +211,14 @@ export class UsersController {
     }
 
     try {
-      verify = await this.verifySerivce.verifyCredentials(credentials, userIp!);
+      verify = await this.verifySerivce.verifyCredentials(credentials);
 
       //ensure the user exists and the password is correct
       user = await this.userService.verifyCredentials(credentials);
 
-      userIpInfo = await this.ipInfoService.getIpData(userIp!);
-
       this.usersRepository.updateById(user._key, {
         userAgent: verify.agent,
         registerationToken: verify.registerationToken,
-        timezone: userIpInfo.timezone,
-        location: userIpInfo.loc.split(','),
-        country: userIpInfo.country,
-        city: userIpInfo.city,
-        region: userIpInfo.region,
-        organization: userIpInfo.org,
       });
     } catch (_err) {
       console.log(_err);
@@ -278,13 +262,10 @@ export class UsersController {
       verify: Verify,
       accessToken: string,
       userProfile: UserProfile,
-      userIp = this.ctx.request.connection.remoteAddress,
-      userIpInfo: any,
       credentials = Object.assign(new Credentials(), {
         phone: newUser.phone,
         password: newUser.password,
       });
-    if (userIp === '127.0.0.1') userIp = '5.115.188.251';
 
     try {
       validatePhoneNumber(credentials.phone);
@@ -293,21 +274,13 @@ export class UsersController {
       throw new HttpErrors.UnprocessableEntity(_err.message);
     }
 
-    verify = await this.verifySerivce.verifyCredentials(credentials, userIp!);
-
-    userIpInfo = await this.ipInfoService.getIpData(userIp!);
+    verify = await this.verifySerivce.verifyCredentials(credentials);
 
     try {
       Object.assign(newUser, {
         registeredAt: new Date(),
         registerationToken: verify.registerationToken,
         userAgent: verify.agent,
-        timezone: userIpInfo.timezone,
-        location: userIpInfo.loc.split(','),
-        country: userIpInfo.country,
-        city: userIpInfo.city,
-        region: userIpInfo.region,
-        organization: userIpInfo.org,
       });
       delete newUser.password;
 
@@ -362,7 +335,7 @@ export class UsersController {
         token: authorizationHeader.split(' ')[1],
         createdAt: new Date(),
       })
-      .catch(_err => {
+      .catch((_err) => {
         console.log(_err);
         if (_err.code === 409) {
           throw new HttpErrors.Conflict(_err.response.body.errorMessage);

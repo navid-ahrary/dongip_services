@@ -33,7 +33,7 @@ export class Users extends Entity {
   phone: string;
 
   @property({
-    type: 'string'
+    type: 'string',
   })
   password: string;
 
@@ -50,42 +50,42 @@ export class Users extends Entity {
   })
   avatar: string;
 
-  @property({
-    type: 'string',
-    required: false,
-  })
-  timezone: string;
+  // @property({
+  //   type: 'string',
+  //   required: false,
+  // })
+  // timezone: string;
 
-  @property({
-    type: 'array',
-    itemType: 'string',
-    required: false,
-  })
-  location: string[];
+  // @property({
+  //   type: 'array',
+  //   itemType: 'string',
+  //   required: false,
+  // })
+  // location: string[];
 
-  @property({
-    type: 'string',
-    required: false,
-  })
-  region: string;
+  // @property({
+  //   type: 'string',
+  //   required: false,
+  // })
+  // region: string;
 
-  @property({
-    type: 'string',
-    required: false,
-  })
-  country: string;
+  // @property({
+  //   type: 'string',
+  //   required: false,
+  // })
+  // country: string;
 
-  @property({
-    type: 'string',
-    required: false,
-  })
-  city: string;
+  // @property({
+  //   type: 'string',
+  //   required: false,
+  // })
+  // city: string;
 
-  @property({
-    type: 'string',
-    required: false,
-  })
-  organization: string;
+  // @property({
+  //   type: 'string',
+  //   required: false,
+  // })
+  // organization: string;
 
   @property({
     type: 'date',
@@ -101,7 +101,7 @@ export class Users extends Entity {
 
   @property({
     type: 'string',
-    required: false
+    required: false,
   })
   accountType = 'bronze';
 
@@ -132,12 +132,11 @@ export class Users extends Entity {
   @hasMany(() => CategoryBill, {keyTo: '_to'})
   categoryBills: CategoryBill[];
 
-  constructor (data?: Partial<Users>) {
+  constructor(data?: Partial<Users>) {
     super(data);
   }
 }
 
-export interface UsersRelations {
-}
+export interface UsersRelations {}
 
 export type UsersWithRelations = Users & UsersRelations;
