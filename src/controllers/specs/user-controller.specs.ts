@@ -1,5 +1,4 @@
 import {getModelSchemaRef} from '@loopback/rest';
-
 import {Users, Verify} from '../../models';
 
 export const UserLoginResponse = {
@@ -162,42 +161,6 @@ export const CredentialsRequestBody = {
           },
           phone: {
             type: 'string',
-          },
-        },
-      },
-    },
-  },
-};
-
-export const SetFriend = {
-  '200': {
-    description: 'Set a friend request',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'object',
-          properties: {
-            createdVirtualUser: {
-              properties: {
-                _key: {type: 'string'},
-                _id: {type: 'string'},
-                _rev: {type: 'string'},
-                phone: {type: 'string'},
-                belongsToUserId: {type: 'string'},
-              },
-            },
-            createdUsersRelation: {
-              properties: {
-                _key: {type: 'string'},
-                _id: {type: 'string'},
-                _rev: {type: 'string'},
-                _from: {type: 'string'},
-                _to: {type: 'string'},
-                alias: {type: 'string'},
-                avatar: {type: 'string'},
-                type: {type: 'string'},
-              },
-            },
           },
         },
       },

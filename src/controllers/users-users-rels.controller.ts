@@ -31,7 +31,6 @@ import {
   UsersRelsRepository,
 } from '../repositories';
 import {FirebaseService, validatePhoneNumber} from '../services';
-import {SetFriend} from './specs/user-controller.specs';
 
 export class UsersUsersRelsController {
   constructor(
@@ -55,10 +54,11 @@ export class UsersUsersRelsController {
   }
 
   @get('/api/users/users-rels', {
+    summary: 'Get array of all UsersRels',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Array of Users has many rels based on optional filter',
+        description: 'Array of UsersRels',
         content: {
           'application/json': {
             schema: {type: 'array', items: getModelSchemaRef(UsersRels)},
@@ -68,31 +68,26 @@ export class UsersUsersRelsController {
     },
   })
   @authenticate('jwt.access')
-  async find(
-    @param.query.object('filter') filter?: Filter<UsersRels>,
-  ): Promise<UsersRels[]> {
+  async find(): Promise<UsersRels[]> {
     const _userKey = this.currentUserProfile[securityId];
     const userId = 'Users/' + _userKey;
 
-    // ignoring some props
-    filter = Object.assign(
-      {},
-      {
-        ...filter,
-        fields: {
-          _from: false,
-          _to: false,
-          targetUsersId: false,
-        },
-      },
-    );
-
-    return this.usersRepository.usersRels(userId).find(filter);
+    return this.usersRepository.usersRels(userId).find();
   }
 
-  @post('/api/users/users-rels/set-friend', {
+  @post('/api/users/users-rels', {
+    summary: 'Create a new UsersRels',
     security: OPERATION_SECURITY_SPEC,
-    responses: SetFriend,
+    responses: {
+      '200': {
+        description: 'New UsersRels',
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(UsersRels),
+          },
+        },
+      },
+    },
   })
   @authenticate('jwt.access')
   async setFriend(
@@ -102,14 +97,16 @@ export class UsersUsersRelsController {
           schema: getModelSchemaRef(FriendRequest, {
             exclude: ['relationId', 'status', 'virtualUserId'],
           }),
+          example: {
+            phone: '+989122222222',
+            avatar: '/assets/avatar/avatar_12.png',
+            alias: 'Samood',
+          },
         },
       },
     })
     reqBody: FriendRequest,
-  ): Promise<{
-    createdVirtualUser: VirtualUsers;
-    createdUsersRelation: UsersRels;
-  }> {
+  ): Promise<UsersRels> {
     const _userKey = this.currentUserProfile[securityId];
 
     try {
@@ -123,14 +120,13 @@ export class UsersUsersRelsController {
     let requesterUser: Users,
       recipientUser: Users | VirtualUsers | null,
       createdVirtualUser: VirtualUsers,
-      createdUsersRelation: UsersRels,
+      // createdUsersRelation: UsersRels,
       userId = 'Users/' + _userKey,
-      payload,
+      // payload,
       userRel = {
         _to: '',
         alias: reqBody.alias,
         avatar: reqBody.avatar,
-        targetUsersId: '',
         type: 'virtual',
         phone: '',
       };
@@ -141,7 +137,6 @@ export class UsersUsersRelsController {
     });
 
     if (recipientUser) {
-      userRel.targetUsersId = recipientUser._id;
       if (_userKey === recipientUser._key) {
         throw new HttpErrors.NotAcceptable(
           'You are the best friend of yourself! :)',
@@ -159,7 +154,7 @@ export class UsersUsersRelsController {
     createdVirtualUser = await this.usersRepository
       .virtualUsers(userId)
       .create({phone: reqBody.phone})
-      .catch(async _err => {
+      .catch(async (_err) => {
         debug(_err);
         if (_err.code === 409) {
           const index =
@@ -182,10 +177,10 @@ export class UsersUsersRelsController {
     userRel._to = createdVirtualUser._id;
     userRel.phone = createdVirtualUser.phone;
 
-    createdUsersRelation = await this.usersRepository
+    return this.usersRepository
       .usersRels(userId)
       .create(userRel)
-      .catch(_err => {
+      .catch((_err) => {
         debug(_err);
         if (_err.code === 409) {
           const index = _err.response.body.errorMessage.indexOf('conflicting');
@@ -196,207 +191,207 @@ export class UsersUsersRelsController {
         }
         throw new HttpErrors.NotAcceptable(_err);
       });
-    delete createdUsersRelation.targetUsersId;
 
-    await this.virtualUsersRepository.usersRels(createdVirtualUser._id).create({
-      _to: requesterUser._id,
-      alias: requesterUser.name,
-      avatar: requesterUser.avatar,
-      type: 'virtual',
-      phone: requesterUser.phone,
-    });
+    // await this.virtualUsersRepository.usersRels(createdVirtualUser._id).create({
+    //   _to: requesterUser._id,
+    //   alias: requesterUser.name,
+    //   avatar: requesterUser.avatar,
+    //   type: 'virtual',
+    //   phone: requesterUser.phone,
+    // });
 
-    if (requesterUser && recipientUser) {
-      payload = {
-        notification: {
-          title: 'دنگیپ درخواست دوستی',
-          body:
-            requesterUser.name +
-            'با شماره موبایل' +
-            requesterUser.phone +
-            'ازشما درخواست دوستی کرده',
-        },
-        data: {
-          virtualUserId: createdVirtualUser._key[1],
-          relationId: createdUsersRelation._key[1],
-          name: requesterUser.name,
-          phone: requesterUser.phone,
-        },
-      };
-      const options = {
-        priority: 'normal',
-        contentAvailable: true,
-        mutableContent: false,
-      };
-      // send friend request notofication to recipient user client
-      this.firebaseService.sendToDeviceMessage(
-        recipientUser.registerationToken,
-        payload,
-        options,
-      );
-    }
+    // notification
+    // if (requesterUser && recipientUser) {
+    //   payload = {
+    //     notification: {
+    //       title: 'دنگیپ درخواست دوستی',
+    //       body:
+    //         requesterUser.name +
+    //         'با شماره موبایل' +
+    //         requesterUser.phone +
+    //         'ازشما درخواست دوستی کرده',
+    //     },
+    //     data: {
+    //       virtualUserId: createdVirtualUser._key[1],
+    //       relationId: createdUsersRelation._key[1],
+    //       name: requesterUser.name,
+    //       phone: requesterUser.phone,
+    //     },
+    //   };
+    //   const options = {
+    //     priority: 'normal',
+    //     contentAvailable: true,
+    //     mutableContent: false,
+    //   };
+    //   // send friend request notofication to recipient user client
+    //   this.firebaseService.sendToDeviceMessage(
+    //     recipientUser.registerationToken,
+    //     payload,
+    //     options,
+    //   );
+    // }
 
-    return {
-      createdVirtualUser,
-      createdUsersRelation,
-    };
+    // return {
+    //   createdVirtualUser,
+    //   createdUsersRelation,
+    // };
   }
 
-  @post('/api/users/users-rels/response-friend-request', {
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'Response to friend request ',
-      },
-    },
-  })
-  @authenticate('jwt.access')
-  async responseToFriendRequest(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(FriendRequest, {
-            exclude: ['avatar', 'phone'],
-          }),
-        },
-      },
-    })
-    bodyReq: FriendRequest,
-  ) {
-    const _userKey = this.currentUserProfile[securityId];
+  // @post('/api/users/users-rels/response-friend-request', {
+  //   security: OPERATION_SECURITY_SPEC,
+  //   responses: {
+  //     '200': {
+  //       description: 'Response to friend request ',
+  //     },
+  //   },
+  // })
+  // @authenticate('jwt.access')
+  // async responseToFriendRequest(
+  //   @requestBody({
+  //     content: {
+  //       'application/json': {
+  //         schema: getModelSchemaRef(FriendRequest, {
+  //           exclude: ['avatar', 'phone'],
+  //         }),
+  //       },
+  //     },
+  //   })
+  //   bodyReq: FriendRequest,
+  // ) {
+  //   const _userKey = this.currentUserProfile[securityId];
 
-    let requesterUser: Users | null,
-      _userId = 'Users/' + _userKey,
-      ur: UsersRels | null,
-      recipientUser: Users,
-      backUserRel: UsersRels,
-      vu: VirtualUsers,
-      response = {};
+  //   let requesterUser: Users | null,
+  //     _userId = 'Users/' + _userKey,
+  //     ur: UsersRels | null,
+  //     recipientUser: Users,
+  //     backUserRel: UsersRels,
+  //     vu: VirtualUsers,
+  //     response = {};
 
-    // Find the recipient user
-    recipientUser = await this.usersRepository.findById(_userKey);
-    // Find the user relation edge
-    ur = await this.usersRelsRepository.findOne({
-      where: {
-        and: [
-          {_key: bodyReq.relationId.split('/')[1]},
-          {_to: bodyReq.virtualUserId},
-          {targetUsersId: recipientUser._id},
-        ],
-      },
-    });
-    if (!ur) {
-      debug('There is not friend request fired!');
-      throw new HttpErrors.NotFound('There is not fired friend request!');
-    }
-    // Check requester and recipient is not the same
-    if (_userId === ur._from) {
-      debug("requester's key and recipient's key is the same! ");
-      throw new HttpErrors.NotAcceptable(
-        "requester's key and recipient's key is the same! ",
-      );
-    }
-    // Find the requester user
-    requesterUser = await this.usersRepository.findById(ur._from.split('/')[1]);
-    if (!requesterUser) {
-      debug('Requester user is not found! ');
-      throw new HttpErrors.NotFound('Requester user is not found! ');
-    }
+  //   // Find the recipient user
+  //   recipientUser = await this.usersRepository.findById(_userKey);
+  //   // Find the user relation edge
+  //   ur = await this.usersRelsRepository.findOne({
+  //     where: {
+  //       and: [
+  //         {_key: bodyReq.relationId.split('/')[1]},
+  //         {_to: bodyReq.virtualUserId},
+  //         {targetUsersId: recipientUser._id},
+  //       ],
+  //     },
+  //   });
+  //   if (!ur) {
+  //     debug('There is not friend request fired!');
+  //     throw new HttpErrors.NotFound('There is not fired friend request!');
+  //   }
+  //   // Check requester and recipient is not the same
+  //   if (_userId === ur._from) {
+  //     debug("requester's key and recipient's key is the same! ");
+  //     throw new HttpErrors.NotAcceptable(
+  //       "requester's key and recipient's key is the same! ",
+  //     );
+  //   }
+  //   // Find the requester user
+  //   requesterUser = await this.usersRepository.findById(ur._from.split('/')[1]);
+  //   if (!requesterUser) {
+  //     debug('Requester user is not found! ');
+  //     throw new HttpErrors.NotFound('Requester user is not found! ');
+  //   }
 
-    if (recipientUser && requesterUser) {
-      const payload = {
-        notification: {title: '', body: ''},
-        data: {
-          alias: ur.alias,
-          avatar: recipientUser.avatar,
-          usersRelationId: ur._key[1],
-        },
-      };
-      const options = {
-        priority: 'normal',
-        contentAvailable: true,
-        mutableContent: false,
-      };
+  //   if (recipientUser && requesterUser) {
+  //     const payload = {
+  //       notification: {title: '', body: ''},
+  //       data: {
+  //         alias: ur.alias,
+  //         avatar: recipientUser.avatar,
+  //         usersRelationId: ur._key[1],
+  //       },
+  //     };
+  //     const options = {
+  //       priority: 'normal',
+  //       contentAvailable: true,
+  //       mutableContent: false,
+  //     };
 
-      if (bodyReq.status) {
-        payload.notification = {
-          title: 'دنگیپ قبول درخواست دوستی',
-          body:
-            ur.alias +
-            'با موبایل' +
-            recipientUser.phone +
-            'در خواست دوستیتون رو پذیرفت',
-        };
+  //     if (bodyReq.status) {
+  //       payload.notification = {
+  //         title: 'دنگیپ قبول درخواست دوستی',
+  //         body:
+  //           ur.alias +
+  //           'با موبایل' +
+  //           recipientUser.phone +
+  //           'در خواست دوستیتون رو پذیرفت',
+  //       };
 
-        try {
-          vu = await this.virtualUsersRepository.findById(
-            bodyReq.virtualUserId.split('/')[1],
-          );
-          // Delete created virtual user
-          await this.virtualUsersRepository.deleteById(
-            bodyReq.virtualUserId.split('/')[1],
-          );
-        } catch (error) {
-          debug('virtualUser deletebyId error' + error);
-          throw new HttpErrors.NotAcceptable(error.message);
-        }
+  //       try {
+  //         vu = await this.virtualUsersRepository.findById(
+  //           bodyReq.virtualUserId.split('/')[1],
+  //         );
+  //         // Delete created virtual user
+  //         await this.virtualUsersRepository.deleteById(
+  //           bodyReq.virtualUserId.split('/')[1],
+  //         );
+  //       } catch (error) {
+  //         debug('virtualUser deletebyId error' + error);
+  //         throw new HttpErrors.NotAcceptable(error.message);
+  //       }
 
-        try {
-          // Update relation _to property with real-user's _id
-          await this.usersRelsRepository.updateById(
-            bodyReq.relationId.split('/')[1],
-            {
-              _to: recipientUser._id,
-              avatar: recipientUser.avatar,
-              type: 'real',
-            },
-          );
-        } catch (error) {
-          // Create deleted virtual user in previous phase
-          await this.virtualUsersRepository.create(vu);
-          debug(
-            'Create deleted virual user again, cause of previous phase error' +
-              vu,
-          );
-          debug('userRels updatebyId error' + error);
-          throw new HttpErrors.NotAcceptable(error.message);
-        }
+  //       try {
+  //         // Update relation _to property with real-user's _id
+  //         await this.usersRelsRepository.updateById(
+  //           bodyReq.relationId.split('/')[1],
+  //           {
+  //             _to: recipientUser._id,
+  //             avatar: recipientUser.avatar,
+  //             type: 'real',
+  //           },
+  //         );
+  //       } catch (error) {
+  //         // Create deleted virtual user in previous phase
+  //         await this.virtualUsersRepository.create(vu);
+  //         debug(
+  //           'Create deleted virual user again, cause of previous phase error' +
+  //             vu,
+  //         );
+  //         debug('userRels updatebyId error' + error);
+  //         throw new HttpErrors.NotAcceptable(error.message);
+  //       }
 
-        // Create relation from recipient to requester
-        backUserRel = await this.usersRepository
-          .usersRels(recipientUser._id)
-          .create({
-            _to: requesterUser._id,
-            alias: bodyReq.alias,
-            type: 'real',
-            avatar: requesterUser.avatar,
-          });
-        response = {
-          ...backUserRel,
-          message: 'You are friends together right now',
-        };
-      } else {
-        payload.notification = {
-          title: 'دنگیپ رد درخواست دوستی',
-          body:
-            ur.alias +
-            'با موبایل' +
-            recipientUser.phone +
-            'در خواست دوستیتون رو رد کرد',
-        };
-        response = {message: 'Friend request has been rejected'};
-      }
+  //       // Create relation from recipient to requester
+  //       backUserRel = await this.usersRepository
+  //         .usersRels(recipientUser._id)
+  //         .create({
+  //           _to: requesterUser._id,
+  //           alias: bodyReq.alias,
+  //           type: 'real',
+  //           avatar: requesterUser.avatar,
+  //         });
+  //       response = {
+  //         ...backUserRel,
+  //         message: 'You are friends together right now',
+  //       };
+  //     } else {
+  //       payload.notification = {
+  //         title: 'دنگیپ رد درخواست دوستی',
+  //         body:
+  //           ur.alias +
+  //           'با موبایل' +
+  //           recipientUser.phone +
+  //           'در خواست دوستیتون رو رد کرد',
+  //       };
+  //       response = {message: 'Friend request has been rejected'};
+  //     }
 
-      // send response to friend request notification to the requester
-      this.firebaseService.sendToDeviceMessage(
-        requesterUser.registerationToken,
-        payload,
-        options,
-      );
+  //     // send response to friend request notification to the requester
+  //     this.firebaseService.sendToDeviceMessage(
+  //       requesterUser.registerationToken,
+  //       payload,
+  //       options,
+  //     );
 
-      return response;
-    }
-  }
+  //     return response;
+  //   }
+  // }
 
   @patch('/api/users/users-rels/{userRelKey}', {
     summary: 'Update a userRel by key in path',
@@ -423,7 +418,7 @@ export class UsersUsersRelsController {
               '_to',
               '_rev',
               'type',
-              'targetUsersId',
+              // 'targetUsersId',
               'phone',
             ],
           }),

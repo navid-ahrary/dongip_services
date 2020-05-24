@@ -43,11 +43,6 @@ export class UsersRels extends Entity {
   @property({
     type: 'string',
   })
-  targetUsersId?: string;
-
-  @property({
-    type: 'string',
-  })
   alias: string;
 
   @property({
