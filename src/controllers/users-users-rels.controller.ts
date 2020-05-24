@@ -1,15 +1,8 @@
 /* eslint-disable prefer-const */
-import {
-  Count,
-  CountSchema,
-  Filter,
-  repository,
-  Where,
-} from '@loopback/repository';
+import {repository} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
-  getWhereSchemaFor,
   param,
   patch,
   post,
