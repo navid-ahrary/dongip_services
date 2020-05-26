@@ -1,95 +1,85 @@
-import { Entity, model, property, belongsTo } from '@loopback/repository'
+import {Entity, model, property, belongsTo} from '@loopback/repository';
 
-import { Category, Dongs, Users, UsersRels } from './'
+import {Category, Dongs, Users, UsersRels} from './';
+import {DongsWithRelations} from './dongs.model';
 
 @model()
 export class CategoryBill extends Entity {
-  @property( {
+  @property({
     type: 'string',
     id: true,
     generated: true,
-  } )
-  _key: string
+  })
+  _key: string;
 
-  @property( {
+  @property({
     type: 'string',
     generated: true,
     required: false,
-  } )
-  _id: string
+  })
+  _id: string;
 
-  @property( {
+  @property({
     type: 'string',
     generated: true,
     required: false,
-  } )
-  _rev: string
+  })
+  _rev: string;
 
-  @belongsTo( () => Dongs, { name: 'belongsToDong' } )
-  _from: string
+  @belongsTo(() => Dongs, {name: 'belongsToDong'})
+  _from: string;
 
-  @belongsTo( () => Users, { name: 'belongsToUser' } )
-  _to: string
+  @belongsTo(() => Category, {name: 'belongsToCategory'})
+  _to: string;
 
-  @belongsTo( () => Category, { name: 'belongsToCategory' } )
-  belongsToCategoryId: string
+  @belongsTo(() => Users, {name: 'belongsToUser'})
+  belongsToUserId: string;
 
-  @property( {
+  @belongsTo(() => UsersRels, {name: 'belongsToUserRel'})
+  belongsToUserRelId: string;
+
+  @property({
     type: 'number',
-    requred: false
-  } )
-  dong: number
+    requred: false,
+  })
+  dongAmount: number;
 
-  @property( {
+  @property({
     type: 'number',
-    required: true
-  } )
-  paid: number
+    required: true,
+  })
+  paidAmount: number;
 
-  @property( {
-    type: 'string',
-  } )
-  guest?: string
-
-  @property( {
-    type: 'string',
-    required: false
-  } )
-  userId: string
-
-  @property( {
-    type: 'number',
-    required: true
-  } )
-  factor: number
-
-  @property( {
-    type: 'number',
-    required: false,
-  } )
-  invoice: number
-
-  @property( {
+  @property({
     type: 'boolean',
     required: true,
-  } )
-  settled: boolean
+  })
+  even: boolean;
 
-  @property( {
+  @property({
     type: 'date',
-    required: false
-  } )
-  settledAt: 'string'
+    required: false,
+  })
+  evenAt?: string;
 
-  @belongsTo( () => UsersRels )
-  belongsToUserRelsId: string
+  @property({
+    type: 'date',
+    requried: false,
+  })
+  createdAt: string;
 
-  constructor ( data?: Partial<CategoryBill> ) {
-    super( data )
+  @property({
+    type: 'string',
+  })
+  dongId?: string;
+
+  constructor(data?: Partial<CategoryBill>) {
+    super(data);
   }
 }
 
 export interface CategoryBillRelations {
+  dong?: DongsWithRelations;
 }
 
-export type CategoryBillWithRelations = CategoryBill & CategoryBillRelations
+export type CategoryBillWithRelations = CategoryBill & CategoryBillRelations;

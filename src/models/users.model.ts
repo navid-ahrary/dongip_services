@@ -50,43 +50,6 @@ export class Users extends Entity {
   })
   avatar: string;
 
-  // @property({
-  //   type: 'string',
-  //   required: false,
-  // })
-  // timezone: string;
-
-  // @property({
-  //   type: 'array',
-  //   itemType: 'string',
-  //   required: false,
-  // })
-  // location: string[];
-
-  // @property({
-  //   type: 'string',
-  //   required: false,
-  // })
-  // region: string;
-
-  // @property({
-  //   type: 'string',
-  //   required: false,
-  // })
-  // country: string;
-
-  // @property({
-  //   type: 'string',
-  //   required: false,
-  // })
-  // city: string;
-
-  // @property({
-  //   type: 'string',
-  //   required: false,
-  // })
-  // organization: string;
-
   @property({
     type: 'date',
     required: false,
@@ -120,7 +83,7 @@ export class Users extends Entity {
   @hasMany(() => VirtualUsers, {keyTo: 'belongsToUserId'})
   virtualUsers: VirtualUsers[];
 
-  @hasMany(() => Dongs, {keyTo: 'belongsToExManId'})
+  @hasMany(() => Dongs, {keyTo: 'belongsToUserId'})
   dongs: Dongs[];
 
   @hasMany(() => Category, {keyTo: 'belongsToUserId'})
@@ -129,7 +92,7 @@ export class Users extends Entity {
   @hasMany(() => UsersRels, {keyTo: '_from'})
   usersRels: UsersRels[];
 
-  @hasMany(() => CategoryBill, {keyTo: '_to'})
+  @hasMany(() => CategoryBill, {keyTo: 'belongsToUserId'})
   categoryBills: CategoryBill[];
 
   constructor(data?: Partial<Users>) {

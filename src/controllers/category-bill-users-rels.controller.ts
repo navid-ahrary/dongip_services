@@ -31,6 +31,6 @@ export class CategoryBillUsersRelsController {
     _billKey: typeof CategoryBill.prototype._key,
   ): Promise<UsersRels> {
     const billId = 'CategoryBill/' + _billKey;
-    return this.categoryBillRepository.belongsToUserRels(billId);
+    return this.categoryBillRepository.belongsToUserRel(billId);
   }
 }

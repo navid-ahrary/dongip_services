@@ -2,99 +2,79 @@ import {
   Entity,
   model,
   property,
-  belongsTo
-} from '@loopback/repository'
+  belongsTo,
+  hasMany,
+} from '@loopback/repository';
 
-import {
-  Users,
-  CategoryBill
-} from './'
+import {Users} from './users.model';
+import {CategoryBill, CategoryBillWithRelations} from './category-bill.model';
 
 @model()
 export class Dongs extends Entity {
-  @property( {
+  @property({
     type: 'string',
     id: true,
     generated: true,
     required: false,
-  } )
-  _key: string
+  })
+  _key: string;
 
-  @property( {
+  @property({
     type: 'string',
     generated: true,
     required: false,
-  } )
-  _id: string
+  })
+  _id: string;
 
-  @property( {
+  @property({
     type: 'string',
     generated: true,
     required: false,
-  } )
-  _rev: string
+  })
+  _rev: string;
 
-  @property( {
+  @property({
     type: 'string',
     requird: true,
-  } )
-  title: string
+  })
+  title: string;
 
-  @property( {
-    type: 'string',
-    requird: true,
-  } )
-  factorType: string
-
-  @property( {
-    type: 'number',
-    required: false,
-  } )
-  costs: number
-
-  @property( {
+  @property({
     type: 'string',
     required: true,
-  } )
-  desc: string
+  })
+  desc: string;
 
-  @property( {
-    type: 'date',
+  @property({
+    type: 'string',
     required: true,
-  } )
-  createdAt: string
+  })
+  createdAt: string;
 
-  @property( {
+  @property({
     type: 'number',
-    required: false,
-  } )
-  pong: number
+    required: true,
+  })
+  pong: number;
 
-  @property( {
-    type: 'array',
-    itemType: 'object',
-  } )
-  bill: CategoryBill[]
+  @belongsTo(() => Users, {name: 'belongsToUser'})
+  belongsToUserId: string;
 
-  @property( {
+  @property({
     type: 'string',
-  } )
-  exManUsersRelId: string
+  })
+  categoryId: string;
 
-  @belongsTo( () => Users, { name: 'belongsToUser' } )
-  belongsToExManId: string
+  @hasMany(() => CategoryBill, {keyTo: '_from'})
+  categoryBills: CategoryBill[];
 
-  @property( {
-    type: 'string',
-  } )
-  categoryId: string
-
-  constructor ( data?: Partial<Dongs> ) {
-    super( data )
+  constructor(data?: Partial<Dongs>) {
+    super(data);
   }
 }
 
 export interface DongsRelations {
+  categoryBill?: CategoryBillWithRelations;
 }
 
-export type DongsWithRelations = Dongs & DongsRelations
+export type DongsWithRelations = Dongs & DongsRelations;

@@ -60,7 +60,7 @@ export class UsersRels extends Entity {
   })
   phone: string;
 
-  @hasMany(() => CategoryBill, {keyTo: 'belongsToUserRelsId'})
+  @hasMany(() => CategoryBill, {keyTo: 'belongsToUserRelId'})
   categoryBills: CategoryBill[];
 
   constructor(data?: Partial<UsersRels>) {
@@ -68,8 +68,6 @@ export class UsersRels extends Entity {
   }
 }
 
-export interface UsersRelsRelations {
-  // describe navigational properties here
-}
+export interface UsersRelsRelations {}
 
 export type UsersRelsWithRelations = UsersRels & UsersRelsRelations;

@@ -48,7 +48,6 @@ import {
   PasswordHasher,
   TimeService,
   VerifyService,
-  IpInfoService,
 } from '../services';
 
 export class UsersController {
@@ -68,7 +67,6 @@ export class UsersController {
     @service(VerifyService) public verifySerivce: VerifyService,
     @service(SmsService) public smsService: SmsService,
     @service(TimeService) public timeService: TimeService,
-    @service(IpInfoService) public ipInfoService: IpInfoService,
   ) {}
 
   private generateRandomString(length: number) {

@@ -39,7 +39,7 @@ export class CategoryBillRepository extends DefaultCrudRepository<
     typeof CategoryBill.prototype._key
   >;
 
-  public readonly belongsToUserRels: BelongsToAccessor<
+  public readonly belongsToUserRel: BelongsToAccessor<
     UsersRels,
     typeof CategoryBill.prototype._id
   >;
@@ -56,13 +56,13 @@ export class CategoryBillRepository extends DefaultCrudRepository<
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
   ) {
     super(CategoryBill, dataSource);
-    this.belongsToUserRels = this.createBelongsToAccessorFor(
-      'belongsToUserRels',
+    this.belongsToUserRel = this.createBelongsToAccessorFor(
+      'belongsToUserRel',
       usersRelsRepositoryGetter,
     );
     this.registerInclusionResolver(
-      'belongsToUserRels',
-      this.belongsToUserRels.inclusionResolver,
+      'belongsToUserRel',
+      this.belongsToUserRel.inclusionResolver,
     );
 
     this.belongsToUser = this.createBelongsToAccessorFor(
