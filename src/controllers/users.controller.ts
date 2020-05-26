@@ -294,7 +294,7 @@ export class UsersController {
 
       // Create self-relation for self accounting
       await this.usersRepository.usersRels(savedUser._id).create({
-        _to: savedUser._id,
+        targetUserId: savedUser._id,
         alias: savedUser.name,
         avatar: savedUser.avatar,
         type: 'self',

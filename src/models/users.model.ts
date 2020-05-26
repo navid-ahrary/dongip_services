@@ -1,6 +1,6 @@
 import {Entity, model, property, hasMany} from '@loopback/repository';
 
-import {VirtualUsers, Dongs, Category, CategoryBill, UsersRels} from './';
+import {VirtualUsers, Dong, Category, CategoryBill, UsersRels} from './';
 
 @model()
 export class Users extends Entity {
@@ -83,13 +83,13 @@ export class Users extends Entity {
   @hasMany(() => VirtualUsers, {keyTo: 'belongsToUserId'})
   virtualUsers: VirtualUsers[];
 
-  @hasMany(() => Dongs, {keyTo: 'belongsToUserId'})
-  dongs: Dongs[];
+  @hasMany(() => Dong, {keyTo: 'belongsToUserId', name: 'dong'})
+  dongs: Dong[];
 
   @hasMany(() => Category, {keyTo: 'belongsToUserId'})
   categories: Category[];
 
-  @hasMany(() => UsersRels, {keyTo: '_from'})
+  @hasMany(() => UsersRels, {keyTo: 'belongsToUserId'})
   usersRels: UsersRels[];
 
   @hasMany(() => CategoryBill, {keyTo: 'belongsToUserId'})

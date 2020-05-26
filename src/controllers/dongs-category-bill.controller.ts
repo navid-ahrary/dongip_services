@@ -1,23 +1,7 @@
-import {
-  Count,
-  CountSchema,
-  Filter,
-  repository,
-  Where,
-} from '@loopback/repository';
-import {
-  del,
-  get,
-  getModelSchemaRef,
-  getWhereSchemaFor,
-  param,
-  patch,
-  post,
-  requestBody,
-  api,
-} from '@loopback/rest';
-import {Dongs, CategoryBill} from '../models';
-import {DongsRepository} from '../repositories';
+import {Filter, repository} from '@loopback/repository';
+import {get, getModelSchemaRef, param, api} from '@loopback/rest';
+import {CategoryBill} from '../models';
+import {DongRepository} from '../repositories';
 import {authenticate} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
@@ -30,7 +14,7 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 @authenticate('jwt.access')
 export class DongsCategoryBillController {
   constructor(
-    @repository(DongsRepository) protected dongsRepository: DongsRepository,
+    @repository(DongRepository) public dongRepository: DongRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
   ) {}
 
@@ -59,7 +43,7 @@ export class DongsCategoryBillController {
     const dongId = 'Dongs/' + dongKey;
     const filter: Filter<CategoryBill> = {where: {belongsToUserId: userId}};
 
-    return this.dongsRepository.categoryBills(dongId).find(filter);
+    return this.dongRepository.categoryBills(dongId).find(filter);
   }
 
   // @patch('/dongs/{dongKey}/category-bills', {

@@ -14,17 +14,17 @@ import {authenticate} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import _ from 'underscore';
 
-import {Dongs} from '../models';
+import {Dong} from '../models';
 import {
   UsersRepository,
-  DongsRepository,
+  DongRepository,
   CategoryBillRepository,
 } from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {PostNewDongExample} from './specs/dongs.specs';
 
 @model()
-export class PostNewDong extends Dongs {
+export class PostNewDong extends Dong {
   @property({
     type: 'array',
     itemType: 'object',
@@ -45,7 +45,7 @@ export class PostNewDong extends Dongs {
 export class DongsController {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(DongsRepository) public dongsRepository: DongsRepository,
+    @repository(DongRepository) public dongRepository: DongRepository,
     @repository(CategoryBillRepository)
     private categoryBillRepository: CategoryBillRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
@@ -69,7 +69,7 @@ export class DongsController {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(Dongs, {includeRelations: true}),
+              items: getModelSchemaRef(Dong, {includeRelations: true}),
             },
           },
         },
@@ -78,8 +78,8 @@ export class DongsController {
   })
   @authenticate('jwt.access')
   async find(
-    @param.query.object('filter') filter?: Filter<Dongs>,
-  ): Promise<Dongs[]> {
+    @param.query.object('filter') filter?: Filter<Dong>,
+  ): Promise<Dong[]> {
     const userKey = this.currentUserProfile[securityId];
     const userId = 'Users/' + userKey;
 
@@ -88,7 +88,7 @@ export class DongsController {
       where: {belongsToUserId: userId},
     });
 
-    return this.usersRepository.dongs(userId).find(filter);
+    return this.usersRepository.dong(userId).find(filter);
   }
 
   @post('/dongs', {
@@ -99,7 +99,7 @@ export class DongsController {
         description: 'Dongs model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Dongs, {}),
+            schema: getModelSchemaRef(Dong, {}),
           },
         },
       },
@@ -119,7 +119,7 @@ export class DongsController {
       },
     })
     newDong: Omit<PostNewDong, '_key'>,
-  ): Promise<Dongs> {
+  ): Promise<Dong> {
     const userKey = this.currentUserProfile[securityId];
     const userId = 'Users/' + userKey;
 
@@ -128,7 +128,7 @@ export class DongsController {
       // exManList = newDong.exManList,
       // exManRelationIdList: {_id: string}[] = [],
       // allUsersRelsId: {_id: string}[] = [],
-      dong: Dongs,
+      dong: Dong,
       categoryBillList = [];
 
     billList.forEach((bill) => {
@@ -165,19 +165,20 @@ export class DongsController {
       'desc',
       'pong',
     ]);
-    dong = await this.usersRepository.dongs(userId).create(d);
+    dong = await this.usersRepository.dong(userId).create(d);
 
     // create categoryBill object for every usersRels
     for (const _b of billList) {
       const categoryBill = {
-        _from: dong._id,
-        _to: newDong.categoryId,
+        belongsToDongId: dong._id,
+        belongsToCategoryId: newDong.categoryId,
         belongsToUserId: userId,
         belongsToUserRelId: _b.usersRelsId,
         dongAmount: _b.dongAmount,
         paidAmount: _b.paidAmount,
-        even: _b.paidAmount === _b.dongAmount ? true : false,
-        evenAt: _b.paidAmount === _b.dongAmount ? newDong.createdAt : undefined,
+        settled: _b.paidAmount === _b.dongAmount ? true : false,
+        settledAt:
+          _b.paidAmount === _b.dongAmount ? newDong.createdAt : undefined,
         createdAt: newDong.createdAt,
       };
       categoryBillList.push(categoryBill);
@@ -187,7 +188,7 @@ export class DongsController {
     await this.categoryBillRepository
       .createAll(categoryBillList)
       .catch(async (_err) => {
-        await this.dongsRepository.deleteById(dong._key);
+        await this.dongRepository.deleteById(dong._key);
         throw new HttpErrors.NotImplemented(_err);
       });
     return dong;

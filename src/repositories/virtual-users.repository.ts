@@ -12,7 +12,6 @@ import {
   VirtualUsersRelations,
   Users,
   UsersRels,
-  Dongs,
   Category,
   CategoryBill,
 } from '../models';
@@ -20,7 +19,6 @@ import {ArangodbDataSource} from '../datasources';
 import {
   UsersRepository,
   UsersRelsRepository,
-  DongsRepository,
   CategoryBillRepository,
   CategoryRepository,
 } from './';
@@ -40,11 +38,6 @@ export class VirtualUsersRepository extends DefaultCrudRepository<
     typeof Users.prototype._id
   >;
 
-  public readonly dongs: HasManyRepositoryFactory<
-    Dongs,
-    typeof Users.prototype._id
-  >;
-
   public readonly categories: HasManyRepositoryFactory<
     Category,
     typeof Users.prototype._id
@@ -59,9 +52,7 @@ export class VirtualUsersRepository extends DefaultCrudRepository<
     @inject('datasources.arangodb') dataSource: ArangodbDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
-    @repository.getter('DongsRepository')
-    protected dongsRepositoryGetter: Getter<DongsRepository>,
-    @repository.getter('CategoryRepository')
+    @repository.getter('DongRepository')
     protected categoryRepositoryGetter: Getter<CategoryRepository>,
     @repository.getter('UsersRelsRepository')
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,

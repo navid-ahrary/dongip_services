@@ -6,7 +6,7 @@ import {
   hasMany,
 } from '@loopback/repository';
 
-import {Users, VirtualUsers, CategoryBill} from './';
+import {Users, CategoryBill} from './';
 
 @model()
 export class Category extends Entity {
@@ -44,10 +44,10 @@ export class Category extends Entity {
   })
   icon: string;
 
-  @belongsTo(() => Users || VirtualUsers, {name: 'belongsToUser'})
+  @belongsTo(() => Users, {name: 'belongsToUser'})
   belongsToUserId: string;
 
-  @hasMany(() => CategoryBill, {keyTo: '_to'})
+  @hasMany(() => CategoryBill, {keyTo: 'belongsToCategoryId'})
   categoryBills: CategoryBill[];
 
   constructor(data?: Partial<Category>) {

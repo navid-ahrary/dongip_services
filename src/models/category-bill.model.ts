@@ -1,7 +1,6 @@
 import {Entity, model, property, belongsTo} from '@loopback/repository';
 
-import {Category, Dongs, Users, UsersRels} from './';
-import {DongsWithRelations} from './dongs.model';
+import {Category, Dong, Users, UsersRels} from './';
 
 @model()
 export class CategoryBill extends Entity {
@@ -26,11 +25,11 @@ export class CategoryBill extends Entity {
   })
   _rev: string;
 
-  @belongsTo(() => Dongs, {name: 'belongsToDong'})
-  _from: string;
+  @belongsTo(() => Dong, {name: 'belongsToDong'})
+  belongsToDongId: string;
 
   @belongsTo(() => Category, {name: 'belongsToCategory'})
-  _to: string;
+  belongsToCategoryId: string;
 
   @belongsTo(() => Users, {name: 'belongsToUser'})
   belongsToUserId: string;
@@ -54,13 +53,13 @@ export class CategoryBill extends Entity {
     type: 'boolean',
     required: true,
   })
-  even: boolean;
+  settled: boolean;
 
   @property({
     type: 'date',
     required: false,
   })
-  evenAt?: string;
+  settledAt?: string;
 
   @property({
     type: 'date',
@@ -79,7 +78,7 @@ export class CategoryBill extends Entity {
 }
 
 export interface CategoryBillRelations {
-  dong?: DongsWithRelations;
+  // dong?: DongsWithRelations;
 }
 
 export type CategoryBillWithRelations = CategoryBill & CategoryBillRelations;

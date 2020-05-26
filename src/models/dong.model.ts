@@ -7,10 +7,10 @@ import {
 } from '@loopback/repository';
 
 import {Users} from './users.model';
-import {CategoryBill, CategoryBillWithRelations} from './category-bill.model';
+import {CategoryBill} from './category-bill.model';
 
 @model()
-export class Dongs extends Entity {
+export class Dong extends Entity {
   @property({
     type: 'string',
     id: true,
@@ -65,16 +65,16 @@ export class Dongs extends Entity {
   })
   categoryId: string;
 
-  @hasMany(() => CategoryBill, {keyTo: '_from'})
+  @hasMany(() => CategoryBill, {keyTo: 'belongsToDongId'})
   categoryBills: CategoryBill[];
 
-  constructor(data?: Partial<Dongs>) {
+  constructor(data?: Partial<Dong>) {
     super(data);
   }
 }
 
-export interface DongsRelations {
-  categoryBill?: CategoryBillWithRelations;
+export interface DongRelations {
+  // categoryBill?: CategoryBillWithRelations;
 }
 
-export type DongsWithRelations = Dongs & DongsRelations;
+export type DongWithRelations = Dong & DongRelations;

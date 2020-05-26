@@ -45,9 +45,10 @@ export class CategoryRepository extends DefaultCrudRepository<
       'categoryBills',
       categoryBillRepositoryGetter,
     );
-    // this.registerInclusionResolver(
-    //   'categoryBills', this.categoryBills.inclusionResolver
-    // )
+    this.registerInclusionResolver(
+      'categoryBills',
+      this.categoryBills.inclusionResolver,
+    );
 
     this.belongsToUser = this.createBelongsToAccessorFor(
       'belongsToUser',
@@ -71,7 +72,7 @@ export class CategoryRepository extends DefaultCrudRepository<
    */
   public async createAll(entity: DataObject<Category>[]): Promise<Category[]> {
     const createdCategories = await super.createAll(entity);
-    createdCategories.forEach(cat => {
+    createdCategories.forEach((cat) => {
       cat._id = cat._key[1];
       cat._key = cat._key[0];
     });

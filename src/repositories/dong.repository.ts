@@ -8,23 +8,23 @@ import {
 import {inject, Getter} from '@loopback/core';
 
 import {ArangodbDataSource} from '../datasources';
-import {Dongs, DongsRelations, Users, CategoryBill} from '../models';
-import {UsersRepository, CategoryRepository} from './';
+import {Dong, DongRelations, Users, CategoryBill} from '../models';
+import {UsersRepository, CategoryRepository} from '.';
 import {CategoryBillRepository} from './category-bill.repository';
 
-export class DongsRepository extends DefaultCrudRepository<
-  Dongs,
-  typeof Dongs.prototype._key,
-  DongsRelations
+export class DongRepository extends DefaultCrudRepository<
+  Dong,
+  typeof Dong.prototype._key,
+  DongRelations
 > {
   public readonly belongsToUser: BelongsToAccessor<
     Users,
-    typeof Dongs.prototype._id
+    typeof Dong.prototype._id
   >;
 
   public readonly categoryBills: HasManyRepositoryFactory<
     CategoryBill,
-    typeof Dongs.prototype._key
+    typeof Dong.prototype._key
   >;
 
   constructor(
@@ -36,7 +36,7 @@ export class DongsRepository extends DefaultCrudRepository<
     @repository.getter('CategoryBillRepository')
     protected categoryBillRepositoryGetter: Getter<CategoryBillRepository>,
   ) {
-    super(Dongs, dataSource);
+    super(Dong, dataSource);
     this.categoryBills = this.createHasManyRepositoryFactoryFor(
       'categoryBills',
       categoryBillRepositoryGetter,
@@ -59,7 +59,7 @@ export class DongsRepository extends DefaultCrudRepository<
   /**
    * override super class's create method
    */
-  public async create(entity: DataObject<Dongs>): Promise<Dongs> {
+  public async create(entity: DataObject<Dong>): Promise<Dong> {
     const dong = await super.create(entity);
     dong._id = dong._key[1];
     dong._key = dong._key[0];
