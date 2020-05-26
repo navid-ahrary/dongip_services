@@ -1,5 +1,4 @@
 import {getModelSchemaRef} from '@loopback/rest';
-
 import {Users, Verify} from '../../models';
 
 export const UserLoginResponse = {
@@ -28,7 +27,7 @@ export const VerifyPhoneRequestBody = {
     'application/json': {
       schema: getModelSchemaRef(Verify, {
         partial: false,
-        exclude: ['_key', 'agent', 'password', 'issuedAt', 'registered', 'ip'],
+        exclude: ['_key', 'agent', 'password', 'issuedAt', 'registered'],
       }),
     },
   },
@@ -67,15 +66,9 @@ export const UserSignupRequestBody = {
           'accountType',
           'categories',
           'categoryBills',
-          'dongs',
-          'location',
-          'city',
-          'country',
-          'region',
-          'timezone',
+          // 'dongs',
           'userAgent',
           'refreshToken',
-          'organization',
           'registerationToken',
           'registeredAt',
           'usersRels',
@@ -95,11 +88,6 @@ export const UserSignupResponse = {
           exclude: [
             'userAgent',
             'accountType',
-            'location',
-            'city',
-            'country',
-            'region',
-            'timezone',
             'phone',
             'name',
             'registeredAt',
@@ -127,22 +115,33 @@ export const UserPatchRequestBody = {
           '_rev',
           'accountType',
           'registeredAt',
-          'dongs',
+          // 'dongs',
           'usersRels',
           'categories',
-          'location',
-          'city',
-          'country',
-          'region',
-          'timezone',
           'phone',
           'virtualUsers',
           'registerationToken',
           'refreshToken',
           'usersRels',
           'userAgent',
+          'password',
         ],
       }),
+      examples: {
+        multiProps: {
+          summary: 'Update some properties',
+          value: {
+            name: 'Aref',
+            avatar: 'assets/avatar/avatar_1.png',
+          },
+        },
+        sigleProp: {
+          summary: 'Update a property',
+          value: {
+            avatar: 'assets/avatar/avatar_1.png',
+          },
+        },
+      },
     },
   },
 };
@@ -162,42 +161,6 @@ export const CredentialsRequestBody = {
           },
           phone: {
             type: 'string',
-          },
-        },
-      },
-    },
-  },
-};
-
-export const SetFriend = {
-  '200': {
-    description: 'Set a friend request',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'object',
-          properties: {
-            createdVirtualUser: {
-              properties: {
-                _key: {type: 'string'},
-                _id: {type: 'string'},
-                _rev: {type: 'string'},
-                phone: {type: 'string'},
-                belongsToUserId: {type: 'string'},
-              },
-            },
-            createdUsersRelation: {
-              properties: {
-                _key: {type: 'string'},
-                _id: {type: 'string'},
-                _rev: {type: 'string'},
-                _from: {type: 'string'},
-                _to: {type: 'string'},
-                alias: {type: 'string'},
-                avatar: {type: 'string'},
-                type: {type: 'string'},
-              },
-            },
           },
         },
       },

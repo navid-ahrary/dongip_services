@@ -1,63 +1,62 @@
-import { Entity, model, property, belongsTo, hasMany } from '@loopback/repository'
 import {
-  Users,
-  UsersRels,
-  Category,
-  CategoryBill,
-  Dongs
-} from './'
+  Entity,
+  model,
+  property,
+  belongsTo,
+  hasMany,
+} from '@loopback/repository';
+import {Users, UsersRels, Category, CategoryBill, Dong} from './';
 
 @model()
 export class VirtualUsers extends Entity {
-  @property( {
+  @property({
     type: 'string',
     id: true,
     generated: true,
     required: false,
-  } )
-  _key: string
+  })
+  _key: string;
 
-  @property( {
+  @property({
     type: 'string',
     required: false,
-    generated: true
-  } )
-  _id: string
+    generated: true,
+  })
+  _id: string;
 
-  @property( {
+  @property({
     type: 'string',
     required: false,
-    generated: true
-  } )
-  _rev: string
+    generated: true,
+  })
+  _rev: string;
 
-  @property( {
+  @property({
     type: 'string',
     required: true,
-  } )
-  phone: string
+  })
+  phone: string;
 
-  @belongsTo( () => Users, { name: 'belongsToUser' } )
-  belongsToUserId: string
+  @belongsTo(() => Users, {name: 'belongsToUser'})
+  belongsToUserId: string;
 
-  @hasMany( () => Dongs, { keyTo: 'xManKey' } )
-  dongs: Dongs[]
+  @hasMany(() => Dong, {keyTo: 'xManKey'})
+  dongs: Dong[];
 
-  @hasMany( () => Category, { keyTo: 'belongsToUserId' } )
-  categories: Category[]
+  @hasMany(() => Category, {keyTo: 'belongsToUserId'})
+  categories: Category[];
 
-  @hasMany( () => UsersRels, { keyTo: '_from' } )
-  usersRels: UsersRels[]
+  @hasMany(() => UsersRels, {keyTo: 'belongsToUserId'})
+  usersRels: UsersRels[];
 
-  @hasMany( () => CategoryBill, { keyTo: '_to' } )
-  categoryBills: CategoryBill[]
+  @hasMany(() => CategoryBill, {keyTo: 'targetUserId'})
+  categoryBills: CategoryBill[];
 
-  constructor ( data?: Partial<VirtualUsers> ) {
-    super( data )
+  constructor(data?: Partial<VirtualUsers>) {
+    super(data);
   }
 }
 
-export interface VirtualUsersRelations {
-}
+export interface VirtualUsersRelations {}
 
-export type VirtualUsersWithRelations = VirtualUsers & VirtualUsersRelations
+export type VirtualUsersWithRelations = VirtualUsers & VirtualUsersRelations;

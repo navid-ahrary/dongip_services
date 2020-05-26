@@ -10,7 +10,7 @@ import {ArangodbDataSource} from '../datasources';
 import {PasswordHasher} from '../services';
 import {
   VirtualUsersRepository,
-  DongsRepository,
+  DongRepository,
   CategoryBillRepository,
   CategoryRepository,
   UsersRelsRepository,
@@ -19,7 +19,7 @@ import {PasswordHasherBindings} from '../keys';
 import {
   Users,
   VirtualUsers,
-  Dongs,
+  Dong,
   Category,
   UsersRels,
   CategoryBill,
@@ -34,8 +34,8 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype._id
   >;
 
-  public readonly dongs: HasManyRepositoryFactory<
-    Dongs,
+  public readonly dong: HasManyRepositoryFactory<
+    Dong,
     typeof Users.prototype._id
   >;
 
@@ -58,8 +58,8 @@ export class UsersRepository extends DefaultCrudRepository<
     @inject('datasources.arangodb') dataSource: ArangodbDataSource,
     @repository.getter('VirtualUsersRepository')
     protected virtualUsersRepositoryGetter: Getter<VirtualUsersRepository>,
-    @repository.getter('DongsRepository')
-    protected dongsRepositoryGetter: Getter<DongsRepository>,
+    @repository.getter('DongRepository')
+    protected dongRepositoryGetter: Getter<DongRepository>,
     @repository.getter('CategoryRepository')
     protected categoryRepositoryGetter: Getter<CategoryRepository>,
     @repository.getter('UsersRelsRepository')
@@ -97,11 +97,11 @@ export class UsersRepository extends DefaultCrudRepository<
       this.categories.inclusionResolver,
     );
 
-    this.dongs = this.createHasManyRepositoryFactoryFor(
-      'dongs',
-      dongsRepositoryGetter,
+    this.dong = this.createHasManyRepositoryFactoryFor(
+      'dong',
+      dongRepositoryGetter,
     );
-    this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
+    this.registerInclusionResolver('dong', this.dong.inclusionResolver);
 
     this.virtualUsers = this.createHasManyRepositoryFactoryFor(
       'virtualUsers',

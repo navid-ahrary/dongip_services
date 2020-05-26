@@ -6,10 +6,11 @@ import {
   hasMany,
 } from '@loopback/repository';
 
-import {Users, CategoryBill} from './';
+import {Users} from './users.model';
+import {CategoryBill} from './category-bill.model';
 
 @model()
-export class Category extends Entity {
+export class Dong extends Entity {
   @property({
     type: 'string',
     id: true,
@@ -34,7 +35,7 @@ export class Category extends Entity {
 
   @property({
     type: 'string',
-    required: true,
+    requird: true,
   })
   title: string;
 
@@ -42,19 +43,38 @@ export class Category extends Entity {
     type: 'string',
     required: true,
   })
-  icon: string;
+  desc: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  createdAt: string;
+
+  @property({
+    type: 'number',
+    required: true,
+  })
+  pong: number;
 
   @belongsTo(() => Users, {name: 'belongsToUser'})
   belongsToUserId: string;
 
-  @hasMany(() => CategoryBill, {keyTo: 'belongsToCategoryId'})
+  @property({
+    type: 'string',
+  })
+  categoryId: string;
+
+  @hasMany(() => CategoryBill, {keyTo: 'belongsToDongId'})
   categoryBills: CategoryBill[];
 
-  constructor(data?: Partial<Category>) {
+  constructor(data?: Partial<Dong>) {
     super(data);
   }
 }
 
-export interface CategoryRelations {}
+export interface DongRelations {
+  // categoryBill?: CategoryBillWithRelations;
+}
 
-export type CategoryWithRelations = Category & CategoryRelations;
+export type DongWithRelations = Dong & DongRelations;

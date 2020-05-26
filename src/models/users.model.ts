@@ -1,6 +1,6 @@
 import {Entity, model, property, hasMany} from '@loopback/repository';
 
-import {VirtualUsers, Dongs, Category, CategoryBill, UsersRels} from './';
+import {VirtualUsers, Dong, Category, CategoryBill, UsersRels} from './';
 
 @model()
 export class Users extends Entity {
@@ -33,7 +33,7 @@ export class Users extends Entity {
   phone: string;
 
   @property({
-    type: 'string'
+    type: 'string',
   })
   password: string;
 
@@ -51,43 +51,6 @@ export class Users extends Entity {
   avatar: string;
 
   @property({
-    type: 'string',
-    required: false,
-  })
-  timezone: string;
-
-  @property({
-    type: 'array',
-    itemType: 'string',
-    required: false,
-  })
-  location: string[];
-
-  @property({
-    type: 'string',
-    required: false,
-  })
-  region: string;
-
-  @property({
-    type: 'string',
-    required: false,
-  })
-  country: string;
-
-  @property({
-    type: 'string',
-    required: false,
-  })
-  city: string;
-
-  @property({
-    type: 'string',
-    required: false,
-  })
-  organization: string;
-
-  @property({
     type: 'date',
     required: false,
   })
@@ -101,7 +64,7 @@ export class Users extends Entity {
 
   @property({
     type: 'string',
-    required: false
+    required: false,
   })
   accountType = 'bronze';
 
@@ -120,24 +83,23 @@ export class Users extends Entity {
   @hasMany(() => VirtualUsers, {keyTo: 'belongsToUserId'})
   virtualUsers: VirtualUsers[];
 
-  @hasMany(() => Dongs, {keyTo: 'belongsToExManId'})
-  dongs: Dongs[];
+  @hasMany(() => Dong, {keyTo: 'belongsToUserId', name: 'dong'})
+  dongs: Dong[];
 
   @hasMany(() => Category, {keyTo: 'belongsToUserId'})
   categories: Category[];
 
-  @hasMany(() => UsersRels, {keyTo: '_from'})
+  @hasMany(() => UsersRels, {keyTo: 'belongsToUserId'})
   usersRels: UsersRels[];
 
-  @hasMany(() => CategoryBill, {keyTo: '_to'})
+  @hasMany(() => CategoryBill, {keyTo: 'belongsToUserId'})
   categoryBills: CategoryBill[];
 
-  constructor (data?: Partial<Users>) {
+  constructor(data?: Partial<Users>) {
     super(data);
   }
 }
 
-export interface UsersRelations {
-}
+export interface UsersRelations {}
 
 export type UsersWithRelations = Users & UsersRelations;

@@ -6,7 +6,7 @@ import {
   hasMany,
 } from '@loopback/repository';
 
-import {Users, CategoryBill, VirtualUsers} from './';
+import {Users, CategoryBill} from './';
 
 @model()
 export class UsersRels extends Entity {
@@ -32,18 +32,13 @@ export class UsersRels extends Entity {
   })
   _rev: string;
 
-  @belongsTo(() => Users || VirtualUsers, {name: 'belongsToUser'})
-  _from: string;
+  @belongsTo(() => Users, {name: 'belongsToUser'})
+  belongsToUserId: string;
 
   @property({
     type: 'string',
   })
-  _to: string;
-
-  @property({
-    type: 'string',
-  })
-  targetUsersId?: string;
+  targetUserId: string;
 
   @property({
     type: 'string',
@@ -65,7 +60,7 @@ export class UsersRels extends Entity {
   })
   phone: string;
 
-  @hasMany(() => CategoryBill, {keyTo: 'belongsToUserRelsId'})
+  @hasMany(() => CategoryBill, {keyTo: 'belongsToUserRelId'})
   categoryBills: CategoryBill[];
 
   constructor(data?: Partial<UsersRels>) {
@@ -73,8 +68,6 @@ export class UsersRels extends Entity {
   }
 }
 
-export interface UsersRelsRelations {
-  // describe navigational properties here
-}
+export interface UsersRelsRelations {}
 
 export type UsersRelsWithRelations = UsersRels & UsersRelsRelations;

@@ -48,7 +48,6 @@ import {
   PasswordHasher,
   TimeService,
   VerifyService,
-  IpInfoService,
 } from '../services';
 
 export class UsersController {
@@ -68,7 +67,6 @@ export class UsersController {
     @service(VerifyService) public verifySerivce: VerifyService,
     @service(SmsService) public smsService: SmsService,
     @service(TimeService) public timeService: TimeService,
-    @service(IpInfoService) public ipInfoService: IpInfoService,
   ) {}
 
   private generateRandomString(length: number) {
@@ -111,10 +109,8 @@ export class UsersController {
       randomStr = this.generateRandomString(3),
       payload,
       token: string,
-      userIp = this.ctx.request.connection.remoteAddress,
       user: Users | null,
       userProfile: UserProfile;
-    if (userIp === '127.0.0.1') userIp = '5.115.188.251';
 
     try {
       validatePhoneNumber(body.phone);
@@ -143,7 +139,6 @@ export class UsersController {
         registered: status,
         registerationToken: body.registerationToken,
         agent: userAgent,
-        ip: userIp,
         issuedAt: new Date(),
       })
       .then(async (_res) => {
@@ -204,10 +199,7 @@ export class UsersController {
     let userProfile: UserProfile,
       user: Users,
       verify: Verify,
-      userIp = this.ctx.request.connection.remoteAddress,
-      userIpInfo: any,
       accessToken: string;
-    if (userIp === '127.0.0.1') userIp = '5.115.188.251';
 
     try {
       validatePhoneNumber(credentials.phone);
@@ -217,22 +209,14 @@ export class UsersController {
     }
 
     try {
-      verify = await this.verifySerivce.verifyCredentials(credentials, userIp!);
+      verify = await this.verifySerivce.verifyCredentials(credentials);
 
       //ensure the user exists and the password is correct
       user = await this.userService.verifyCredentials(credentials);
 
-      userIpInfo = await this.ipInfoService.getIpData(userIp!);
-
       this.usersRepository.updateById(user._key, {
         userAgent: verify.agent,
         registerationToken: verify.registerationToken,
-        timezone: userIpInfo.timezone,
-        location: userIpInfo.loc.split(','),
-        country: userIpInfo.country,
-        city: userIpInfo.city,
-        region: userIpInfo.region,
-        organization: userIpInfo.org,
       });
     } catch (_err) {
       console.log(_err);
@@ -276,13 +260,10 @@ export class UsersController {
       verify: Verify,
       accessToken: string,
       userProfile: UserProfile,
-      userIp = this.ctx.request.connection.remoteAddress,
-      userIpInfo: any,
       credentials = Object.assign(new Credentials(), {
         phone: newUser.phone,
         password: newUser.password,
       });
-    if (userIp === '127.0.0.1') userIp = '5.115.188.251';
 
     try {
       validatePhoneNumber(credentials.phone);
@@ -291,21 +272,13 @@ export class UsersController {
       throw new HttpErrors.UnprocessableEntity(_err.message);
     }
 
-    verify = await this.verifySerivce.verifyCredentials(credentials, userIp!);
-
-    userIpInfo = await this.ipInfoService.getIpData(userIp!);
+    verify = await this.verifySerivce.verifyCredentials(credentials);
 
     try {
       Object.assign(newUser, {
         registeredAt: new Date(),
         registerationToken: verify.registerationToken,
         userAgent: verify.agent,
-        timezone: userIpInfo.timezone,
-        location: userIpInfo.loc.split(','),
-        country: userIpInfo.country,
-        city: userIpInfo.city,
-        region: userIpInfo.region,
-        organization: userIpInfo.org,
       });
       delete newUser.password;
 
@@ -321,7 +294,7 @@ export class UsersController {
 
       // Create self-relation for self accounting
       await this.usersRepository.usersRels(savedUser._id).create({
-        _to: savedUser._id,
+        targetUserId: savedUser._id,
         alias: savedUser.name,
         avatar: savedUser.avatar,
         type: 'self',
@@ -373,6 +346,8 @@ export class UsersController {
   }
 
   @patch('/api/users', {
+    summary: 'Update user properties',
+    description: 'Request body includes desired properties to update',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -384,13 +359,14 @@ export class UsersController {
   async updateById(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody(UserPatchRequestBody) user: Omit<Users, '_key'>,
-  ): Promise<Users> {
+  ): Promise<void> {
     const _userKey = currentUserProfile[securityId];
 
-    await this.usersRepository.updateById(_userKey, user);
-    return this.usersRepository.findById(_userKey, {
-      fields: {_rev: true},
-    });
+    try {
+      return await this.usersRepository.updateById(_userKey, user);
+    } catch (err) {
+      throw new HttpErrors.NotAcceptable(err.message);
+    }
   }
 
   @get('/api/users/refresh-token', {

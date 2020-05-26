@@ -2,45 +2,41 @@ import {
   DefaultCrudRepository,
   repository,
   BelongsToAccessor,
-  HasManyRepositoryFactory,
   DataObject,
+  HasManyRepositoryFactory,
 } from '@loopback/repository';
 import {inject, Getter} from '@loopback/core';
 
-import {
-  Category,
-  CategoryRelations,
-  Users,
-  CategoryBill,
-  VirtualUsers,
-} from '../models';
 import {ArangodbDataSource} from '../datasources';
-import {UsersRepository, CategoryBillRepository} from './';
+import {Dong, DongRelations, Users, CategoryBill} from '../models';
+import {UsersRepository, CategoryRepository} from '.';
+import {CategoryBillRepository} from './category-bill.repository';
 
-export class CategoryRepository extends DefaultCrudRepository<
-  Category,
-  typeof Category.prototype._key,
-  CategoryRelations
+export class DongRepository extends DefaultCrudRepository<
+  Dong,
+  typeof Dong.prototype._key,
+  DongRelations
 > {
   public readonly belongsToUser: BelongsToAccessor<
-    Users | VirtualUsers,
-    typeof Category.prototype._id
+    Users,
+    typeof Dong.prototype._id
   >;
 
   public readonly categoryBills: HasManyRepositoryFactory<
     CategoryBill,
-    typeof Category.prototype._id
+    typeof Dong.prototype._key
   >;
 
   constructor(
     @inject('datasources.arangodb') dataSource: ArangodbDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
+    @repository.getter('CategoryRepository')
+    protected categoryRepositoryGetter: Getter<CategoryRepository>,
     @repository.getter('CategoryBillRepository')
     protected categoryBillRepositoryGetter: Getter<CategoryBillRepository>,
   ) {
-    super(Category, dataSource);
-
+    super(Dong, dataSource);
     this.categoryBills = this.createHasManyRepositoryFactoryFor(
       'categoryBills',
       categoryBillRepositoryGetter,
@@ -54,28 +50,19 @@ export class CategoryRepository extends DefaultCrudRepository<
       'belongsToUser',
       usersRepositoryGetter,
     );
+    this.registerInclusionResolver(
+      'belongsToUser',
+      this.belongsToUser.inclusionResolver,
+    );
   }
 
   /**
    * override super class's create method
    */
-  public async create(entity: DataObject<Category>): Promise<Category> {
-    const createdCategory = await super.create(entity);
-    console.log(createdCategory);
-    createdCategory._id = createdCategory._key[1];
-    createdCategory._key = createdCategory._key[0];
-    return createdCategory;
-  }
-
-  /**
-   * override super class's createAll method
-   */
-  public async createAll(entity: DataObject<Category>[]): Promise<Category[]> {
-    const createdCategories = await super.createAll(entity);
-    createdCategories.forEach((cat) => {
-      cat._id = cat._key[1];
-      cat._key = cat._key[0];
-    });
-    return createdCategories;
+  public async create(entity: DataObject<Dong>): Promise<Dong> {
+    const dong = await super.create(entity);
+    dong._id = dong._key[1];
+    dong._key = dong._key[0];
+    return dong;
   }
 }

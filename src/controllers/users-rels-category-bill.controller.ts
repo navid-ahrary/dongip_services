@@ -13,15 +13,20 @@ import {
   patch,
   post,
   requestBody,
+  api,
 } from '@loopback/rest';
 import {authenticate} from '@loopback/authentication';
 import {inject} from '@loopback/core';
-import {UserProfile, SecurityBindings} from '@loopback/security';
+import {UserProfile, SecurityBindings, securityId} from '@loopback/security';
 
 import {UsersRels, CategoryBill} from '../models';
 import {UsersRelsRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
+@api({
+  basePath: '/api/',
+  paths: {},
+})
 export class UsersRelsCategoryBillController {
   constructor(
     @repository(UsersRelsRepository)
@@ -29,7 +34,8 @@ export class UsersRelsCategoryBillController {
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {}
 
-  @get('/api/users-rels/{_relkey}/category-bills', {
+  @get('/users-rels/{userRelKey}/category-bills', {
+    summary: 'Get CategoryBills belongs to UserRel by userRelKey in path',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -47,72 +53,80 @@ export class UsersRelsCategoryBillController {
   })
   @authenticate('jwt.access')
   async find(
-    @param.path.string('_relkey') _relkey: string,
-    @param.query.object('filter') filter?: Filter<CategoryBill>,
+    @param.path.string('userRelKey')
+    userRelKey: typeof UsersRels.prototype._key,
   ): Promise<CategoryBill[]> {
-    const relId = 'UsersRels/' + _relkey;
-    return this.usersRelsRepository.categoryBills(relId).find(filter);
+    const userKey = this.currentUserProfile[securityId];
+    const userId = 'Users/' + userKey;
+    const userRelId = 'UsersRels/' + userRelKey;
+
+    const filter: Filter<CategoryBill> = {
+      order: ['createdAt'],
+      where: {and: [{belongsToUserId: userId}]},
+    };
+    return this.usersRelsRepository.categoryBills(userRelId).find(filter);
   }
 
-  @post('/api/users-rels/{_relkey}/category-bills', {
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'UsersRels model instance',
-        content: {
-          'application/json': {
-            schema: getModelSchemaRef(CategoryBill),
-          },
-        },
-      },
-    },
-  })
-  @authenticate('jwt.access')
-  async create(
-    @param.path.string('_relkey') _relkey: typeof UsersRels.prototype._key,
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(CategoryBill, {
-            title: 'NewCategoryBillInUsersRels',
-            exclude: ['_key'],
-            optional: ['belongsToUserRelsId'],
-          }),
-        },
-      },
-    })
-    categoryBill: Omit<CategoryBill, '_key'>,
-  ): Promise<CategoryBill> {
-    const relId = 'UsersRels/' + _relkey;
-    return this.usersRelsRepository.categoryBills(relId).create(categoryBill);
-  }
+  // @post('/api/users-rels/{usersRelkey}/category-bills', {
+  //   security: OPERATION_SECURITY_SPEC,
+  //   responses: {
+  //     '200': {
+  //       description: 'UsersRels model instance',
+  //       content: {
+  //         'application/json': {
+  //           schema: getModelSchemaRef(CategoryBill),
+  //         },
+  //       },
+  //     },
+  //   },
+  // })
+  // @authenticate('jwt.access')
+  // async create(
+  //   @param.path.string('userRelKey')
+  //   userRelKey: typeof UsersRels.prototype._key,
+  //   @requestBody({
+  //     content: {
+  //       'application/json': {
+  //         schema: getModelSchemaRef(CategoryBill, {
+  //           title: 'NewCategoryBillInUsersRels',
+  //           exclude: ['_key'],
+  //           optional: ['belongsToUserRelId'],
+  //         }),
+  //       },
+  //     },
+  //   })
+  //   categoryBill: Omit<CategoryBill, '_key'>,
+  // ): Promise<CategoryBill> {
+  //   const relId = 'UsersRels/' + userRelKey;
+  //   return this.usersRelsRepository.categoryBills(relId).create(categoryBill);
+  // }
 
-  @patch('/api/users-rels/{_relkey}/category-bills', {
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'UsersRels.CategoryBill PATCH success count',
-        content: {'application/json': {schema: CountSchema}},
-      },
-    },
-  })
-  @authenticate('jwt.access')
-  async patch(
-    @param.path.string('_relkey') _relkey: string,
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(CategoryBill, {partial: true}),
-        },
-      },
-    })
-    categoryBill: Partial<CategoryBill>,
-    @param.query.object('where', getWhereSchemaFor(CategoryBill))
-    where?: Where<CategoryBill>,
-  ): Promise<Count> {
-    const relId = 'UsersRels/' + _relkey;
-    return this.usersRelsRepository
-      .categoryBills(relId)
-      .patch(categoryBill, where);
-  }
+  // @patch('/users-rels/{_relkey}/category-bills', {
+  //   security: OPERATION_SECURITY_SPEC,
+  //   responses: {
+  //     '200': {
+  //       description: 'UsersRels.CategoryBill PATCH success count',
+  //       content: {'application/json': {schema: CountSchema}},
+  //     },
+  //   },
+  // })
+  // @authenticate('jwt.access')
+  // async patch(
+  //   @param.path.string('_relkey') _relkey: string,
+  //   @requestBody({
+  //     content: {
+  //       'application/json': {
+  //         schema: getModelSchemaRef(CategoryBill, {partial: true}),
+  //       },
+  //     },
+  //   })
+  //   categoryBill: Partial<CategoryBill>,
+  //   @param.query.object('where', getWhereSchemaFor(CategoryBill))
+  //   where?: Where<CategoryBill>,
+  // ): Promise<Count> {
+  //   const relId = 'UsersRels/' + _relkey;
+  //   return this.usersRelsRepository
+  //     .categoryBills(relId)
+  //     .patch(categoryBill, where);
+  // }
 }
