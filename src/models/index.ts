@@ -2,7 +2,6 @@ export * from './users.model';
 export * from './dong.model';
 export * from './blacklist.model';
 export * from './virtual-users.model';
-export * from './friend-request.model';
 export * from './category.model';
 export * from './category-bill.model';
 export * from './credentials.model';
