@@ -1,20 +1,5 @@
-import {
-  Count,
-  CountSchema,
-  Filter,
-  repository,
-  Where,
-} from '@loopback/repository';
-import {
-  get,
-  getModelSchemaRef,
-  getWhereSchemaFor,
-  param,
-  patch,
-  post,
-  requestBody,
-  api,
-} from '@loopback/rest';
+import {Filter, repository} from '@loopback/repository';
+import {get, getModelSchemaRef, param, api, HttpErrors} from '@loopback/rest';
 import {authenticate} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {UserProfile, SecurityBindings, securityId} from '@loopback/security';
@@ -62,9 +47,18 @@ export class UsersRelsCategoryBillController {
 
     const filter: Filter<CategoryBill> = {
       order: ['createdAt'],
-      where: {and: [{belongsToUserId: userId}]},
+      where: {
+        and: [{belongsToUserId: userId}, {belongsToUserRelId: userRelId}],
+      },
     };
-    return this.usersRelsRepository.categoryBills(userRelId).find(filter);
+    const rels = await this.usersRelsRepository
+      .categoryBills(userRelId)
+      .find(filter);
+
+    if (!rels.length) {
+      throw new HttpErrors.NotFound('userRelKey not found');
+    }
+    return rels;
   }
 
   // @post('/api/users-rels/{usersRelkey}/category-bills', {
