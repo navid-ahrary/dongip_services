@@ -8,30 +8,17 @@ import {
 
 import {Users} from './users.model';
 import {CategoryBill} from './category-bill.model';
+import {Category} from './category.model';
 
 @model()
 export class Dong extends Entity {
   @property({
-    type: 'string',
+    type: 'number',
     id: true,
     generated: true,
     required: false,
   })
-  _key: string;
-
-  @property({
-    type: 'string',
-    generated: true,
-    required: false,
-  })
-  _id: string;
-
-  @property({
-    type: 'string',
-    generated: true,
-    required: false,
-  })
-  _rev: string;
+  id: number;
 
   @property({
     type: 'string',
@@ -58,12 +45,12 @@ export class Dong extends Entity {
   pong: number;
 
   @belongsTo(() => Users, {name: 'belongsToUser'})
-  belongsToUserId: string;
+  belongsToUserId: typeof Users.prototype.id;
 
   @property({
-    type: 'string',
+    type: 'number',
   })
-  categoryId: string;
+  categoryId: typeof Category.prototype.id;
 
   @hasMany(() => CategoryBill, {keyTo: 'belongsToDongId'})
   categoryBills: CategoryBill[];

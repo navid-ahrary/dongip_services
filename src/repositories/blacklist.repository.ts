@@ -1,14 +1,14 @@
-import {DefaultCrudRepository, Filter, DataObject} from '@loopback/repository';
+import {DefaultCrudRepository, Filter} from '@loopback/repository';
 import {Blacklist, BlacklistRelations} from '../models';
-import {ArangodbDataSource} from '../datasources';
+import {MysqlDataSource} from '../datasources';
 import {inject} from '@loopback/core';
 
 export class BlacklistRepository extends DefaultCrudRepository<
   Blacklist,
-  typeof Blacklist.prototype._key,
+  typeof Blacklist.prototype.id,
   BlacklistRelations
 > {
-  constructor(@inject('datasources.arangodb') dataSource: ArangodbDataSource) {
+  constructor(@inject('datasources.Mysql') dataSource: MysqlDataSource) {
     super(Blacklist, dataSource);
   }
 
@@ -19,15 +19,5 @@ export class BlacklistRepository extends DefaultCrudRepository<
     } else {
       throw new Error('Token is blacklisted!');
     }
-  }
-
-  /**
-   * override super class's create method
-   */
-  public async create(entity: DataObject<Blacklist>): Promise<Blacklist> {
-    const blackList = await super.create(entity);
-    blackList._id = blackList._key[1];
-    blackList._key = blackList._key[0];
-    return blackList;
   }
 }

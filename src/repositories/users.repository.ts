@@ -2,11 +2,10 @@ import {
   DefaultCrudRepository,
   repository,
   HasManyRepositoryFactory,
-  DataObject,
 } from '@loopback/repository';
 import {inject, Getter} from '@loopback/core';
 
-import {ArangodbDataSource} from '../datasources';
+import {MysqlDataSource} from '../datasources';
 import {PasswordHasher} from '../services';
 import {
   VirtualUsersRepository,
@@ -27,35 +26,35 @@ import {
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
-  typeof Users.prototype._key
+  typeof Users.prototype.id
 > {
   public readonly virtualUsers: HasManyRepositoryFactory<
     VirtualUsers,
-    typeof Users.prototype._id
+    typeof Users.prototype.id
   >;
 
   public readonly dong: HasManyRepositoryFactory<
     Dong,
-    typeof Users.prototype._id
+    typeof Users.prototype.id
   >;
 
   public readonly categories: HasManyRepositoryFactory<
     Category,
-    typeof Users.prototype._id
+    typeof Users.prototype.id
   >;
 
   public readonly usersRels: HasManyRepositoryFactory<
     UsersRels,
-    typeof Users.prototype._id
+    typeof Users.prototype.id
   >;
 
   public readonly categoryBills: HasManyRepositoryFactory<
     CategoryBill,
-    typeof Users.prototype._id
+    typeof Users.prototype.id
   >;
 
   constructor(
-    @inject('datasources.arangodb') dataSource: ArangodbDataSource,
+    @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
     protected virtualUsersRepositoryGetter: Getter<VirtualUsersRepository>,
     @repository.getter('DongRepository')
@@ -111,15 +110,5 @@ export class UsersRepository extends DefaultCrudRepository<
       'virtualUsers',
       this.virtualUsers.inclusionResolver,
     );
-  }
-
-  /**
-   * override super class's create method
-   */
-  public async create(entity: DataObject<Users>): Promise<Users> {
-    const user = await super.create(entity);
-    user._id = user._key[1];
-    user._key = user._key[0];
-    return user;
   }
 }

@@ -3,12 +3,12 @@ import {Entity, model, property} from '@loopback/repository';
 @model()
 export class Verify extends Entity {
   @property({
-    type: 'string',
+    type: 'number',
     id: true,
     generated: true,
     required: false,
   })
-  _key: string;
+  id: number;
 
   @property({
     type: 'string',
@@ -18,7 +18,7 @@ export class Verify extends Entity {
 
   @property({
     type: 'boolean',
-    requried: true
+    requried: true,
   })
   registered: boolean;
 
@@ -41,24 +41,16 @@ export class Verify extends Entity {
   agent: string;
 
   @property({
-    type: 'string',
-    required: false
-  })
-  ip: string;
-
-  @property({
     type: 'date',
     required: true,
   })
   issuedAt: object;
 
-  constructor (data?: Partial<Verify>) {
+  constructor(data?: Partial<Verify>) {
     super(data);
   }
 }
 
-export interface VerifyRelations {
-  // describe navigational properties here
-}
+export interface VerifyRelations {}
 
 export type VerifyWithRelations = Verify & VerifyRelations;

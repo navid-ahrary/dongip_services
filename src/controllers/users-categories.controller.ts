@@ -1,19 +1,13 @@
-import {
-  Count,
-  CountSchema,
-  Filter,
-  repository,
-  Where,
-} from '@loopback/repository';
+import {Count, CountSchema, repository} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
-  getWhereSchemaFor,
   param,
   patch,
   post,
   requestBody,
   HttpErrors,
+  api,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
@@ -23,6 +17,10 @@ import {Category} from '../models';
 import {UsersRepository, CategoryRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
+@api({
+  basePath: '/api/',
+  paths: {},
+})
 export class UsersCategoriesController {
   constructor(
     @repository(UsersRepository)
@@ -33,15 +31,8 @@ export class UsersCategoriesController {
     protected currentUserProfile: UserProfile,
   ) {}
 
-  private checkUserKey(key: string) {
-    if (key !== this.currentUserProfile[securityId]) {
-      throw new HttpErrors.Unauthorized(
-        'Token is not matched to this user _key!',
-      );
-    }
-  }
-
-  @get('/api/users/categories', {
+  @get('/users/categories', {
+    summary: 'Get array of all category belongs to user',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -55,16 +46,13 @@ export class UsersCategoriesController {
     },
   })
   @authenticate('jwt.access')
-  async find(
-    @param.query.object('filter') filter?: Filter<Category>,
-  ): Promise<Category[]> {
-    const _userKey = this.currentUserProfile[securityId];
-    const userId = 'Users/' + _userKey;
-
-    return this.usersRepository.categories(userId).find(filter);
+  async find(): // @param.query.object('filter') filter?: Filter<Category>,
+  Promise<Category[]> {
+    const userId = Number(this.currentUserProfile[securityId]);
+    return this.usersRepository.categories(userId).find();
   }
 
-  @post('/api/users/categories', {
+  @post('/users/categories', {
     summary: 'Create a new category',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -86,13 +74,7 @@ export class UsersCategoriesController {
           schema: getModelSchemaRef(Category, {
             title: 'NewCategory',
             partial: false,
-            exclude: [
-              '_key',
-              '_id',
-              '_rev',
-              'categoryBills',
-              'belongsToUserId',
-            ],
+            exclude: ['id', 'categoryBills', 'belongsToUserId'],
           }),
           example: {
             title: 'مسافرت',
@@ -103,8 +85,7 @@ export class UsersCategoriesController {
     })
     newCategories: Omit<Category, '_key'>,
   ): Promise<Category> {
-    const _userKey = this.currentUserProfile[securityId];
-    const userId = 'Users/' + _userKey;
+    const userId = Number(this.currentUserProfile[securityId]);
 
     newCategories.belongsToUserId = userId;
 
@@ -127,7 +108,7 @@ export class UsersCategoriesController {
     return createdCat;
   }
 
-  @post('/api/users/categories/bunch', {
+  @post('/users/categories/bunch', {
     summary: 'Create bunch of new categories',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -149,13 +130,7 @@ export class UsersCategoriesController {
           schema: getModelSchemaRef(Category, {
             title: 'NewCategories',
             partial: false,
-            exclude: [
-              '_key',
-              '_id',
-              '_rev',
-              'categoryBills',
-              'belongsToUserId',
-            ],
+            exclude: ['id', 'categoryBills', 'belongsToUserId'],
           }),
           example: [
             {
@@ -168,8 +143,7 @@ export class UsersCategoriesController {
     })
     newCategories: Omit<Category, '_key'>[],
   ): Promise<Category[]> {
-    const _userKey = this.currentUserProfile[securityId];
-    const userId = 'Users/' + _userKey;
+    const userId = Number(this.currentUserProfile[securityId]);
 
     newCategories.forEach((cat) => {
       cat.belongsToUserId = userId;
@@ -194,8 +168,8 @@ export class UsersCategoriesController {
     return createdCat;
   }
 
-  @patch('/api/users/categories/{categoryKey}', {
-    summary: 'Update a category by key in path',
+  @patch('/users/categories/{categoryId}', {
+    summary: 'Update a category by id',
     description:
       'برای تغییر در یک پراپرتی یا چند پراپ، فقط همان فیلدها مورد نظر با مقادیر تغییر یافته اش ارسال میشه',
     security: OPERATION_SECURITY_SPEC,
@@ -208,14 +182,13 @@ export class UsersCategoriesController {
   })
   @authenticate('jwt.access')
   async patch(
-    @param.path.string('categoryKey')
-    categoryKey: typeof Category.prototype._key,
+    @param.path.number('categoryId') categoryId: typeof Category.prototype.id,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(Category, {
             partial: true,
-            exclude: ['_rev', '_id', '_key', 'belongsToUserId'],
+            exclude: ['id', 'belongsToUserId'],
           }),
           examples: {
             oneProp: {
@@ -237,15 +210,12 @@ export class UsersCategoriesController {
     })
     category: Partial<Category>,
   ): Promise<Count> {
-    const userKey = this.currentUserProfile[securityId];
-    const userId = 'Users/' + userKey;
+    const userId = Number(this.currentUserProfile[securityId]);
 
     try {
-      return await this.usersRepository
-        .categories(userId)
-        .patch(category, {
-          and: [{_key: categoryKey}, {belongsToUserId: userId}],
-        });
+      return await this.usersRepository.categories(userId).patch(category, {
+        and: [{id: categoryId}, {belongsToUserId: userId}],
+      });
     } catch (_err) {
       console.log(_err);
       if (_err.code === 409) {

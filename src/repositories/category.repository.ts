@@ -3,7 +3,6 @@ import {
   repository,
   BelongsToAccessor,
   HasManyRepositoryFactory,
-  DataObject,
 } from '@loopback/repository';
 import {inject, Getter} from '@loopback/core';
 
@@ -14,26 +13,26 @@ import {
   CategoryBill,
   VirtualUsers,
 } from '../models';
-import {ArangodbDataSource} from '../datasources';
+import {MysqlDataSource} from '../datasources';
 import {UsersRepository, CategoryBillRepository} from './';
 
 export class CategoryRepository extends DefaultCrudRepository<
   Category,
-  typeof Category.prototype._key,
+  typeof Category.prototype.id,
   CategoryRelations
 > {
   public readonly belongsToUser: BelongsToAccessor<
     Users | VirtualUsers,
-    typeof Category.prototype._id
+    typeof Category.prototype.id
   >;
 
   public readonly categoryBills: HasManyRepositoryFactory<
     CategoryBill,
-    typeof Category.prototype._id
+    typeof Category.prototype.id
   >;
 
   constructor(
-    @inject('datasources.arangodb') dataSource: ArangodbDataSource,
+    @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('CategoryBillRepository')
@@ -54,28 +53,5 @@ export class CategoryRepository extends DefaultCrudRepository<
       'belongsToUser',
       usersRepositoryGetter,
     );
-  }
-
-  /**
-   * override super class's create method
-   */
-  public async create(entity: DataObject<Category>): Promise<Category> {
-    const createdCategory = await super.create(entity);
-    console.log(createdCategory);
-    createdCategory._id = createdCategory._key[1];
-    createdCategory._key = createdCategory._key[0];
-    return createdCategory;
-  }
-
-  /**
-   * override super class's createAll method
-   */
-  public async createAll(entity: DataObject<Category>[]): Promise<Category[]> {
-    const createdCategories = await super.createAll(entity);
-    createdCategories.forEach((cat) => {
-      cat._id = cat._key[1];
-      cat._key = cat._key[0];
-    });
-    return createdCategories;
   }
 }

@@ -19,7 +19,7 @@ export class UsersRelsCategoryBillController {
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {}
 
-  @get('/users-rels/{userRelKey}/category-bills', {
+  @get('/users-rels/{userRelId}/category-bills', {
     summary: 'Get CategoryBills belongs to UserRel by userRelKey in path',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -38,12 +38,9 @@ export class UsersRelsCategoryBillController {
   })
   @authenticate('jwt.access')
   async find(
-    @param.path.string('userRelKey')
-    userRelKey: typeof UsersRels.prototype._key,
+    @param.path.number('userRelId') userRelId: typeof UsersRels.prototype.id,
   ): Promise<CategoryBill[]> {
-    const userKey = this.currentUserProfile[securityId];
-    const userId = 'Users/' + userKey;
-    const userRelId = 'UsersRels/' + userRelKey;
+    const userId = Number(this.currentUserProfile[securityId]);
 
     const filter: Filter<CategoryBill> = {
       order: ['createdAt'],

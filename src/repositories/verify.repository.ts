@@ -1,23 +1,14 @@
-import {DefaultCrudRepository, DataObject} from '@loopback/repository';
+import {DefaultCrudRepository} from '@loopback/repository';
 import {Verify, VerifyRelations} from '../models';
-import {ArangodbDataSource} from '../datasources';
+import {MysqlDataSource} from '../datasources';
 import {inject} from '@loopback/core';
 
 export class VerifyRepository extends DefaultCrudRepository<
   Verify,
-  typeof Verify.prototype._key,
+  typeof Verify.prototype.id,
   VerifyRelations
 > {
-  constructor(@inject('datasources.arangodb') dataSource: ArangodbDataSource) {
+  constructor(@inject('datasources.Mysql') dataSource: MysqlDataSource) {
     super(Verify, dataSource);
-  }
-
-  /**
-   * override super class's create method
-   */
-  public async create(entity: DataObject<Verify>): Promise<Verify> {
-    const verify = await super.create(entity);
-    verify._key = verify._key[0];
-    return verify;
   }
 }

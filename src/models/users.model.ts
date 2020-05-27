@@ -5,37 +5,18 @@ import {VirtualUsers, Dong, Category, CategoryBill, UsersRels} from './';
 @model()
 export class Users extends Entity {
   @property({
-    type: 'string',
+    type: 'number',
     id: true,
     required: false,
     generated: true,
   })
-  _key: string;
-
-  @property({
-    type: 'string',
-    required: false,
-    generated: true,
-  })
-  _id: string;
-
-  @property({
-    type: 'string',
-    required: false,
-    generated: true,
-  })
-  _rev: string;
+  id: number;
 
   @property({
     type: 'string',
     required: true,
   })
   phone: string;
-
-  @property({
-    type: 'string',
-  })
-  password: string;
 
   @property({
     type: 'string',

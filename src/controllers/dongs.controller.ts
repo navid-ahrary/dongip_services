@@ -3,7 +3,6 @@ import {Filter, repository, model, property} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
-  param,
   post,
   requestBody,
   HttpErrors,
@@ -14,14 +13,14 @@ import {authenticate} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import _ from 'underscore';
 
-import {Dong} from '../models';
+import {Dong, UsersRels, DongRelations} from '../models';
 import {
   UsersRepository,
   DongRepository,
   CategoryBillRepository,
 } from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {PostNewDongExample} from './specs/dongs.specs';
+import {PostNewDongExample} from './specs';
 
 @model()
 export class PostNewDong extends Dong {
@@ -29,13 +28,11 @@ export class PostNewDong extends Dong {
     type: 'array',
     itemType: 'object',
   })
-  billList: {usersRelsId: string; dongAmount: number; paidAmount: number}[];
-
-  // @property({
-  //   type: 'array',
-  //   itemType: 'object',
-  // })
-  // exManList: {usersRelsId: string; paidAmount: number}[];
+  billList: {
+    usersRelsId: typeof UsersRels.prototype.id;
+    dongAmount: number;
+    paidAmount: number;
+  }[];
 }
 
 @api({
@@ -50,14 +47,6 @@ export class DongsController {
     private categoryBillRepository: CategoryBillRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
   ) {}
-
-  private checkUserKey(key: string) {
-    if (key !== this.currentUserProfile[securityId]) {
-      throw new HttpErrors.Unauthorized(
-        'Token is not matched to this user _key!',
-      );
-    }
-  }
 
   @get('/dongs', {
     summary: 'Get array of Dongs with filter',
@@ -77,16 +66,18 @@ export class DongsController {
     },
   })
   @authenticate('jwt.access')
-  async find(
-    @param.query.object('filter') filter?: Filter<Dong>,
-  ): Promise<Dong[]> {
-    const userKey = this.currentUserProfile[securityId];
-    const userId = 'Users/' + userKey;
+  async find(): Promise<Dong[]> {
+    const userId = Number(this.currentUserProfile[securityId]);
 
-    filter = Object.assign(filter, {
-      orders: 'createdAt DESC',
+    const filter: Filter<Dong> = {
+      order: ['createdAt DESC'],
       where: {belongsToUserId: userId},
-    });
+      include: [
+        {
+          relation: 'categoryBills',
+        },
+      ],
+    };
 
     return this.usersRepository.dong(userId).find(filter);
   }
@@ -112,38 +103,24 @@ export class DongsController {
         'application/json': {
           schema: getModelSchemaRef(PostNewDong, {
             title: 'NewDong',
-            exclude: ['_key', '_id', '_rev', 'belongsToUserId'],
+            exclude: ['id', 'belongsToUserId'],
           }),
           example: PostNewDongExample,
         },
       },
     })
-    newDong: Omit<PostNewDong, '_key'>,
-  ): Promise<Dong> {
-    const userKey = this.currentUserProfile[securityId];
-    const userId = 'Users/' + userKey;
+    newDong: Omit<PostNewDong, 'id'>,
+  ): Promise<(Dong & DongRelations) | null> {
+    const userId = Number(this.currentUserProfile[securityId]);
 
     let billList = newDong.billList,
-      billRelationIdList: {_id: string}[] = [],
-      // exManList = newDong.exManList,
-      // exManRelationIdList: {_id: string}[] = [],
-      // allUsersRelsId: {_id: string}[] = [],
+      billRelationIdList: {id: number}[] = [],
       dong: Dong,
       categoryBillList = [];
 
     billList.forEach((bill) => {
-      billRelationIdList.push({_id: bill.usersRelsId});
-      // if (_.findIndex(allUsersRelsId, {_id: bill.usersRelsId}) === -1) {
-      //   allUsersRelsId.push({_id: bill.usersRelsId});
-      // }
+      billRelationIdList.push({id: bill.usersRelsId});
     });
-
-    // exManList.forEach((exMan) => {
-    //   exManRelationIdList.push({_id: exMan.usersRelsId});
-    //   if (_.findIndex(allUsersRelsId, {_id: exMan.usersRelsId}) === -1) {
-    //     allUsersRelsId.push({_id: exMan.usersRelsId});
-    //   }
-    // });
 
     // validate all usersRels
     await this.usersRepository
@@ -170,7 +147,7 @@ export class DongsController {
     // create categoryBill object for every usersRels
     for (const _b of billList) {
       const categoryBill = {
-        belongsToDongId: dong._id,
+        belongsToDongId: dong.id,
         belongsToCategoryId: newDong.categoryId,
         belongsToUserId: userId,
         belongsToUserRelId: _b.usersRelsId,
@@ -179,7 +156,7 @@ export class DongsController {
         settled: _b.paidAmount === _b.dongAmount ? true : false,
         settledAt:
           _b.paidAmount === _b.dongAmount ? newDong.createdAt : undefined,
-        createdAt: newDong.createdAt,
+        createdAt: d.createdAt,
       };
       categoryBillList.push(categoryBill);
     }
@@ -187,10 +164,19 @@ export class DongsController {
     // save all categoryBill objects in database
     await this.categoryBillRepository
       .createAll(categoryBillList)
-      .catch(async (_err) => {
-        await this.dongRepository.deleteById(dong._key);
+      .catch(async (_err: string) => {
+        await this.dongRepository.deleteById(dong.getId());
         throw new HttpErrors.NotImplemented(_err);
       });
-    return dong;
+
+    const filter: Filter<Dong> = {
+      where: {id: dong.getId()},
+      include: [
+        {
+          relation: 'categoryBills',
+        },
+      ],
+    };
+    return this.dongRepository.findOne(filter);
   }
 }

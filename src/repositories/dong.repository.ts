@@ -2,33 +2,32 @@ import {
   DefaultCrudRepository,
   repository,
   BelongsToAccessor,
-  DataObject,
   HasManyRepositoryFactory,
 } from '@loopback/repository';
 import {inject, Getter} from '@loopback/core';
 
-import {ArangodbDataSource} from '../datasources';
+import {MysqlDataSource} from '../datasources';
 import {Dong, DongRelations, Users, CategoryBill} from '../models';
 import {UsersRepository, CategoryRepository} from '.';
 import {CategoryBillRepository} from './category-bill.repository';
 
 export class DongRepository extends DefaultCrudRepository<
   Dong,
-  typeof Dong.prototype._key,
+  typeof Dong.prototype.id,
   DongRelations
 > {
   public readonly belongsToUser: BelongsToAccessor<
     Users,
-    typeof Dong.prototype._id
+    typeof Dong.prototype.id
   >;
 
   public readonly categoryBills: HasManyRepositoryFactory<
     CategoryBill,
-    typeof Dong.prototype._key
+    typeof Dong.prototype.id
   >;
 
   constructor(
-    @inject('datasources.arangodb') dataSource: ArangodbDataSource,
+    @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('CategoryRepository')
@@ -54,15 +53,5 @@ export class DongRepository extends DefaultCrudRepository<
       'belongsToUser',
       this.belongsToUser.inclusionResolver,
     );
-  }
-
-  /**
-   * override super class's create method
-   */
-  public async create(entity: DataObject<Dong>): Promise<Dong> {
-    const dong = await super.create(entity);
-    dong._id = dong._key[1];
-    dong._key = dong._key[0];
-    return dong;
   }
 }

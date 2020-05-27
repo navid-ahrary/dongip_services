@@ -2,7 +2,6 @@ import {
   DefaultCrudRepository,
   repository,
   BelongsToAccessor,
-  DataObject,
   HasManyRepositoryFactory,
 } from '@loopback/repository';
 import {inject, Getter} from '@loopback/core';
@@ -15,7 +14,7 @@ import {
   Category,
   CategoryBill,
 } from '../models';
-import {ArangodbDataSource} from '../datasources';
+import {MysqlDataSource} from '../datasources';
 import {
   UsersRepository,
   UsersRelsRepository,
@@ -25,31 +24,31 @@ import {
 
 export class VirtualUsersRepository extends DefaultCrudRepository<
   VirtualUsers,
-  typeof VirtualUsers.prototype._key,
+  typeof VirtualUsers.prototype.id,
   VirtualUsersRelations
 > {
   public readonly belongsToUser: BelongsToAccessor<
     Users,
-    typeof VirtualUsers.prototype._id
+    typeof VirtualUsers.prototype.id
   >;
 
   public readonly usersRels: HasManyRepositoryFactory<
     UsersRels,
-    typeof Users.prototype._id
+    typeof Users.prototype.id
   >;
 
   public readonly categories: HasManyRepositoryFactory<
     Category,
-    typeof Users.prototype._id
+    typeof Users.prototype.id
   >;
 
   public readonly categoryBills: HasManyRepositoryFactory<
     CategoryBill,
-    typeof Users.prototype._id
+    typeof Users.prototype.id
   >;
 
   constructor(
-    @inject('datasources.arangodb') dataSource: ArangodbDataSource,
+    @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('DongRepository')
@@ -83,15 +82,5 @@ export class VirtualUsersRepository extends DefaultCrudRepository<
       'usersRels',
       this.usersRels.inclusionResolver,
     );
-  }
-
-  /**
-   * create model like a human being
-   */
-  public async create(entity: DataObject<VirtualUsers>): Promise<VirtualUsers> {
-    const virtualUser = await super.create(entity);
-    virtualUser._id = virtualUser._key[1];
-    virtualUser._key = virtualUser._key[0];
-    return virtualUser;
   }
 }

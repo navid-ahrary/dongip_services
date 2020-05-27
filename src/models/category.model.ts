@@ -11,26 +11,12 @@ import {Users, CategoryBill} from './';
 @model()
 export class Category extends Entity {
   @property({
-    type: 'string',
+    type: 'number',
     id: true,
     generated: true,
-    required: false,
+    // required: false,
   })
-  _key: string;
-
-  @property({
-    type: 'string',
-    generated: true,
-    required: false,
-  })
-  _id: string;
-
-  @property({
-    type: 'string',
-    generated: true,
-    required: false,
-  })
-  _rev: string;
+  id: number;
 
   @property({
     type: 'string',
@@ -45,7 +31,7 @@ export class Category extends Entity {
   icon: string;
 
   @belongsTo(() => Users, {name: 'belongsToUser'})
-  belongsToUserId: string;
+  belongsToUserId: typeof Users.prototype.id;
 
   @hasMany(() => CategoryBill, {keyTo: 'belongsToCategoryId'})
   categoryBills: CategoryBill[];

@@ -8,12 +8,11 @@ import {
   post,
   requestBody,
   HttpErrors,
+  api,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {inject, service} from '@loopback/core';
-import Debug from 'debug';
-const debug = Debug('dongip');
 
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {UsersRels, VirtualUsers} from '../models';
@@ -25,6 +24,10 @@ import {
 } from '../repositories';
 import {FirebaseService, validatePhoneNumber} from '../services';
 
+@api({
+  basePath: '/api/',
+  paths: {},
+})
 export class UsersUsersRelsController {
   constructor(
     @repository(UsersRepository) protected usersRepository: UsersRepository,
@@ -38,15 +41,7 @@ export class UsersUsersRelsController {
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {}
 
-  private checkUserKey(userKey: string) {
-    if (userKey !== this.currentUserProfile[securityId]) {
-      throw new HttpErrors.Unauthorized(
-        'Token is not matched to this user _key!',
-      );
-    }
-  }
-
-  @get('/api/users/users-rels', {
+  @get('/users/users-rels', {
     summary: 'Get array of all UsersRels',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -62,13 +57,11 @@ export class UsersUsersRelsController {
   })
   @authenticate('jwt.access')
   async find(): Promise<UsersRels[]> {
-    const _userKey = this.currentUserProfile[securityId];
-    const userId = 'Users/' + _userKey;
-
+    const userId = Number(this.currentUserProfile[securityId]);
     return this.usersRepository.usersRels(userId).find();
   }
 
-  @post('/api/users/users-rels', {
+  @post('/users/users-rels', {
     summary: 'Create a new UsersRels',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -88,24 +81,20 @@ export class UsersUsersRelsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
-            exclude: [
-              '_id',
-              'belongsToUserId',
-              'targetUserId',
-              'categoryBills',
-              'type',
-            ],
+            exclude: ['id', 'belongsToUserId', 'categoryBills', 'type'],
           }),
           example: {
             phone: '+989122222222',
             avatar: '/assets/avatar/avatar_12.png',
-            alias: 'Samood',
+            name: 'Samood',
           },
         },
       },
     })
-    reqBody: Omit<UsersRels, '_key'>,
+    reqBody: Omit<UsersRels, 'id'>,
   ): Promise<UsersRels> {
+    const userId = Number(this.currentUserProfile[securityId]);
+
     try {
       // validate recipient phone number
       validatePhoneNumber(reqBody.phone);
@@ -114,13 +103,10 @@ export class UsersUsersRelsController {
       throw new HttpErrors.UnprocessableEntity(_err.message);
     }
 
-    const userKey = this.currentUserProfile[securityId];
-    const userId = 'Users/' + userKey;
-
     let createdVirtualUser: VirtualUsers,
       userRel = Object.assign(
-        {type: 'virtual', targetUserId: '', phone: ''},
-        {alias: reqBody.alias, avatar: reqBody.avatar},
+        {type: 'virtual', targetUserId: 0, phone: ''},
+        {name: reqBody.name, avatar: reqBody.avatar},
       );
 
     createdVirtualUser = await this.usersRepository
@@ -128,45 +114,34 @@ export class UsersUsersRelsController {
       .create({phone: reqBody.phone})
       .catch(async (_err) => {
         console.log(_err);
-        if (_err.code === 409) {
-          const index =
-            _err.response.body.errorMessage.indexOf('conflicting key: ') + 17;
-
-          const virtualUserId =
-            'VirtualUsers/' + _err.response.body.errorMessage.slice(index);
-
-          const rel = await this.usersRepository
-            .usersRels(userId)
-            .find({where: {targetUserId: virtualUserId}});
-
-          throw new HttpErrors.Conflict(
-            'You have relation _key: ' + JSON.stringify(rel[0]._key),
-          );
+        if (_err.errno === 1062 && _err.code === 'ER_DUP_ENTRY') {
+          throw new HttpErrors[422](`این شماره توی لیست دوستات وجود داره!`);
         }
         throw new HttpErrors.NotAcceptable(_err);
       });
 
-    userRel.targetUserId = createdVirtualUser._id;
+    userRel.targetUserId = createdVirtualUser.getId();
     userRel.phone = createdVirtualUser.phone;
 
     return this.usersRepository
       .usersRels(userId)
       .create(userRel)
       .catch((_err) => {
-        debug(_err);
-        if (_err.code === 409) {
-          const index = _err.response.body.errorMessage.indexOf('conflicting');
-          throw new HttpErrors.Conflict(
-            'Error create user relation ' +
-              _err.response.body.errorMessage.slice(index),
-          );
+        console.log(_err);
+
+        // delete created virtual user
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.virtualUsersRepository.deleteById(createdVirtualUser.getId());
+
+        if (_err.errno === 1062 && _err.code === 'ER_DUP_ENTRY') {
+          throw new HttpErrors[422](`این شماره توی لیست دوستات وجود داره!`);
         }
         throw new HttpErrors.NotAcceptable(_err);
       });
   }
 
-  @patch('/api/users/users-rels/{userRelKey}', {
-    summary: 'Update a userRel by key in path',
+  @patch('/users/users-rels/{usersRelsId}', {
+    summary: 'Update a userRel by id in path',
     description: 'Post just desired properties to update',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -182,26 +157,18 @@ export class UsersUsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             partial: true,
-            exclude: [
-              '_key',
-              '_id',
-              'belongsToUserId',
-              'targetUserId',
-              '_rev',
-              'type',
-              'phone',
-            ],
+            exclude: ['id', 'belongsToUserId', 'targetUserId', 'type', 'phone'],
           }),
           examples: {
             someProps: {
               value: {
-                alias: 'Samood',
+                name: 'Samood',
                 avatar: 'assets/avatar/avatar_1.png',
               },
             },
             singleProp: {
               value: {
-                alias: 'Samood',
+                name: 'Samood',
               },
             },
           },
@@ -209,16 +176,15 @@ export class UsersUsersRelsController {
       },
     })
     usersRels: Partial<UsersRels>,
-    @param.path.string('userRelKey')
-    userRelKey: typeof UsersRels.prototype._key,
+    @param.path.number('usersRelsId')
+    usersRelsId: typeof UsersRels.prototype.id,
   ): Promise<void> {
-    const _userKey = this.currentUserProfile[securityId];
-    const userId = 'Users/' + _userKey;
+    const userId = Number(this.currentUserProfile[securityId]);
     let count;
 
     try {
       count = await this.usersRepository.usersRels(userId).patch(usersRels, {
-        and: [{belongsToUserId: userId}, {_key: userRelKey}],
+        and: [{belongsToUserId: userId}, {id: usersRelsId}],
       });
     } catch (_err) {
       console.log(_err);

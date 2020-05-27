@@ -10,26 +10,12 @@ import {Users, UsersRels, Category, CategoryBill, Dong} from './';
 @model()
 export class VirtualUsers extends Entity {
   @property({
-    type: 'string',
+    type: 'number',
     id: true,
     generated: true,
     required: false,
   })
-  _key: string;
-
-  @property({
-    type: 'string',
-    required: false,
-    generated: true,
-  })
-  _id: string;
-
-  @property({
-    type: 'string',
-    required: false,
-    generated: true,
-  })
-  _rev: string;
+  id: number;
 
   @property({
     type: 'string',
@@ -38,7 +24,7 @@ export class VirtualUsers extends Entity {
   phone: string;
 
   @belongsTo(() => Users, {name: 'belongsToUser'})
-  belongsToUserId: string;
+  belongsToUserId: typeof Users.prototype.id;
 
   @hasMany(() => Dong, {keyTo: 'xManKey'})
   dongs: Dong[];

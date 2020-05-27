@@ -2,7 +2,6 @@ import {
   DefaultCrudRepository,
   repository,
   BelongsToAccessor,
-  DataObject,
   HasManyRepositoryFactory,
 } from '@loopback/repository';
 import {
@@ -12,7 +11,7 @@ import {
   CategoryBill,
   VirtualUsers,
 } from '../models';
-import {ArangodbDataSource} from '../datasources';
+import {MysqlDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
 import {
   UsersRepository,
@@ -22,21 +21,21 @@ import {
 
 export class UsersRelsRepository extends DefaultCrudRepository<
   UsersRels,
-  typeof UsersRels.prototype._key,
+  typeof UsersRels.prototype.id,
   UsersRelsRelations
 > {
   public readonly belongsToUser: BelongsToAccessor<
     Users | VirtualUsers,
-    typeof UsersRels.prototype._id
+    typeof UsersRels.prototype.id
   >;
 
   public readonly categoryBills: HasManyRepositoryFactory<
     CategoryBill,
-    typeof UsersRels.prototype._key
+    typeof UsersRels.prototype.id
   >;
 
   constructor(
-    @inject('datasources.arangodb') dataSource: ArangodbDataSource,
+    @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('VirtualUsersRepository')
@@ -58,15 +57,5 @@ export class UsersRelsRepository extends DefaultCrudRepository<
       'belongsToUser',
       usersRepositoryGetter || virtualUsersRepositoryGetter,
     );
-  }
-
-  /**
-   * override create method
-   */
-  public async create(entity: DataObject<UsersRels>): Promise<UsersRels> {
-    const result = await super.create(entity);
-    result._id = result._key[1];
-    result._key = result._key[0];
-    return result;
   }
 }

@@ -1,40 +1,28 @@
-import {
-  Entity,
-  model,
-  property
-} from '@loopback/repository';
+import {Entity, model, property} from '@loopback/repository';
 
 @model()
 export class Blacklist extends Entity {
   @property({
-    type: 'string',
+    type: 'number',
     required: false,
     generated: true,
-    id: true
+    id: true,
   })
-  _key: string;
+  id: number;
 
   @property({
     type: 'string',
-    required: false,
-    generated: true
-  })
-  _id: string;
-
-  @property({
-    type: 'string',
-    required: true
+    required: true,
   })
   token: string;
 
   @property({
     type: 'date',
     required: false,
-    generated: true,
   })
   createdAt: object = new Date();
 
-  constructor (data?: Partial<Blacklist>) {
+  constructor(data?: Partial<Blacklist>) {
     super(data);
   }
 }

@@ -11,39 +11,26 @@ import {Users, CategoryBill} from './';
 @model()
 export class UsersRels extends Entity {
   @property({
-    type: 'string',
+    type: 'number',
     id: true,
     generated: true,
     required: false,
   })
-  _key: string;
-
-  @property({
-    type: 'string',
-    required: false,
-    generated: true,
-  })
-  _id: string;
-
-  @property({
-    type: 'string',
-    required: false,
-    generated: true,
-  })
-  _rev: string;
+  id: number;
 
   @belongsTo(() => Users, {name: 'belongsToUser'})
-  belongsToUserId: string;
+  belongsToUserId: typeof Users.prototype.id;
+
+  @property({
+    type: 'number',
+    required: false,
+  })
+  targetUserId: number;
 
   @property({
     type: 'string',
   })
-  targetUserId: string;
-
-  @property({
-    type: 'string',
-  })
-  alias: string;
+  name: string;
 
   @property({
     type: 'string',

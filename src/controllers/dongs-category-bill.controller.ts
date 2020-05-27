@@ -1,6 +1,6 @@
 import {Filter, repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param, api} from '@loopback/rest';
-import {CategoryBill} from '../models';
+import {CategoryBill, Dong} from '../models';
 import {DongRepository} from '../repositories';
 import {authenticate} from '@loopback/authentication';
 import {inject} from '@loopback/core';
@@ -18,7 +18,7 @@ export class DongsCategoryBillController {
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
   ) {}
 
-  @get('/dongs/{dongKey}/category-bills', {
+  @get('/dongs/{dongId}/category-bills', {
     summary: 'Get all CategoryBills belongs to a Dong by dongKey',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -36,11 +36,9 @@ export class DongsCategoryBillController {
     },
   })
   async find(
-    @param.path.string('dongKey') dongKey: string,
+    @param.path.number('dongId') dongId: typeof Dong.prototype.id,
   ): Promise<CategoryBill[]> {
-    const userKey = this.currentUserProfile[securityId];
-    const userId = 'Users/' + userKey;
-    const dongId = 'Dongs/' + dongKey;
+    const userId = Number(this.currentUserProfile[securityId]);
     const filter: Filter<CategoryBill> = {where: {belongsToUserId: userId}};
 
     return this.dongRepository.categoryBills(dongId).find(filter);

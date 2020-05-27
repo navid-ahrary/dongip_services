@@ -14,7 +14,7 @@ import {UsersRepository, BlacklistRepository} from '../repositories';
 import {TokenServiceBindings} from '../keys';
 
 export class JWTService implements TokenService {
-  constructor (
+  constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(BlacklistRepository)
     public blacklistRepository: BlacklistRepository,
@@ -27,7 +27,7 @@ export class JWTService implements TokenService {
     private jwtRefreshExpiresIn: string,
   ) {}
 
-  public async verifyToken (accessToken: string): Promise<UserProfile> {
+  public async verifyToken(accessToken: string): Promise<UserProfile> {
     const nullToken = 'Error verifying access token: token is null';
 
     if (!accessToken) {
@@ -35,35 +35,34 @@ export class JWTService implements TokenService {
       throw new HttpErrors.Unauthorized(nullToken);
     }
 
-    let userProfile: UserProfile,
-      decryptedToken: any;
+    let userProfile: UserProfile, decryptedToken: any;
 
     try {
       // check token is not in blacklist
-      await this.blacklistRepository.checkTokenNotBlacklisted(
-        {
-          where: {token: accessToken}
-        }
-      );
+      await this.blacklistRepository.checkTokenNotBlacklisted({
+        where: {token: accessToken},
+      });
 
       //decode user profile from token
       decryptedToken = verify(accessToken, this.jwtSecret);
       userProfile = Object.assign(
         {[securityId]: '', aud: ''},
-        {[securityId]: decryptedToken.sub, aud: decryptedToken.aud}
+        {[securityId]: decryptedToken.sub, aud: decryptedToken.aud},
       );
     } catch (_err) {
       debug(_err);
       throw new HttpErrors.Unauthorized(
-        `Error verifying token: ${_err.message}`);
+        `Error verifying token: ${_err.message}`,
+      );
     }
 
     return userProfile;
   }
 
-  public async generateToken (userProfile: UserProfile): Promise<string> {
+  public async generateToken(userProfile: UserProfile): Promise<string> {
     const nullUserProfle = 'Error generating token, userPofile is null.',
-      nullAudience = 'Error generating token, supported audience is not provided';
+      nullAudience =
+        'Error generating token, supported audience is not provided';
 
     if (!userProfile) {
       debug(nullUserProfle);
@@ -92,12 +91,13 @@ export class JWTService implements TokenService {
       accessToken = sign(userProfile, this.jwtSecret, {
         algorithm: 'HS512',
         expiresIn: expiresIn,
-        subject: userProfile[securityId]
+        subject: String(userProfile[securityId]),
       });
     } catch (_err) {
       debug(_err);
       throw new HttpErrors.Unauthorized(
-        `Error generating token: ${_err.message}`);
+        `Error generating token: ${_err.message}`,
+      );
     }
     await this.verifyToken(accessToken);
     return accessToken;

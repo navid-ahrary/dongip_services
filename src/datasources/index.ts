@@ -1,1 +1,1 @@
-export * from './arango.datasource'
+export * from './mysql.datasource';

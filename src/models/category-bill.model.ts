@@ -5,37 +5,24 @@ import {Category, Dong, Users, UsersRels} from './';
 @model()
 export class CategoryBill extends Entity {
   @property({
-    type: 'string',
+    type: 'number',
     id: true,
     generated: true,
-  })
-  _key: string;
-
-  @property({
-    type: 'string',
-    generated: true,
     required: false,
   })
-  _id: string;
-
-  @property({
-    type: 'string',
-    generated: true,
-    required: false,
-  })
-  _rev: string;
+  id: number;
 
   @belongsTo(() => Dong, {name: 'belongsToDong'})
-  belongsToDongId: string;
+  belongsToDongId: typeof Dong.prototype.id;
 
   @belongsTo(() => Category, {name: 'belongsToCategory'})
-  belongsToCategoryId: string;
+  belongsToCategoryId: typeof Category.prototype.id;
 
   @belongsTo(() => Users, {name: 'belongsToUser'})
-  belongsToUserId: string;
+  belongsToUserId: typeof Users.prototype.id;
 
   @belongsTo(() => UsersRels, {name: 'belongsToUserRel'})
-  belongsToUserRelId: string;
+  belongsToUserRelId: typeof UsersRels.prototype.id;
 
   @property({
     type: 'number',
@@ -56,29 +43,22 @@ export class CategoryBill extends Entity {
   settled: boolean;
 
   @property({
-    type: 'date',
+    type: 'string',
     required: false,
   })
   settledAt?: string;
 
   @property({
-    type: 'date',
-    requried: false,
+    type: 'string',
+    requried: true,
   })
   createdAt: string;
-
-  @property({
-    type: 'string',
-  })
-  dongId?: string;
 
   constructor(data?: Partial<CategoryBill>) {
     super(data);
   }
 }
 
-export interface CategoryBillRelations {
-  // dong?: DongsWithRelations;
-}
+export interface CategoryBillRelations {}
 
 export type CategoryBillWithRelations = CategoryBill & CategoryBillRelations;

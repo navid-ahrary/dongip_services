@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prefer-const */
 /* eslint-disable require-atomic-updates */
 import {inject, service} from '@loopback/core';
-import {repository} from '@loopback/repository';
+import {repository, property, model} from '@loopback/repository';
 import {
   post,
   requestBody,
@@ -12,6 +13,8 @@ import {
   param,
   patch,
   RequestContext,
+  api,
+  getModelSchemaRef,
 } from '@loopback/rest';
 import {
   authenticate,
@@ -25,15 +28,7 @@ import {
   UserServiceBindings,
   TokenServiceBindings,
 } from '../keys';
-import {
-  CredentialsRequestBody,
-  UserLoginResponse,
-  VerifyPhoneResponse,
-  UserSignupRequestBody,
-  UserPatchRequestBody,
-  UserSignupResponse,
-  VerifyPhoneRequestBody,
-} from './specs/user-controller.specs';
+import {UserPatchRequestBody} from './specs';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {Users, Credentials, Blacklist, Verify} from '../models';
 import {
@@ -50,6 +45,19 @@ import {
   VerifyService,
 } from '../services';
 
+@model()
+export class NewUser extends Users {
+  @property({
+    type: 'string',
+    required: true,
+  })
+  password: string;
+}
+
+@api({
+  basePath: '/api/',
+  paths: {},
+})
 export class UsersController {
   constructor(
     @inject.context() public ctx: RequestContext,
@@ -69,7 +77,7 @@ export class UsersController {
     @service(TimeService) public timeService: TimeService,
   ) {}
 
-  private generateRandomString(length: number) {
+  generateRandomString(length: number) {
     let result = '',
       characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
       charactersLength = characters.length;
@@ -79,21 +87,48 @@ export class UsersController {
     return result;
   }
 
-  private checkUserKey(userKey: string, currentUserProfile: UserProfile) {
-    if (userKey !== currentUserProfile[securityId]) {
-      throw new HttpErrors.Unauthorized(
-        'Token is not matched to this user _key!',
-      );
-    }
-  }
-
-  @post('/api/users/verify', {
-    responses: VerifyPhoneResponse,
+  @post('/users/verify', {
+    summary: 'Verify mobile number for login/signup',
+    responses: {
+      '200': {
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {type: 'boolean'},
+                name: {type: 'string'},
+                avatar: {type: 'string'},
+                prefix: {type: 'string'},
+              },
+            },
+          },
+        },
+      },
+    },
   })
   @authenticate.skip()
   async verify(
-    @requestBody(VerifyPhoneRequestBody) body: Verify,
-    @param.header.string('User-Agent') userAgent?: string,
+    @requestBody({
+      description: 'Verify phone number',
+      required: true,
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Verify, {
+            exclude: ['id', 'agent', 'password', 'issuedAt', 'registered'],
+          }),
+          example: {
+            phone: '+989176502184',
+            registerationToken:
+              'fDSwbEUyS4ujAh-4_yKuhF:APA91bGHJ7IfpVf6xoZjrjXmvU4coGGOZErf' +
+              'FooDhfySvObpyHelselcWEX4vCkkpbGWglTNFMMShQp3o8m277FkZJOoY4Z' +
+              '2LX5m5I6eAWE8vdmCrmSo2fb8Wt4yYBrJ3tuijnx4kjgw',
+          },
+        },
+      },
+    })
+    reqBody: Verify,
+    @param.header.string('User-Agent') userAgent: string,
   ): Promise<{
     status: boolean;
     name: string;
@@ -113,14 +148,14 @@ export class UsersController {
       userProfile: UserProfile;
 
     try {
-      validatePhoneNumber(body.phone);
+      validatePhoneNumber(reqBody.phone);
     } catch (_err) {
       console.log(_err);
       throw new HttpErrors.NotAcceptable(_err.message);
     }
 
     user = await this.usersRepository.findOne({
-      where: {phone: body.phone},
+      where: {phone: reqBody.phone},
       fields: {
         name: true,
         avatar: true,
@@ -132,18 +167,18 @@ export class UsersController {
 
     await this.verifyRepo
       .create({
-        phone: body.phone,
+        phone: reqBody.phone,
         password: await this.passwordHasher.hashPassword(
           randomStr + randomCode,
         ),
         registered: status,
-        registerationToken: body.registerationToken,
+        registerationToken: reqBody.registerationToken,
         agent: userAgent,
         issuedAt: new Date(),
       })
       .then(async (_res) => {
         userProfile = {
-          [securityId]: _res._key,
+          [securityId]: _res.id.toString(),
           aud: 'verify',
         };
         // Generate verify token based on user profile
@@ -156,7 +191,7 @@ export class UsersController {
             },
           };
           this.firebaseService.sendToDeviceMessage(
-            body.registerationToken,
+            reqBody.registerationToken,
             payload,
           );
         } catch (_err) {
@@ -170,7 +205,7 @@ export class UsersController {
       });
 
     // send verify code with sms
-    this.smsService.sendSms('dongip', randomCode, body.phone);
+    this.smsService.sendSms('dongip', randomCode, reqBody.phone);
 
     return {
       status: status,
@@ -183,16 +218,51 @@ export class UsersController {
     };
   }
 
-  @post('/api/users/login', {
+  @post('/users/login', {
+    summary: 'Login to the app',
     security: OPERATION_SECURITY_SPEC,
-    responses: UserLoginResponse,
+    responses: {
+      '200': {
+        description: 'Login user',
+        content: {
+          'application/josn': {
+            schema: getModelSchemaRef(Credentials),
+            example: {
+              id: 1,
+              accessToken:
+                'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50VHl' +
+                'wZSI6ImJyb256ZSIsImF1ZCI6ImFjY2VzcyIsImlhdCI6MTU5MDU' +
+                'wODY1MCwiZXhwIjoxNjIyMDQ4NjUwLCJzdWIiOiIzIn0.bvVYm8E' +
+                'QDkQksY8aPW2Q1yA6SVksPn-mzWJrzkeiZrzFmb4NS6mXAYf-jhp' +
+                'HjiflGjYVUw-ziqWn1pcSfgti8w',
+            },
+            refreshToken:
+              'eyDPuioiOiJFSDIKohjwuhIODOISHjdijhii.eySDJKHBslaswdr' +
+              'wWPOIjisdjIOIDugDLKIJSbdhgvbKJHGVbhdjVGHJKVdKUJhvvjU' +
+              'wODY1MCwiZXhwIjoxNjIyMDQ4NjUwLCJzdWIiOiIzIn0.bvVYm8E' +
+              'QDkQksY8aPW2Q1yA6SVksPn-mzWJrzkeiZrzFmb4NS6mXAYf-jhp' +
+              'HjiflGjYVUw-OIHFiuyguhHDkjGyyUGUDYguyludlpZXfgti8w',
+          },
+        },
+      },
+    },
   })
   @authenticate('jwt.verify')
   async login(
-    @requestBody(CredentialsRequestBody) credentials: Credentials,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Credentials),
+          example: {
+            phone: '+989176502184',
+            password: 'DNG123456',
+          },
+        },
+      },
+    })
+    credentials: Credentials,
   ): Promise<{
-    _key: string;
-    _id: string;
+    id: string;
     accessToken: string;
     refreshToken: string;
   }> {
@@ -214,7 +284,7 @@ export class UsersController {
       //ensure the user exists and the password is correct
       user = await this.userService.verifyCredentials(credentials);
 
-      this.usersRepository.updateById(user._key, {
+      this.usersRepository.updateById(user.getId(), {
         userAgent: verify.agent,
         registerationToken: verify.registerationToken,
       });
@@ -236,23 +306,78 @@ export class UsersController {
     }
 
     return {
-      _key: user._key,
-      _id: user._id,
+      // _key: user._key,
+      id: user.getId(),
       accessToken: accessToken,
       refreshToken: user.refreshToken,
     };
   }
 
-  @post('/api/users/signup', {
+  @post('/users/signup', {
+    summary: 'Signup then login to the app',
     security: OPERATION_SECURITY_SPEC,
-    responses: UserSignupResponse,
+    responses: {
+      '200': {
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(Users, {
+              exclude: [
+                'userAgent',
+                'accountType',
+                'phone',
+                'name',
+                'registeredAt',
+                'virtualUsers',
+                'userAgent',
+                'registerationToken',
+                'avatar',
+              ],
+            }),
+            example: {
+              id: 7,
+              accessToken:
+                'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50VHlwZSI6ImJyb256ZSIsImF1ZCI6ImFjY2VzcyIsImlhdCI6MTU5MDU2MTgzNiwiZXhwIjoxNjIyMTAxODM2LCJzdWIiOiI3In0.VInwb04E-GrzZZ7_ostar8N9J8blHF9SOISKaH9ManXqOfZN4d9UNzpHiKeudWE-c1VG4HzCcYXhgK2aKbvoZg',
+              refreshToken:
+                'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50VHlwZSI6ImJyb256ZSIsImF1ZCI6ImFjY2VzcyIsImlhdCI6MTU5MDU2MTgzNiwiZXhwIjoxNjIyMTAxODM2LCJzdWIiOiI3In0.VInwb04E-GrzZZ7_ostar8N9J8blHF9SOISKaH9ManXqOfZN4d9UNzpHiKeudWE-c1VG4HzCcYXhgK2',
+            },
+          },
+        },
+      },
+    },
   })
   @authenticate('jwt.verify')
   async signup(
-    @requestBody(UserSignupRequestBody) newUser: Users,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(NewUser, {
+            title: 'NewUser',
+            exclude: [
+              'id',
+              'accountType',
+              'categories',
+              'categoryBills',
+              'dongs',
+              'userAgent',
+              'refreshToken',
+              'registerationToken',
+              'registeredAt',
+              'usersRels',
+              'virtualUsers',
+            ],
+          }),
+          example: {
+            phone: '+989176502184',
+            name: 'Navid',
+            avatar: '/assets/avatar/avatar_1.png',
+            password: 'DNG123456',
+          },
+        },
+      },
+    })
+    newUser: NewUser,
   ): Promise<{
-    _key: string;
-    _id: string;
+    id: string;
     accessToken: string;
     refreshToken: string;
   }> {
@@ -293,16 +418,15 @@ export class UsersController {
       accessToken = await this.jwtService.generateToken(userProfile);
 
       // Create self-relation for self accounting
-      await this.usersRepository.usersRels(savedUser._id).create({
-        targetUserId: savedUser._id,
-        alias: savedUser.name,
+      await this.usersRepository.usersRels(savedUser.getId()).create({
+        targetUserId: savedUser.getId(),
+        name: savedUser.name,
         avatar: savedUser.avatar,
         type: 'self',
       });
 
       return {
-        _key: savedUser._key,
-        _id: savedUser._id,
+        id: savedUser.getId(),
         accessToken: accessToken,
         refreshToken: savedUser.refreshToken,
       };
@@ -316,7 +440,9 @@ export class UsersController {
     }
   }
 
-  @get('/api/users/logout', {
+  @get('/users/logout', {
+    summary:
+      "Logout from app and put the current user's access token in blacklist ",
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -345,8 +471,8 @@ export class UsersController {
       });
   }
 
-  @patch('/api/users', {
-    summary: 'Update user properties',
+  @patch('/users', {
+    summary: 'Update some of user properties',
     description: 'Request body includes desired properties to update',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -360,16 +486,18 @@ export class UsersController {
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody(UserPatchRequestBody) user: Omit<Users, '_key'>,
   ): Promise<void> {
-    const _userKey = currentUserProfile[securityId];
+    const userId = Number(currentUserProfile[securityId]);
 
     try {
-      return await this.usersRepository.updateById(_userKey, user);
+      return await this.usersRepository.updateById(userId, user);
     } catch (err) {
       throw new HttpErrors.NotAcceptable(err.message);
     }
   }
 
-  @get('/api/users/refresh-token', {
+  @get('/users/refresh-token', {
+    summary:
+      'Get a new access token with provided refresh token - not implemented yet',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -384,11 +512,11 @@ export class UsersController {
   ) {
     let user: Users,
       userProfile: UserProfile,
-      _userKey = currentUserProfile[securityId],
+      userId = Number(currentUserProfile[securityId]),
       accessToken: string,
       isMatched: boolean;
 
-    user = await this.usersRepository.findById(_userKey);
+    user = await this.usersRepository.findById(userId);
     isMatched = await this.passwordHasher.comparePassword(
       token.split(' ')[1],
       user.refreshToken,
