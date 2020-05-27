@@ -35,6 +35,7 @@ import {
   UsersRepository,
   BlacklistRepository,
   VerifyRepository,
+  CategoryRepository,
 } from '../repositories';
 import {
   FirebaseService,
@@ -44,6 +45,7 @@ import {
   TimeService,
   VerifyService,
 } from '../services';
+import {CategorySourceRepository} from '../repositories/category-source.repository';
 
 @model()
 export class NewUser extends Users {
@@ -65,6 +67,10 @@ export class UsersController {
     @repository(BlacklistRepository)
     public blacklistRepository: BlacklistRepository,
     @repository(VerifyRepository) private verifyRepo: VerifyRepository,
+    @repository(CategoryRepository)
+    private categoryRepository: CategoryRepository,
+    @repository(CategorySourceRepository)
+    private categorySourceRepository: CategorySourceRepository,
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
     public passwordHasher: PasswordHasher,
     @inject(UserServiceBindings.USER_SERVICE)
@@ -409,6 +415,14 @@ export class UsersController {
 
       // Create a new user
       savedUser = await this.usersRepository.create(newUser);
+
+      // Get init category list from database and assign to new user in category list
+      await this.categorySourceRepository.find({}).then(async (categories) => {
+        categories.forEach((cat) => {
+          cat = Object.assign(cat, {belongsToUserId: savedUser.getId()});
+        });
+        await this.categoryRepository.createAll(categories);
+      });
 
       //convert user object to a UserProfile object (reduced set of properties)
       userProfile = this.userService.convertToUserProfile(savedUser);

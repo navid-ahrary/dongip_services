@@ -7,3 +7,4 @@ export * from './category-bill.model';
 export * from './credentials.model';
 export * from './users-rels.model';
 export * from './verify.model';
+export * from './category-source.model';
