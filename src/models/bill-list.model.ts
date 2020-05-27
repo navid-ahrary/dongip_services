@@ -18,6 +18,12 @@ export class BillList extends Entity {
   })
   dongAmount: number;
 
+  @property({
+    type: 'string',
+    required: true,
+  })
+  createdAt: string;
+
   @belongsTo(() => UsersRels)
   usersRelsId: number;
 

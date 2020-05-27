@@ -106,7 +106,9 @@ export class DongsController {
       payerList = newDong.payerList,
       payerRelationIdList: {id: number}[] = [],
       allRelationIdList: {id: number}[] = [],
-      dong: Dong;
+      dong: Dong,
+      createdBillList,
+      createdPayerList;
     // categoryBillList = [];
 
     billList.forEach((item) => {
@@ -148,15 +150,21 @@ export class DongsController {
       dong = await this.usersRepository.dong(userId).create(d);
 
       payerList.forEach((item) => {
-        item = Object.assign(item, {dongId: dong.getId()});
+        item = Object.assign(item, {
+          dongId: dong.getId(),
+          createdAt: dong.createdAt,
+        });
       });
 
       billList.forEach((item) => {
-        item = Object.assign(item, {dongId: dong.getId()});
+        item = Object.assign(item, {
+          dongId: dong.getId(),
+          createdAt: dong.createdAt,
+        });
       });
 
-      await this.payerListRepository.createAll(payerList);
-      await this.billListRepository.createAll(billList);
+      createdPayerList = await this.payerListRepository.createAll(payerList);
+      createdBillList = await this.billListRepository.createAll(billList);
     } catch (_err) {
       throw new HttpErrors.NotAcceptable(_err);
     }
@@ -184,6 +192,8 @@ export class DongsController {
     //     await this.dongRepository.deleteById(dong.getId());
     //     throw new HttpErrors.NotImplemented(_err);
     //   });
+
+    console.log(createdBillList);
 
     const filter: Filter<Dong> = {
       where: {id: dong.getId()},

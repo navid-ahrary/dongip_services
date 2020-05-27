@@ -17,6 +17,12 @@ export class PayerList extends Entity {
   })
   paidAmount: number;
 
+  @property({
+    type: 'string',
+    required: true,
+  })
+  createdAt: string;
+
   @belongsTo(() => Dong)
   dongId: number;
 
