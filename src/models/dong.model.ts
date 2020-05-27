@@ -9,6 +9,8 @@ import {
 import {Users} from './users.model';
 import {CategoryBill} from './category-bill.model';
 import {Category} from './category.model';
+import {PayerList} from './payer-list.model';
+import {BillList} from './bill-list.model';
 
 @model()
 export class Dong extends Entity {
@@ -52,8 +54,14 @@ export class Dong extends Entity {
   })
   categoryId: typeof Category.prototype.id;
 
-  @hasMany(() => CategoryBill, {keyTo: 'belongsToDongId'})
-  categoryBills: CategoryBill[];
+  // @hasMany(() => CategoryBill, {keyTo: 'belongsToDongId'})
+  // categoryBills: CategoryBill[];
+
+  @hasMany(() => BillList, {name: 'billList'})
+  billList: BillList[];
+
+  @hasMany(() => PayerList, {name: 'payerList'})
+  payerList: PayerList[];
 
   constructor(data?: Partial<Dong>) {
     super(data);
