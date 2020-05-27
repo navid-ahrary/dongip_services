@@ -1,7 +1,0 @@
-{
-  "name": "arangodb",
-  "connector": "loopback-connector-arangodb",
-  "username": "",
-  "password": "",
-  "database": ""
-}
