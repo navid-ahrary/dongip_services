@@ -18,11 +18,14 @@ export class VerifyService {
     @repository(VerifyRepository) public verifyRepo: VerifyRepository,
   ) {}
 
-  public async verifyCredentials(credentials: Credentials): Promise<Verify> {
+  public async verifyCredentials(
+    credentials: Credentials,
+    verifyId: number,
+  ): Promise<Verify> {
     const invalidCredentialsError = 'Invalid credentials!';
 
     const foundVerify = await this.verifyRepo.findOne({
-      where: {phone: credentials.phone},
+      where: {id: verifyId},
     });
 
     if (!foundVerify) {
@@ -30,12 +33,12 @@ export class VerifyService {
       throw new HttpErrors.Unauthorized(invalidCredentialsError);
     }
 
-    // const isMatched = await this.passwordHasher.comparePassword(
-    //   credentials.password,
-    //   foundVerify.password,
-    // );
+    const isMatched = await this.passwordHasher.comparePassword(
+      credentials.password,
+      foundVerify.password,
+    );
 
-    if (foundVerify.password !== credentials.password) {
+    if (!isMatched) {
       console.log(invalidCredentialsError);
       throw new HttpErrors.Unauthorized(invalidCredentialsError);
     }

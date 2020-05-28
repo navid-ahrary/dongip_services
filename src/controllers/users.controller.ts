@@ -174,7 +174,9 @@ export class UsersController {
     await this.verifyRepo
       .create({
         phone: reqBody.phone,
-        password: randomStr + randomCode,
+        password: await this.passwordHasher.hashPassword(
+          randomStr + randomCode,
+        ),
         registered: status,
         registerationToken: reqBody.registerationToken,
         agent: userAgent,
@@ -253,6 +255,7 @@ export class UsersController {
   })
   @authenticate('jwt.verify')
   async login(
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody({
       content: {
         'application/json': {
@@ -273,7 +276,8 @@ export class UsersController {
     let userProfile: UserProfile,
       user: Users,
       verify: Verify,
-      accessToken: string;
+      accessToken: string,
+      verifyId = Number(currentUserProfile[securityId]);
 
     try {
       validatePhoneNumber(credentials.phone);
@@ -283,7 +287,10 @@ export class UsersController {
     }
 
     try {
-      verify = await this.verifySerivce.verifyCredentials(credentials);
+      verify = await this.verifySerivce.verifyCredentials(
+        credentials,
+        verifyId,
+      );
 
       //ensure the user exists and the password is correct
       user = await this.userService.verifyCredentials(credentials);
@@ -351,6 +358,7 @@ export class UsersController {
   })
   @authenticate('jwt.verify')
   async signup(
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody({
       content: {
         'application/json': {
@@ -389,6 +397,7 @@ export class UsersController {
       verify: Verify,
       accessToken: string,
       userProfile: UserProfile,
+      verifyId = Number(currentUserProfile[securityId]),
       credentials = Object.assign(new Credentials(), {
         phone: newUser.phone,
         password: newUser.password,
@@ -401,7 +410,7 @@ export class UsersController {
       throw new HttpErrors.UnprocessableEntity(_err.message);
     }
 
-    verify = await this.verifySerivce.verifyCredentials(credentials);
+    verify = await this.verifySerivce.verifyCredentials(credentials, verifyId);
 
     try {
       Object.assign(newUser, {
