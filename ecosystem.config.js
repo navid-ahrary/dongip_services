@@ -3,7 +3,7 @@ module.exports = {
     name: "dongip",
     script: "./index.js",
     instances: 4,
-    watch: true,
+    watch: false,
     env: {
       NODE_ENV: "development"
     },
