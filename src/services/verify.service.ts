@@ -30,13 +30,13 @@ export class VerifyService {
       throw new HttpErrors.Unauthorized(invalidCredentialsError);
     }
 
-    const isMatched = await this.passwordHasher.comparePassword(
-      credentials.password,
-      foundVerify.password,
-    );
+    // const isMatched = await this.passwordHasher.comparePassword(
+    //   credentials.password,
+    //   foundVerify.password,
+    // );
 
-    if (!isMatched) {
-      debug(invalidCredentialsError);
+    if (foundVerify.password !== credentials.password) {
+      console.log(invalidCredentialsError);
       throw new HttpErrors.Unauthorized(invalidCredentialsError);
     }
 

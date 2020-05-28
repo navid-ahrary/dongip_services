@@ -174,9 +174,7 @@ export class UsersController {
     await this.verifyRepo
       .create({
         phone: reqBody.phone,
-        password: await this.passwordHasher.hashPassword(
-          randomStr + randomCode,
-        ),
+        password: randomStr + randomCode,
         registered: status,
         registerationToken: reqBody.registerationToken,
         agent: userAgent,
