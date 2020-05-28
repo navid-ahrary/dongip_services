@@ -165,6 +165,7 @@ export class DongsController {
         item = Object.assign(item, {
           dongId: dong.getId(),
           createdAt: dong.createdAt,
+          categoryId: dong.categoryId,
         });
       });
 
@@ -172,6 +173,7 @@ export class DongsController {
         item = Object.assign(item, {
           dongId: dong.getId(),
           createdAt: dong.createdAt,
+          categoryId: dong.categoryId,
         });
       });
 

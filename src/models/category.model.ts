@@ -7,6 +7,8 @@ import {
 } from '@loopback/repository';
 
 import {Users, CategoryBill} from './';
+import {BillList} from './bill-list.model';
+import {PayerList} from './payer-list.model';
 
 @model()
 export class Category extends Entity {
@@ -14,7 +16,7 @@ export class Category extends Entity {
     type: 'number',
     id: true,
     generated: true,
-    // required: false,
+    required: false,
   })
   id: number;
 
@@ -35,6 +37,12 @@ export class Category extends Entity {
 
   @hasMany(() => CategoryBill, {keyTo: 'belongsToCategoryId'})
   categoryBills: CategoryBill[];
+
+  @hasMany(() => BillList)
+  billList: BillList[];
+
+  @hasMany(() => PayerList)
+  payerList: PayerList[];
 
   constructor(data?: Partial<Category>) {
     super(data);
