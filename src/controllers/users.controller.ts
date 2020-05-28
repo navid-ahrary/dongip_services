@@ -4,7 +4,13 @@
 /* eslint-disable prefer-const */
 /* eslint-disable require-atomic-updates */
 import {inject, service} from '@loopback/core';
-import {repository, property, model} from '@loopback/repository';
+import {
+  repository,
+  property,
+  model,
+  IsolationLevel,
+  Transaction,
+} from '@loopback/repository';
 import {
   post,
   requestBody,
@@ -36,6 +42,7 @@ import {
   BlacklistRepository,
   VerifyRepository,
   CategoryRepository,
+  UsersRelsRepository,
 } from '../repositories';
 import {
   FirebaseService,
@@ -64,6 +71,8 @@ export class UsersController {
   constructor(
     @inject.context() public ctx: RequestContext,
     @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(UsersRelsRepository)
+    public usersRelsRepository: UsersRelsRepository,
     @repository(BlacklistRepository)
     public blacklistRepository: BlacklistRepository,
     @repository(VerifyRepository) private verifyRepo: VerifyRepository,
@@ -151,6 +160,7 @@ export class UsersController {
       payload,
       token: string,
       user: Users | null,
+      createdVerify: Verify,
       userProfile: UserProfile;
 
     try {
@@ -171,7 +181,7 @@ export class UsersController {
       status = true;
     }
 
-    await this.verifyRepo
+    createdVerify = await this.verifyRepo
       .create({
         phone: reqBody.phone,
         password: await this.passwordHasher.hashPassword(
@@ -182,33 +192,34 @@ export class UsersController {
         agent: userAgent,
         issuedAt: new Date(),
       })
-      .then(async (_res) => {
-        userProfile = {
-          [securityId]: _res.id.toString(),
-          aud: 'verify',
-        };
-        // Generate verify token based on user profile
-        token = await this.jwtService.generateToken(userProfile);
-        try {
-          // send verify token and prefix by notification
-          payload = {
-            data: {
-              verifyToken: token,
-            },
-          };
-          this.firebaseService.sendToDeviceMessage(
-            reqBody.registerationToken,
-            payload,
-          );
-        } catch (_err) {
-          console.log(_err);
-          throw new HttpErrors.UnprocessableEntity(_err.message);
-        }
-      })
       .catch((_err) => {
         console.log(_err);
         throw new HttpErrors.Conflict(_err.message);
       });
+
+    // create userProfile
+    userProfile = {
+      [securityId]: String(createdVerify.id),
+      aud: 'verify',
+    };
+
+    // Generate verify token based on user profile
+    token = await this.jwtService.generateToken(userProfile);
+    try {
+      // send verify token and prefix by notification
+      payload = {
+        data: {
+          verifyToken: token,
+        },
+      };
+      this.firebaseService.sendToDeviceMessage(
+        reqBody.registerationToken,
+        payload,
+      );
+    } catch (_err) {
+      console.log(_err);
+      throw new HttpErrors.UnprocessableEntity(_err.message);
+    }
 
     // send verify code with sms
     this.smsService.sendSms('dongip', randomCode, reqBody.phone);
@@ -401,7 +412,10 @@ export class UsersController {
       credentials = Object.assign(new Credentials(), {
         phone: newUser.phone,
         password: newUser.password,
-      });
+      }),
+      userTx: Transaction,
+      categoryTx: Transaction,
+      usersRelsTx: Transaction;
 
     try {
       validatePhoneNumber(credentials.phone);
@@ -423,17 +437,25 @@ export class UsersController {
       });
       delete newUser.password;
 
+      // begin all trasactions
+      userTx = await this.usersRepository.beginTransaction(
+        IsolationLevel.READ_COMMITTED,
+      );
+      categoryTx = await this.categoryRepository.beginTransaction(
+        IsolationLevel.READ_COMMITTED,
+      );
+      usersRelsTx = await this.usersRelsRepository.beginTransaction(
+        IsolationLevel.READ_COMMITTED,
+      );
+
       // Create a new user
       savedUser = await this.usersRepository.create(newUser);
 
       // Get init category list from database and assign to new user in category list
-      await this.categorySourceRepository.find({}).then(async (categories) => {
-        categories.forEach((cat) => {
-          cat = Object.assign(cat, {belongsToUserId: savedUser.getId()});
-        });
-        await this.categoryRepository.createAll(categories);
-      });
+      const initCategoryList = await this.categorySourceRepository.find({});
 
+      // create and assign init category list to the user
+      await this.categoryRepository.createAll(initCategoryList);
       //convert user object to a UserProfile object (reduced set of properties)
       userProfile = this.userService.convertToUserProfile(savedUser);
       userProfile['aud'] = 'access';
@@ -442,12 +464,18 @@ export class UsersController {
       accessToken = await this.jwtService.generateToken(userProfile);
 
       // Create self-relation for self accounting
-      await this.usersRepository.usersRels(savedUser.getId()).create({
+      await this.usersRelsRepository.create({
+        belongsToUserId: savedUser.getId(),
         targetUserId: savedUser.getId(),
         name: savedUser.name,
         avatar: savedUser.avatar,
         type: 'self',
       });
+
+      // commit all transactions
+      await userTx.commit();
+      await categoryTx.commit();
+      await usersRelsTx.commit();
 
       return {
         id: savedUser.getId(),

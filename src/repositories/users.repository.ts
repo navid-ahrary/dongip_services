@@ -1,7 +1,7 @@
 import {
-  DefaultCrudRepository,
   repository,
   HasManyRepositoryFactory,
+  DefaultTransactionalRepository,
 } from '@loopback/repository';
 import {inject, Getter} from '@loopback/core';
 
@@ -24,7 +24,7 @@ import {
   CategoryBill,
 } from '../models';
 
-export class UsersRepository extends DefaultCrudRepository<
+export class UsersRepository extends DefaultTransactionalRepository<
   Users,
   typeof Users.prototype.id
 > {

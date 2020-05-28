@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import {Filter, repository} from '@loopback/repository';
+import {Filter, repository, IsolationLevel} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -159,6 +159,17 @@ export class DongsController {
     ]);
 
     try {
+      // begin database transactions
+      const dongTx = await this.usersRepository.beginTransaction(
+        IsolationLevel.READ_COMMITTED,
+      );
+      const payerTx = await this.payerListRepository.beginTransaction(
+        IsolationLevel.READ_COMMITTED,
+      );
+      const billTx = await this.billListRepository.beginTransaction(
+        IsolationLevel.READ_COMMITTED,
+      );
+
       dong = await this.usersRepository.dong(userId).create(d);
 
       payerList.forEach((item) => {
@@ -179,8 +190,13 @@ export class DongsController {
 
       createdPayerList = await this.payerListRepository.createAll(payerList);
       createdBillList = await this.billListRepository.createAll(billList);
+
+      // commit database trasactions
+      await dongTx.commit();
+      await billTx.commit();
+      await payerTx.commit();
     } catch (_err) {
-      throw new HttpErrors.NotAcceptable(_err);
+      throw new HttpErrors.NotImplemented(_err);
     }
 
     dong.billList = createdBillList;

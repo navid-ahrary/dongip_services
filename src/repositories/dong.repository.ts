@@ -1,26 +1,18 @@
 import {
-  DefaultCrudRepository,
   repository,
   BelongsToAccessor,
   HasManyRepositoryFactory,
+  DefaultTransactionalRepository,
 } from '@loopback/repository';
 import {inject, Getter} from '@loopback/core';
 
 import {MysqlDataSource} from '../datasources';
-import {
-  Dong,
-  DongRelations,
-  Users,
-  CategoryBill,
-  BillList,
-  PayerList,
-} from '../models';
+import {Dong, DongRelations, Users, BillList, PayerList} from '../models';
 import {UsersRepository, CategoryRepository} from '.';
-import {CategoryBillRepository} from './category-bill.repository';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 
-export class DongRepository extends DefaultCrudRepository<
+export class DongRepository extends DefaultTransactionalRepository<
   Dong,
   typeof Dong.prototype.id,
   DongRelations
@@ -29,11 +21,6 @@ export class DongRepository extends DefaultCrudRepository<
     Users,
     typeof Dong.prototype.id
   >;
-
-  // public readonly categoryBills: HasManyRepositoryFactory<
-  //   CategoryBill,
-  //   typeof Dong.prototype.id
-  // >;
 
   public readonly billList: HasManyRepositoryFactory<
     BillList,
@@ -51,8 +38,6 @@ export class DongRepository extends DefaultCrudRepository<
     protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('CategoryRepository')
     protected categoryRepositoryGetter: Getter<CategoryRepository>,
-    // @repository.getter('CategoryBillRepository')
-    // protected categoryBillRepositoryGetter: Getter<CategoryBillRepository>,
     @repository.getter('BillListRepository')
     protected billListRepositoryGetter: Getter<BillListRepository>,
     @repository.getter('PayerListRepository')
@@ -67,19 +52,12 @@ export class DongRepository extends DefaultCrudRepository<
       'payerList',
       this.payerList.inclusionResolver,
     );
+
     this.billList = this.createHasManyRepositoryFactoryFor(
       'billList',
       billListRepositoryGetter,
     );
     this.registerInclusionResolver('billList', this.billList.inclusionResolver);
-    // this.categoryBills = this.createHasManyRepositoryFactoryFor(
-    //   'categoryBills',
-    //   categoryBillRepositoryGetter,
-    // );
-    // this.registerInclusionResolver(
-    //   'categoryBills',
-    //   this.categoryBills.inclusionResolver,
-    // );
 
     this.belongsToUser = this.createBelongsToAccessorFor(
       'belongsToUser',

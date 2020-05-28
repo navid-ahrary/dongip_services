@@ -1,8 +1,8 @@
 import {
-  DefaultCrudRepository,
   repository,
   BelongsToAccessor,
   HasManyRepositoryFactory,
+  DefaultTransactionalRepository,
 } from '@loopback/repository';
 import {
   UsersRels,
@@ -19,7 +19,7 @@ import {
   VirtualUsersRepository,
 } from './';
 
-export class UsersRelsRepository extends DefaultCrudRepository<
+export class UsersRelsRepository extends DefaultTransactionalRepository<
   UsersRels,
   typeof UsersRels.prototype.id,
   UsersRelsRelations

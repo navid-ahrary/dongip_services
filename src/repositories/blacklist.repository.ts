@@ -1,9 +1,9 @@
-import {DefaultCrudRepository, Filter} from '@loopback/repository';
+import {Filter, DefaultTransactionalRepository} from '@loopback/repository';
 import {Blacklist, BlacklistRelations} from '../models';
 import {MysqlDataSource} from '../datasources';
 import {inject} from '@loopback/core';
 
-export class BlacklistRepository extends DefaultCrudRepository<
+export class BlacklistRepository extends DefaultTransactionalRepository<
   Blacklist,
   typeof Blacklist.prototype.id,
   BlacklistRelations

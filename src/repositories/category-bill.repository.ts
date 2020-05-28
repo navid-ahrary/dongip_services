@@ -1,7 +1,7 @@
 import {
-  DefaultCrudRepository,
   repository,
   BelongsToAccessor,
+  DefaultTransactionalRepository,
 } from '@loopback/repository';
 import {
   CategoryBill,
@@ -18,7 +18,7 @@ import {DongRepository} from './dong.repository';
 import {UsersRepository} from './users.repository';
 import {UsersRelsRepository} from './users-rels.repository';
 
-export class CategoryBillRepository extends DefaultCrudRepository<
+export class CategoryBillRepository extends DefaultTransactionalRepository<
   CategoryBill,
   typeof CategoryBill.prototype.id,
   CategoryBillRelations
