@@ -9,21 +9,30 @@ export class PostNewDong extends Entity {
     requird: true,
   })
   title: string;
+
   @property({
     type: 'string',
     required: true,
   })
   desc: string;
+
+  @property({
+    type: 'number',
+  })
+  belongsToUserId?: number;
+
   @property({
     type: 'string',
     required: true,
   })
   createdAt: string;
+
   @property({
     type: 'number',
     required: true,
   })
   pong: number;
+
   @property({
     type: 'number',
   })
@@ -46,6 +55,7 @@ export class PostNewDong extends Entity {
     usersRelsId: typeof UsersRels.prototype.id;
     dongAmount: number;
   }[];
+
   constructor(data?: Partial<PostNewDong>) {
     super(data);
   }

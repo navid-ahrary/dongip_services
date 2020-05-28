@@ -10,19 +10,19 @@ import {
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
-import {inject} from '@loopback/core';
+import {inject, service} from '@loopback/core';
 import _ from 'underscore';
 
 import {Dong, DongRelations, PostNewDong} from '../models';
 import {
   UsersRepository,
   DongRepository,
-  CategoryBillRepository,
   BillListRepository,
   PayerListRepository,
 } from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {PostNewDongExample} from './specs';
+import {FirebaseService} from '../services';
 
 @api({
   basePath: '/api/',
@@ -36,9 +36,9 @@ export class DongsController {
     public payerListRepository: PayerListRepository,
     @repository(BillListRepository)
     public billListRepository: BillListRepository,
-    @repository(CategoryBillRepository)
-    private categoryBillRepository: CategoryBillRepository,
-    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+    @service(FirebaseService) private firebaseSerice: FirebaseService,
+    @inject(SecurityBindings.USER)
+    private currentUserProfile: UserProfile,
   ) {}
 
   @get('/dongs', {
@@ -102,6 +102,14 @@ export class DongsController {
   ): Promise<(Dong & DongRelations) | null> {
     const userId = Number(this.currentUserProfile[securityId]);
 
+    if (newDong.belongsToUserId) {
+      if (userId !== newDong.belongsToUserId) {
+        throw new HttpErrors.Unauthorized(
+          'belongsUserId با توکن شما همخونی نداره',
+        );
+      }
+    }
+
     let billList = newDong.billList,
       dongRelationIdList: {id: number}[] = [],
       payerList = newDong.payerList,
@@ -112,8 +120,8 @@ export class DongsController {
       createdPayerList,
       dongTx,
       payerTx,
-      billTx;
-    // categoryBillList = [];
+      billTx,
+      firebaseTokenList: string[] = [];
 
     billList.forEach((item) => {
       dongRelationIdList.push({id: item.usersRelsId});
@@ -130,16 +138,12 @@ export class DongsController {
     });
 
     // validate all usersRels
-    await this.usersRepository
-      .usersRels(userId)
-      .find({
-        where: {or: allRelationIdList},
-      })
-      .then((res) => {
-        if (res.length !== allRelationIdList.length) {
-          throw new HttpErrors.NotFound('Some of usersRels are not found');
-        }
-      });
+    const foundUsersRels = await this.usersRepository.usersRels(userId).find({
+      where: {or: allRelationIdList},
+    });
+    if (foundUsersRels.length !== allRelationIdList.length) {
+      throw new HttpErrors.NotFound('همه usersRelsId ها باید معتبر باشن');
+    }
 
     //validate categoryId
     await this.usersRepository
@@ -147,11 +151,19 @@ export class DongsController {
       .find({where: {id: newDong.categoryId}})
       .then((_res) => {
         if (_res.length !== 1) {
-          throw new HttpErrors.NotFound(
-            'دسته بندی با این id برای شما وجود نداره',
-          );
+          throw new HttpErrors.NotFound('categoryId معتبر نیست');
         }
       });
+
+    for (const relation of foundUsersRels) {
+      const user = await this.usersRepository.findOne({
+        where: {phone: relation.phone},
+      });
+
+      if (user) {
+        firebaseTokenList.push(user.firebaseToken);
+      }
+    }
 
     // create a dong object and save in database
     const d = _.pick(newDong, [
@@ -209,6 +221,9 @@ export class DongsController {
 
       throw new HttpErrors.NotImplemented(_err);
     }
+
+    // send notification
+    // this.firebaseSerice.sendMultiCastMessage({}, firebaseTokenList);
 
     dong.billList = createdBillList;
     dong.payerList = createdPayerList;
