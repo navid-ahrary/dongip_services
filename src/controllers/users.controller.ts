@@ -429,25 +429,25 @@ export class UsersController {
       credentials.password,
     );
 
+    Object.assign(newUser, {
+      registeredAt: new Date(),
+      registerationToken: verify.registerationToken,
+      userAgent: verify.agent,
+    });
+    delete newUser.password;
+
+    // begin all trasactions
+    userTx = await this.usersRepository.beginTransaction(
+      IsolationLevel.READ_COMMITTED,
+    );
+    categoryTx = await this.categoryRepository.beginTransaction(
+      IsolationLevel.READ_COMMITTED,
+    );
+    usersRelsTx = await this.usersRelsRepository.beginTransaction(
+      IsolationLevel.READ_COMMITTED,
+    );
+
     try {
-      Object.assign(newUser, {
-        registeredAt: new Date(),
-        registerationToken: verify.registerationToken,
-        userAgent: verify.agent,
-      });
-      delete newUser.password;
-
-      // begin all trasactions
-      userTx = await this.usersRepository.beginTransaction(
-        IsolationLevel.READ_COMMITTED,
-      );
-      categoryTx = await this.categoryRepository.beginTransaction(
-        IsolationLevel.READ_COMMITTED,
-      );
-      usersRelsTx = await this.usersRelsRepository.beginTransaction(
-        IsolationLevel.READ_COMMITTED,
-      );
-
       // Create a new user
       savedUser = await this.usersRepository.create(newUser);
 
@@ -483,6 +483,11 @@ export class UsersController {
         refreshToken: savedUser.refreshToken,
       };
     } catch (_err) {
+      // rollback all transactions
+      await userTx.rollback();
+      await categoryTx.rollback();
+      await usersRelsTx.rollback();
+
       console.log(_err);
       if (_err.code === 409) {
         throw new HttpErrors.Conflict(_err.response.body.errorMessage);

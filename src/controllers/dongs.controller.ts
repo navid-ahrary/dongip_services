@@ -92,7 +92,7 @@ export class DongsController {
         'application/json': {
           schema: getModelSchemaRef(PostNewDong, {
             title: 'NewDong',
-            optional: ['title', 'desc']
+            optional: ['title', 'desc'],
           }),
           example: PostNewDongExample,
         },
@@ -103,13 +103,16 @@ export class DongsController {
     const userId = Number(this.currentUserProfile[securityId]);
 
     let billList = newDong.billList,
-      dongRelationIdList: {id: number;}[] = [],
+      dongRelationIdList: {id: number}[] = [],
       payerList = newDong.payerList,
-      payerRelationIdList: {id: number;}[] = [],
-      allRelationIdList: {id: number;}[] = [],
+      payerRelationIdList: {id: number}[] = [],
+      allRelationIdList: {id: number}[] = [],
       dong: Dong,
       createdBillList,
-      createdPayerList;
+      createdPayerList,
+      dongTx,
+      payerTx,
+      billTx;
     // categoryBillList = [];
 
     billList.forEach((item) => {
@@ -159,18 +162,18 @@ export class DongsController {
       'pong',
     ]);
 
-    try {
-      // begin database transactions
-      const dongTx = await this.usersRepository.beginTransaction(
-        IsolationLevel.READ_COMMITTED,
-      );
-      const payerTx = await this.payerListRepository.beginTransaction(
-        IsolationLevel.READ_COMMITTED,
-      );
-      const billTx = await this.billListRepository.beginTransaction(
-        IsolationLevel.READ_COMMITTED,
-      );
+    // begin database transactions
+    dongTx = await this.usersRepository.beginTransaction(
+      IsolationLevel.READ_COMMITTED,
+    );
+    payerTx = await this.payerListRepository.beginTransaction(
+      IsolationLevel.READ_COMMITTED,
+    );
+    billTx = await this.billListRepository.beginTransaction(
+      IsolationLevel.READ_COMMITTED,
+    );
 
+    try {
       dong = await this.usersRepository.dong(userId).create(d);
 
       payerList.forEach((item) => {
@@ -197,6 +200,11 @@ export class DongsController {
       await billTx.commit();
       await payerTx.commit();
     } catch (_err) {
+      // rollback all transactions
+      await dongTx.rollback();
+      await payerTx.rollback();
+      await billTx.rollback();
+
       throw new HttpErrors.NotImplemented(_err);
     }
 
