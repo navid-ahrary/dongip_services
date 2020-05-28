@@ -134,7 +134,7 @@ export class UsersController {
           }),
           example: {
             phone: '+989176502184',
-            registerationToken:
+            firebaseToken:
               'fDSwbEUyS4ujAh-4_yKuhF:APA91bGHJ7IfpVf6xoZjrjXmvU4coGGOZErf' +
               'FooDhfySvObpyHelselcWEX4vCkkpbGWglTNFMMShQp3o8m277FkZJOoY4Z' +
               '2LX5m5I6eAWE8vdmCrmSo2fb8Wt4yYBrJ3tuijnx4kjgw',
@@ -188,7 +188,7 @@ export class UsersController {
           randomStr + randomCode,
         ),
         registered: status,
-        registerationToken: reqBody.registerationToken,
+        firebaseToken: reqBody.firebaseToken,
         agent: userAgent,
         issuedAt: new Date(),
       })
@@ -212,10 +212,7 @@ export class UsersController {
           verifyToken: token,
         },
       };
-      this.firebaseService.sendToDeviceMessage(
-        reqBody.registerationToken,
-        payload,
-      );
+      this.firebaseService.sendToDeviceMessage(reqBody.firebaseToken, payload);
     } catch (_err) {
       console.log(_err);
       throw new HttpErrors.UnprocessableEntity(_err.message);
@@ -308,7 +305,7 @@ export class UsersController {
 
       this.usersRepository.updateById(user.getId(), {
         userAgent: verify.agent,
-        registerationToken: verify.registerationToken,
+        firebaseToken: verify.firebaseToken,
       });
     } catch (_err) {
       console.log(_err);
@@ -351,7 +348,7 @@ export class UsersController {
                 'registeredAt',
                 'virtualUsers',
                 'userAgent',
-                'registerationToken',
+                'firebaseToken',
                 'avatar',
               ],
             }),
@@ -383,7 +380,7 @@ export class UsersController {
               'dongs',
               'userAgent',
               'refreshToken',
-              'registerationToken',
+              'firebaseToken',
               'registeredAt',
               'usersRels',
               'virtualUsers',
@@ -431,7 +428,7 @@ export class UsersController {
 
     Object.assign(newUser, {
       registeredAt: new Date(),
-      registerationToken: verify.registerationToken,
+      firebaseToken: verify.firebaseToken,
       userAgent: verify.agent,
     });
     delete newUser.password;

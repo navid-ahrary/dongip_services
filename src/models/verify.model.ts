@@ -32,7 +32,7 @@ export class Verify extends Entity {
     type: 'string',
     required: true,
   })
-  registerationToken: string;
+  firebaseToken: string;
 
   @property({
     type: 'string',

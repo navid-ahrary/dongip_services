@@ -15,7 +15,7 @@ export const UserPatchRequestBody = {
           'categories',
           'phone',
           'virtualUsers',
-          'registerationToken',
+          'firebaseToken',
           'refreshToken',
           'usersRels',
           'userAgent',

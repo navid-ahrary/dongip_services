@@ -4,7 +4,7 @@ import {
   messaging,
   initializeApp,
   credential,
-  ServiceAccount
+  ServiceAccount,
 } from 'firebase-admin';
 import {HttpErrors} from '@loopback/rest';
 
@@ -16,40 +16,40 @@ config();
 
 @bind({scope: BindingScope.SINGLETON})
 export class FirebaseService {
-  constructor () {
-
-    const serviceAccount = require(
-      `${process.env.GOOGLE_APPLICATION_CREDENTIALS}`
-    );
+  constructor() {
+    const serviceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
     debug(serviceAccount);
     this.initializeApp(serviceAccount);
   }
 
-  initializeApp (serviceAccount: ServiceAccount) {
+  private initializeApp(serviceAccount: ServiceAccount) {
     initializeApp({
       credential: credential.cert(serviceAccount),
       databaseURL: process.env.GOOGLE_APPLICATION_DATABASEURL,
     });
   }
 
-
-  sendToDeviceMessage (
-    registerationTokens: string | string[],
+  sendToDeviceMessage(
+    firebaseToken: string | string[],
     payload: messaging.MessagingPayload,
-    options?: messaging.MessagingOptions | undefined
+    options?: messaging.MessagingOptions | undefined,
   ) {
-    messaging().sendToDevice(registerationTokens, payload, options)
+    messaging()
+      .sendToDevice(firebaseToken, payload, options)
       .then(function (_response) {
         debug(_response);
-      }).catch(function (_error) {
+      })
+      .catch(function (_error) {
         debug(_error);
       });
   }
 
+  // send a message to multi destination
+  public sendMultiCastMessage(data: {[key: string]: string}, tokens: string[]) {
+    const message: messaging.MulticastMessage = {data: data, tokens: tokens};
 
-  sendMultiCastMessage (message: messaging.MulticastMessage) {
-    //send new dong notification to the nodes
-    messaging().sendMulticast(message)
+    messaging()
+      .sendMulticast(message)
       .then(function (_response) {
         if (_response.failureCount > 0) {
           const failedTokens: string[] = [];
@@ -68,8 +68,13 @@ export class FirebaseService {
       .catch(function (_error) {
         debug(`Error sending notifications, ${_error}`);
         throw new HttpErrors.NotImplemented(
-          `Error sending notifications, ${_error}`
+          `Error sending notifications, ${_error}`,
         );
       });
+  }
+
+  //send multi message to multi destination
+  public sendAllMessage() {
+    // messaging().sendAll();
   }
 }

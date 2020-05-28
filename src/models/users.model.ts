@@ -55,7 +55,7 @@ export class Users extends Entity {
     type: 'string',
     reqiured: true,
   })
-  registerationToken: string;
+  firebaseToken: string;
 
   @property({
     type: 'string',
