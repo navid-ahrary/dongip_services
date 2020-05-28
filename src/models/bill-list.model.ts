@@ -2,6 +2,7 @@ import {Entity, model, property, belongsTo} from '@loopback/repository';
 import {Dong} from './dong.model';
 import {UsersRels} from './users-rels.model';
 import {Category} from './category.model';
+import {Users} from './users.model';
 
 @model()
 export class BillList extends Entity {
@@ -33,6 +34,9 @@ export class BillList extends Entity {
 
   @belongsTo(() => Category)
   categoryId: number;
+
+  @belongsTo(() => Users, {name: 'user'})
+  belongsToUserId: number;
 
   constructor(data?: Partial<BillList>) {
     super(data);

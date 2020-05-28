@@ -1,6 +1,8 @@
 import {Entity, model, property, hasMany} from '@loopback/repository';
 
 import {VirtualUsers, Dong, Category, CategoryBill, UsersRels} from './';
+import {BillList} from './bill-list.model';
+import {PayerList} from './payer-list.model';
 
 @model()
 export class Users extends Entity {
@@ -75,6 +77,12 @@ export class Users extends Entity {
 
   @hasMany(() => CategoryBill, {keyTo: 'belongsToUserId'})
   categoryBills: CategoryBill[];
+
+  @hasMany(() => BillList, {keyTo: 'belongsToUserId'})
+  billList: BillList[];
+
+  @hasMany(() => PayerList, {keyTo: 'belongsToUserId'})
+  payerList: PayerList[];
 
   constructor(data?: Partial<Users>) {
     super(data);

@@ -181,6 +181,7 @@ export class DongsController {
           dongId: dong.getId(),
           createdAt: dong.createdAt,
           categoryId: dong.categoryId,
+          belongsToUserId: userId,
         });
       });
 
@@ -189,6 +190,7 @@ export class DongsController {
           dongId: dong.getId(),
           createdAt: dong.createdAt,
           categoryId: dong.categoryId,
+          belongsToUserId: userId,
         });
       });
 

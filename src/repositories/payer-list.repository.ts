@@ -8,13 +8,13 @@ import {
   PayerListRelations,
   Dong,
   UsersRels,
-  Category,
-} from '../models';
+  Category, Users} from '../models';
 import {MysqlDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
 import {DongRepository} from './dong.repository';
 import {UsersRelsRepository} from './users-rels.repository';
 import {CategoryRepository} from './category.repository';
+import {UsersRepository} from './users.repository';
 
 export class PayerListRepository extends DefaultTransactionalRepository<
   PayerList,
@@ -33,6 +33,8 @@ export class PayerListRepository extends DefaultTransactionalRepository<
     typeof PayerList.prototype.id
   >;
 
+  public readonly user: BelongsToAccessor<Users, typeof PayerList.prototype.id>;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('DongRepository')
@@ -40,9 +42,11 @@ export class PayerListRepository extends DefaultTransactionalRepository<
     @repository.getter('UsersRelsRepository')
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
     @repository.getter('CategoryRepository')
-    protected categoryRepositoryGetter: Getter<CategoryRepository>,
+    protected categoryRepositoryGetter: Getter<CategoryRepository>, @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
     super(PayerList, dataSource);
+    this.user = this.createBelongsToAccessorFor('user', usersRepositoryGetter,);
+    this.registerInclusionResolver('user', this.user.inclusionResolver);
     this.category = this.createBelongsToAccessorFor(
       'category',
       categoryRepositoryGetter,

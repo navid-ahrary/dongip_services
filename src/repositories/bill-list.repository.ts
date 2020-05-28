@@ -8,13 +8,13 @@ import {
   UsersRels,
   BillList,
   BillListRelations,
-  Category,
-} from '../models';
+  Category, Users} from '../models';
 import {MysqlDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
 import {DongRepository} from './dong.repository';
 import {UsersRelsRepository} from './users-rels.repository';
 import {CategoryRepository} from './category.repository';
+import {UsersRepository} from './users.repository';
 
 export class BillListRepository extends DefaultTransactionalRepository<
   BillList,
@@ -33,6 +33,8 @@ export class BillListRepository extends DefaultTransactionalRepository<
     typeof BillList.prototype.id
   >;
 
+  public readonly user: BelongsToAccessor<Users, typeof BillList.prototype.id>;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('DongRepository')
@@ -40,9 +42,11 @@ export class BillListRepository extends DefaultTransactionalRepository<
     @repository.getter('UsersRelsRepository')
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
     @repository.getter('CategoryRepository')
-    protected categoryRepositoryGetter: Getter<CategoryRepository>,
+    protected categoryRepositoryGetter: Getter<CategoryRepository>, @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
     super(BillList, dataSource);
+    this.user = this.createBelongsToAccessorFor('user', usersRepositoryGetter,);
+    this.registerInclusionResolver('user', this.user.inclusionResolver);
 
     this.category = this.createBelongsToAccessorFor(
       'category',

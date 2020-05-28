@@ -21,8 +21,9 @@ import {
   Dong,
   Category,
   UsersRels,
-  CategoryBill,
-} from '../models';
+  CategoryBill, BillList, PayerList} from '../models';
+import {BillListRepository} from './bill-list.repository';
+import {PayerListRepository} from './payer-list.repository';
 
 export class UsersRepository extends DefaultTransactionalRepository<
   Users,
@@ -53,6 +54,10 @@ export class UsersRepository extends DefaultTransactionalRepository<
     typeof Users.prototype.id
   >;
 
+  public readonly billList: HasManyRepositoryFactory<BillList, typeof Users.prototype.id>;
+
+  public readonly payerList: HasManyRepositoryFactory<PayerList, typeof Users.prototype.id>;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -66,9 +71,13 @@ export class UsersRepository extends DefaultTransactionalRepository<
     @repository.getter('CategoryBillRepository')
     protected categoryBillRepositoryGetter: Getter<CategoryBillRepository>,
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
-    public passwordHasher: PasswordHasher,
+    public passwordHasher: PasswordHasher, @repository.getter('BillListRepository') protected billListRepositoryGetter: Getter<BillListRepository>, @repository.getter('PayerListRepository') protected payerListRepositoryGetter: Getter<PayerListRepository>,
   ) {
     super(Users, dataSource);
+    this.payerList = this.createHasManyRepositoryFactoryFor('payerList', payerListRepositoryGetter,);
+    this.registerInclusionResolver('payerList', this.payerList.inclusionResolver);
+    this.billList = this.createHasManyRepositoryFactoryFor('billList', billListRepositoryGetter,);
+    this.registerInclusionResolver('billList', this.billList.inclusionResolver);
     this.categoryBills = this.createHasManyRepositoryFactoryFor(
       'categoryBills',
       categoryBillRepositoryGetter,
