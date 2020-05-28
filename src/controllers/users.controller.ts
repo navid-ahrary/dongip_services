@@ -288,8 +288,8 @@ export class UsersController {
 
     try {
       verify = await this.verifySerivce.verifyCredentials(
-        credentials,
         verifyId,
+        credentials.password,
       );
 
       //ensure the user exists and the password is correct
@@ -410,7 +410,10 @@ export class UsersController {
       throw new HttpErrors.UnprocessableEntity(_err.message);
     }
 
-    verify = await this.verifySerivce.verifyCredentials(credentials, verifyId);
+    verify = await this.verifySerivce.verifyCredentials(
+      verifyId,
+      credentials.password,
+    );
 
     try {
       Object.assign(newUser, {

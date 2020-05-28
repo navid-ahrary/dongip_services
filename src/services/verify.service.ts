@@ -6,7 +6,7 @@ import Debug from 'debug';
 const debug = Debug('dongip');
 
 import {VerifyRepository} from '../repositories';
-import {Credentials, Verify} from '../models';
+import {Verify} from '../models';
 import {PasswordHasher} from '../services';
 import {PasswordHasherBindings} from '../keys';
 
@@ -19,8 +19,8 @@ export class VerifyService {
   ) {}
 
   public async verifyCredentials(
-    credentials: Credentials,
     verifyId: number,
+    password: string,
   ): Promise<Verify> {
     const invalidCredentialsError = 'Invalid credentials!';
 
@@ -34,7 +34,7 @@ export class VerifyService {
     }
 
     const isMatched = await this.passwordHasher.comparePassword(
-      credentials.password,
+      password,
       foundVerify.password,
     );
 
