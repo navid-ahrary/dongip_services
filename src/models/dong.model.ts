@@ -7,7 +7,6 @@ import {
 } from '@loopback/repository';
 
 import {Users} from './users.model';
-import {CategoryBill} from './category-bill.model';
 import {Category} from './category.model';
 import {PayerList} from './payer-list.model';
 import {BillList} from './bill-list.model';
@@ -24,15 +23,13 @@ export class Dong extends Entity {
 
   @property({
     type: 'string',
-    requird: true,
   })
-  title: string;
+  title?: string;
 
   @property({
     type: 'string',
-    required: true,
   })
-  desc: string;
+  desc?: string;
 
   @property({
     type: 'string',

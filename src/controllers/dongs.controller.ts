@@ -92,6 +92,7 @@ export class DongsController {
         'application/json': {
           schema: getModelSchemaRef(PostNewDong, {
             title: 'NewDong',
+            optional: ['title', 'desc']
           }),
           example: PostNewDongExample,
         },
@@ -102,10 +103,10 @@ export class DongsController {
     const userId = Number(this.currentUserProfile[securityId]);
 
     let billList = newDong.billList,
-      dongRelationIdList: {id: number}[] = [],
+      dongRelationIdList: {id: number;}[] = [],
       payerList = newDong.payerList,
-      payerRelationIdList: {id: number}[] = [],
-      allRelationIdList: {id: number}[] = [],
+      payerRelationIdList: {id: number;}[] = [],
+      allRelationIdList: {id: number;}[] = [],
       dong: Dong,
       createdBillList,
       createdPayerList;
