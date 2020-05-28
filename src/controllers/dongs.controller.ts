@@ -137,6 +137,18 @@ export class DongsController {
         }
       });
 
+    //validate categoryId
+    await this.usersRepository
+      .categories(userId)
+      .find({where: {id: newDong.categoryId}})
+      .then((_res) => {
+        if (_res.length !== 1) {
+          throw new HttpErrors.NotFound(
+            'دسته بندی با این id برای شما وجود نداره',
+          );
+        }
+      });
+
     // create a dong object and save in database
     const d = _.pick(newDong, [
       'title',
@@ -168,6 +180,11 @@ export class DongsController {
     } catch (_err) {
       throw new HttpErrors.NotAcceptable(_err);
     }
+
+    dong.billList = createdBillList;
+    dong.payerList = createdPayerList;
+
+    return dong;
     // // create categoryBill object for every usersRels
     // for (const _b of billList) {
     //   const categoryBill = {
@@ -192,13 +209,5 @@ export class DongsController {
     //     await this.dongRepository.deleteById(dong.getId());
     //     throw new HttpErrors.NotImplemented(_err);
     //   });
-
-    console.log(createdBillList);
-
-    const filter: Filter<Dong> = {
-      where: {id: dong.getId()},
-      include: [{relation: 'billList'}, {relation: 'payerList'}],
-    };
-    return this.dongRepository.findOne(filter);
   }
 }
