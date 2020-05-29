@@ -448,19 +448,7 @@ export class UsersController {
       // Create a new user
       savedUser = await this.usersRepository.create(newUser);
 
-      // Get init category list from database and assign to new user in category list
-      const initCategoryList = await this.categorySourceRepository.find({});
-
-      // create and assign init category list to the user
-      await this.categoryRepository.createAll(initCategoryList);
-      //convert user object to a UserProfile object (reduced set of properties)
-      userProfile = this.userService.convertToUserProfile(savedUser);
-      userProfile['aud'] = 'access';
-
-      //create a JWT token based on the Userprofile
-      accessToken = await this.jwtService.generateToken(userProfile);
-
-      // Create self-relation for self accounting
+      // Create self-relation
       await this.usersRelsRepository.create({
         belongsToUserId: savedUser.getId(),
         targetUserId: savedUser.getId(),
@@ -469,7 +457,24 @@ export class UsersController {
         type: 'self',
       });
 
-      // commit all transactions
+      // Get init category list from database and assign to new user in category list
+      const initCategoryList = await this.categorySourceRepository.find({});
+
+      // Add belongsToUserId prop to all category
+      initCategoryList.forEach((cat) => {
+        cat = Object.assign(cat, {belongsToUserId: savedUser.getId()});
+      });
+
+      // Create and assign init category list to the user
+      await this.categoryRepository.createAll(initCategoryList);
+      // Convert user object to a UserProfile object (reduced set of properties)
+      userProfile = this.userService.convertToUserProfile(savedUser);
+      userProfile['aud'] = 'access';
+
+      // Create a JWT token based on the Userprofile
+      accessToken = await this.jwtService.generateToken(userProfile);
+
+      // Commit all transactions
       await userTx.commit();
       await categoryTx.commit();
       await usersRelsTx.commit();
