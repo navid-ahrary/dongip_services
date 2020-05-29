@@ -446,16 +446,21 @@ export class UsersController {
 
     try {
       // Create a new user
-      savedUser = await this.usersRepository.create(newUser);
+      savedUser = await this.usersRepository.create(newUser, {
+        transaction: userTx,
+      });
 
       // Create self-relation
-      await this.usersRelsRepository.create({
-        belongsToUserId: savedUser.getId(),
-        targetUserId: savedUser.getId(),
-        name: savedUser.name,
-        avatar: savedUser.avatar,
-        type: 'self',
-      });
+      await this.usersRelsRepository.create(
+        {
+          belongsToUserId: savedUser.getId(),
+          targetUserId: savedUser.getId(),
+          name: savedUser.name,
+          avatar: savedUser.avatar,
+          type: 'self',
+        },
+        {transaction: usersRelsTx},
+      );
 
       // Get init category list from database and assign to new user in category list
       const initCategoryList = await this.categorySourceRepository.find({});
@@ -466,7 +471,9 @@ export class UsersController {
       });
 
       // Create and assign init category list to the user
-      await this.categoryRepository.createAll(initCategoryList);
+      await this.categoryRepository.createAll(initCategoryList, {
+        transaction: categoryTx,
+      });
       // Convert user object to a UserProfile object (reduced set of properties)
       userProfile = this.userService.convertToUserProfile(savedUser);
       userProfile['aud'] = 'access';
