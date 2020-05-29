@@ -8,17 +8,31 @@ import {
 } from 'firebase-admin';
 import {HttpErrors} from '@loopback/rest';
 
-import Debug from 'debug';
-const debug = Debug('dongip-firebase');
-
 import {config} from 'dotenv';
 config();
 
+export type BatchMessage = Array<messaging.Message>;
+
+export interface FirebaseService {
+  sendToDeviceMessage(
+    firebaseToken: string | string[],
+    payload: messaging.MessagingPayload,
+    options?: messaging.MessagingOptions | undefined,
+  ): void;
+  sendMultiCastMessage(
+    message: messaging.MulticastMessage,
+    dryRun?: boolean,
+  ): void;
+  sendAllMessage(
+    messages: Array<messaging.Message>,
+  ): Promise<messaging.BatchResponse>;
+}
+
 @bind({scope: BindingScope.SINGLETON})
 export class FirebaseService {
-  constructor() {
-    const serviceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
-    debug(serviceAccount);
+  constructor(
+    private serviceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`),
+  ) {
     this.initializeApp(serviceAccount);
   }
 
@@ -29,6 +43,7 @@ export class FirebaseService {
     });
   }
 
+  // send a message to a device
   sendToDeviceMessage(
     firebaseToken: string | string[],
     payload: messaging.MessagingPayload,
@@ -37,19 +52,20 @@ export class FirebaseService {
     messaging()
       .sendToDevice(firebaseToken, payload, options)
       .then(function (_response) {
-        debug(_response);
+        console.log(_response);
       })
       .catch(function (_error) {
-        debug(_error);
+        console.error(_error);
       });
   }
 
-  // send a message to multi destination
-  public sendMultiCastMessage(data: {[key: string]: string}, tokens: string[]) {
-    const message: messaging.MulticastMessage = {data: data, tokens: tokens};
-
-    messaging()
-      .sendMulticast(message)
+  // send a message to multi devices
+  public async sendMultiCastMessage(
+    message: messaging.MulticastMessage,
+    dryRun?: boolean,
+  ) {
+    await messaging()
+      .sendMulticast(message, dryRun)
       .then(function (_response) {
         if (_response.failureCount > 0) {
           const failedTokens: string[] = [];
@@ -58,23 +74,34 @@ export class FirebaseService {
               failedTokens.push(message.tokens[idx]);
             }
           });
-          debug(`List of tokens that caused failure ${failedTokens}`);
+          console.error(`List of tokens that caused failure ${failedTokens}`);
           throw new HttpErrors.NotImplemented(
             `List of tokens that caused failure ${failedTokens}`,
           );
         }
-        debug(`Successfully sent notifications, ${_response}`);
+        console.log(`Successfully sent notifications, ${_response}`);
       })
       .catch(function (_error) {
-        debug(`Error sending notifications, ${_error}`);
+        console.log(`Error sending notifications, ${_error}`);
         throw new HttpErrors.NotImplemented(
           `Error sending notifications, ${_error}`,
         );
       });
   }
 
-  //send multi message to multi destination
-  public sendAllMessage() {
-    // messaging().sendAll();
+  //send multi message to multi devices
+  public async sendAllMessage(
+    messages: Array<messaging.Message>,
+  ): Promise<messaging.BatchResponse> {
+    const response = await messaging()
+      .sendAll(messages)
+      .catch(function (_error) {
+        console.error(_error);
+        throw new Error(`Error sending notifications, ${_error}`);
+      });
+
+    console.log(`Successfully sent notifications, ${response}`);
+
+    return response;
   }
 }

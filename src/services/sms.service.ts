@@ -1,17 +1,16 @@
 import {bind, BindingScope} from '@loopback/core';
-const Kavenegar = require('kavenegar');
-
-import Debug from 'debug';
-const debug = Debug('dongip');
-
 import {config} from 'dotenv';
 config();
 
+const Kavenegar = require('kavenegar');
+
 @bind({scope: BindingScope.SINGLETON})
 export class SmsService {
-  constructor() {}
-
-  smsApi = Kavenegar.KavenegarApi({apikey: process.env.KAVENEGAR_API});
+  constructor(
+    private smsApi = Kavenegar.KavenegarApi({
+      apikey: process.env.KAVENEGAR_API,
+    }),
+  ) {}
 
   public sendSms(template: string, payload: string, receptor: string) {
     this.smsApi.VerifyLookup(
@@ -22,8 +21,9 @@ export class SmsService {
         receptor: receptor.replace('+98', '0'),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       function (_response: any, _status: any) {
-        debug(_response, _status);
+        console.log(_response, _status);
       },
     );
   }
