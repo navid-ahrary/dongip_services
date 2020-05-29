@@ -7,7 +7,7 @@ const debug = Debug('dongip');
 import {config} from 'dotenv';
 config();
 
-@bind({scope: BindingScope.TRANSIENT})
+@bind({scope: BindingScope.SINGLETON})
 export class SmsService {
   constructor() {}
 
