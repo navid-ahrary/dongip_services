@@ -70,10 +70,7 @@
     "jsonwebtoken": "^8.5.1",
     "kavenegar": "^1.1.4",
     "lodash": "^4.17.15",
-    "loopback-connector": "^4.10.1",
-    "loopback-connector-arangodb": "https://gitlab.com/navid_ahrary/loopback-connector-arangodb.git",
     "loopback-connector-mysql": "^5.4.3",
-    "loopback-connector-postgresql": "^3.9.1",
     "moment": "^2.24.0",
     "underscore": "^1.10.2"
   },
