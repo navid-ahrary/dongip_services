@@ -8,6 +8,7 @@ import {RepositoryMixin} from '@loopback/repository';
 import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
 import {registerAuthenticationStrategy} from '@loopback/authentication';
+import {MetricsComponent, MetricsBindings} from '@loopback/extension-metrics';
 import * as path from 'path';
 
 import {MyAuthenticationSequence} from './sequence';
@@ -57,6 +58,9 @@ export class MyApplication extends BootMixin(
     //Bind authentication components related elemets
     this.component(UserAuthenticationComponent);
 
+    // Bind Prometheus metric component
+    this.component(MetricsComponent);
+
     registerAuthenticationStrategy(this, JWTAccessAutehticationStrategy);
     registerAuthenticationStrategy(this, JWTRefreshAutehticationStrategy);
     registerAuthenticationStrategy(this, JWTVerifyAutehticationStrategy);
@@ -85,6 +89,17 @@ export class MyApplication extends BootMixin(
   }
 
   setupBinding(): void {
+    // Configure metric component
+    this.configure(MetricsBindings.COMPONENT).to({
+      endpoint: {basePath: '/metrics', disabled: false},
+      defaultMetrics: {timeout: 10000, disabled: false},
+      // pushGateway: {
+      // disabled?: boolean;
+      // url: string;
+      // interval?: number;
+      // },
+    });
+
     // Bind package.json to the application context
     this.bind(PackageKey).to(pkg);
 
