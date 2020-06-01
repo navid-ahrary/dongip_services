@@ -3,9 +3,11 @@ import {
   model,
   property,
   belongsTo,
-  hasMany,
+  hasOne,
+  RelationType,
 } from '@loopback/repository';
-import {Users, UsersRels, Category, CategoryBill, Dong} from './';
+import {Users} from './';
+import {UsersRels} from './users-rels.model';
 
 @model()
 export class VirtualUsers extends Entity {
@@ -15,7 +17,7 @@ export class VirtualUsers extends Entity {
     generated: true,
     required: false,
   })
-  id: number;
+  virtualUserId: number;
 
   @property({
     type: 'string',
@@ -23,20 +25,27 @@ export class VirtualUsers extends Entity {
   })
   phone: string;
 
-  @belongsTo(() => Users, {name: 'belongsToUser'})
-  belongsToUserId: typeof Users.prototype.id;
+  @belongsTo(
+    () => Users,
+    {
+      name: 'belongsToUser',
+      type: RelationType.belongsTo,
+      keyTo: 'userId',
+      keyFrom: 'userId',
+      targetsMany: false,
+      source: Users,
+      target: () => VirtualUsers,
+    },
+    {type: 'number', required: true},
+  )
+  userId: number;
 
-  @hasMany(() => Dong, {keyTo: 'xManKey'})
-  dongs: Dong[];
-
-  @hasMany(() => Category, {keyTo: 'belongsToUserId'})
-  categories: Category[];
-
-  @hasMany(() => UsersRels, {keyTo: 'belongsToUserId'})
-  usersRels: UsersRels[];
-
-  @hasMany(() => CategoryBill, {keyTo: 'targetUserId'})
-  categoryBills: CategoryBill[];
+  @hasOne(() => UsersRels, {
+    name: 'usersRels',
+    keyTo: 'virtualUserId',
+    source: UsersRels,
+  })
+  usersRels: UsersRels;
 
   constructor(data?: Partial<VirtualUsers>) {
     super(data);

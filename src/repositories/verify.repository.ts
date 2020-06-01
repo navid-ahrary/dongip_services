@@ -5,7 +5,7 @@ import {inject} from '@loopback/core';
 
 export class VerifyRepository extends DefaultTransactionalRepository<
   Verify,
-  typeof Verify.prototype.id,
+  typeof Verify.prototype.verifyId,
   VerifyRelations
 > {
   constructor(@inject('datasources.Mysql') dataSource: MysqlDataSource) {

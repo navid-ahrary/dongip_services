@@ -10,79 +10,68 @@ import {
   Category,
   CategoryRelations,
   Users,
-  CategoryBill,
   VirtualUsers,
   BillList,
   PayerList,
 } from '../models';
 import {MysqlDataSource} from '../datasources';
-import {UsersRepository, CategoryBillRepository} from './';
+import {UsersRepository} from './';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 
 export class CategoryRepository extends DefaultTransactionalRepository<
   Category,
-  typeof Category.prototype.id,
+  typeof Category.prototype.categoryId,
   CategoryRelations
 > {
-  public readonly belongsToUser: BelongsToAccessor<
+  public readonly users: BelongsToAccessor<
     Users | VirtualUsers,
-    typeof Category.prototype.id
+    typeof Category.prototype.categoryId
   >;
 
-  public readonly categoryBills: HasManyRepositoryFactory<
-    CategoryBill,
-    typeof Category.prototype.id
-  >;
-
-  public readonly billList: HasManyRepositoryFactory<
+  public readonly billLists: HasManyRepositoryFactory<
     BillList,
-    typeof Category.prototype.id
+    typeof Category.prototype.categoryId
   >;
 
-  public readonly payerList: HasManyRepositoryFactory<
+  public readonly payerLists: HasManyRepositoryFactory<
     PayerList,
-    typeof Category.prototype.id
+    typeof Category.prototype.categoryId
   >;
 
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
-    @repository.getter('CategoryBillRepository')
-    protected categoryBillRepositoryGetter: Getter<CategoryBillRepository>,
     @repository.getter('BillListRepository')
     protected billListRepositoryGetter: Getter<BillListRepository>,
     @repository.getter('PayerListRepository')
     protected payerListRepositoryGetter: Getter<PayerListRepository>,
   ) {
     super(Category, dataSource);
-    this.payerList = this.createHasManyRepositoryFactoryFor(
-      'payerList',
+
+    this.payerLists = this.createHasManyRepositoryFactoryFor(
+      'payerLists',
       payerListRepositoryGetter,
     );
     this.registerInclusionResolver(
-      'payerList',
-      this.payerList.inclusionResolver,
+      'payerLists',
+      this.payerLists.inclusionResolver,
     );
-    this.billList = this.createHasManyRepositoryFactoryFor(
-      'billList',
+
+    this.billLists = this.createHasManyRepositoryFactoryFor(
+      'billLists',
       billListRepositoryGetter,
     );
-    this.registerInclusionResolver('billList', this.billList.inclusionResolver);
-
-    this.categoryBills = this.createHasManyRepositoryFactoryFor(
-      'categoryBills',
-      categoryBillRepositoryGetter,
-    );
     this.registerInclusionResolver(
-      'categoryBills',
-      this.categoryBills.inclusionResolver,
+      'billLists',
+      this.billLists.inclusionResolver,
     );
 
-    this.belongsToUser = this.createBelongsToAccessorFor(
-      'belongsToUser',
+    this.users = this.createBelongsToAccessorFor(
+      'users',
       usersRepositoryGetter,
     );
+    this.registerInclusionResolver('users', this.users.inclusionResolver);
   }
 }

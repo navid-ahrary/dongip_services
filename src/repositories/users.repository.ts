@@ -10,7 +10,6 @@ import {PasswordHasher} from '../services';
 import {
   VirtualUsersRepository,
   DongRepository,
-  CategoryBillRepository,
   CategoryRepository,
   UsersRelsRepository,
 } from './';
@@ -21,42 +20,45 @@ import {
   Dong,
   Category,
   UsersRels,
-  CategoryBill, BillList, PayerList} from '../models';
+  BillList,
+  PayerList,
+} from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 
 export class UsersRepository extends DefaultTransactionalRepository<
   Users,
-  typeof Users.prototype.id
+  typeof Users.prototype.userId
 > {
   public readonly virtualUsers: HasManyRepositoryFactory<
     VirtualUsers,
-    typeof Users.prototype.id
+    typeof Users.prototype.userId
   >;
 
-  public readonly dong: HasManyRepositoryFactory<
+  public readonly dongs: HasManyRepositoryFactory<
     Dong,
-    typeof Users.prototype.id
+    typeof Users.prototype.userId
   >;
 
   public readonly categories: HasManyRepositoryFactory<
     Category,
-    typeof Users.prototype.id
+    typeof Users.prototype.userId
   >;
 
   public readonly usersRels: HasManyRepositoryFactory<
     UsersRels,
-    typeof Users.prototype.id
+    typeof Users.prototype.userId
   >;
 
-  public readonly categoryBills: HasManyRepositoryFactory<
-    CategoryBill,
-    typeof Users.prototype.id
+  public readonly billList: HasManyRepositoryFactory<
+    BillList,
+    typeof Users.prototype.userId
   >;
 
-  public readonly billList: HasManyRepositoryFactory<BillList, typeof Users.prototype.id>;
-
-  public readonly payerList: HasManyRepositoryFactory<PayerList, typeof Users.prototype.id>;
+  public readonly payerList: HasManyRepositoryFactory<
+    PayerList,
+    typeof Users.prototype.userId
+  >;
 
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
@@ -68,29 +70,34 @@ export class UsersRepository extends DefaultTransactionalRepository<
     protected categoryRepositoryGetter: Getter<CategoryRepository>,
     @repository.getter('UsersRelsRepository')
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
-    @repository.getter('CategoryBillRepository')
-    protected categoryBillRepositoryGetter: Getter<CategoryBillRepository>,
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
-    public passwordHasher: PasswordHasher, @repository.getter('BillListRepository') protected billListRepositoryGetter: Getter<BillListRepository>, @repository.getter('PayerListRepository') protected payerListRepositoryGetter: Getter<PayerListRepository>,
+    public passwordHasher: PasswordHasher,
+    @repository.getter('BillListRepository')
+    protected billListRepositoryGetter: Getter<BillListRepository>,
+    @repository.getter('PayerListRepository')
+    protected payerListRepositoryGetter: Getter<PayerListRepository>,
   ) {
     super(Users, dataSource);
-    this.payerList = this.createHasManyRepositoryFactoryFor('payerList', payerListRepositoryGetter,);
-    this.registerInclusionResolver('payerList', this.payerList.inclusionResolver);
-    this.billList = this.createHasManyRepositoryFactoryFor('billList', billListRepositoryGetter,);
-    this.registerInclusionResolver('billList', this.billList.inclusionResolver);
-    this.categoryBills = this.createHasManyRepositoryFactoryFor(
-      'categoryBills',
-      categoryBillRepositoryGetter,
+    this.payerList = this.createHasManyRepositoryFactoryFor(
+      'payerList',
+      payerListRepositoryGetter,
     );
     this.registerInclusionResolver(
-      'categoryBills',
-      this.categoryBills.inclusionResolver,
+      'payerList',
+      this.payerList.inclusionResolver,
     );
+
+    this.billList = this.createHasManyRepositoryFactoryFor(
+      'billList',
+      billListRepositoryGetter,
+    );
+    this.registerInclusionResolver('billList', this.billList.inclusionResolver);
 
     this.usersRels = this.createHasManyRepositoryFactoryFor(
       'usersRels',
       usersRelsRepositoryGetter,
     );
+
     this.registerInclusionResolver(
       'usersRels',
       this.usersRels.inclusionResolver,
@@ -105,11 +112,11 @@ export class UsersRepository extends DefaultTransactionalRepository<
       this.categories.inclusionResolver,
     );
 
-    this.dong = this.createHasManyRepositoryFactoryFor(
-      'dong',
+    this.dongs = this.createHasManyRepositoryFactoryFor(
+      'dongs',
       dongRepositoryGetter,
     );
-    this.registerInclusionResolver('dong', this.dong.inclusionResolver);
+    this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
 
     this.virtualUsers = this.createHasManyRepositoryFactoryFor(
       'virtualUsers',

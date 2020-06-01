@@ -3,7 +3,7 @@ export * from './dong.model';
 export * from './blacklist.model';
 export * from './virtual-users.model';
 export * from './category.model';
-export * from './category-bill.model';
+// export * from './category-bill.model';
 export * from './credentials.model';
 export * from './users-rels.model';
 export * from './verify.model';

@@ -1,37 +1,27 @@
 import {
   repository,
   BelongsToAccessor,
-  HasManyRepositoryFactory,
   DefaultTransactionalRepository,
 } from '@loopback/repository';
-import {
-  UsersRels,
-  UsersRelsRelations,
-  Users,
-  CategoryBill,
-  VirtualUsers,
-} from '../models';
+import {UsersRels, UsersRelsRelations, Users, VirtualUsers} from '../models';
 import {MysqlDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
-import {
-  UsersRepository,
-  CategoryBillRepository,
-  VirtualUsersRepository,
-} from './';
+import {UsersRepository} from './';
+import {VirtualUsersRepository} from './virtual-users.repository';
 
 export class UsersRelsRepository extends DefaultTransactionalRepository<
   UsersRels,
-  typeof UsersRels.prototype.id,
+  typeof UsersRels.prototype.userRelId,
   UsersRelsRelations
 > {
   public readonly belongsToUser: BelongsToAccessor<
-    Users | VirtualUsers,
-    typeof UsersRels.prototype.id
+    Users,
+    typeof UsersRels.prototype.userRelId
   >;
 
-  public readonly categoryBills: HasManyRepositoryFactory<
-    CategoryBill,
-    typeof UsersRels.prototype.id
+  public readonly belongsToVirtualUser: BelongsToAccessor<
+    VirtualUsers,
+    typeof UsersRels.prototype.userRelId
   >;
 
   constructor(
@@ -40,22 +30,25 @@ export class UsersRelsRepository extends DefaultTransactionalRepository<
     protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('VirtualUsersRepository')
     protected virtualUsersRepositoryGetter: Getter<VirtualUsersRepository>,
-    @repository.getter('CategoryBillRepository')
-    protected categoryBillRepositoryGetter: Getter<CategoryBillRepository>,
   ) {
     super(UsersRels, dataSource);
-    this.categoryBills = this.createHasManyRepositoryFactoryFor(
-      'categoryBills',
-      categoryBillRepositoryGetter,
+
+    this.belongsToVirtualUser = this.createBelongsToAccessorFor(
+      'belongsToVirtualUser',
+      virtualUsersRepositoryGetter,
     );
     this.registerInclusionResolver(
-      'categoryBills',
-      this.categoryBills.inclusionResolver,
+      'belongsToVirtualUser',
+      this.belongsToVirtualUser.inclusionResolver,
     );
 
     this.belongsToUser = this.createBelongsToAccessorFor(
       'belongsToUser',
-      usersRepositoryGetter || virtualUsersRepositoryGetter,
+      usersRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'belongsToUser',
+      this.belongsToUser.inclusionResolver,
     );
   }
 }

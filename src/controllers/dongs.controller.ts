@@ -51,7 +51,7 @@ export class DongsController {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(Dong, {includeRelations: true}),
+              items: getModelSchemaRef(Dong, {includeRelations: false}),
             },
           },
         },
@@ -64,11 +64,11 @@ export class DongsController {
 
     const filter: Filter<Dong> = {
       order: ['createdAt DESC'],
-      where: {belongsToUserId: userId},
+      where: {userId: userId},
       include: [{relation: 'payerList'}, {relation: 'billList'}],
     };
 
-    return this.usersRepository.dong(userId).find(filter);
+    return this.usersRepository.dongs(userId).find(filter);
   }
 
   @post('/dongs', {
@@ -79,7 +79,7 @@ export class DongsController {
         description: 'Dongs model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Dong, {}),
+            schema: getModelSchemaRef(Dong, {includeRelations: true}),
           },
         },
       },
@@ -111,10 +111,10 @@ export class DongsController {
     }
 
     let billList = newDong.billList,
-      dongRelationIdList: {id: number}[] = [],
+      dongRelationIdList: {userRelId: number}[] = [],
       payerList = newDong.payerList,
-      payerRelationIdList: {id: number}[] = [],
-      allRelationIdList: {id: number}[] = [],
+      payerRelationIdList: {userRelId: number}[] = [],
+      allRelationIdList: {userRelId: number}[] = [],
       dong: Dong,
       createdBillList,
       createdPayerList,
@@ -124,16 +124,16 @@ export class DongsController {
       firebaseTokenList: string[] = [];
 
     billList.forEach((item) => {
-      dongRelationIdList.push({id: item.usersRelsId});
-      if (_.findIndex(allRelationIdList, {id: item.usersRelsId}) === -1) {
-        allRelationIdList.push({id: item.usersRelsId});
+      dongRelationIdList.push({userRelId: item.userRelId});
+      if (_.findIndex(allRelationIdList, {userRelId: item.userRelId}) === -1) {
+        allRelationIdList.push({userRelId: item.userRelId});
       }
     });
 
     payerList.forEach((item) => {
-      payerRelationIdList.push({id: item.usersRelsId});
-      if (_.findIndex(allRelationIdList, {id: item.usersRelsId}) === -1) {
-        allRelationIdList.push({id: item.usersRelsId});
+      payerRelationIdList.push({userRelId: item.userRelId});
+      if (_.findIndex(allRelationIdList, {userRelId: item.userRelId}) === -1) {
+        allRelationIdList.push({userRelId: item.userRelId});
       }
     });
 
@@ -148,7 +148,7 @@ export class DongsController {
     //validate categoryId
     await this.usersRepository
       .categories(userId)
-      .find({where: {id: newDong.categoryId}})
+      .find({where: {categoryId: newDong.categoryId}})
       .then((_res) => {
         if (_res.length !== 1) {
           throw new HttpErrors.NotFound('categoryId معتبر نیست');
@@ -186,14 +186,14 @@ export class DongsController {
     );
 
     try {
-      dong = await this.usersRepository.dong(userId).create(d);
+      dong = await this.usersRepository.dongs(userId).create(d);
 
       payerList.forEach((item) => {
         item = Object.assign(item, {
           dongId: dong.getId(),
           createdAt: dong.createdAt,
           categoryId: dong.categoryId,
-          belongsToUserId: userId,
+          userId: userId,
         });
       });
 
@@ -202,7 +202,7 @@ export class DongsController {
           dongId: dong.getId(),
           createdAt: dong.createdAt,
           categoryId: dong.categoryId,
-          belongsToUserId: userId,
+          userId: userId,
         });
       });
 
@@ -213,13 +213,13 @@ export class DongsController {
       await dongTx.commit();
       await billTx.commit();
       await payerTx.commit();
-    } catch (_err) {
+    } catch (err) {
       // rollback all transactions
       await dongTx.rollback();
       await payerTx.rollback();
       await billTx.rollback();
 
-      throw new HttpErrors.NotImplemented(_err);
+      throw new HttpErrors.NotImplemented(err.message);
     }
 
     // send notification

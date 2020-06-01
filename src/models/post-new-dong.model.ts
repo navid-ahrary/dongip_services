@@ -1,9 +1,9 @@
-import {Entity, model, property} from '@loopback/repository';
+import {model, property, Model} from '@loopback/repository';
 import {Category} from './category.model';
 import {UsersRels} from './users-rels.model';
 
 @model()
-export class PostNewDong extends Entity {
+export class PostNewDong extends Model {
   @property({
     type: 'string',
     requird: true,
@@ -36,14 +36,14 @@ export class PostNewDong extends Entity {
   @property({
     type: 'number',
   })
-  categoryId: typeof Category.prototype.id;
+  categoryId: typeof Category.prototype.categoryId;
 
   @property({
     type: 'array',
     itemType: 'object',
   })
   payerList: {
-    usersRelsId: typeof UsersRels.prototype.id;
+    userRelId: typeof UsersRels.prototype.userRelId;
     paidAmount: number;
   }[];
 
@@ -52,7 +52,7 @@ export class PostNewDong extends Entity {
     itemType: 'object',
   })
   billList: {
-    usersRelsId: typeof UsersRels.prototype.id;
+    userRelId: typeof UsersRels.prototype.userRelId;
     dongAmount: number;
   }[];
 

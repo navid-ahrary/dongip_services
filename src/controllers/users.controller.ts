@@ -36,7 +36,7 @@ import {
 } from '../keys';
 import {UserPatchRequestBody} from './specs';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {Users, Credentials, Blacklist, Verify} from '../models';
+import {Users, Credentials, Verify} from '../models';
 import {
   UsersRepository,
   BlacklistRepository,
@@ -75,7 +75,7 @@ export class UsersController {
     public usersRelsRepository: UsersRelsRepository,
     @repository(BlacklistRepository)
     public blacklistRepository: BlacklistRepository,
-    @repository(VerifyRepository) private verifyRepo: VerifyRepository,
+    @repository(VerifyRepository) private verifyRepository: VerifyRepository,
     @repository(CategoryRepository)
     private categoryRepository: CategoryRepository,
     @repository(CategorySourceRepository)
@@ -130,7 +130,13 @@ export class UsersController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(Verify, {
-            exclude: ['id', 'agent', 'password', 'issuedAt', 'registered'],
+            exclude: [
+              'verifyId',
+              'userAgent',
+              'password',
+              'issuedAt',
+              'registered',
+            ],
           }),
           example: {
             phone: '+989176502184',
@@ -142,8 +148,12 @@ export class UsersController {
         },
       },
     })
-    reqBody: Verify,
-    @param.header.string('User-Agent') userAgent: string,
+    verifyReqBody: Verify,
+    @param.header.string('user-agent', {
+      required: true,
+      example: 'Android29/Google_Pixel_4',
+    })
+    userAgent: string,
   ): Promise<{
     status: boolean;
     name: string;
@@ -164,14 +174,14 @@ export class UsersController {
       userProfile: UserProfile;
 
     try {
-      validatePhoneNumber(reqBody.phone);
+      validatePhoneNumber(verifyReqBody.phone);
     } catch (_err) {
       console.log(_err);
       throw new HttpErrors.NotAcceptable(_err.message);
     }
 
     user = await this.usersRepository.findOne({
-      where: {phone: reqBody.phone},
+      where: {phone: verifyReqBody.phone},
       fields: {
         name: true,
         avatar: true,
@@ -181,25 +191,25 @@ export class UsersController {
       status = true;
     }
 
-    createdVerify = await this.verifyRepo
+    createdVerify = await this.verifyRepository
       .create({
-        phone: reqBody.phone,
+        phone: verifyReqBody.phone,
         password: await this.passwordHasher.hashPassword(
           randomStr + randomCode,
         ),
         registered: status,
-        firebaseToken: reqBody.firebaseToken,
-        agent: userAgent,
+        firebaseToken: verifyReqBody.firebaseToken,
+        userAgent: userAgent,
         issuedAt: new Date(),
       })
-      .catch((_err) => {
-        console.log(_err);
-        throw new HttpErrors.Conflict(_err.message);
+      .catch((err) => {
+        console.log(err);
+        throw new HttpErrors.NotAcceptable(err.message);
       });
 
     // create userProfile
     userProfile = {
-      [securityId]: String(createdVerify.id),
+      [securityId]: String(createdVerify.getId()),
       aud: 'verify',
     };
 
@@ -212,14 +222,17 @@ export class UsersController {
           verifyToken: token,
         },
       };
-      this.firebaseService.sendToDeviceMessage(reqBody.firebaseToken, payload);
+      this.firebaseService.sendToDeviceMessage(
+        verifyReqBody.firebaseToken,
+        payload,
+      );
     } catch (_err) {
       console.log(_err);
       throw new HttpErrors.UnprocessableEntity(_err.message);
     }
 
     // send verify code with sms
-    this.smsService.sendSms('dongip', randomCode, reqBody.phone);
+    this.smsService.sendSms('dongip', randomCode, verifyReqBody.phone);
 
     return {
       status: status,
@@ -304,7 +317,7 @@ export class UsersController {
       user = await this.userService.verifyCredentials(credentials);
 
       this.usersRepository.updateById(user.getId(), {
-        userAgent: verify.agent,
+        userAgent: verify.userAgent,
         firebaseToken: verify.firebaseToken,
       });
     } catch (_err) {
@@ -373,10 +386,9 @@ export class UsersController {
           schema: getModelSchemaRef(NewUser, {
             title: 'NewUser',
             exclude: [
-              'id',
+              'userId',
               'accountType',
               'categories',
-              'categoryBills',
               'dongs',
               'userAgent',
               'refreshToken',
@@ -429,11 +441,11 @@ export class UsersController {
     Object.assign(newUser, {
       registeredAt: new Date(),
       firebaseToken: verify.firebaseToken,
-      userAgent: verify.agent,
+      userAgent: verify.userAgent,
     });
     delete newUser.password;
 
-    // begin all trasactions
+    // Begin Users repo trasactions
     userTx = await this.usersRepository.beginTransaction(
       IsolationLevel.READ_COMMITTED,
     );
@@ -450,11 +462,14 @@ export class UsersController {
         transaction: userTx,
       });
 
+      // Begin UsersRels repo transaction
+      usersRelsTx = await this.usersRelsRepository.beginTransaction(
+        IsolationLevel.READ_COMMITTED,
+      );
       // Create self-relation
       await this.usersRelsRepository.create(
         {
-          belongsToUserId: savedUser.getId(),
-          targetUserId: savedUser.getId(),
+          userId: savedUser.getId(),
           name: savedUser.name,
           avatar: savedUser.avatar,
           type: 'self',
@@ -463,11 +478,11 @@ export class UsersController {
       );
 
       // Get init category list from database and assign to new user in category list
-      const initCategoryList = await this.categorySourceRepository.find({});
+      const initCategoryList = await this.categorySourceRepository.find();
 
       // Add belongsToUserId prop to all category
       initCategoryList.forEach((cat) => {
-        cat = Object.assign(cat, {belongsToUserId: savedUser.getId()});
+        cat = Object.assign(cat, {userId: savedUser.getId()});
       });
 
       // Create and assign init category list to the user
@@ -491,49 +506,52 @@ export class UsersController {
         accessToken: accessToken,
         refreshToken: savedUser.refreshToken,
       };
-    } catch (_err) {
+    } catch (err) {
       // rollback all transactions
       await userTx.rollback();
       await categoryTx.rollback();
       await usersRelsTx.rollback();
 
-      console.log(_err);
-      if (_err.code === 409) {
-        throw new HttpErrors.Conflict(_err.response.body.errorMessage);
+      // Duplicate phone number error handling
+      // base on search in stackoverflow, throw a conflict[409] error code
+      // see https://stackoverflow.com/questions/12658574/rest-api-design-post-to-create-with-duplicate-data-would-be-integrityerror-500
+      if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
+        throw new HttpErrors.Conflict(err.message);
+
+        // Properties length are too long error handling
+      } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
+        throw new HttpErrors.NotAcceptable(err.message);
       } else {
-        throw new HttpErrors.NotAcceptable(_err);
+        throw new HttpErrors.NotAcceptable(err.message);
       }
     }
   }
 
   @get('/users/logout', {
-    summary:
-      "Logout from app and put the current user's access token in blacklist ",
+    summary: 'Logout from app',
+    description: 'Logout from app and blacklist the current access token',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
-        description: "Logout current user's client",
+        description: 'No content',
       },
     },
   })
   @authenticate('jwt.access')
-  async logout(
-    @param.header.string('authorization') authorizationHeader: string,
-  ): Promise<Blacklist> {
-    return this.blacklistRepository
+  async logout(): Promise<void> {
+    // Nonsense error handling
+    // for prevent 'Object is possibly undefined' error in line 552
+    if (!this.ctx.request.headers['authorization']) {
+      throw new HttpErrors.Unauthorized('Access token not provided');
+    }
+    // Blacklist the current access token
+    await this.blacklistRepository
       .create({
-        token: authorizationHeader.split(' ')[1],
+        token: this.ctx.request.headers['authorization'].split(' ')[1],
         createdAt: new Date(),
       })
-      .catch((_err) => {
-        console.log(_err);
-        if (_err.code === 409) {
-          throw new HttpErrors.Conflict(_err.response.body.errorMessage);
-        } else {
-          throw new HttpErrors.MethodNotAllowed(
-            `Error logout not implemented: ${_err.message}`,
-          );
-        }
+      .catch((err) => {
+        throw new HttpErrors.MethodNotAllowed(`Error logout: ${err.message}`);
       });
   }
 
@@ -543,7 +561,7 @@ export class UsersController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
-        description: 'User PATCH success',
+        description: 'User PATCH success - No content',
       },
     },
   })
@@ -554,11 +572,9 @@ export class UsersController {
   ): Promise<void> {
     const userId = Number(currentUserProfile[securityId]);
 
-    try {
-      return await this.usersRepository.updateById(userId, user);
-    } catch (err) {
+    return this.usersRepository.updateById(userId, user).catch((err) => {
       throw new HttpErrors.NotAcceptable(err.message);
-    }
+    });
   }
 
   @get('/users/refresh-token', {

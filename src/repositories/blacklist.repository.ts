@@ -5,7 +5,7 @@ import {inject} from '@loopback/core';
 
 export class BlacklistRepository extends DefaultTransactionalRepository<
   Blacklist,
-  typeof Blacklist.prototype.id,
+  typeof Blacklist.prototype.blacklistId,
   BlacklistRelations
 > {
   constructor(@inject('datasources.Mysql') dataSource: MysqlDataSource) {

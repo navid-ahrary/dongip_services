@@ -1,86 +1,56 @@
 import {
   repository,
   BelongsToAccessor,
-  HasManyRepositoryFactory,
   DefaultTransactionalRepository,
+  HasOneRepositoryFactory,
 } from '@loopback/repository';
 import {inject, Getter} from '@loopback/core';
 
-import {
-  VirtualUsers,
-  VirtualUsersRelations,
-  Users,
-  UsersRels,
-  Category,
-  CategoryBill,
-} from '../models';
+import {VirtualUsers, VirtualUsersRelations, Users, UsersRels} from '../models';
 import {MysqlDataSource} from '../datasources';
-import {
-  UsersRepository,
-  UsersRelsRepository,
-  CategoryBillRepository,
-  CategoryRepository,
-} from './';
+import {UsersRepository} from './';
+import {UsersRelsRepository} from './users-rels.repository';
 
 export class VirtualUsersRepository extends DefaultTransactionalRepository<
   VirtualUsers,
-  typeof VirtualUsers.prototype.id,
+  typeof VirtualUsers.prototype.virtualUserId,
   VirtualUsersRelations
 > {
   public readonly belongsToUser: BelongsToAccessor<
     Users,
-    typeof VirtualUsers.prototype.id
+    typeof VirtualUsers.prototype.virtualUserId
   >;
 
-  public readonly usersRels: HasManyRepositoryFactory<
+  public readonly usersRels: HasOneRepositoryFactory<
     UsersRels,
-    typeof Users.prototype.id
-  >;
-
-  public readonly categories: HasManyRepositoryFactory<
-    Category,
-    typeof Users.prototype.id
-  >;
-
-  public readonly categoryBills: HasManyRepositoryFactory<
-    CategoryBill,
-    typeof Users.prototype.id
+    typeof VirtualUsers.prototype.virtualUserId
   >;
 
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
-    @repository.getter('DongRepository')
-    protected categoryRepositoryGetter: Getter<CategoryRepository>,
     @repository.getter('UsersRelsRepository')
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
-    @repository.getter('CategoryBillRepository')
-    protected categoryBillRepositoryGetter: Getter<CategoryBillRepository>,
   ) {
     super(VirtualUsers, dataSource);
 
-    this.belongsToUser = this.createBelongsToAccessorFor(
-      'belongsToUser',
-      usersRepositoryGetter,
-    );
-
-    this.categories = this.createHasManyRepositoryFactoryFor(
-      'categories',
-      categoryRepositoryGetter,
-    );
-    this.registerInclusionResolver(
-      'categories',
-      this.categories.inclusionResolver,
-    );
-
-    this.usersRels = this.createHasManyRepositoryFactoryFor(
+    this.usersRels = this.createHasOneRepositoryFactoryFor(
       'usersRels',
       usersRelsRepositoryGetter,
     );
     this.registerInclusionResolver(
       'usersRels',
       this.usersRels.inclusionResolver,
+    );
+
+    this.belongsToUser = this.createBelongsToAccessorFor(
+      'belongsToUser',
+      usersRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'belongsToUser',
+      this.belongsToUser.inclusionResolver,
     );
   }
 }
