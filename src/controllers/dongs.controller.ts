@@ -51,7 +51,7 @@ export class DongsController {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(Dong, {includeRelations: true}),
+              items: getModelSchemaRef(Dong, {includeRelations: false}),
             },
           },
         },
