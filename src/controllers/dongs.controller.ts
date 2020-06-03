@@ -79,7 +79,7 @@ export class DongsController {
         description: 'Dongs model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Dong, {includeRelations: true}),
+            schema: getModelSchemaRef(Dong, {includeRelations: false}),
           },
         },
       },
@@ -102,11 +102,9 @@ export class DongsController {
   ): Promise<(Dong & DongRelations) | null> {
     const userId = Number(this.currentUserProfile[securityId]);
 
-    if (newDong.belongsToUserId) {
-      if (userId !== newDong.belongsToUserId) {
-        throw new HttpErrors.Unauthorized(
-          'belongsUserId با توکن شما همخونی نداره',
-        );
+    if (newDong.userId) {
+      if (userId !== newDong.userId) {
+        throw new HttpErrors.Unauthorized('userId با توکن شما همخونی نداره');
       }
     }
 
