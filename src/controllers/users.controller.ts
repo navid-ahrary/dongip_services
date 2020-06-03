@@ -423,7 +423,6 @@ export class UsersController {
         password: newUser.password,
       }),
       userTx: Transaction,
-      categoryTx: Transaction,
       usersRelsTx: Transaction;
 
     try {
@@ -445,11 +444,8 @@ export class UsersController {
     });
     delete newUser.password;
 
-    // Begin Users repo trasactions
+    // Begin trasactions
     userTx = await this.usersRepository.beginTransaction(
-      IsolationLevel.READ_COMMITTED,
-    );
-    categoryTx = await this.categoryRepository.beginTransaction(
       IsolationLevel.READ_COMMITTED,
     );
     usersRelsTx = await this.usersRelsRepository.beginTransaction(
@@ -462,10 +458,6 @@ export class UsersController {
         transaction: userTx,
       });
 
-      // Begin UsersRels repo transaction
-      usersRelsTx = await this.usersRelsRepository.beginTransaction(
-        IsolationLevel.READ_COMMITTED,
-      );
       // Create self-relation
       await this.usersRelsRepository.create(
         {
@@ -476,19 +468,6 @@ export class UsersController {
         },
         {transaction: usersRelsTx},
       );
-
-      // Get init category list from database and assign to new user in category list
-      const initCategoryList = await this.categorySourceRepository.find();
-
-      // Add belongsToUserId prop to all category
-      initCategoryList.forEach((cat) => {
-        cat = Object.assign(cat, {userId: savedUser.getId()});
-      });
-
-      // Create and assign init category list to the user
-      await this.categoryRepository.createAll(initCategoryList, {
-        transaction: categoryTx,
-      });
       // Convert user object to a UserProfile object (reduced set of properties)
       userProfile = this.userService.convertToUserProfile(savedUser);
       userProfile['aud'] = 'access';
@@ -498,7 +477,6 @@ export class UsersController {
 
       // Commit all transactions
       await userTx.commit();
-      await categoryTx.commit();
       await usersRelsTx.commit();
 
       return {
@@ -509,7 +487,6 @@ export class UsersController {
     } catch (err) {
       // rollback all transactions
       await userTx.rollback();
-      await categoryTx.rollback();
       await usersRelsTx.rollback();
 
       // Duplicate phone number error handling
