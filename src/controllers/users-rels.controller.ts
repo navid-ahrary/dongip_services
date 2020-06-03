@@ -126,34 +126,45 @@ export class UsersRelsController {
       IsolationLevel.READ_COMMITTED,
     );
 
-    try {
-      // Create a VirtualUser belongs to current user
-      createdVirtualUser = await this.usersRepository
-        .virtualUsers(userId)
-        .create({phone: reqBody.phone}, {transaction: userRepoTx});
+    // Create a VirtualUser belongs to current user
+    createdVirtualUser = await this.usersRepository
+      .virtualUsers(userId)
+      .create({phone: reqBody.phone}, {transaction: userRepoTx})
+      .catch((err) => {
+        // Duplicate phone number error handling in virtual user
+        if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
+          throw new HttpErrors.Conflict(
+            'این شماره تلفن توی لیست دوستات وجود داره',
+          );
+        }
 
-      // Assign props to user rel that would create
-      userRelObject.virtualUserId = createdVirtualUser.getId();
-      userRelObject.phone = createdVirtualUser.phone;
+        throw new HttpErrors.NotAcceptable(err.message);
+      });
 
-      // Create a UserRel belongs to current user
-      createdUserRel = await this.usersRepository
-        .usersRels(userId)
-        .create(userRelObject, {transaction: userRepoTx});
+    // Assign props to user rel that would create
+    userRelObject.virtualUserId = createdVirtualUser.getId();
+    userRelObject.phone = createdVirtualUser.phone;
 
-      // Commit transaction
-      await userRepoTx.commit();
-    } catch (err) {
-      // Rollback transaction
-      await userRepoTx.rollback();
+    // Create a UserRel belongs to current user
+    createdUserRel = await this.usersRepository
+      .usersRels(userId)
+      .create(userRelObject, {transaction: userRepoTx})
+      .catch(async (err) => {
+        // Rollback transaction
+        await userRepoTx.rollback();
 
-      // Duplicate userId&phone number error handling
-      if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-        throw new HttpErrors.Conflict('این شماره توی لیست دوستات وجود داره!');
-      }
+        // Duplicate userRel name error handling
+        if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
+          throw new HttpErrors.Conflict(
+            'این اسم توی لیست دوستات وجود داره، یه اسم دیگه وارد کن',
+          );
+        }
 
-      throw new HttpErrors.NotAcceptable(err.message);
-    }
+        throw new HttpErrors.NotAcceptable(err.message);
+      });
+
+    // Commit transaction
+    await userRepoTx.commit();
 
     return createdUserRel;
   }
@@ -201,7 +212,9 @@ export class UsersRelsController {
   ): Promise<void> {
     const userId = Number(this.currentUserProfile[securityId]);
 
-    let countPatched: Count;
+    // Define variables's type
+    let countPatched: Count,
+      errorMessage = '';
 
     try {
       // Patch UserRel
@@ -211,6 +224,11 @@ export class UsersRelsController {
           and: [{userRelId: userRelId}, {type: {neq: 'self'}}],
         });
 
+      if (!countPatched.count) {
+        errorMessage = 'این رابطه دوستی رو پیدا نکردم';
+        throw new HttpErrors.NotFound(errorMessage);
+      }
+
       // Patch related VirtualUser
       const vu = _.pick(usersRels, ['phone']);
       if (vu.phone) {
@@ -219,15 +237,23 @@ export class UsersRelsController {
           .patch(vu, {userId: userId});
       }
     } catch (err) {
-      // Duplicate userId&phone number error handling
+      // Duplicate error handling
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-        throw new HttpErrors.Conflict('این شماره توی لیست دوستات وجود داره!');
+        // Duplicate name error hanfling
+        if (err.sqlMessage.endsWith("'UsersRels.name'")) {
+          errorMessage =
+            'این اسم توی لیست دوستات وجود داره، یه اسم دیگه وارد کن';
+          // Duplicate phone error handling
+        } else if (
+          err.sqlMessage.endsWith("'UsersRels.phone'") ||
+          err.sqlMessage.endsWith("'VirtualUsers.phone'")
+        ) {
+          errorMessage = 'این شماره توی لیست دوستات وجود داره!';
+        }
+
+        throw new HttpErrors.Conflict(errorMessage);
       }
       throw new HttpErrors.NotAcceptable(err.message);
-    }
-
-    if (!countPatched.count) {
-      throw new HttpErrors.NotFound('این رابطه دوستی رو پیدا نکردم');
     }
 
     return;
