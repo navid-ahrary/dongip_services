@@ -21,7 +21,7 @@ import {authenticate} from '@loopback/authentication';
 import {inject, service} from '@loopback/core';
 
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {UsersRels, VirtualUsers} from '../models';
+import {UsersRels} from '../models';
 import {
   UsersRepository,
   VirtualUsersRepository,
@@ -88,7 +88,7 @@ export class UsersRelsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
-            exclude: ['userRelId', 'userId', 'type', 'virtualUserId'],
+            exclude: ['userRelId', 'userId', 'type'],
           }),
           example: {
             phone: '+989122222222',
@@ -98,66 +98,77 @@ export class UsersRelsController {
         },
       },
     })
-    reqBody: Omit<UsersRels, 'id'>,
+    userRelReqBody: Omit<UsersRels, 'id'>,
   ): Promise<UsersRels> {
+    // Validate phone number value
+    try {
+      validatePhoneNumber(userRelReqBody.phone);
+    } catch (err) {
+      throw new HttpErrors.NotAcceptable(err.message);
+    }
+
     const userId = Number(this.currentUserProfile[securityId]);
 
-    let createdVirtualUser: VirtualUsers,
-      userRelObject: UsersRels = Object.assign({
-        name: reqBody.name,
-        avatar: reqBody.avatar,
+    let userRelObject: UsersRels = Object.assign({
+        name: userRelReqBody.name,
+        avatar: userRelReqBody.avatar,
         type: 'virtual',
-        virtualUserId: 0,
         phone: '',
       }),
+      errorMessage: string,
       userRepoTx: Transaction,
       createdUserRel: UsersRels;
-
-    try {
-      // validate recipient phone number
-      validatePhoneNumber(reqBody.phone);
-    } catch (_err) {
-      console.log(_err);
-      throw new HttpErrors.UnprocessableEntity(_err.message);
-    }
 
     // Begin Users repo trasaction
     userRepoTx = await this.usersRepository.beginTransaction(
       IsolationLevel.READ_COMMITTED,
     );
 
-    // Create a VirtualUser belongs to current user
-    createdVirtualUser = await this.usersRepository
-      .virtualUsers(userId)
-      .create({phone: reqBody.phone}, {transaction: userRepoTx})
-      .catch((err) => {
-        // Duplicate phone number error handling in virtual user
-        if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          throw new HttpErrors.Conflict(
-            'این شماره تلفن توی لیست دوستات وجود داره',
-          );
-        }
-
-        throw new HttpErrors.NotAcceptable(err.message);
-      });
-
     // Assign props to user rel that would create
-    userRelObject.virtualUserId = createdVirtualUser.getId();
-    userRelObject.phone = createdVirtualUser.phone;
+    userRelObject.phone = userRelReqBody.phone;
 
     // Create a UserRel belongs to current user
     createdUserRel = await this.usersRepository
       .usersRels(userId)
       .create(userRelObject, {transaction: userRepoTx})
+      .catch((err) => {
+        // Duplicate userRel name error handling
+        if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
+          // Duplicate name&phone handling
+          if (err.sqlMessage.endsWith("'UsersRels.name&phone'")) {
+            errorMessage = 'این اسم و شماره موبایل توی لیست دوستات وجود داره';
+            // Duplicate name handling
+          } else if (err.sqlMessage.endsWith("'UsersRels.name'")) {
+            errorMessage =
+              'این اسم توی لیست دوستات وجود داره، یه اسم دیگه وارد کن';
+            // Duplicate phone handling
+          } else if (err.sqlMessage.endsWith("'UsersRels.phone'")) {
+            errorMessage = 'این شماره موبایل توی لیست دوستات وجود داره!';
+          } else errorMessage = err.message; // Otherwise
+
+          throw new HttpErrors.Conflict(errorMessage);
+        }
+
+        throw new HttpErrors.NotAcceptable(err.message);
+      });
+
+    // Create a VirtualUser belongs to current user
+    await this.usersRepository
+      .virtualUsers(userId)
+      .create(
+        {phone: userRelReqBody.phone, userRelId: createdUserRel.getId()},
+        {transaction: userRepoTx},
+      )
       .catch(async (err) => {
         // Rollback transaction
         await userRepoTx.rollback();
-
-        // Duplicate userRel name error handling
+        // Duplicate phone number error handling in virtual user
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          throw new HttpErrors.Conflict(
-            'این اسم توی لیست دوستات وجود داره، یه اسم دیگه وارد کن',
-          );
+          if (err.sqlMessage.endsWith("'VirtualUsers.phone'")) {
+            errorMessage = 'این شماره توی لیست دوستات وجود داره!';
+          } else errorMessage = err.message;
+
+          throw new HttpErrors.Conflict(errorMessage);
         }
 
         throw new HttpErrors.NotAcceptable(err.message);
@@ -165,7 +176,6 @@ export class UsersRelsController {
 
     // Commit transaction
     await userRepoTx.commit();
-
     return createdUserRel;
   }
 
@@ -187,7 +197,7 @@ export class UsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             partial: true,
-            exclude: ['userId', 'virtualUserId', 'type'],
+            exclude: ['userId', 'type'],
           }),
           examples: {
             someProps: {
@@ -206,10 +216,19 @@ export class UsersRelsController {
         },
       },
     })
-    usersRels: Partial<UsersRels>,
+    usersRelsReqBody: Partial<UsersRels>,
     @param.path.number('userRelId', {required: true, example: 30})
     userRelId: typeof UsersRels.prototype.userRelId,
   ): Promise<void> {
+    // Validate phone numeber value
+    try {
+      if (usersRelsReqBody.phone) {
+        validatePhoneNumber(usersRelsReqBody.phone);
+      }
+    } catch (err) {
+      throw new HttpErrors.NotAcceptable(err.message);
+    }
+
     const userId = Number(this.currentUserProfile[securityId]);
 
     // Define variables's type
@@ -220,7 +239,7 @@ export class UsersRelsController {
       // Patch UserRel
       countPatched = await this.usersRepository
         .usersRels(userId)
-        .patch(usersRels, {
+        .patch(usersRelsReqBody, {
           and: [{userRelId: userRelId}, {type: {neq: 'self'}}],
         });
 
@@ -230,10 +249,10 @@ export class UsersRelsController {
       }
 
       // Patch related VirtualUser
-      const vu = _.pick(usersRels, ['phone']);
+      const vu = _.pick(usersRelsReqBody, ['phone']);
       if (vu.phone) {
-        await this.usersRepository
-          .virtualUsers(userId)
+        await this.usersRelsRepository
+          .hasOneVirtualUser(userRelId)
           .patch(vu, {userId: userId});
       }
     } catch (err) {
@@ -255,8 +274,6 @@ export class UsersRelsController {
       }
       throw new HttpErrors.NotAcceptable(err.message);
     }
-
-    return;
   }
 
   @del('/users-rels/{userRelId}', {
@@ -282,7 +299,5 @@ export class UsersRelsController {
     if (!countDeleted.count) {
       throw new HttpErrors.NotFound('این رابطه دوستی رو پیدا نکردم');
     }
-
-    return;
   }
 }

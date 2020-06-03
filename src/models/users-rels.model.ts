@@ -4,6 +4,7 @@ import {
   property,
   belongsTo,
   RelationType,
+  hasOne,
 } from '@loopback/repository';
 
 import {Users} from './';
@@ -30,16 +31,15 @@ export class UsersRels extends Entity {
   )
   userId: number;
 
-  @belongsTo(
-    () => VirtualUsers,
-    {
-      source: VirtualUsers,
-      name: 'belongsToVirtualUser',
-      type: RelationType.belongsTo,
-    },
-    {type: 'number'},
-  )
-  virtualUserId: number;
+  @hasOne(() => VirtualUsers, {
+    keyFrom: 'userRelId',
+    keyTo: 'userRelId',
+    source: UsersRels,
+    target: () => VirtualUsers,
+    name: 'virtualUsers',
+    type: RelationType.hasOne,
+  })
+  hasOneVirtualUser: VirtualUsers;
 
   @property({
     type: 'string',
@@ -62,6 +62,7 @@ export class UsersRels extends Entity {
   @property({
     type: 'string',
     rqeuired: true,
+    length: 13,
   })
   phone: string;
 

@@ -3,7 +3,6 @@ import {
   model,
   property,
   belongsTo,
-  hasOne,
   RelationType,
 } from '@loopback/repository';
 import {Users} from './';
@@ -41,12 +40,19 @@ export class VirtualUsers extends Entity {
   )
   userId: number;
 
-  @hasOne(() => UsersRels, {
-    name: 'usersRels',
-    keyTo: 'virtualUserId',
-    source: UsersRels,
-  })
-  usersRels: UsersRels;
+  @belongsTo(
+    () => UsersRels,
+    {
+      name: 'belongsToUserRel',
+      type: RelationType.belongsTo,
+      keyFrom: 'userRelId',
+      keyTo: 'userRelId',
+      source: UsersRels,
+      target: () => VirtualUsers,
+    },
+    {type: 'number', required: true},
+  )
+  userRelId: number;
 
   constructor(data?: Partial<VirtualUsers>) {
     super(data);

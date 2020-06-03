@@ -2,6 +2,7 @@ import {
   repository,
   BelongsToAccessor,
   DefaultTransactionalRepository,
+  HasOneRepositoryFactory,
 } from '@loopback/repository';
 import {UsersRels, UsersRelsRelations, Users, VirtualUsers} from '../models';
 import {MysqlDataSource} from '../datasources';
@@ -19,7 +20,7 @@ export class UsersRelsRepository extends DefaultTransactionalRepository<
     typeof UsersRels.prototype.userRelId
   >;
 
-  public readonly belongsToVirtualUser: BelongsToAccessor<
+  public readonly hasOneVirtualUser: HasOneRepositoryFactory<
     VirtualUsers,
     typeof UsersRels.prototype.userRelId
   >;
@@ -32,14 +33,13 @@ export class UsersRelsRepository extends DefaultTransactionalRepository<
     protected virtualUsersRepositoryGetter: Getter<VirtualUsersRepository>,
   ) {
     super(UsersRels, dataSource);
-
-    this.belongsToVirtualUser = this.createBelongsToAccessorFor(
-      'belongsToVirtualUser',
+    this.hasOneVirtualUser = this.createHasOneRepositoryFactoryFor(
+      'hasOneVirtualUser',
       virtualUsersRepositoryGetter,
     );
     this.registerInclusionResolver(
-      'belongsToVirtualUser',
-      this.belongsToVirtualUser.inclusionResolver,
+      'hasOneVirtualUser',
+      this.hasOneVirtualUser.inclusionResolver,
     );
 
     this.belongsToUser = this.createBelongsToAccessorFor(

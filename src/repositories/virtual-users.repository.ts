@@ -2,7 +2,6 @@ import {
   repository,
   BelongsToAccessor,
   DefaultTransactionalRepository,
-  HasOneRepositoryFactory,
 } from '@loopback/repository';
 import {inject, Getter} from '@loopback/core';
 
@@ -21,7 +20,7 @@ export class VirtualUsersRepository extends DefaultTransactionalRepository<
     typeof VirtualUsers.prototype.virtualUserId
   >;
 
-  public readonly usersRels: HasOneRepositoryFactory<
+  public readonly belongsToUserRel: BelongsToAccessor<
     UsersRels,
     typeof VirtualUsers.prototype.virtualUserId
   >;
@@ -34,14 +33,13 @@ export class VirtualUsersRepository extends DefaultTransactionalRepository<
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
   ) {
     super(VirtualUsers, dataSource);
-
-    this.usersRels = this.createHasOneRepositoryFactoryFor(
-      'usersRels',
+    this.belongsToUserRel = this.createBelongsToAccessorFor(
+      'belongsToUserRel',
       usersRelsRepositoryGetter,
     );
     this.registerInclusionResolver(
-      'usersRels',
-      this.usersRels.inclusionResolver,
+      'belongsToUserRel',
+      this.belongsToUserRel.inclusionResolver,
     );
 
     this.belongsToUser = this.createBelongsToAccessorFor(
