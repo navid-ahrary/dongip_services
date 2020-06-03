@@ -22,6 +22,7 @@ export class VirtualUsers extends Entity {
   @property({
     type: 'string',
     required: true,
+    length: 13,
   })
   phone: string;
 
