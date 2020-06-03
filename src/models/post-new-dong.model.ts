@@ -19,7 +19,7 @@ export class PostNewDong extends Model {
   @property({
     type: 'number',
   })
-  belongsToUserId?: number;
+  userId?: number;
 
   @property({
     type: 'string',
