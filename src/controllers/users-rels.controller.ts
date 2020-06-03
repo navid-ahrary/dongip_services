@@ -1,5 +1,10 @@
 /* eslint-disable prefer-const */
-import {repository, IsolationLevel, Transaction} from '@loopback/repository';
+import {
+  repository,
+  IsolationLevel,
+  Transaction,
+  Count,
+} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -9,6 +14,7 @@ import {
   requestBody,
   HttpErrors,
   api,
+  del,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
@@ -23,6 +29,7 @@ import {
   UsersRelsRepository,
 } from '../repositories';
 import {FirebaseService, validatePhoneNumber} from '../services';
+import _ from 'underscore';
 
 @api({
   basePath: '/api/',
@@ -30,14 +37,14 @@ import {FirebaseService, validatePhoneNumber} from '../services';
 })
 export class UsersRelsController {
   constructor(
-    @repository(UsersRepository) protected usersRepository: UsersRepository,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(VirtualUsersRepository)
     public virtualUsersRepository: VirtualUsersRepository,
     @repository(BlacklistRepository)
     public blacklistRepository: BlacklistRepository,
     @repository(UsersRelsRepository)
     public usersRelsRepository: UsersRelsRepository,
-    @service(FirebaseService) private firebaseService: FirebaseService,
+    @service(FirebaseService) public firebaseService: FirebaseService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {}
 
@@ -140,11 +147,9 @@ export class UsersRelsController {
       // Rollback transaction
       await userRepoTx.rollback();
 
-      // Duplicate userId/phone number error handling
-      // base on search in stackoverflow, throw a conflict[409] error code
-      // see https://stackoverflow.com/questions/12658574/rest-api-design-post-to-create-with-duplicate-data-would-be-integrityerror-500
+      // Duplicate userId&phone number error handling
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-        throw new HttpErrors.Conflict(`این شماره توی لیست دوستات وجود داره!`);
+        throw new HttpErrors.Conflict('این شماره توی لیست دوستات وجود داره!');
       }
 
       throw new HttpErrors.NotAcceptable(err.message);
@@ -159,24 +164,26 @@ export class UsersRelsController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
-        description: 'Users.UsersRels PATCH success - No Content',
+        description: 'UsersRels PATCH success - No Content',
       },
     },
   })
   @authenticate('jwt.access')
   async patch(
     @requestBody({
+      required: true,
       content: {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             partial: true,
-            exclude: ['userId', 'virtualUserId', 'type', 'phone'],
+            exclude: ['userId', 'virtualUserId', 'type'],
           }),
           examples: {
             someProps: {
               value: {
                 name: 'Samood',
                 avatar: 'assets/avatar/avatar_1.png',
+                phone: '+989108522580',
               },
             },
             singleProp: {
@@ -194,23 +201,62 @@ export class UsersRelsController {
   ): Promise<void> {
     const userId = Number(this.currentUserProfile[securityId]);
 
-    const count = await this.usersRepository
-      .usersRels(userId)
-      .patch(usersRels, {
-        and: [{userRelId: userRelId}],
-      })
-      .catch((err) => {
-        // Duplicate properties error handling
-        if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          throw new HttpErrors.Conflict(err.message);
-        }
-        throw new HttpErrors.NotAcceptable(err.message);
-      });
+    let countPatched: Count;
 
-    if (!count.count) {
-      throw new HttpErrors.NotFound(
-        'Entity not found: UserRel with id ' + userRelId,
-      );
+    try {
+      // Patch UserRel
+      countPatched = await this.usersRepository
+        .usersRels(userId)
+        .patch(usersRels, {
+          and: [{userRelId: userRelId}, {type: {neq: 'self'}}],
+        });
+
+      // Patch related VirtualUser
+      const vu = _.pick(usersRels, ['phone']);
+      if (vu.phone) {
+        await this.usersRepository
+          .virtualUsers(userId)
+          .patch(vu, {userId: userId});
+      }
+    } catch (err) {
+      // Duplicate userId&phone number error handling
+      if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
+        throw new HttpErrors.Conflict('این شماره توی لیست دوستات وجود داره!');
+      }
+      throw new HttpErrors.NotAcceptable(err.message);
     }
+
+    if (!countPatched.count) {
+      throw new HttpErrors.NotFound('این رابطه دوستی رو پیدا نکردم');
+    }
+
+    return;
+  }
+
+  @del('/users-rels/{userRelId}', {
+    summary: 'Delete a userRel by id',
+    description: 'Delete a self-userRel is forbidden',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '204': {description: 'UsersRels DELETE success - No Content'},
+    },
+  })
+  @authenticate('jwt.access')
+  async deleteById(
+    @param.path.number('userRelId', {required: true, example: 36})
+    userRelId: typeof UsersRels.prototype.userRelId,
+  ): Promise<void> {
+    const userId = Number(this.currentUserProfile[securityId]);
+
+    // Delete a UserRel that "type" is not equal to "self"
+    const countDeleted = await this.usersRepository
+      .usersRels(userId)
+      .delete({and: [{userRelId: userRelId}, {type: {neq: 'self'}}]});
+
+    if (!countDeleted.count) {
+      throw new HttpErrors.NotFound('این رابطه دوستی رو پیدا نکردم');
+    }
+
+    return;
   }
 }
