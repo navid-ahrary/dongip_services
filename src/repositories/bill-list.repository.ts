@@ -8,7 +8,9 @@ import {
   UsersRels,
   BillList,
   BillListRelations,
-  Category, Users} from '../models';
+  Category,
+  Users,
+} from '../models';
 import {MysqlDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
 import {DongRepository} from './dong.repository';
@@ -18,22 +20,28 @@ import {UsersRepository} from './users.repository';
 
 export class BillListRepository extends DefaultTransactionalRepository<
   BillList,
-  typeof BillList.prototype.id,
+  typeof BillList.prototype.billListId,
   BillListRelations
 > {
-  public readonly dong: BelongsToAccessor<Dong, typeof BillList.prototype.id>;
+  public readonly dongs: BelongsToAccessor<
+    Dong,
+    typeof BillList.prototype.billListId
+  >;
 
-  public readonly usersRels: BelongsToAccessor<
+  public readonly userRels: BelongsToAccessor<
     UsersRels,
-    typeof BillList.prototype.id
+    typeof BillList.prototype.billListId
   >;
 
-  public readonly category: BelongsToAccessor<
+  public readonly categories: BelongsToAccessor<
     Category,
-    typeof BillList.prototype.id
+    typeof BillList.prototype.billListId
   >;
 
-  public readonly user: BelongsToAccessor<Users, typeof BillList.prototype.id>;
+  public readonly users: BelongsToAccessor<
+    Users,
+    typeof BillList.prototype.billListId
+  >;
 
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
@@ -42,28 +50,34 @@ export class BillListRepository extends DefaultTransactionalRepository<
     @repository.getter('UsersRelsRepository')
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
     @repository.getter('CategoryRepository')
-    protected categoryRepositoryGetter: Getter<CategoryRepository>, @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
+    protected categoryRepositoryGetter: Getter<CategoryRepository>,
+    @repository.getter('UsersRepository')
+    protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
     super(BillList, dataSource);
-    this.user = this.createBelongsToAccessorFor('user', usersRepositoryGetter,);
-    this.registerInclusionResolver('user', this.user.inclusionResolver);
 
-    this.category = this.createBelongsToAccessorFor(
-      'category',
+    this.users = this.createBelongsToAccessorFor(
+      'users',
+      usersRepositoryGetter,
+    );
+    this.registerInclusionResolver('users', this.users.inclusionResolver);
+
+    this.categories = this.createBelongsToAccessorFor(
+      'categories',
       categoryRepositoryGetter,
     );
-    this.registerInclusionResolver('category', this.category.inclusionResolver);
+    this.registerInclusionResolver(
+      'categories',
+      this.categories.inclusionResolver,
+    );
 
-    this.usersRels = this.createBelongsToAccessorFor(
-      'usersRels',
+    this.userRels = this.createBelongsToAccessorFor(
+      'userRels',
       usersRelsRepositoryGetter,
     );
-    this.registerInclusionResolver(
-      'usersRels',
-      this.usersRels.inclusionResolver,
-    );
+    this.registerInclusionResolver('userRels', this.userRels.inclusionResolver);
 
-    this.dong = this.createBelongsToAccessorFor('dong', dongRepositoryGetter);
-    this.registerInclusionResolver('dong', this.dong.inclusionResolver);
+    this.dongs = this.createBelongsToAccessorFor('dongs', dongRepositoryGetter);
+    this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
   }
 }

@@ -4,6 +4,7 @@ import {
   property,
   belongsTo,
   hasMany,
+  RelationType,
 } from '@loopback/repository';
 
 import {Users} from './users.model';
@@ -19,7 +20,7 @@ export class Dong extends Entity {
     generated: true,
     required: false,
   })
-  id: number;
+  dongId: number;
 
   @property({
     type: 'string',
@@ -43,30 +44,61 @@ export class Dong extends Entity {
   })
   pong: number;
 
-  @belongsTo(() => Users, {name: 'belongsToUser'})
-  belongsToUserId: typeof Users.prototype.id;
+  @belongsTo(
+    () => Users,
+    {
+      name: 'users',
+      keyFrom: 'userId',
+      keyTo: 'userId',
+      source: Users,
+      target: () => Dong,
+      type: RelationType.belongsTo,
+    },
+    {type: 'number', required: true},
+  )
+  userId: number;
 
-  @property({
-    type: 'number',
+  @hasMany(() => BillList, {
+    name: 'billList',
+    keyFrom: 'dongId',
+    keyTo: 'dongId',
+    source: Dong,
+    target: () => BillList,
+    type: RelationType.hasMany,
+    targetsMany: true,
   })
-  categoryId: typeof Category.prototype.id;
-
-  // @hasMany(() => CategoryBill, {keyTo: 'belongsToDongId'})
-  // categoryBills: CategoryBill[];
-
-  @hasMany(() => BillList, {name: 'billList'})
   billList: BillList[];
 
-  @hasMany(() => PayerList, {name: 'payerList'})
+  @hasMany(() => PayerList, {
+    name: 'payerList',
+    keyFrom: 'dongId',
+    keyTo: 'dongId',
+    source: Dong,
+    target: () => PayerList,
+    type: RelationType.hasMany,
+    targetsMany: true,
+  })
   payerList: PayerList[];
+
+  @belongsTo(
+    () => Category,
+    {
+      name: 'categories',
+      keyFrom: 'categoryId',
+      keyTo: 'categoryId',
+      source: Category,
+      target: () => Dong,
+      type: RelationType.belongsTo,
+    },
+    {type: 'number', required: true},
+  )
+  categoryId: number;
 
   constructor(data?: Partial<Dong>) {
     super(data);
   }
 }
 
-export interface DongRelations {
-  // categoryBill?: CategoryBillWithRelations;
-}
+export interface DongRelations {}
 
 export type DongWithRelations = Dong & DongRelations;

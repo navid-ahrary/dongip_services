@@ -25,7 +25,7 @@ export class VerifyService {
     const invalidCredentialsError = 'Invalid credentials!';
 
     const foundVerify = await this.verifyRepo.findOne({
-      where: {id: verifyId},
+      where: {verifyId: verifyId},
     });
 
     if (!foundVerify) {

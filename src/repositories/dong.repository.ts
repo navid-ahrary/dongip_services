@@ -7,29 +7,39 @@ import {
 import {inject, Getter} from '@loopback/core';
 
 import {MysqlDataSource} from '../datasources';
-import {Dong, DongRelations, Users, BillList, PayerList} from '../models';
-import {UsersRepository, CategoryRepository} from '.';
+import {
+  Dong,
+  DongRelations,
+  Users,
+  BillList,
+  PayerList,
+  Category,
+} from '../models';
+import {UsersRepository} from './users.repository';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
+import {CategoryRepository} from './category.repository';
 
 export class DongRepository extends DefaultTransactionalRepository<
   Dong,
-  typeof Dong.prototype.id,
+  typeof Dong.prototype.dongId,
   DongRelations
 > {
-  public readonly belongsToUser: BelongsToAccessor<
-    Users,
-    typeof Dong.prototype.id
-  >;
+  public readonly users: BelongsToAccessor<Users, typeof Dong.prototype.dongId>;
 
   public readonly billList: HasManyRepositoryFactory<
     BillList,
-    typeof Dong.prototype.id
+    typeof Dong.prototype.dongId
   >;
 
   public readonly payerList: HasManyRepositoryFactory<
     PayerList,
-    typeof Dong.prototype.id
+    typeof Dong.prototype.dongId
+  >;
+
+  public readonly categories: BelongsToAccessor<
+    Category,
+    typeof Dong.prototype.dongId
   >;
 
   constructor(
@@ -44,6 +54,16 @@ export class DongRepository extends DefaultTransactionalRepository<
     protected payerListRepositoryGetter: Getter<PayerListRepository>,
   ) {
     super(Dong, dataSource);
+
+    this.categories = this.createBelongsToAccessorFor(
+      'categories',
+      categoryRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'categories',
+      this.categories.inclusionResolver,
+    );
+
     this.payerList = this.createHasManyRepositoryFactoryFor(
       'payerList',
       payerListRepositoryGetter,
@@ -59,13 +79,10 @@ export class DongRepository extends DefaultTransactionalRepository<
     );
     this.registerInclusionResolver('billList', this.billList.inclusionResolver);
 
-    this.belongsToUser = this.createBelongsToAccessorFor(
-      'belongsToUser',
+    this.users = this.createBelongsToAccessorFor(
+      'users',
       usersRepositoryGetter,
     );
-    this.registerInclusionResolver(
-      'belongsToUser',
-      this.belongsToUser.inclusionResolver,
-    );
+    this.registerInclusionResolver('users', this.users.inclusionResolver);
   }
 }

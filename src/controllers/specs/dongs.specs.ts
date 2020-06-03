@@ -5,13 +5,13 @@ export const PostNewDongExample = {
   categoryId: 1,
   pong: 80000,
   payerList: [
-    {usersRelsId: 1, paidAmount: 40000},
-    {usersRelsId: 3, paidAmount: 40000},
+    {userRelId: 1, paidAmount: 40000},
+    {userRelId: 3, paidAmount: 40000},
   ],
   billList: [
-    {usersRelsId: 1, dongAmount: 20000},
-    {usersRelsId: 3, dongAmount: 20000},
-    {usersRelsId: 4, dongAmount: 20000},
-    {usersRelsId: 5, dongAmount: 20000},
+    {userRelId: 1, dongAmount: 20000},
+    {userRelId: 3, dongAmount: 20000},
+    {userRelId: 4, dongAmount: 20000},
+    {userRelId: 5, dongAmount: 20000},
   ],
 };

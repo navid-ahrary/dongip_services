@@ -55,6 +55,7 @@
     "@loopback/context": "^3.8.1",
     "@loopback/core": "^2.7.0",
     "@loopback/express": "^1.2.1",
+    "@loopback/extension-metrics": "^0.3.6",
     "@loopback/openapi-v3": "^3.4.1",
     "@loopback/repository": "^2.5.1",
     "@loopback/rest": "^5.0.1",

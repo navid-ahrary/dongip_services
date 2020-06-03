@@ -8,7 +8,7 @@ export class Verify extends Entity {
     generated: true,
     required: false,
   })
-  id: number;
+  verifyId: number;
 
   @property({
     type: 'string',
@@ -18,13 +18,14 @@ export class Verify extends Entity {
 
   @property({
     type: 'boolean',
-    requried: true,
+    required: true,
   })
   registered: boolean;
 
   @property({
     type: 'string',
     required: true,
+    length: 13,
   })
   phone: string;
 
@@ -38,7 +39,7 @@ export class Verify extends Entity {
     type: 'string',
     required: true,
   })
-  agent: string;
+  userAgent: string;
 
   @property({
     type: 'date',

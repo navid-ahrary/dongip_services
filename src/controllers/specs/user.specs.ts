@@ -7,7 +7,7 @@ export const UserPatchRequestBody = {
       schema: getModelSchemaRef(Users, {
         partial: true,
         exclude: [
-          'id',
+          'userId',
           'accountType',
           'registeredAt',
           'dongs',

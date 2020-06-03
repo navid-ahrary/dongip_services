@@ -1,4 +1,10 @@
-import {Entity, model, property, belongsTo} from '@loopback/repository';
+import {
+  Entity,
+  model,
+  property,
+  belongsTo,
+  RelationType,
+} from '@loopback/repository';
 import {Dong} from './dong.model';
 import {UsersRels} from './users-rels.model';
 import {Category} from './category.model';
@@ -12,7 +18,7 @@ export class BillList extends Entity {
     generated: true,
     required: false,
   })
-  id: number;
+  billListId: number;
 
   @property({
     type: 'number',
@@ -23,20 +29,65 @@ export class BillList extends Entity {
   @property({
     type: 'string',
     required: true,
+    length: 24,
   })
   createdAt: string;
 
-  @belongsTo(() => UsersRels)
-  usersRelsId: number;
+  @belongsTo(
+    () => UsersRels,
+    {
+      name: 'userRels',
+      keyFrom: 'userRelId',
+      keyTo: 'userRelId',
+      type: RelationType.belongsTo,
+      source: UsersRels,
+      target: () => BillList,
+    },
+    {type: 'number', required: true},
+  )
+  userRelId: number;
 
-  @belongsTo(() => Dong)
+  @belongsTo(
+    () => Dong,
+    {
+      name: 'dongs',
+      keyFrom: 'dongId',
+      keyTo: 'dongId',
+      type: RelationType.belongsTo,
+      source: Dong,
+      target: () => BillList,
+    },
+    {type: 'number', required: true},
+  )
   dongId: number;
 
-  @belongsTo(() => Category)
+  @belongsTo(
+    () => Category,
+    {
+      name: 'categories',
+      keyFrom: 'categoryId',
+      keyTo: 'categoryId',
+      type: RelationType.belongsTo,
+      source: Category,
+      target: () => BillList,
+    },
+    {type: 'number', required: true},
+  )
   categoryId: number;
 
-  @belongsTo(() => Users, {name: 'user'})
-  belongsToUserId: number;
+  @belongsTo(
+    () => Users,
+    {
+      name: 'users',
+      keyFrom: 'userId',
+      keyTo: 'userId',
+      type: RelationType.belongsTo,
+      source: Users,
+      target: () => BillList,
+    },
+    {type: 'number', required: true},
+  )
+  userId: number;
 
   constructor(data?: Partial<BillList>) {
     super(data);

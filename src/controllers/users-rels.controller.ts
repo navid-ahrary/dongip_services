@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import {repository} from '@loopback/repository';
+import {repository, IsolationLevel, Transaction} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -28,7 +28,7 @@ import {FirebaseService, validatePhoneNumber} from '../services';
   basePath: '/api/',
   paths: {},
 })
-export class UsersUsersRelsController {
+export class UsersRelsController {
   constructor(
     @repository(UsersRepository) protected usersRepository: UsersRepository,
     @repository(VirtualUsersRepository)
@@ -41,7 +41,7 @@ export class UsersUsersRelsController {
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {}
 
-  @get('/users/users-rels', {
+  @get('/users-rels', {
     summary: 'Get array of all UsersRels',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -61,7 +61,7 @@ export class UsersUsersRelsController {
     return this.usersRepository.usersRels(userId).find();
   }
 
-  @post('/users/users-rels', {
+  @post('/users-rels', {
     summary: 'Create a new UsersRels',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -81,7 +81,7 @@ export class UsersUsersRelsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
-            exclude: ['id', 'belongsToUserId', 'categoryBills', 'type'],
+            exclude: ['userRelId', 'userId', 'type', 'virtualUserId'],
           }),
           example: {
             phone: '+989122222222',
@@ -95,6 +95,17 @@ export class UsersUsersRelsController {
   ): Promise<UsersRels> {
     const userId = Number(this.currentUserProfile[securityId]);
 
+    let createdVirtualUser: VirtualUsers,
+      userRelObject: UsersRels = Object.assign({
+        name: reqBody.name,
+        avatar: reqBody.avatar,
+        type: 'virtual',
+        virtualUserId: 0,
+        phone: '',
+      }),
+      userRepoTx: Transaction,
+      createdUserRel: UsersRels;
+
     try {
       // validate recipient phone number
       validatePhoneNumber(reqBody.phone);
@@ -103,50 +114,52 @@ export class UsersUsersRelsController {
       throw new HttpErrors.UnprocessableEntity(_err.message);
     }
 
-    let createdVirtualUser: VirtualUsers,
-      userRel = Object.assign(
-        {type: 'virtual', targetUserId: 0, phone: ''},
-        {name: reqBody.name, avatar: reqBody.avatar},
-      );
+    // Begin Users repo trasaction
+    userRepoTx = await this.usersRepository.beginTransaction(
+      IsolationLevel.READ_COMMITTED,
+    );
 
-    createdVirtualUser = await this.usersRepository
-      .virtualUsers(userId)
-      .create({phone: reqBody.phone})
-      .catch(async (_err) => {
-        console.log(_err);
-        if (_err.errno === 1062 && _err.code === 'ER_DUP_ENTRY') {
-          throw new HttpErrors[422](`این شماره توی لیست دوستات وجود داره!`);
-        }
-        throw new HttpErrors.NotAcceptable(_err);
-      });
+    try {
+      // Create a VirtualUser belongs to current user
+      createdVirtualUser = await this.usersRepository
+        .virtualUsers(userId)
+        .create({phone: reqBody.phone}, {transaction: userRepoTx});
 
-    userRel.targetUserId = createdVirtualUser.getId();
-    userRel.phone = createdVirtualUser.phone;
+      // Assign props to user rel that would create
+      userRelObject.virtualUserId = createdVirtualUser.getId();
+      userRelObject.phone = createdVirtualUser.phone;
 
-    return this.usersRepository
-      .usersRels(userId)
-      .create(userRel)
-      .catch((_err) => {
-        console.log(_err);
+      // Create a UserRel belongs to current user
+      createdUserRel = await this.usersRepository
+        .usersRels(userId)
+        .create(userRelObject, {transaction: userRepoTx});
 
-        // delete created virtual user
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.virtualUsersRepository.deleteById(createdVirtualUser.getId());
+      // Commit transaction
+      await userRepoTx.commit();
+    } catch (err) {
+      // Rollback transaction
+      await userRepoTx.rollback();
 
-        if (_err.errno === 1062 && _err.code === 'ER_DUP_ENTRY') {
-          throw new HttpErrors[422](`این شماره توی لیست دوستات وجود داره!`);
-        }
-        throw new HttpErrors.NotAcceptable(_err);
-      });
+      // Duplicate userId/phone number error handling
+      // base on search in stackoverflow, throw a conflict[409] error code
+      // see https://stackoverflow.com/questions/12658574/rest-api-design-post-to-create-with-duplicate-data-would-be-integrityerror-500
+      if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
+        throw new HttpErrors.Conflict(`این شماره توی لیست دوستات وجود داره!`);
+      }
+
+      throw new HttpErrors.NotAcceptable(err.message);
+    }
+
+    return createdUserRel;
   }
 
-  @patch('/users/users-rels/{usersRelsId}', {
+  @patch('/users-rels/{userRelId}', {
     summary: 'Update a userRel by id in path',
-    description: 'Post just desired properties to update',
+    description: 'Just desired properties to update be in reqeust body',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
-        description: 'Users.UsersRels PATCH success count',
+        description: 'Users.UsersRels PATCH success - No Content',
       },
     },
   })
@@ -157,7 +170,7 @@ export class UsersUsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             partial: true,
-            exclude: ['id', 'belongsToUserId', 'targetUserId', 'type', 'phone'],
+            exclude: ['userId', 'virtualUserId', 'type', 'phone'],
           }),
           examples: {
             someProps: {
@@ -176,28 +189,28 @@ export class UsersUsersRelsController {
       },
     })
     usersRels: Partial<UsersRels>,
-    @param.path.number('usersRelsId')
-    usersRelsId: typeof UsersRels.prototype.id,
+    @param.path.number('userRelId', {required: true, example: 30})
+    userRelId: typeof UsersRels.prototype.userRelId,
   ): Promise<void> {
     const userId = Number(this.currentUserProfile[securityId]);
-    let count;
 
-    try {
-      count = await this.usersRepository.usersRels(userId).patch(usersRels, {
-        and: [{belongsToUserId: userId}, {id: usersRelsId}],
+    const count = await this.usersRepository
+      .usersRels(userId)
+      .patch(usersRels, {
+        and: [{userRelId: userRelId}],
+      })
+      .catch((err) => {
+        // Duplicate properties error handling
+        if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
+          throw new HttpErrors.Conflict(err.message);
+        }
+        throw new HttpErrors.NotAcceptable(err.message);
       });
-    } catch (_err) {
-      console.log(_err);
-      if (_err.code === 409) {
-        const index = _err.response.body.errorMessage.indexOf('conflicting');
-        throw new HttpErrors.Conflict(
-          _err.response.body.errorMessage.slice(index),
-        );
-      }
-      throw new HttpErrors.NotAcceptable(_err.message);
-    }
+
     if (!count.count) {
-      throw new HttpErrors.NotFound('UserRelKey not found!');
+      throw new HttpErrors.NotFound(
+        'Entity not found: UserRel with id ' + userRelId,
+      );
     }
   }
 }

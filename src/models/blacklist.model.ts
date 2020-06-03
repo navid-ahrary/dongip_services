@@ -8,7 +8,7 @@ export class Blacklist extends Entity {
     generated: true,
     id: true,
   })
-  id: number;
+  blacklistId: number;
 
   @property({
     type: 'string',
@@ -18,7 +18,7 @@ export class Blacklist extends Entity {
 
   @property({
     type: 'date',
-    required: false,
+    required: true,
   })
   createdAt: object = new Date();
 

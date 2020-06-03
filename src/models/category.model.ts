@@ -4,9 +4,10 @@ import {
   property,
   belongsTo,
   hasMany,
+  RelationType,
 } from '@loopback/repository';
 
-import {Users, CategoryBill} from './';
+import {Users} from './';
 import {BillList} from './bill-list.model';
 import {PayerList} from './payer-list.model';
 
@@ -18,7 +19,7 @@ export class Category extends Entity {
     generated: true,
     required: false,
   })
-  id: number;
+  categoryId: number;
 
   @property({
     type: 'string',
@@ -32,16 +33,42 @@ export class Category extends Entity {
   })
   icon: string;
 
-  @belongsTo(() => Users, {name: 'belongsToUser'})
-  belongsToUserId: typeof Users.prototype.id;
+  @belongsTo(
+    () => Users,
+    {
+      name: 'users',
+      keyFrom: 'userId',
+      keyTo: 'userId',
+      source: Users,
+      target: () => Category,
+    },
+    {
+      type: 'number',
+      required: true,
+    },
+  )
+  userId: number;
 
-  @hasMany(() => CategoryBill, {keyTo: 'belongsToCategoryId'})
-  categoryBills: CategoryBill[];
-
-  @hasMany(() => BillList)
+  @hasMany(() => BillList, {
+    name: 'billLists',
+    keyFrom: 'categoryId',
+    keyTo: 'categoryId',
+    type: RelationType.hasMany,
+    source: Category,
+    target: () => BillList,
+    targetsMany: true,
+  })
   billList: BillList[];
 
-  @hasMany(() => PayerList)
+  @hasMany(() => PayerList, {
+    name: 'payerLists',
+    keyFrom: 'categoryId',
+    keyTo: 'categoryId',
+    type: RelationType.hasMany,
+    source: Category,
+    target: () => PayerList,
+    targetsMany: true,
+  })
   payerList: PayerList[];
 
   constructor(data?: Partial<Category>) {

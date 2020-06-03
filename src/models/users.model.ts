@@ -1,8 +1,17 @@
-import {Entity, model, property, hasMany} from '@loopback/repository';
+import {
+  Entity,
+  model,
+  property,
+  hasMany,
+  RelationType,
+} from '@loopback/repository';
 
-import {VirtualUsers, Dong, Category, CategoryBill, UsersRels} from './';
 import {BillList} from './bill-list.model';
 import {PayerList} from './payer-list.model';
+import {VirtualUsers} from './virtual-users.model';
+import {Dong} from './dong.model';
+import {Category} from './category.model';
+import {UsersRels} from './users-rels.model';
 
 @model()
 export class Users extends Entity {
@@ -12,76 +21,124 @@ export class Users extends Entity {
     required: false,
     generated: true,
   })
-  id: number;
+  userId: number;
 
   @property({
     type: 'string',
     required: true,
+    length: 13,
   })
   phone: string;
 
   @property({
     type: 'string',
     required: true,
+    length: 30,
   })
   name: string;
 
   @property({
     type: 'string',
-    default: '',
     required: true,
+    length: 180,
   })
   avatar: string;
 
   @property({
     type: 'date',
-    required: false,
+    required: true,
   })
-  registeredAt: object;
+  registeredAt: string;
 
   @property({
     type: 'string',
-    required: false,
   })
   refreshToken: string;
 
   @property({
     type: 'string',
-    required: false,
+    required: true,
+    length: 20,
+    default: 'bronze',
   })
-  accountType = 'bronze';
+  accountType: string;
 
   @property({
     type: 'string',
-    reqiured: true,
+    required: true,
   })
   firebaseToken: string;
 
   @property({
     type: 'string',
-    reqiured: true,
+    required: true,
   })
   userAgent: string;
 
-  @hasMany(() => VirtualUsers, {keyTo: 'belongsToUserId'})
+  @hasMany(() => VirtualUsers, {
+    name: 'virtualUsers',
+    keyTo: 'userId',
+    keyFrom: 'userId',
+    type: RelationType.hasMany,
+    source: Users,
+    target: () => VirtualUsers,
+    targetsMany: true,
+  })
   virtualUsers: VirtualUsers[];
 
-  @hasMany(() => Dong, {keyTo: 'belongsToUserId', name: 'dong'})
+  @hasMany(() => Dong, {
+    name: 'dongs',
+    keyTo: 'userId',
+    keyFrom: 'userId',
+    type: RelationType.hasMany,
+    source: Users,
+    target: () => Dong,
+    targetsMany: true,
+  })
   dongs: Dong[];
 
-  @hasMany(() => Category, {keyTo: 'belongsToUserId'})
+  @hasMany(() => Category, {
+    name: 'categories',
+    keyTo: 'userId',
+    keyFrom: 'userId',
+    type: RelationType.hasMany,
+    source: Users,
+    target: () => Category,
+    targetsMany: true,
+  })
   categories: Category[];
 
-  @hasMany(() => UsersRels, {keyTo: 'belongsToUserId'})
+  @hasMany(() => UsersRels, {
+    name: 'usersRels',
+    keyTo: 'userId',
+    keyFrom: 'userId',
+    type: RelationType.hasMany,
+    source: Users,
+    target: () => UsersRels,
+    targetsMany: true,
+  })
   usersRels: UsersRels[];
 
-  @hasMany(() => CategoryBill, {keyTo: 'belongsToUserId'})
-  categoryBills: CategoryBill[];
-
-  @hasMany(() => BillList, {keyTo: 'belongsToUserId'})
+  @hasMany(() => BillList, {
+    keyTo: 'userId',
+    keyFrom: 'userId',
+    name: 'billList',
+    type: RelationType.hasMany,
+    source: Users,
+    target: () => BillList,
+    targetsMany: true,
+  })
   billList: BillList[];
 
-  @hasMany(() => PayerList, {keyTo: 'belongsToUserId'})
+  @hasMany(() => PayerList, {
+    keyTo: 'userId',
+    keyFrom: 'userId',
+    name: 'payerList',
+    type: RelationType.hasMany,
+    source: Users,
+    target: () => PayerList,
+    targetsMany: true,
+  })
   payerList: PayerList[];
 
   constructor(data?: Partial<Users>) {
