@@ -41,7 +41,6 @@ import {
   UsersRepository,
   BlacklistRepository,
   VerifyRepository,
-  CategoryRepository,
   UsersRelsRepository,
 } from '../repositories';
 import {
@@ -52,7 +51,6 @@ import {
   TimeService,
   VerifyService,
 } from '../services';
-import {CategorySourceRepository} from '../repositories/category-source.repository';
 
 @model()
 export class NewUser extends Users {
@@ -76,10 +74,6 @@ export class UsersController {
     @repository(BlacklistRepository)
     public blacklistRepository: BlacklistRepository,
     @repository(VerifyRepository) private verifyRepository: VerifyRepository,
-    @repository(CategoryRepository)
-    private categoryRepository: CategoryRepository,
-    @repository(CategorySourceRepository)
-    private categorySourceRepository: CategorySourceRepository,
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
     public passwordHasher: PasswordHasher,
     @inject(UserServiceBindings.USER_SERVICE)
