@@ -1,5 +1,10 @@
 /* eslint-disable prefer-const */
-import {Filter, repository, IsolationLevel} from '@loopback/repository';
+import {
+  Filter,
+  repository,
+  IsolationLevel,
+  Transaction,
+} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -116,9 +121,9 @@ export class DongsController {
       dong: Dong,
       createdBillList,
       createdPayerList,
-      dongTx,
-      payerTx,
-      billTx,
+      dongTx: Transaction,
+      payerTx: Transaction,
+      billTx: Transaction,
       firebaseTokenList: string[] = [];
 
     billList.forEach((item) => {
