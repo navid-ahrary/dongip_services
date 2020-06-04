@@ -9,6 +9,7 @@ import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
 import {registerAuthenticationStrategy} from '@loopback/authentication';
 import {MetricsComponent, MetricsBindings} from '@loopback/extension-metrics';
+import {HealthComponent, HealthBindings} from '@loopback/extension-health';
 import * as path from 'path';
 
 import {MyAuthenticationSequence} from './sequence';
@@ -55,11 +56,12 @@ export class MyApplication extends BootMixin(
 
     this.setupBinding();
 
-    //Bind authentication components related elemets
+    // Bind authentication components related elemets
     this.component(UserAuthenticationComponent);
-
     // Bind Prometheus metric component
     this.component(MetricsComponent);
+    // Bind health checking compnent
+    this.component(HealthComponent);
 
     registerAuthenticationStrategy(this, JWTAccessAutehticationStrategy);
     registerAuthenticationStrategy(this, JWTRefreshAutehticationStrategy);
@@ -93,11 +95,14 @@ export class MyApplication extends BootMixin(
     this.configure(MetricsBindings.COMPONENT).to({
       endpoint: {basePath: '/metrics', disabled: false},
       defaultMetrics: {timeout: 10000, disabled: false},
-      // pushGateway: {
-      // disabled?: boolean;
-      // url: string;
-      // interval?: number;
-      // },
+    });
+
+    // Configure health checking configuration
+    this.configure(HealthBindings.COMPONENT).to({
+      disabled: false,
+      healthPath: '/health',
+      readyPath: '/ready',
+      livePath: '/live',
     });
 
     // Bind package.json to the application context
