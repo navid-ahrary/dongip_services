@@ -10,12 +10,12 @@ import {BlacklistRepository} from '../repositories';
 export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
   name = 'jwt.access';
 
-  constructor (
+  constructor(
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     public tokenService: TokenService,
   ) {}
 
-  public async authenticate (
+  public async authenticate(
     request: Request,
   ): Promise<UserProfile | undefined> {
     const token: string = this.extractCredentials(request);
@@ -27,7 +27,7 @@ export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
     return userProfile;
   }
 
-  private extractCredentials (request: Request): string {
+  private extractCredentials(request: Request): string {
     if (!request.headers.authorization) {
       throw new HttpErrors.Unauthorized('Authorization header not found.');
     }
@@ -46,7 +46,7 @@ export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
     if (parts.length !== 2) {
       throw new HttpErrors.Unauthorized(
         'Authorization header value must follow this pattern:' +
-        " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
+          " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
       );
     }
     const token = parts[1];
@@ -58,12 +58,12 @@ export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
 export class JWTRefreshAutehticationStrategy implements AuthenticationStrategy {
   name = 'jwt.refresh';
 
-  constructor (
+  constructor(
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     public tokenService: TokenService,
   ) {}
 
-  public async authenticate (
+  public async authenticate(
     request: Request,
   ): Promise<UserProfile | undefined> {
     const token: string = this.extractCredentials(request);
@@ -75,7 +75,7 @@ export class JWTRefreshAutehticationStrategy implements AuthenticationStrategy {
     return userProfile;
   }
 
-  private extractCredentials (request: Request): string {
+  private extractCredentials(request: Request): string {
     if (!request.headers.authorization) {
       throw new HttpErrors.Unauthorized('Authorization header not found.');
     }
@@ -94,7 +94,7 @@ export class JWTRefreshAutehticationStrategy implements AuthenticationStrategy {
     if (parts.length !== 2) {
       throw new HttpErrors.Unauthorized(
         'Authorization header value must follow this pattern:' +
-        " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
+          " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
       );
     }
     const token = parts[1];
@@ -106,13 +106,13 @@ export class JWTRefreshAutehticationStrategy implements AuthenticationStrategy {
 export class JWTVerifyAutehticationStrategy implements AuthenticationStrategy {
   name = 'jwt.verify';
 
-  constructor (
+  constructor(
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     public tokenService: TokenService,
     @repository(BlacklistRepository) public blacklistRepo: BlacklistRepository,
   ) {}
 
-  public async authenticate (
+  public async authenticate(
     request: Request,
   ): Promise<UserProfile | undefined> {
     const token: string = this.extractCredentials(request);
@@ -129,7 +129,7 @@ export class JWTVerifyAutehticationStrategy implements AuthenticationStrategy {
     return userProfile;
   }
 
-  private extractCredentials (request: Request): string {
+  private extractCredentials(request: Request): string {
     if (!request.headers.authorization) {
       throw new HttpErrors.Unauthorized('Authorization header not found.');
     }
@@ -148,7 +148,7 @@ export class JWTVerifyAutehticationStrategy implements AuthenticationStrategy {
     if (parts.length !== 2) {
       throw new HttpErrors.Unauthorized(
         'Authorization header value must follow this pattern:' +
-        " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
+          " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
       );
     }
     const token = parts[1];

@@ -11,14 +11,14 @@ import {PasswordHasherBindings} from '../keys';
 import {PasswordHasher} from '../services';
 
 export class MyUserService implements UserService<Users, Credentials> {
-  constructor (
+  constructor(
     @repository(UsersRepository) public userRepository: UsersRepository,
     @repository(VerifyRepository) public verifyRepo: VerifyRepository,
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
     public passwordHasher: PasswordHasher,
   ) {}
 
-  async verifyCredentials (credentials: Credentials): Promise<Users> {
+  async verifyCredentials(credentials: Credentials): Promise<Users> {
     const invalidCredentialsError = 'Invalid phone !';
 
     const foundUser = await this.userRepository.findOne({
@@ -32,7 +32,7 @@ export class MyUserService implements UserService<Users, Credentials> {
     return foundUser;
   }
 
-  convertToUserProfile (user: Users) {
+  convertToUserProfile(user: Users) {
     if (!user.phone) {
       throw new HttpErrors.Unauthorized('phone is null');
     }
