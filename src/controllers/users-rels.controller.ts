@@ -18,7 +18,7 @@ import {
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
-import {inject, service} from '@loopback/core';
+import {inject, service, intercept} from '@loopback/core';
 
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {UsersRels} from '../models';
@@ -28,13 +28,15 @@ import {
   BlacklistRepository,
   UsersRelsRepository,
 } from '../repositories';
-import {FirebaseService, validatePhoneNumber} from '../services';
+import {FirebaseService} from '../services';
 import _ from 'underscore';
+import {ValidatePhoneNumInterceptor} from '../interceptors';
 
 @api({
   basePath: '/api/',
   paths: {},
 })
+@intercept(ValidatePhoneNumInterceptor.BINDING_KEY)
 export class UsersRelsController {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -83,7 +85,7 @@ export class UsersRelsController {
     },
   })
   @authenticate('jwt.access')
-  async create(
+  async createUserRel(
     @requestBody({
       content: {
         'application/json': {
@@ -100,15 +102,7 @@ export class UsersRelsController {
     })
     userRelReqBody: Omit<UsersRels, 'id'>,
   ): Promise<UsersRels> {
-    // Validate phone number value
-    try {
-      validatePhoneNumber(userRelReqBody.phone);
-    } catch (err) {
-      throw new HttpErrors.NotAcceptable(err.message);
-    }
-
     const userId = Number(this.currentUserProfile[securityId]);
-
     let userRelObject: Partial<UsersRels> = Object.assign(new UsersRels(), {
         name: userRelReqBody.name,
         avatar: userRelReqBody.avatar,
@@ -190,7 +184,7 @@ export class UsersRelsController {
     },
   })
   @authenticate('jwt.access')
-  async patch(
+  async patchUserRel(
     @requestBody({
       required: true,
       content: {
@@ -220,15 +214,6 @@ export class UsersRelsController {
     @param.path.number('userRelId', {required: true, example: 30})
     userRelId: typeof UsersRels.prototype.userRelId,
   ): Promise<void> {
-    // Validate phone numeber value
-    try {
-      if (usersRelsReqBody.phone) {
-        validatePhoneNumber(usersRelsReqBody.phone);
-      }
-    } catch (err) {
-      throw new HttpErrors.NotAcceptable(err.message);
-    }
-
     const userId = Number(this.currentUserProfile[securityId]);
 
     // Define variables's type

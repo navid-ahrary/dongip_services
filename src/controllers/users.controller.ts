@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prefer-const */
 /* eslint-disable require-atomic-updates */
-import {inject, service} from '@loopback/core';
+import {inject, service, intercept} from '@loopback/core';
 import {
   repository,
   property,
@@ -46,11 +46,11 @@ import {
 import {
   FirebaseService,
   SmsService,
-  validatePhoneNumber,
   PasswordHasher,
   TimeService,
   VerifyService,
 } from '../services';
+import {ValidatePhoneNumInterceptor} from '../interceptors';
 
 @model()
 export class NewUser extends Users {
@@ -60,11 +60,11 @@ export class NewUser extends Users {
   })
   password: string;
 }
-
 @api({
   basePath: '/api/',
   paths: {},
 })
+@intercept(ValidatePhoneNumInterceptor.BINDING_KEY)
 export class UsersController {
   constructor(
     @inject.context() public ctx: RequestContext,
@@ -167,13 +167,6 @@ export class UsersController {
       createdVerify: Verify,
       userProfile: UserProfile;
 
-    try {
-      validatePhoneNumber(verifyReqBody.phone);
-    } catch (_err) {
-      console.log(_err);
-      throw new HttpErrors.NotAcceptable(_err.message);
-    }
-
     user = await this.usersRepository.findOne({
       where: {phone: verifyReqBody.phone},
       fields: {
@@ -209,6 +202,7 @@ export class UsersController {
 
     // Generate verify token based on user profile
     token = await this.jwtService.generateToken(userProfile);
+
     try {
       // send verify token and prefix by notification
       payload = {
@@ -256,13 +250,13 @@ export class UsersController {
                 'wODY1MCwiZXhwIjoxNjIyMDQ4NjUwLCJzdWIiOiIzIn0.bvVYm8E' +
                 'QDkQksY8aPW2Q1yA6SVksPn-mzWJrzkeiZrzFmb4NS6mXAYf-jhp' +
                 'HjiflGjYVUw-ziqWn1pcSfgti8w',
+              refreshToken:
+                'eyDPuioiOiJFSDIKohjwuhIODOISHjdijhii.eySDJKHBslaswdr' +
+                'wWPOIjisdjIOIDugDLKIJSbdhgvbKJHGVbhdjVGHJKVdKUJhvvjU' +
+                'wODY1MCwiZXhwIjoxNjIyMDQ4NjUwLCJzdWIiOiIzIn0.bvVYm8E' +
+                'QDkQksY8aPW2Q1yA6SVksPn-mzWJrzkeiZrzFmb4NS6mXAYf-jhp' +
+                'HjiflGjYVUw-OIHFiuyguhHDkjGyyUGUDYguyludlpZXfgti8w',
             },
-            refreshToken:
-              'eyDPuioiOiJFSDIKohjwuhIODOISHjdijhii.eySDJKHBslaswdr' +
-              'wWPOIjisdjIOIDugDLKIJSbdhgvbKJHGVbhdjVGHJKVdKUJhvvjU' +
-              'wODY1MCwiZXhwIjoxNjIyMDQ4NjUwLCJzdWIiOiIzIn0.bvVYm8E' +
-              'QDkQksY8aPW2Q1yA6SVksPn-mzWJrzkeiZrzFmb4NS6mXAYf-jhp' +
-              'HjiflGjYVUw-OIHFiuyguhHDkjGyyUGUDYguyludlpZXfgti8w',
           },
         },
       },
@@ -270,7 +264,6 @@ export class UsersController {
   })
   @authenticate('jwt.verify')
   async login(
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody({
       content: {
         'application/json': {
@@ -283,6 +276,7 @@ export class UsersController {
       },
     })
     credentials: Credentials,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
   ): Promise<{
     id: string;
     accessToken: string;
@@ -293,13 +287,6 @@ export class UsersController {
       verify: Verify,
       accessToken: string,
       verifyId = Number(currentUserProfile[securityId]);
-
-    try {
-      validatePhoneNumber(credentials.phone);
-    } catch (_err) {
-      console.log(_err);
-      throw new HttpErrors.UnprocessableEntity(_err.message);
-    }
 
     try {
       verify = await this.verifySerivce.verifyCredentials(
@@ -373,7 +360,6 @@ export class UsersController {
   })
   @authenticate('jwt.verify')
   async signup(
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @requestBody({
       content: {
         'application/json': {
@@ -402,6 +388,7 @@ export class UsersController {
       },
     })
     newUser: NewUser,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
   ): Promise<{
     id: string;
     accessToken: string;
@@ -418,13 +405,6 @@ export class UsersController {
       }),
       userTx: Transaction,
       usersRelsTx: Transaction;
-
-    try {
-      validatePhoneNumber(credentials.phone);
-    } catch (_err) {
-      console.log(_err);
-      throw new HttpErrors.UnprocessableEntity(_err.message);
-    }
 
     verify = await this.verifySerivce.verifyCredentials(
       verifyId,
