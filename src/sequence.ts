@@ -15,14 +15,16 @@ import {
   AUTHENTICATION_STRATEGY_NOT_FOUND,
   USER_PROFILE_NOT_FOUND,
 } from '@loopback/authentication';
-import {Middleware} from '@loopback/express';
-import helmet from 'helmet'; // for security
+import {ExpressRequestHandler, InvokeMiddleware} from '@loopback/express';
+import helmet from 'helmet'; // For security
+import morgan from 'morgan'; // For http access logging
 
 const SequenceActions = RestBindings.SequenceActions;
 
-// const middlewareList: ExpressMiddleware[] = [
-//   helmet({}), // options fixed and can not be chaged at runtime
-// ];
+const middlewareList: ExpressRequestHandler[] = [
+  helmet({}), // options fixed and can not be changed a runtime
+  morgan('combined', {}),
+];
 
 export class MyAuthenticationSequence implements SequenceHandler {
   /**
@@ -47,8 +49,8 @@ export class MyAuthenticationSequence implements SequenceHandler {
     @inject(SequenceActions.INVOKE_METHOD) protected invoke: InvokeMethod,
     @inject(SequenceActions.SEND) public send: Send,
     @inject(SequenceActions.REJECT) public reject: Reject,
-    // @inject(SequenceActions.MIDDLEWARE, {optional: true})
-    // protected invokeMiddleware: InvokeMiddleware = () => false,
+    @inject(SequenceActions.INVOKE_MIDDLEWARE, {optional: true})
+    protected invokeMiddleware: InvokeMiddleware = () => false,
     @inject(AuthenticationBindings.AUTH_ACTION)
     protected authenticationRequest: AuthenticateFn,
   ) {}
@@ -56,8 +58,14 @@ export class MyAuthenticationSequence implements SequenceHandler {
   async handle(context: RequestContext) {
     try {
       const {request, response} = context;
-      // const finished = await this.invokeMiddleware(context, middlewareList);
-      // if (finished) return;
+      // `this.invokeMiddleware` is an injected function to invoke a list of
+      // Express middleware handler functions
+      const finished = await this.invokeMiddleware(context, middlewareList);
+      if (finished) {
+        // The http response has already been produced by one of the Express
+        // middleware. We should not call further actions.
+        return;
+      }
 
       const route = this.findRoute(request);
 
