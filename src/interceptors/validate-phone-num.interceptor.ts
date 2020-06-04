@@ -52,23 +52,7 @@ export class ValidatePhoneNumInterceptor implements Provider<Interceptor> {
     if (
       invocationCtx.methodName === 'verify' ||
       invocationCtx.methodName === 'login' ||
-      invocationCtx.methodName === 'singup'
-    ) {
-      phoneValue = invocationCtx.args[0].phone;
-      pn = new AwesomePhoneNumber(phoneValue);
-
-      if (!pn.isMobile()) {
-        throw new HttpErrors.UnprocessableEntity(invalidPhoneValueMessage);
-      }
-
-      if (pn.getRegionCode() !== 'IR') {
-        throw new HttpErrors.UnprocessableEntity(invalidRegionMessage);
-      }
-
-      // Convert phone value to e.164 format
-      phoneValue = pn.getNumber('e164');
-      invocationCtx.args[0].phone = phoneValue;
-    } else if (
+      invocationCtx.methodName === 'singup' ||
       invocationCtx.methodName === 'createUserRel' ||
       invocationCtx.methodName === 'patchUserRel'
     ) {
@@ -82,11 +66,19 @@ export class ValidatePhoneNumInterceptor implements Provider<Interceptor> {
           throw new HttpErrors.UnprocessableEntity(invalidPhoneValueMessage);
         }
 
+        // Check phone number country fot verify/login/signup methods
+        if (invocationCtx.targetClass.name === 'UsersController') {
+          if (pn.getRegionCode() !== 'IR') {
+            throw new HttpErrors.UnprocessableEntity(invalidRegionMessage);
+          }
+        }
+
         // Convert phone value to e.164 format
         phoneValue = pn.getNumber('e164');
         invocationCtx.args[0].phone = phoneValue;
       }
     }
+
     const result = await next();
     // Add post-invocation logic here
     return result;
