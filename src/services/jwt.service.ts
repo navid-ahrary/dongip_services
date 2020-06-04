@@ -39,9 +39,8 @@ export class JWTService implements TokenService {
 
     try {
       // check token is not in blacklist
-      await this.blacklistRepository.checkTokenNotBlacklisted({
-        where: {token: accessToken},
-      });
+      const isBlacklisted = await this.blacklistRepository.exists(accessToken);
+      if (isBlacklisted) throw new Error('Token is in blacklist!');
 
       //decode user profile from token
       decryptedToken = verify(accessToken, this.jwtSecret);
