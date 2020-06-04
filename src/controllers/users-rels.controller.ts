@@ -109,7 +109,7 @@ export class UsersRelsController {
 
     const userId = Number(this.currentUserProfile[securityId]);
 
-    let userRelObject: UsersRels = Object.assign({
+    let userRelObject: Partial<UsersRels> = Object.assign(new UsersRels(), {
         name: userRelReqBody.name,
         avatar: userRelReqBody.avatar,
         type: 'virtual',
