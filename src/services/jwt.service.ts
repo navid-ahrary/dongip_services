@@ -99,7 +99,7 @@ export class JWTService implements TokenService {
         `Error generating token: ${err.message}`,
       );
     }
-    await this.verifyToken(accessToken);
+
     return accessToken;
   }
 }

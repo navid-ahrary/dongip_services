@@ -134,10 +134,7 @@ export class UsersController {
           }),
           example: {
             phone: '+989176502184',
-            firebaseToken:
-              'fDSwbEUyS4ujAh-4_yKuhF:APA91bGHJ7IfpVf6xoZjrjXmvU4coGGOZErf' +
-              'FooDhfySvObpyHelselcWEX4vCkkpbGWglTNFMMShQp3o8m277FkZJOoY4Z' +
-              '2LX5m5I6eAWE8vdmCrmSo2fb8Wt4yYBrJ3tuijnx4kjgw',
+            firebaseToken: 'string',
           },
         },
       },
@@ -244,18 +241,8 @@ export class UsersController {
             schema: getModelSchemaRef(Credentials),
             example: {
               id: 1,
-              accessToken:
-                'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50VHl' +
-                'wZSI6ImJyb256ZSIsImF1ZCI6ImFjY2VzcyIsImlhdCI6MTU5MDU' +
-                'wODY1MCwiZXhwIjoxNjIyMDQ4NjUwLCJzdWIiOiIzIn0.bvVYm8E' +
-                'QDkQksY8aPW2Q1yA6SVksPn-mzWJrzkeiZrzFmb4NS6mXAYf-jhp' +
-                'HjiflGjYVUw-ziqWn1pcSfgti8w',
-              refreshToken:
-                'eyDPuioiOiJFSDIKohjwuhIODOISHjdijhii.eySDJKHBslaswdr' +
-                'wWPOIjisdjIOIDugDLKIJSbdhgvbKJHGVbhdjVGHJKVdKUJhvvjU' +
-                'wODY1MCwiZXhwIjoxNjIyMDQ4NjUwLCJzdWIiOiIzIn0.bvVYm8E' +
-                'QDkQksY8aPW2Q1yA6SVksPn-mzWJrzkeiZrzFmb4NS6mXAYf-jhp' +
-                'HjiflGjYVUw-OIHFiuyguhHDkjGyyUGUDYguyludlpZXfgti8w',
+              accessToken: 'string',
+              refreshToken: 'string',
             },
           },
         },
@@ -319,7 +306,6 @@ export class UsersController {
     }
 
     return {
-      // _key: user._key,
       id: user.getId(),
       accessToken: accessToken,
       refreshToken: user.refreshToken,
@@ -348,10 +334,8 @@ export class UsersController {
             }),
             example: {
               id: 7,
-              accessToken:
-                'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50VHlwZSI6ImJyb256ZSIsImF1ZCI6ImFjY2VzcyIsImlhdCI6MTU5MDU2MTgzNiwiZXhwIjoxNjIyMTAxODM2LCJzdWIiOiI3In0.VInwb04E-GrzZZ7_ostar8N9J8blHF9SOISKaH9ManXqOfZN4d9UNzpHiKeudWE-c1VG4HzCcYXhgK2aKbvoZg',
-              refreshToken:
-                'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50VHlwZSI6ImJyb256ZSIsImF1ZCI6ImFjY2VzcyIsImlhdCI6MTU5MDU2MTgzNiwiZXhwIjoxNjIyMTAxODM2LCJzdWIiOiI3In0.VInwb04E-GrzZZ7_ostar8N9J8blHF9SOISKaH9ManXqOfZN4d9UNzpHiKeudWE-c1VG4HzCcYXhgK2',
+              accessToken: 'string',
+              refreshToken: 'string',
             },
           },
         },
@@ -432,6 +416,13 @@ export class UsersController {
         transaction: userTx,
       });
 
+      // Convert user object to a UserProfile object (reduced set of properties)
+      userProfile = this.userService.convertToUserProfile(savedUser);
+      userProfile['aud'] = 'access';
+
+      // Create a JWT token based on the Userprofile
+      accessToken = await this.jwtService.generateToken(userProfile);
+
       // Create self-relation
       await this.usersRelsRepository.create(
         {
@@ -442,12 +433,6 @@ export class UsersController {
         },
         {transaction: usersRelsTx},
       );
-      // Convert user object to a UserProfile object (reduced set of properties)
-      userProfile = this.userService.convertToUserProfile(savedUser);
-      userProfile['aud'] = 'access';
-
-      // Create a JWT token based on the Userprofile
-      accessToken = await this.jwtService.generateToken(userProfile);
 
       // Commit all transactions
       await userTx.commit();
