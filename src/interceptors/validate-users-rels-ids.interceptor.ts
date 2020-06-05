@@ -12,6 +12,7 @@ import _ from 'underscore';
 import {UsersRelsRepository} from '../repositories';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
+import {PostNewDong} from '../models';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -48,12 +49,14 @@ export class ValidateUsersRelsIdsInterceptor implements Provider<Interceptor> {
     next: () => ValueOrPromise<InvocationResult>,
   ) {
     const userId = Number(this.currentUserProfile[securityId]),
-      billList = invocationCtx.args[0].billList,
-      payerList = invocationCtx.args[0].payerList,
+      billList: typeof PostNewDong.prototype.billList =
+        invocationCtx.args[0].billList,
+      payerList: typeof PostNewDong.prototype.billList =
+        invocationCtx.args[0].payerList,
       allUsersRelsIdList: {userRelId: number}[] = [];
 
     if (invocationCtx.methodName === 'createDongs') {
-      payerList.forEach((item: {userRelId: number; paidAmount: number}) => {
+      payerList.forEach((item) => {
         if (
           _.findIndex(allUsersRelsIdList, {userRelId: item.userRelId}) === -1
         ) {
@@ -61,7 +64,7 @@ export class ValidateUsersRelsIdsInterceptor implements Provider<Interceptor> {
         }
       });
 
-      billList.forEach((item: {userRelId: number; paidAmount: number}) => {
+      billList.forEach((item) => {
         if (
           _.findIndex(allUsersRelsIdList, {userRelId: item.userRelId}) === -1
         ) {
