@@ -56,7 +56,7 @@ export class ValidatePhoneNumInterceptor implements Provider<Interceptor> {
       invocationCtx.methodName === 'createUsersRels' ||
       invocationCtx.methodName === 'patchUsersRels'
     ) {
-      // This check is for "patchUserRel" method
+      // This check is for "patchUsersRels" method
       // beacuse reqeust body may not includes a phone value
       if (invocationCtx.args[0].phone) {
         phoneValue = invocationCtx.args[0].phone;
