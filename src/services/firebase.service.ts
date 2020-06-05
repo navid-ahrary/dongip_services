@@ -100,7 +100,8 @@ export class FirebaseService {
         throw new Error(`Error sending notifications, ${_error}`);
       });
 
-    console.log(`Successfully sent notifications, ${response}`);
+    console.log(`Successfully sent notifications, ${response.successCount}`);
+    console.error(`Failed sent notifications: ${response.failureCount}`);
 
     return response;
   }

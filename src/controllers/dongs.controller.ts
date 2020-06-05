@@ -128,6 +128,7 @@ export class DongsController {
       createdPayerList,
       currentUserFoundUsersRelsList: UsersRels[],
       curretnUserFoundCategoryList: Category[],
+      curretnUserFoundCategoryTitle: string,
       dongTx: Transaction,
       payerTx: Transaction,
       billTx: Transaction,
@@ -162,6 +163,7 @@ export class DongsController {
     if (curretnUserFoundCategoryList.length !== 1) {
       throw new HttpErrors.NotFound('دسته بندی معتبر نیس!');
     }
+    curretnUserFoundCategoryTitle = curretnUserFoundCategoryList[0].title;
 
     const userRel = await this.usersRepository
       .usersRels(userId)
@@ -249,6 +251,13 @@ export class DongsController {
               .find({where: {phone: currentUserPhone}});
 
             if (mutualRelList.length === 1) {
+              // Get dong amount
+              const dongAmount = _.find(billList, {userRelId: relation.getId()})
+                ? _.find(billList, {
+                    userRelId: relation.getId(),
+                  })!.dongAmount.toString()
+                : '0';
+
               // Generate notification messages
               firebaseMessagesList.push({
                 token: user.firebaseToken,
@@ -258,19 +267,10 @@ export class DongsController {
                 },
                 data: {
                   desc: dong.desc ? dong.desc : '',
-                  categoryTitle: curretnUserFoundCategoryList[0].title,
+                  categoryTitle: curretnUserFoundCategoryTitle,
                   createdAt: dong.createdAt,
-                  userRelId: String(mutualRelList[0].getId()),
-                  dongAmount: _.find(billList, {usersRelsId: relation.getId()})
-                    ? _.find(billList, {
-                        usersRelsId: relation.getId(),
-                      })!.dongAmount.toString()
-                    : '0',
-                  paidAmount: _.find(payerList, {usersRelsId: relation.getId()})
-                    ? _.find(payerList, {
-                        usersRelsId: relation.getId(),
-                      })!.paidAmount.toString()
-                    : '0',
+                  userRelId: mutualRelList[0].getId().toString(),
+                  dongAmount: dongAmount,
                 },
               });
             }
