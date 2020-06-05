@@ -10,7 +10,7 @@ import {
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
-import {inject, service} from '@loopback/core';
+import {inject, service, intercept} from '@loopback/core';
 import _ from 'underscore';
 
 import {Dong, PostNewDong} from '../models';
@@ -25,11 +25,16 @@ import {
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {PostNewDongExample} from './specs';
 import {FirebaseService, BatchMessage} from '../services';
+import {
+  ValidateCategoryIdInterceptor,
+  ValidateUsersRelsIdsInterceptor,
+} from '../interceptors';
 
 @api({
   basePath: '/api/',
   paths: {},
 })
+@authenticate('jwt.access')
 export class DongsController {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -48,7 +53,7 @@ export class DongsController {
   ) {}
 
   @get('/dongs', {
-    summary: 'Get array of all Dongs',
+    summary: 'Get array of all Dongs model instance',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -64,8 +69,7 @@ export class DongsController {
       },
     },
   })
-  @authenticate('jwt.access')
-  async find(): Promise<Dong[]> {
+  async findDongs(): Promise<Dong[]> {
     const userId = Number(this.currentUserProfile[securityId]);
 
     const filter: Filter<Dong> = {
@@ -76,8 +80,12 @@ export class DongsController {
     return this.usersRepository.dongs(userId).find(filter);
   }
 
+  @intercept(
+    ValidateCategoryIdInterceptor.BINDING_KEY,
+    ValidateUsersRelsIdsInterceptor.BINDING_KEY,
+  )
   @post('/dongs', {
-    summary: 'Create a new Dongs',
+    summary: 'Create a new Dongs model instance',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -90,13 +98,12 @@ export class DongsController {
       },
     },
   })
-  @authenticate('jwt.access')
-  async create(
+  async createDongs(
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(PostNewDong, {
-            title: 'NewDong',
+            title: 'NewDongs',
             optional: ['title', 'desc'],
           }),
           example: PostNewDongExample,
@@ -127,38 +134,14 @@ export class DongsController {
 
     if (payerList.length !== 1) {
       throw new HttpErrors.UnprocessableEntity(
-        'بیشتر از یک پرداخت کننده تموم کردیم!',
+        'فعلن بیشتر از یک پرداخت کننده امکان پذیر نیس!',
       );
     }
 
-    payerList.forEach((item) => {
-      if (_.findIndex(allUsersRelsIdList, {userRelId: item.userRelId}) === -1) {
-        allUsersRelsIdList.push({userRelId: item.userRelId});
-      }
-    });
-
-    billList.forEach((item) => {
-      if (_.findIndex(allUsersRelsIdList, {userRelId: item.userRelId}) === -1) {
-        allUsersRelsIdList.push({userRelId: item.userRelId});
-      }
-    });
-
-    // Validate userRelIds in billList and payerList
+    // Must get from validate userrels interceptor
     const currentUserFoundUsersRelsList = await this.usersRepository
       .usersRels(userId)
       .find({where: {or: allUsersRelsIdList}});
-    if (currentUserFoundUsersRelsList.length !== allUsersRelsIdList.length) {
-      throw new HttpErrors.NotFound('بعضی از دوستی ها معتبر نیستن!');
-    }
-
-    // Validate categoryId in request body
-    const curretnUserFoundCategoryList = await this.categoryRepository.findOne({
-      where: {userId: userId, categoryId: newDong.categoryId},
-    });
-    if (!curretnUserFoundCategoryList) {
-      throw new HttpErrors.NotFound('این دسته بندی معتبر نیس!');
-    }
-    const curretnUserFoundCategoryTitle = curretnUserFoundCategoryList.title;
 
     const userRel = await this.usersRelsRepository.findOne({
       where: {and: [{userRelId: payerList[0].userRelId}, {userId: userId}]},
@@ -217,6 +200,11 @@ export class DongsController {
       );
 
       if (currentUserIsPayer) {
+        const currentUserCategory = await this.categoryRepository.findById(
+          newDong.categoryId,
+          {fields: {title: true}},
+        );
+
         for (const relation of currentUserFoundUsersRelsList) {
           if (relation.type !== 'self') {
             const user = await this.usersRepository.findOne({
@@ -252,7 +240,7 @@ export class DongsController {
                   },
                   data: {
                     desc: createdDong.desc ? createdDong.desc : '',
-                    categoryTitle: curretnUserFoundCategoryTitle,
+                    categoryTitle: currentUserCategory.title,
                     createdAt: createdDong.createdAt.toString(),
                     userRelId: foundMutualUsersRels.getId().toString(),
                     dongAmount: dongAmount,
