@@ -22,7 +22,14 @@ import morgan from 'morgan'; // For http access logging
 const SequenceActions = RestBindings.SequenceActions;
 
 const middlewareList: ExpressRequestHandler[] = [
-  helmet({}), // options fixed and can not be changed a runtime
+  helmet({
+    dnsPrefetchControl: true,
+    hidePoweredBy: true,
+    ieNoOpen: true,
+    xssFilter: true,
+    frameguard: true,
+    expectCt: true,
+  }), // options fixed and can not be changed a runtime
   morgan('combined', {}),
 ];
 
@@ -50,7 +57,7 @@ export class MyAuthenticationSequence implements SequenceHandler {
     @inject(SequenceActions.SEND) public send: Send,
     @inject(SequenceActions.REJECT) public reject: Reject,
     @inject(SequenceActions.INVOKE_MIDDLEWARE, {optional: true})
-    protected invokeMiddleware: InvokeMiddleware = () => false,
+    public invokeMiddleware: InvokeMiddleware = () => true,
     @inject(AuthenticationBindings.AUTH_ACTION)
     protected authenticationRequest: AuthenticateFn,
   ) {}
