@@ -1,10 +1,5 @@
 /* eslint-disable prefer-const */
-import {
-  repository,
-  IsolationLevel,
-  Transaction,
-  Count,
-} from '@loopback/repository';
+import {repository, Count} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -107,24 +102,26 @@ export class UsersRelsController {
         name: userRelReqBody.name,
         avatar: userRelReqBody.avatar,
         type: 'virtual',
-        phone: '',
+        phone: userRelReqBody.phone,
       }),
       errorMessage: string,
-      userRepoTx: Transaction,
       createdUserRel: UsersRels;
 
-    // Begin Users repo trasaction
-    userRepoTx = await this.usersRepository.beginTransaction(
-      IsolationLevel.READ_COMMITTED,
-    );
-
-    // Assign props to user rel that would create
-    userRelObject.phone = userRelReqBody.phone;
+    // Check friend's phone number is not for user
+    await this.usersRepository
+      .count({
+        userId: userId,
+        phone: userRelReqBody.phone,
+      })
+      .then((result) => {
+        if (result.count)
+          throw new HttpErrors.UnprocessableEntity('تو بهترین دوست خودتی!');
+      });
 
     // Create a UserRel belongs to current user
     createdUserRel = await this.usersRepository
       .usersRels(userId)
-      .create(userRelObject, {transaction: userRepoTx})
+      .create(userRelObject)
       .catch((err) => {
         // Duplicate userRel name error handling
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
@@ -149,27 +146,8 @@ export class UsersRelsController {
     // Create a VirtualUser belongs to current user
     await this.usersRepository
       .virtualUsers(userId)
-      .create(
-        {phone: userRelReqBody.phone, userRelId: createdUserRel.getId()},
-        {transaction: userRepoTx},
-      )
-      .catch(async (err) => {
-        // Rollback transaction
-        await userRepoTx.rollback();
-        // Duplicate phone number error handling in virtual user
-        if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          if (err.sqlMessage.endsWith("'VirtualUsers.phone'")) {
-            errorMessage = 'این شماره توی لیست دوستات وجود داره!';
-          } else errorMessage = err.message;
+      .create({phone: userRelReqBody.phone, userRelId: createdUserRel.getId()});
 
-          throw new HttpErrors.Conflict(errorMessage);
-        }
-
-        throw new HttpErrors.NotAcceptable(err.message);
-      });
-
-    // Commit transaction
-    await userRepoTx.commit();
     return createdUserRel;
   }
 
