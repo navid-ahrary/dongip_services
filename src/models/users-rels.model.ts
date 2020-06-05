@@ -43,9 +43,8 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'string',
-    required: true,
   })
-  name: string;
+  name?: string;
 
   @property({
     type: 'string',

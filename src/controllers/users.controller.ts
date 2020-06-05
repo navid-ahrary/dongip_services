@@ -387,8 +387,7 @@ export class UsersController {
         phone: newUser.phone,
         password: newUser.password,
       }),
-      userTx: Transaction,
-      usersRelsTx: Transaction;
+      userRepoTx: Transaction;
 
     verify = await this.verifySerivce.verifyCredentials(
       verifyId,
@@ -403,17 +402,14 @@ export class UsersController {
     delete newUser.password;
 
     // Begin trasactions
-    userTx = await this.usersRepository.beginTransaction(
-      IsolationLevel.READ_COMMITTED,
-    );
-    usersRelsTx = await this.usersRelsRepository.beginTransaction(
+    userRepoTx = await this.usersRepository.beginTransaction(
       IsolationLevel.READ_COMMITTED,
     );
 
     try {
       // Create a new user
       savedUser = await this.usersRepository.create(newUser, {
-        transaction: userTx,
+        transaction: userRepoTx,
       });
 
       // Convert user object to a UserProfile object (reduced set of properties)
@@ -424,19 +420,16 @@ export class UsersController {
       accessToken = await this.jwtService.generateToken(userProfile);
 
       // Create self-relation
-      await this.usersRelsRepository.create(
+      await this.usersRepository.usersRels(savedUser.getId()).create(
         {
-          userId: savedUser.getId(),
-          name: savedUser.name,
           avatar: savedUser.avatar,
           type: 'self',
         },
-        {transaction: usersRelsTx},
+        {transaction: userRepoTx},
       );
 
-      // Commit all transactions
-      await userTx.commit();
-      await usersRelsTx.commit();
+      // Commit transaction
+      await userRepoTx.commit();
 
       return {
         id: savedUser.getId(),
@@ -444,9 +437,8 @@ export class UsersController {
         refreshToken: savedUser.refreshToken,
       };
     } catch (err) {
-      // rollback all transactions
-      await userTx.rollback();
-      await usersRelsTx.rollback();
+      // rollback transaction
+      await userRepoTx.rollback();
 
       // Duplicate phone number error handling
       // base on search in stackoverflow, throw a conflict[409] error code
