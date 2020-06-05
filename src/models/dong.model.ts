@@ -33,10 +33,10 @@ export class Dong extends Entity {
   desc?: string;
 
   @property({
-    type: 'string',
+    type: 'date',
     required: true,
   })
-  createdAt: string;
+  createdAt: object;
 
   @property({
     type: 'number',

@@ -1,10 +1,5 @@
 /* eslint-disable prefer-const */
-import {
-  Filter,
-  repository,
-  IsolationLevel,
-  Transaction,
-} from '@loopback/repository';
+import {Filter, repository, IsolationLevel} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -18,12 +13,14 @@ import {authenticate} from '@loopback/authentication';
 import {inject, service} from '@loopback/core';
 import _ from 'underscore';
 
-import {Dong, DongRelations, PostNewDong, UsersRels, Category} from '../models';
+import {Dong, PostNewDong} from '../models';
 import {
   UsersRepository,
   DongRepository,
   BillListRepository,
   PayerListRepository,
+  CategoryRepository,
+  UsersRelsRepository,
 } from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {PostNewDongExample} from './specs';
@@ -36,6 +33,10 @@ import {FirebaseService, BatchMessage} from '../services';
 export class DongsController {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(UsersRelsRepository)
+    public usersRelsRepository: UsersRelsRepository,
+    @repository(CategoryRepository)
+    public categoryRepository: CategoryRepository,
     @repository(DongRepository) public dongRepository: DongRepository,
     @repository(PayerListRepository)
     public payerListRepository: PayerListRepository,
@@ -47,7 +48,7 @@ export class DongsController {
   ) {}
 
   @get('/dongs', {
-    summary: 'Get array of Dongs with filter',
+    summary: 'Get array of all Dongs',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -69,7 +70,6 @@ export class DongsController {
 
     const filter: Filter<Dong> = {
       order: ['createdAt DESC'],
-      where: {userId: userId},
       include: [{relation: 'payerList'}, {relation: 'billList'}],
     };
 
@@ -104,12 +104,12 @@ export class DongsController {
       },
     })
     newDong: Omit<PostNewDong, 'id'>,
-  ): Promise<(Dong & DongRelations) | null> {
+  ): Promise<Dong> {
     const userId = Number(this.currentUserProfile[securityId]);
 
     if (newDong.userId) {
-      if (userId !== newDong.userId) {
-        throw new HttpErrors.Unauthorized('userId با توکن شما همخونی نداره');
+      if (newDong.userId !== userId) {
+        throw new HttpErrors.Unauthorized('userId با توکن شما همخوانی نداره');
       }
     }
     // Current user
@@ -121,197 +121,171 @@ export class DongsController {
 
     let billList = newDong.billList,
       payerList = newDong.payerList,
-      allRelationIdList: {userRelId: number}[] = [],
-      dong: Dong,
+      allUsersRelsIdList: {userRelId: number}[] = [],
       currentUserIsPayer: Boolean = false,
-      createdBillList,
-      createdPayerList,
-      currentUserFoundUsersRelsList: UsersRels[],
-      curretnUserFoundCategoryList: Category[],
-      curretnUserFoundCategoryTitle: string,
-      dongTx: Transaction,
-      payerTx: Transaction,
-      billTx: Transaction,
       firebaseMessagesList: BatchMessage = [];
 
+    if (payerList.length !== 1) {
+      throw new HttpErrors.UnprocessableEntity(
+        'بیشتر از یک پرداخت کننده تموم کردیم!',
+      );
+    }
+
     payerList.forEach((item) => {
-      if (_.findIndex(allRelationIdList, {userRelId: item.userRelId}) === -1) {
-        allRelationIdList.push({userRelId: item.userRelId});
+      if (_.findIndex(allUsersRelsIdList, {userRelId: item.userRelId}) === -1) {
+        allUsersRelsIdList.push({userRelId: item.userRelId});
       }
     });
 
     billList.forEach((item) => {
-      if (_.findIndex(allRelationIdList, {userRelId: item.userRelId}) === -1) {
-        allRelationIdList.push({userRelId: item.userRelId});
+      if (_.findIndex(allUsersRelsIdList, {userRelId: item.userRelId}) === -1) {
+        allUsersRelsIdList.push({userRelId: item.userRelId});
       }
     });
 
-    currentUserFoundUsersRelsList = await this.usersRepository
+    // Validate userRelIds in billList and payerList
+    const currentUserFoundUsersRelsList = await this.usersRepository
       .usersRels(userId)
-      .find({
-        where: {or: allRelationIdList},
-      });
-    // Validate all usersRels
-    if (currentUserFoundUsersRelsList.length !== allRelationIdList.length) {
-      throw new HttpErrors.NotFound('بنظر میرسه بعضی از دوستی ها معتبر نیستن!');
+      .find({where: {or: allUsersRelsIdList}});
+    if (currentUserFoundUsersRelsList.length !== allUsersRelsIdList.length) {
+      throw new HttpErrors.NotFound('بعضی از دوستی ها معتبر نیستن!');
     }
 
-    curretnUserFoundCategoryList = await this.usersRepository
-      .categories(userId)
-      .find({where: {categoryId: newDong.categoryId}});
-    // Validate categoryId
-    if (curretnUserFoundCategoryList.length !== 1) {
-      throw new HttpErrors.NotFound('دسته بندی معتبر نیس!');
+    // Validate categoryId in request body
+    const curretnUserFoundCategoryList = await this.categoryRepository.findOne({
+      where: {userId: userId, categoryId: newDong.categoryId},
+    });
+    if (!curretnUserFoundCategoryList) {
+      throw new HttpErrors.NotFound('این دسته بندی معتبر نیس!');
     }
-    curretnUserFoundCategoryTitle = curretnUserFoundCategoryList[0].title;
+    const curretnUserFoundCategoryTitle = curretnUserFoundCategoryList.title;
 
-    const userRel = await this.usersRepository
-      .usersRels(userId)
-      .find({where: {userRelId: payerList[0].userRelId}});
+    const userRel = await this.usersRelsRepository.findOne({
+      where: {and: [{userRelId: payerList[0].userRelId}, {userId: userId}]},
+    });
 
-    if (userRel[0].type === 'self') currentUserIsPayer = true;
+    if (userRel?.type === 'self') currentUserIsPayer = true;
 
-    // Areate a dong object and save in database
-    const d = _.pick(newDong, [
-      'title',
-      'createdAt',
-      'categoryId',
-      'desc',
-      'pong',
-    ]);
+    // Create a Dongs entity
+    const dong: Dong = new Dong(
+      _.pick(newDong, ['title', 'createdAt', 'categoryId', 'desc', 'pong']),
+    );
 
-    // Begin database transactions
-    dongTx = await this.usersRepository.beginTransaction(
+    // Begin transactions
+    const dongRepoTx = await this.usersRepository.beginTransaction(
       IsolationLevel.READ_COMMITTED,
     );
-    payerTx = await this.payerListRepository.beginTransaction(
+    const payerRepoTx = await this.payerListRepository.beginTransaction(
       IsolationLevel.READ_COMMITTED,
     );
-    billTx = await this.billListRepository.beginTransaction(
+    const billRepoTx = await this.billListRepository.beginTransaction(
       IsolationLevel.READ_COMMITTED,
     );
 
     try {
-      dong = await this.usersRepository
+      const createdDong = await this.usersRepository
         .dongs(userId)
-        .create(d, {transaction: dongTx});
+        .create(dong, {transaction: dongRepoTx});
 
       payerList.forEach((item) => {
         item = Object.assign(item, {
-          dongId: dong.getId(),
-          createdAt: dong.createdAt,
-          categoryId: dong.categoryId,
           userId: userId,
+          dongId: createdDong.getId(),
+          createdAt: createdDong.createdAt,
+          categoryId: createdDong.categoryId,
         });
       });
 
       billList.forEach((item) => {
         item = Object.assign(item, {
-          dongId: dong.getId(),
-          createdAt: dong.createdAt,
-          categoryId: dong.categoryId,
           userId: userId,
+          dongId: createdDong.getId(),
+          createdAt: createdDong.createdAt,
+          categoryId: createdDong.categoryId,
         });
       });
 
-      // Store bill list in database
-      createdPayerList = await this.payerListRepository.createAll(payerList, {
-        transaction: payerTx,
-      });
-      // Store payer list in database
-      createdBillList = await this.billListRepository.createAll(billList, {
-        transaction: billTx,
-      });
+      // Store billlists in database
+      const createdPayerList = await this.payerListRepository.createAll(
+        payerList,
+        {transaction: payerRepoTx},
+      );
+      // Store payerLists in database
+      const createdBillList = await this.billListRepository.createAll(
+        billList,
+        {transaction: billRepoTx},
+      );
 
-      // Commit database trasactions
-      await dongTx.commit();
-      await billTx.commit();
-      await payerTx.commit();
-    } catch (err) {
-      // If error occured, rollback all transactions
-      await dongTx.rollback();
-      await payerTx.rollback();
-      await billTx.rollback();
+      if (currentUserIsPayer) {
+        for (const relation of currentUserFoundUsersRelsList) {
+          if (relation.type !== 'self') {
+            const user = await this.usersRepository.findOne({
+              where: {phone: relation.phone},
+            });
 
-      throw new HttpErrors.NotImplemented(err.message);
-    }
-
-    if (currentUserIsPayer) {
-      for (const relation of currentUserFoundUsersRelsList) {
-        if (relation.type !== 'self') {
-          const user = await this.usersRepository.findOne({
-            where: {phone: relation.phone},
-          });
-
-          // Check mutual relation
-          // if so, add to notification reciever list
-          if (user) {
-            const mutualRelList: UsersRels[] = await this.usersRepository
-              .usersRels(user.getId())
-              .find({where: {phone: currentUserPhone}});
-
-            if (mutualRelList.length === 1) {
-              // Get dong amount
-              const dongAmount = _.find(billList, {userRelId: relation.getId()})
-                ? _.find(billList, {
-                    userRelId: relation.getId(),
-                  })!.dongAmount.toString()
-                : '0';
-
-              // Generate notification messages
-              firebaseMessagesList.push({
-                token: user.firebaseToken,
-                notification: {
-                  title: 'دنگیپ شدی',
-                  body: mutualRelList[0].name,
+            // If relation is mutual, add to notification reciever list
+            if (user) {
+              const foundMutualUsersRels = await this.usersRelsRepository.findOne(
+                {
+                  where: {
+                    and: [{phone: currentUserPhone}, {userId: user.getId()}],
+                  },
                 },
-                data: {
-                  desc: dong.desc ? dong.desc : '',
-                  categoryTitle: curretnUserFoundCategoryTitle,
-                  createdAt: dong.createdAt,
-                  userRelId: mutualRelList[0].getId().toString(),
-                  dongAmount: dongAmount,
-                },
-              });
+              );
+
+              if (foundMutualUsersRels) {
+                // Get dong amount
+                const dongAmount = _.find(billList, {
+                  userRelId: relation.getId(),
+                })
+                  ? _.find(billList, {
+                      userRelId: relation.getId(),
+                    })!.dongAmount.toString()
+                  : '0';
+
+                // Generate notification messages
+                firebaseMessagesList.push({
+                  token: user.firebaseToken,
+                  notification: {
+                    title: 'دنگیپ شدی',
+                    body: foundMutualUsersRels.name,
+                  },
+                  data: {
+                    desc: createdDong.desc ? createdDong.desc : '',
+                    categoryTitle: curretnUserFoundCategoryTitle,
+                    createdAt: createdDong.createdAt.toString(),
+                    userRelId: foundMutualUsersRels.getId().toString(),
+                    dongAmount: dongAmount,
+                  },
+                });
+              }
             }
           }
         }
+
+        // send notification to friends
+        if (firebaseMessagesList.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          this.firebaseSerice.sendAllMessage(firebaseMessagesList);
+        }
       }
 
-      // send notification to friends
-      if (firebaseMessagesList.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.firebaseSerice.sendAllMessage(firebaseMessagesList);
-      }
+      dong.billList = createdBillList;
+      dong.payerList = createdPayerList;
+
+      // Commit trasactions
+      await dongRepoTx.commit();
+      await payerRepoTx.commit();
+      await billRepoTx.commit();
+
+      return dong;
+    } catch (err) {
+      // Rollback transactions
+      await dongRepoTx.rollback();
+      await payerRepoTx.rollback();
+      await billRepoTx.rollback();
+
+      throw new HttpErrors.NotImplemented(err.message);
     }
-
-    dong.billList = createdBillList;
-    dong.payerList = createdPayerList;
-
-    return dong;
-    // // create categoryBill object for every usersRels
-    // for (const _b of billList) {
-    //   const categoryBill = {
-    //     belongsToDongId: dong.id,
-    //     belongsToCategoryId: newDong.categoryId,
-    //     belongsToUserId: userId,
-    //     belongsToUserRelId: _b.usersRelsId,
-    //     dongAmount: _b.dongAmount,
-    //     paidAmount: _b.paidAmount,
-    //     settled: _b.paidAmount === _b.dongAmount ? true : false,
-    //     settledAt:
-    //       _b.paidAmount === _b.dongAmount ? newDong.createdAt : undefined,
-    //     createdAt: d.createdAt,
-    //   };
-    //   categoryBillList.push(categoryBill);
-    // }
-
-    // // save all categoryBill objects in database
-    // await this.categoryBillRepository
-    //   .createAll(categoryBillList)
-    //   .catch(async (_err: string) => {
-    //     await this.dongRepository.deleteById(dong.getId());
-    //     throw new HttpErrors.NotImplemented(_err);
-    //   });
   }
 }

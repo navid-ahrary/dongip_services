@@ -21,6 +21,7 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
   basePath: '/api/',
   paths: {},
 })
+@authenticate('jwt.access')
 export class CategoriesController {
   constructor(
     @repository(UsersRepository)
@@ -45,10 +46,9 @@ export class CategoriesController {
       },
     },
   })
-  @authenticate('jwt.access')
-  async find(): // @param.query.object('filter') filter?: Filter<Category>,
-  Promise<Category[]> {
+  async find(): Promise<Category[]> {
     const userId = Number(this.currentUserProfile[securityId]);
+
     return this.usersRepository.categories(userId).find();
   }
 
@@ -66,7 +66,6 @@ export class CategoriesController {
       },
     },
   })
-  @authenticate('jwt.access')
   async createCategory(
     @requestBody({
       content: {
@@ -87,76 +86,20 @@ export class CategoriesController {
   ): Promise<Category> {
     const userId = Number(this.currentUserProfile[securityId]);
 
-    newCategories.userId = userId;
-
-    const createdCat = await this.categoryRepository
+    const createdCat: Category = await this.usersRepository
+      .categories(userId)
       .create(newCategories)
       .catch((err) => {
-        // Duplicate userId and title error handling
+        // Duplicate title error handling
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          throw new HttpErrors.Conflict(
-            'این دسته رو داری. یه اسم دیگه انتخاب کن',
-          );
+          throw new HttpErrors.Conflict('این اسم توی دسته بندی هات وجود داره!');
         } else {
           throw new HttpErrors.NotAcceptable(err);
         }
       });
+
     return createdCat;
   }
-
-  // @post('/users/categories/bunch', {
-  //   summary: 'Create bunch of new categories',
-  //   security: OPERATION_SECURITY_SPEC,
-  //   responses: {
-  //     '200': {
-  //       description: 'Array of categories model instance',
-  //       content: {
-  //         'application/json': {
-  //           schema: getModelSchemaRef(Category),
-  //         },
-  //       },
-  //     },
-  //   },
-  // })
-  // @authenticate('jwt.access')
-  // async createSomeCategories(
-  //   @requestBody({
-  //     content: {
-  //       'application/json': {
-  //         schema: getModelSchemaRef(Category, {
-  //           title: 'NewCategories',
-  //           partial: false,
-  //           exclude: ['categoryId', 'userId'],
-  //         }),
-  //         example: [
-  //           {
-  //             title: 'مسافرت',
-  //             icon: 'assets/images/icons/travel/ic_normal_travel_03.png',
-  //           },
-  //         ],
-  //       },
-  //     },
-  //   })
-  //   newCategories: Omit<Category, '_key'>[],
-  // ): Promise<Category[]> {
-  //   const userId = Number(this.currentUserProfile[securityId]);
-
-  //   newCategories.forEach((cat) => {
-  //     cat.userId = userId;
-  //   });
-
-  //   const createdCat = await this.categoryRepository
-  //     .createAll(newCategories)
-  //     .catch((err) => {
-  //       // Duplicate userId and title error handling
-  //       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-  //         throw new HttpErrors.Conflict(err.message);
-  //       } else {
-  //         throw new HttpErrors.NotAcceptable(err.message);
-  //       }
-  //     });
-  //   return createdCat;
-  // }
 
   @patch('/categories/{categoryId}', {
     summary: 'Update a category by id',
@@ -164,11 +107,10 @@ export class CategoriesController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
-        description: 'Users.Category PATCH success count - No content',
+        description: 'Category PATCH success - No content',
       },
     },
   })
-  @authenticate('jwt.access')
   async patch(
     @param.path.number('categoryId')
     categoryId: typeof Category.prototype.categoryId,
@@ -201,25 +143,22 @@ export class CategoriesController {
   ): Promise<void> {
     const userId = Number(this.currentUserProfile[securityId]);
 
-    const count = await this.usersRepository
+    await this.usersRepository
       .categories(userId)
-      .patch(category, {
-        and: [{categoryId: categoryId}],
+      .patch(category, {categoryId: categoryId})
+      .then((result) => {
+        if (!result.count) {
+          throw new HttpErrors.NotFound(
+            'Entity not found: Category with id ' + categoryId,
+          );
+        }
       })
       .catch((err) => {
-        // Duplicate properties error handling
+        // Duplicate title error handling
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          throw new HttpErrors.Conflict(
-            'این دسته رو داری. یه اسم دیگه انتخاب کن',
-          );
+          throw new HttpErrors.Conflict('این اسم توی دسته بندی هات وجود داره!');
         }
         throw new HttpErrors.NotAcceptable(err.message);
       });
-
-    if (!count.count) {
-      throw new HttpErrors.NotFound(
-        'Entity not found: Category with id ' + categoryId,
-      );
-    }
   }
 }

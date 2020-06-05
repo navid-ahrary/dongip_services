@@ -27,11 +27,10 @@ export class BillList extends Entity {
   dongAmount: number;
 
   @property({
-    type: 'string',
+    type: 'date',
     required: true,
-    length: 24,
   })
-  createdAt: string;
+  createdAt: Date;
 
   @belongsTo(
     () => UsersRels,

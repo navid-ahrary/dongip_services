@@ -53,8 +53,8 @@ export class ValidatePhoneNumInterceptor implements Provider<Interceptor> {
       invocationCtx.methodName === 'verify' ||
       invocationCtx.methodName === 'login' ||
       invocationCtx.methodName === 'singup' ||
-      invocationCtx.methodName === 'createUserRel' ||
-      invocationCtx.methodName === 'patchUserRel'
+      invocationCtx.methodName === 'createUsersRels' ||
+      invocationCtx.methodName === 'patchUsersRels'
     ) {
       // This check is for "patchUserRel" method
       // beacuse reqeust body may not includes a phone value

@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import {repository, Count} from '@loopback/repository';
+import {repository} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -31,6 +31,7 @@ import {ValidatePhoneNumInterceptor} from '../interceptors';
   basePath: '/api/',
   paths: {},
 })
+@authenticate('jwt.access')
 @intercept(ValidatePhoneNumInterceptor.BINDING_KEY)
 export class UsersRelsController {
   constructor(
@@ -59,7 +60,6 @@ export class UsersRelsController {
       },
     },
   })
-  @authenticate('jwt.access')
   async find(): Promise<UsersRels[]> {
     const userId = Number(this.currentUserProfile[securityId]);
     return this.usersRepository.usersRels(userId).find();
@@ -79,8 +79,7 @@ export class UsersRelsController {
       },
     },
   })
-  @authenticate('jwt.access')
-  async createUserRel(
+  async createUsersRels(
     @requestBody({
       content: {
         'application/json': {
@@ -97,17 +96,15 @@ export class UsersRelsController {
     })
     userRelReqBody: Omit<UsersRels, 'id'>,
   ): Promise<UsersRels> {
-    const userId = Number(this.currentUserProfile[securityId]);
-    let userRelObject: Partial<UsersRels> = Object.assign(new UsersRels(), {
+    const userId = Number(this.currentUserProfile[securityId]),
+      userRelObject: UsersRels = new UsersRels({
         name: userRelReqBody.name,
         avatar: userRelReqBody.avatar,
         type: 'virtual',
         phone: userRelReqBody.phone,
-      }),
-      errorMessage: string,
-      createdUserRel: UsersRels;
+      });
 
-    // Check friend's phone number is not for user
+    // Check phone number is not user's
     await this.usersRepository
       .count({
         userId: userId,
@@ -119,20 +116,21 @@ export class UsersRelsController {
       });
 
     // Create a UserRel belongs to current user
-    createdUserRel = await this.usersRepository
+    const createdUserRel: UsersRels = await this.usersRepository
       .usersRels(userId)
       .create(userRelObject)
       .catch((err) => {
-        // Duplicate userRel name error handling
+        // Duplicate error handling
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          // Duplicate name&phone handling
+          let errorMessage: string;
+
+          // Duplicate name&phone error handling
           if (err.sqlMessage.endsWith("'UsersRels.name&phone'")) {
-            errorMessage = 'این اسم و شماره موبایل توی لیست دوستات وجود داره';
-            // Duplicate name handling
+            errorMessage = 'یه دوست داری دقیقن به همین اسم و شماره موبایل!';
+            // Duplicate name error handling
           } else if (err.sqlMessage.endsWith("'UsersRels.name'")) {
-            errorMessage =
-              'این اسم توی لیست دوستات وجود داره، یه اسم دیگه وارد کن';
-            // Duplicate phone handling
+            errorMessage = 'این اسم توی لیست دوستات وجود داره!';
+            // Duplicate phone error handling
           } else if (err.sqlMessage.endsWith("'UsersRels.phone'")) {
             errorMessage = 'این شماره موبایل توی لیست دوستات وجود داره!';
           } else errorMessage = err.message; // Otherwise
@@ -152,17 +150,16 @@ export class UsersRelsController {
   }
 
   @patch('/users-rels/{userRelId}', {
-    summary: 'Update a userRel by id in path',
-    description: 'Just desired properties to update be in reqeust body',
+    summary: 'Update a UsersRels by id',
+    description: 'Send just desired properties to update',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
-        description: 'UsersRels PATCH success - No Content',
+        description: 'UserRels PATCH success - No Content',
       },
     },
   })
-  @authenticate('jwt.access')
-  async patchUserRel(
+  async patchUsersRels(
     @requestBody({
       required: true,
       content: {
@@ -188,31 +185,30 @@ export class UsersRelsController {
         },
       },
     })
-    usersRelsReqBody: Partial<UsersRels>,
+    userRelReqBody: Partial<UsersRels>,
     @param.path.number('userRelId', {required: true, example: 30})
     userRelId: typeof UsersRels.prototype.userRelId,
   ): Promise<void> {
     const userId = Number(this.currentUserProfile[securityId]);
 
-    // Define variables's type
-    let countPatched: Count,
-      errorMessage = '';
+    let errorMessage: string;
 
     try {
       // Patch UserRel
-      countPatched = await this.usersRepository
+      await this.usersRepository
         .usersRels(userId)
-        .patch(usersRelsReqBody, {
+        .patch(userRelReqBody, {
           and: [{userRelId: userRelId}, {type: {neq: 'self'}}],
+        })
+        .then((countPatched) => {
+          if (!countPatched.count) {
+            errorMessage = 'این رابطه دوستی رو پیدا نکردم!';
+            throw new HttpErrors.NotFound(errorMessage);
+          }
         });
 
-      if (!countPatched.count) {
-        errorMessage = 'این رابطه دوستی رو پیدا نکردم';
-        throw new HttpErrors.NotFound(errorMessage);
-      }
-
-      // Patch related VirtualUser
-      const vu = _.pick(usersRelsReqBody, ['phone']);
+      // Patch related VirtualUser entity
+      const vu = _.pick(userRelReqBody, ['phone']);
       if (vu.phone) {
         await this.usersRelsRepository
           .hasOneVirtualUser(userRelId)
@@ -223,16 +219,16 @@ export class UsersRelsController {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         // Duplicate name error hanfling
         if (err.sqlMessage.endsWith("'UsersRels.name'")) {
-          errorMessage =
-            'این اسم توی لیست دوستات وجود داره، یه اسم دیگه وارد کن';
+          errorMessage = 'این اسم توی لیست دوستات وجود داره!';
           // Duplicate phone error handling
         } else if (
           err.sqlMessage.endsWith("'UsersRels.phone'") ||
           err.sqlMessage.endsWith("'VirtualUsers.phone'")
         ) {
           errorMessage = 'این شماره توی لیست دوستات وجود داره!';
+        } else {
+          errorMessage = 'خطای مدیریت نشده ' + err.message;
         }
-
         throw new HttpErrors.Conflict(errorMessage);
       }
       throw new HttpErrors.NotAcceptable(err.message);
@@ -240,27 +236,25 @@ export class UsersRelsController {
   }
 
   @del('/users-rels/{userRelId}', {
-    summary: 'Delete a userRel by id',
-    description: 'Delete a self-userRel is forbidden',
+    summary: 'Delete a UsersRels by id',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {description: 'UsersRels DELETE success - No Content'},
     },
   })
-  @authenticate('jwt.access')
   async deleteById(
     @param.path.number('userRelId', {required: true, example: 36})
     userRelId: typeof UsersRels.prototype.userRelId,
   ): Promise<void> {
     const userId = Number(this.currentUserProfile[securityId]);
 
-    // Delete a UserRel that "type" is not equal to "self"
-    const countDeleted = await this.usersRepository
+    await this.usersRepository
       .usersRels(userId)
-      .delete({and: [{userRelId: userRelId}, {type: {neq: 'self'}}]});
-
-    if (!countDeleted.count) {
-      throw new HttpErrors.NotFound('این رابطه دوستی رو پیدا نکردم');
-    }
+      .delete({and: [{userRelId: userRelId}, {type: {neq: 'self'}}]})
+      .then((countDeleted) => {
+        if (!countDeleted.count) {
+          throw new HttpErrors.NotFound('این رابطه دوستی رو پیدا نکردم');
+        }
+      });
   }
 }

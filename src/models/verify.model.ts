@@ -45,7 +45,7 @@ export class Verify extends Entity {
     type: 'date',
     required: true,
   })
-  issuedAt: object;
+  issuedAt: Date;
 
   constructor(data?: Partial<Verify>) {
     super(data);

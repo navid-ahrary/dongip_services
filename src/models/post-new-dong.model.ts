@@ -22,10 +22,10 @@ export class PostNewDong extends Model {
   userId?: number;
 
   @property({
-    type: 'string',
+    type: 'date',
     required: true,
   })
-  createdAt: string;
+  createdAt: Date;
 
   @property({
     type: 'number',
