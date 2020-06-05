@@ -30,7 +30,7 @@ const middlewareList: ExpressRequestHandler[] = [
     frameguard: true,
     expectCt: true,
   }), // options fixed and can not be changed a runtime
-  morgan('combined', {}),
+  morgan('combined', {immediate: true}),
 ];
 
 export class MyAuthenticationSequence implements SequenceHandler {
