@@ -123,7 +123,7 @@ export class DongsController {
       payerList = newDong.payerList,
       allRelationIdList: {userRelId: number}[] = [],
       dong: Dong,
-      curretnUserIsPayer: Boolean = false,
+      currentUserIsPayer: Boolean = false,
       createdBillList,
       createdPayerList,
       currentUserFoundUsersRelsList: UsersRels[],
@@ -167,7 +167,7 @@ export class DongsController {
       .usersRels(userId)
       .find({where: {userRelId: payerList[0].userRelId}});
 
-    if (userRel[0].type === 'self') curretnUserIsPayer = true;
+    if (userRel[0].type === 'self') currentUserIsPayer = true;
 
     // Areate a dong object and save in database
     const d = _.pick(newDong, [
@@ -234,7 +234,7 @@ export class DongsController {
       throw new HttpErrors.NotImplemented(err.message);
     }
 
-    if (curretnUserIsPayer) {
+    if (currentUserIsPayer) {
       for (const relation of currentUserFoundUsersRelsList) {
         if (relation.type !== 'self') {
           const user = await this.usersRepository.findOne({
@@ -260,8 +260,7 @@ export class DongsController {
                   desc: dong.desc ? dong.desc : '',
                   categoryTitle: curretnUserFoundCategoryList[0].title,
                   createdAt: dong.createdAt,
-                  userRelId: mutualRelList[0].getId(),
-                  payer: '',
+                  userRelId: String(mutualRelList[0].getId()),
                   dongAmount: _.find(billList, {usersRelsId: relation.getId()})
                     ? _.find(billList, {
                         usersRelsId: relation.getId(),
@@ -280,8 +279,10 @@ export class DongsController {
       }
 
       // send notification to friends
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.firebaseSerice.sendAllMessage(firebaseMessagesList);
+      if (firebaseMessagesList.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.firebaseSerice.sendAllMessage(firebaseMessagesList);
+      }
     }
 
     dong.billList = createdBillList;
