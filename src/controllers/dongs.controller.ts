@@ -15,7 +15,7 @@ import {
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
-import {inject, service, intercept} from '@loopback/core';
+import {inject, service} from '@loopback/core';
 import _ from 'underscore';
 
 import {Dong, DongRelations, PostNewDong, UsersRels, Category} from '../models';
@@ -28,7 +28,6 @@ import {
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {PostNewDongExample} from './specs';
 import {FirebaseService, BatchMessage} from '../services';
-import {SendNotificationInterceptor} from '../interceptors';
 
 @api({
   basePath: '/api/',
@@ -77,7 +76,6 @@ export class DongsController {
     return this.usersRepository.dongs(userId).find(filter);
   }
 
-  // @intercept(SendNotificationInterceptor.BINDING_KEY)
   @post('/dongs', {
     summary: 'Create a new Dongs',
     security: OPERATION_SECURITY_SPEC,
@@ -119,8 +117,7 @@ export class DongsController {
         where: {userId: userId},
         fields: {userId: true, phone: true, name: true},
       }),
-      currentUserPhone = currentUser!.phone,
-      currentUserName = currentUser!.name;
+      currentUserPhone = currentUser!.phone;
 
     let billList = newDong.billList,
       payerList = newDong.payerList,
