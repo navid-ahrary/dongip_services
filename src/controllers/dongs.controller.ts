@@ -15,10 +15,10 @@ import {
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
-import {inject, service} from '@loopback/core';
+import {inject, service, intercept} from '@loopback/core';
 import _ from 'underscore';
 
-import {Dong, DongRelations, PostNewDong} from '../models';
+import {Dong, DongRelations, PostNewDong, UsersRels, Category} from '../models';
 import {
   UsersRepository,
   DongRepository,
@@ -27,7 +27,8 @@ import {
 } from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {PostNewDongExample} from './specs';
-import {FirebaseService} from '../services';
+import {FirebaseService, BatchMessage} from '../services';
+import {SendNotificationInterceptor} from '../interceptors';
 
 @api({
   basePath: '/api/',
@@ -76,6 +77,7 @@ export class DongsController {
     return this.usersRepository.dongs(userId).find(filter);
   }
 
+  // @intercept(SendNotificationInterceptor.BINDING_KEY)
   @post('/dongs', {
     summary: 'Create a new Dongs',
     security: OPERATION_SECURITY_SPEC,
@@ -112,63 +114,65 @@ export class DongsController {
         throw new HttpErrors.Unauthorized('userId با توکن شما همخونی نداره');
       }
     }
+    // Current user
+    const currentUser = await this.usersRepository.findOne({
+        where: {userId: userId},
+        fields: {userId: true, phone: true, name: true},
+      }),
+      currentUserPhone = currentUser!.phone,
+      currentUserName = currentUser!.name;
 
     let billList = newDong.billList,
-      dongRelationIdList: {userRelId: number}[] = [],
       payerList = newDong.payerList,
-      payerRelationIdList: {userRelId: number}[] = [],
       allRelationIdList: {userRelId: number}[] = [],
       dong: Dong,
+      curretnUserIsPayer: Boolean = false,
       createdBillList,
       createdPayerList,
+      currentUserFoundUsersRelsList: UsersRels[],
+      curretnUserFoundCategoryList: Category[],
       dongTx: Transaction,
       payerTx: Transaction,
       billTx: Transaction,
-      firebaseTokenList: string[] = [];
-
-    billList.forEach((item) => {
-      dongRelationIdList.push({userRelId: item.userRelId});
-      if (_.findIndex(allRelationIdList, {userRelId: item.userRelId}) === -1) {
-        allRelationIdList.push({userRelId: item.userRelId});
-      }
-    });
+      firebaseMessagesList: BatchMessage = [];
 
     payerList.forEach((item) => {
-      payerRelationIdList.push({userRelId: item.userRelId});
       if (_.findIndex(allRelationIdList, {userRelId: item.userRelId}) === -1) {
         allRelationIdList.push({userRelId: item.userRelId});
       }
     });
 
-    // validate all usersRels
-    const foundUsersRels = await this.usersRepository.usersRels(userId).find({
-      where: {or: allRelationIdList},
-    });
-    if (foundUsersRels.length !== allRelationIdList.length) {
-      throw new HttpErrors.NotFound('همه usersRelsId ها باید معتبر باشن');
-    }
-
-    //validate categoryId
-    await this.usersRepository
-      .categories(userId)
-      .find({where: {categoryId: newDong.categoryId}})
-      .then((_res) => {
-        if (_res.length !== 1) {
-          throw new HttpErrors.NotFound('categoryId معتبر نیست');
-        }
-      });
-
-    for (const relation of foundUsersRels) {
-      const user = await this.usersRepository.findOne({
-        where: {phone: relation.phone},
-      });
-
-      if (user) {
-        firebaseTokenList.push(user.firebaseToken);
+    billList.forEach((item) => {
+      if (_.findIndex(allRelationIdList, {userRelId: item.userRelId}) === -1) {
+        allRelationIdList.push({userRelId: item.userRelId});
       }
+    });
+
+    currentUserFoundUsersRelsList = await this.usersRepository
+      .usersRels(userId)
+      .find({
+        where: {or: allRelationIdList},
+      });
+    // Validate all usersRels
+    if (currentUserFoundUsersRelsList.length !== allRelationIdList.length) {
+      throw new HttpErrors.NotFound('بنظر میرسه بعضی از دوستی ها معتبر نیستن!');
     }
 
-    // create a dong object and save in database
+    curretnUserFoundCategoryList = await this.usersRepository
+      .categories(userId)
+      .find({where: {categoryId: newDong.categoryId}});
+    // Validate categoryId
+    if (curretnUserFoundCategoryList.length !== 1) {
+      throw new HttpErrors.NotFound('دسته بندی معتبر نیس!');
+    }
+
+    const userRel = await this.usersRepository
+      .usersRels(userId)
+      .find({where: {userRelId: payerList[0].userRelId}});
+
+    if (userRel[0].type === 'self') curretnUserIsPayer = true;
+
+    // Areate a dong object and save in database
     const d = _.pick(newDong, [
       'title',
       'createdAt',
@@ -177,7 +181,7 @@ export class DongsController {
       'pong',
     ]);
 
-    // begin database transactions
+    // Begin database transactions
     dongTx = await this.usersRepository.beginTransaction(
       IsolationLevel.READ_COMMITTED,
     );
@@ -189,7 +193,9 @@ export class DongsController {
     );
 
     try {
-      dong = await this.usersRepository.dongs(userId).create(d);
+      dong = await this.usersRepository
+        .dongs(userId)
+        .create(d, {transaction: dongTx});
 
       payerList.forEach((item) => {
         item = Object.assign(item, {
@@ -209,15 +215,21 @@ export class DongsController {
         });
       });
 
-      createdPayerList = await this.payerListRepository.createAll(payerList);
-      createdBillList = await this.billListRepository.createAll(billList);
+      // Store bill list in database
+      createdPayerList = await this.payerListRepository.createAll(payerList, {
+        transaction: payerTx,
+      });
+      // Store payer list in database
+      createdBillList = await this.billListRepository.createAll(billList, {
+        transaction: billTx,
+      });
 
-      // commit database trasactions
+      // Commit database trasactions
       await dongTx.commit();
       await billTx.commit();
       await payerTx.commit();
     } catch (err) {
-      // rollback all transactions
+      // If error occured, rollback all transactions
       await dongTx.rollback();
       await payerTx.rollback();
       await billTx.rollback();
@@ -225,8 +237,55 @@ export class DongsController {
       throw new HttpErrors.NotImplemented(err.message);
     }
 
-    // send notification
-    // this.firebaseSerice.sendMultiCastMessage({}, firebaseTokenList);
+    if (curretnUserIsPayer) {
+      for (const relation of currentUserFoundUsersRelsList) {
+        if (relation.type !== 'self') {
+          const user = await this.usersRepository.findOne({
+            where: {phone: relation.phone},
+          });
+
+          // Check mutual relation
+          // if so, add to notification reciever list
+          if (user) {
+            const mutualRelList: UsersRels[] = await this.usersRepository
+              .usersRels(user.getId())
+              .find({where: {phone: currentUserPhone}});
+
+            if (mutualRelList.length === 1) {
+              // Generate notification messages
+              firebaseMessagesList.push({
+                token: user.firebaseToken,
+                notification: {
+                  title: 'دنگیپ شدی',
+                  body: mutualRelList[0].name,
+                },
+                data: {
+                  desc: dong.desc ? dong.desc : '',
+                  categoryTitle: curretnUserFoundCategoryList[0].title,
+                  createdAt: dong.createdAt,
+                  userRelId: mutualRelList[0].getId(),
+                  payer: '',
+                  dongAmount: _.find(billList, {usersRelsId: relation.getId()})
+                    ? _.find(billList, {
+                        usersRelsId: relation.getId(),
+                      })!.dongAmount.toString()
+                    : '0',
+                  paidAmount: _.find(payerList, {usersRelsId: relation.getId()})
+                    ? _.find(payerList, {
+                        usersRelsId: relation.getId(),
+                      })!.paidAmount.toString()
+                    : '0',
+                },
+              });
+            }
+          }
+        }
+      }
+
+      // send notification to friends
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.firebaseSerice.sendAllMessage(firebaseMessagesList);
+    }
 
     dong.billList = createdBillList;
     dong.payerList = createdPayerList;
