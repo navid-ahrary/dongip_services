@@ -201,7 +201,7 @@ export class UsersController {
       name: user ? user.name : 'noob',
       prefix: randomStr,
       code: randomCode,
-      verifyToken: token!,
+      verifyToken: token,
     };
   }
 
@@ -215,7 +215,7 @@ export class UsersController {
           'application/josn': {
             schema: getModelSchemaRef(Credentials),
             example: {
-              id: 1,
+              userId: 1,
               accessToken: 'string',
               refreshToken: 'string',
             },
@@ -240,12 +240,11 @@ export class UsersController {
     credentials: Credentials,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
   ): Promise<{
-    id: string;
+    userId: typeof Users.prototype.userId;
     accessToken: string;
     refreshToken: string;
   }> {
     const verifyId = Number(currentUserProfile[securityId]);
-    let user: Users;
 
     try {
       const verify = await this.verifySerivce.verifyCredentials(
@@ -254,33 +253,27 @@ export class UsersController {
       );
 
       // Ensure the user exists and the password is correct
-      user = await this.userService.verifyCredentials(credentials);
+      const user = await this.userService.verifyCredentials(credentials);
 
       await this.usersRepository.updateById(user.getId(), {
         userAgent: verify.userAgent,
         firebaseToken: verify.firebaseToken,
       });
-    } catch (_err) {
-      console.log(_err);
-      throw new HttpErrors.Unauthorized(_err.message);
-    }
+      //convert a User object to a UserProfile object (reduced set of properties)
+      const userProfile = this.userService.convertToUserProfile(user);
+      userProfile['aud'] = 'access';
 
-    //convert a User object to a UserProfile object (reduced set of properties)
-    const userProfile = this.userService.convertToUserProfile(user);
-    userProfile['aud'] = 'access';
-
-    try {
       //create a JWT token based on the Userprofile
       const accessToken = await this.jwtService.generateToken(userProfile);
 
       return {
-        id: user.getId(),
+        userId: user.getId(),
         accessToken: accessToken,
         refreshToken: user.refreshToken,
       };
     } catch (_err) {
       console.log(_err);
-      throw new HttpErrors.NotImplemented(_err.message);
+      throw new HttpErrors.Unauthorized(_err.message);
     }
   }
 
@@ -356,8 +349,6 @@ export class UsersController {
         password: newUser.password,
       });
 
-    let savedUser: Users, accessToken: string, userProfile: UserProfile;
-
     const verify = await this.verifySerivce.verifyCredentials(
       verifyId,
       credentials.password,
@@ -377,16 +368,20 @@ export class UsersController {
 
     try {
       // Create a new user
-      savedUser = await this.usersRepository.create(newUser, {
+      const savedUser: Users = await this.usersRepository.create(newUser, {
         transaction: userRepoTx,
       });
 
       // Convert user object to a UserProfile object (reduced set of properties)
-      userProfile = this.userService.convertToUserProfile(savedUser);
+      const userProfile: UserProfile = this.userService.convertToUserProfile(
+        savedUser,
+      );
       userProfile['aud'] = 'access';
 
       // Create a JWT token based on the Userprofile
-      accessToken = await this.jwtService.generateToken(userProfile);
+      const accessToken: string = await this.jwtService.generateToken(
+        userProfile,
+      );
 
       // Create self-relation
       await this.usersRepository.usersRels(savedUser.getId()).create(
@@ -436,19 +431,14 @@ export class UsersController {
   })
   @authenticate('jwt.access')
   async logout(): Promise<void> {
-    // Nonsense error handling
-    // for prevent 'Object is possibly undefined' error in line 552
-    if (!this.ctx.request.headers['authorization']) {
-      throw new HttpErrors.Unauthorized('Access token not provided');
-    }
-    // Blacklist the current access token
+    // Blacklist the access token
     await this.blacklistRepository
       .create({
-        token: this.ctx.request.headers['authorization'].split(' ')[1],
+        token: this.ctx.request.headers['authorization']?.split(' ')[1],
         createdAt: new Date(),
       })
       .catch((err) => {
-        throw new HttpErrors.MethodNotAllowed(`Error logout: ${err.message}`);
+        throw new HttpErrors.NotImplemented(`Error logout: ${err.message}`);
       });
   }
 
