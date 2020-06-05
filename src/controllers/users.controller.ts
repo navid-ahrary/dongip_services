@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable prefer-const */
-/* eslint-disable require-atomic-updates */
 import {inject, service, intercept} from '@loopback/core';
 import {
   repository,
@@ -87,9 +82,9 @@ export class UsersController {
   ) {}
 
   generateRandomString(length: number) {
-    let result = '',
-      characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
       charactersLength = characters.length;
+    let result = '';
     for (let i = 0; i < length; i++) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
@@ -153,77 +148,57 @@ export class UsersController {
     verifyToken: string;
     code: string;
   }> {
-    let status = false,
-      avatar = 'dongip',
-      name = 'noob',
-      randomCode = Math.random().toFixed(7).slice(3),
-      randomStr = this.generateRandomString(3),
-      payload,
-      token: string,
-      user: Users | null,
-      createdVerify: Verify,
-      userProfile: UserProfile;
+    const randomCode = Math.random().toFixed(7).slice(3),
+      randomStr = this.generateRandomString(3);
 
-    user = await this.usersRepository.findOne({
+    const user = await this.usersRepository.findOne({
       where: {phone: verifyReqBody.phone},
       fields: {
         name: true,
         avatar: true,
       },
     });
-    if (user) {
-      status = true;
-    }
 
-    createdVerify = await this.verifyRepository
+    // Hash the generated password
+    const hashedPass = await this.passwordHasher.hashPassword(
+      randomStr + randomCode,
+    );
+
+    const createdVerify = await this.verifyRepository
       .create({
         phone: verifyReqBody.phone,
-        password: await this.passwordHasher.hashPassword(
-          randomStr + randomCode,
-        ),
-        registered: status,
+        password: hashedPass,
+        registered: user ? true : false,
         firebaseToken: verifyReqBody.firebaseToken,
         userAgent: userAgent,
         issuedAt: new Date(),
       })
       .catch((err) => {
-        console.log(err);
         throw new HttpErrors.NotAcceptable(err.message);
       });
 
     // create userProfile
-    userProfile = {
+    const userProfile = {
       [securityId]: String(createdVerify.getId()),
       aud: 'verify',
     };
 
-    // Generate verify token based on user profile
-    token = await this.jwtService.generateToken(userProfile);
+    // Generate verify token
+    const token: string = await this.jwtService.generateToken(userProfile);
 
-    try {
-      // send verify token and prefix by notification
-      payload = {
-        data: {
-          verifyToken: token,
-        },
-      };
-      this.firebaseService.sendToDeviceMessage(
-        verifyReqBody.firebaseToken,
-        payload,
-      );
-    } catch (_err) {
-      console.log(_err);
-      throw new HttpErrors.UnprocessableEntity(_err.message);
-    }
+    // Send verify token via notification
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.firebaseService.sendToDeviceMessage(verifyReqBody.firebaseToken, {
+      data: {verifyToken: token},
+    });
 
-    // send verify code with sms
+    // send verify code via sms
     this.smsService.sendSms('dongip', randomCode, verifyReqBody.phone);
 
     return {
-      status: status,
-      avatar: avatar,
-      name: name,
-      ...user,
+      status: user ? true : false,
+      avatar: user ? user.avatar : 'dongip',
+      name: user ? user.name : 'noob',
       prefix: randomStr,
       code: randomCode,
       verifyToken: token!,
@@ -269,22 +244,19 @@ export class UsersController {
     accessToken: string;
     refreshToken: string;
   }> {
-    let userProfile: UserProfile,
-      user: Users,
-      verify: Verify,
-      accessToken: string,
-      verifyId = Number(currentUserProfile[securityId]);
+    const verifyId = Number(currentUserProfile[securityId]);
+    let user: Users;
 
     try {
-      verify = await this.verifySerivce.verifyCredentials(
+      const verify = await this.verifySerivce.verifyCredentials(
         verifyId,
         credentials.password,
       );
 
-      //ensure the user exists and the password is correct
+      // Ensure the user exists and the password is correct
       user = await this.userService.verifyCredentials(credentials);
 
-      this.usersRepository.updateById(user.getId(), {
+      await this.usersRepository.updateById(user.getId(), {
         userAgent: verify.userAgent,
         firebaseToken: verify.firebaseToken,
       });
@@ -294,22 +266,22 @@ export class UsersController {
     }
 
     //convert a User object to a UserProfile object (reduced set of properties)
-    userProfile = this.userService.convertToUserProfile(user);
+    const userProfile = this.userService.convertToUserProfile(user);
     userProfile['aud'] = 'access';
 
     try {
       //create a JWT token based on the Userprofile
-      accessToken = await this.jwtService.generateToken(userProfile);
+      const accessToken = await this.jwtService.generateToken(userProfile);
+
+      return {
+        id: user.getId(),
+        accessToken: accessToken,
+        refreshToken: user.refreshToken,
+      };
     } catch (_err) {
       console.log(_err);
       throw new HttpErrors.NotImplemented(_err.message);
     }
-
-    return {
-      id: user.getId(),
-      accessToken: accessToken,
-      refreshToken: user.refreshToken,
-    };
   }
 
   @post('/users/signup', {
@@ -378,18 +350,15 @@ export class UsersController {
     accessToken: string;
     refreshToken: string;
   }> {
-    let savedUser: Users,
-      verify: Verify,
-      accessToken: string,
-      userProfile: UserProfile,
-      verifyId = Number(currentUserProfile[securityId]),
+    const verifyId = Number(currentUserProfile[securityId]),
       credentials = Object.assign(new Credentials(), {
         phone: newUser.phone,
         password: newUser.password,
-      }),
-      userRepoTx: Transaction;
+      });
 
-    verify = await this.verifySerivce.verifyCredentials(
+    let savedUser: Users, accessToken: string, userProfile: UserProfile;
+
+    const verify = await this.verifySerivce.verifyCredentials(
       verifyId,
       credentials.password,
     );
@@ -402,7 +371,7 @@ export class UsersController {
     delete newUser.password;
 
     // Begin trasactions
-    userRepoTx = await this.usersRepository.beginTransaction(
+    const userRepoTx: Transaction = await this.usersRepository.beginTransaction(
       IsolationLevel.READ_COMMITTED,
     );
 
@@ -520,14 +489,11 @@ export class UsersController {
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.header.string('Authorization') token: string,
   ) {
-    let user: Users,
-      userProfile: UserProfile,
-      userId = Number(currentUserProfile[securityId]),
-      accessToken: string,
-      isMatched: boolean;
+    const userId = Number(currentUserProfile[securityId]);
 
-    user = await this.usersRepository.findById(userId);
-    isMatched = await this.passwordHasher.comparePassword(
+    const user: Users = await this.usersRepository.findById(userId);
+
+    const isMatched: Boolean = await this.passwordHasher.comparePassword(
       token.split(' ')[1],
       user.refreshToken,
     );
@@ -536,10 +502,11 @@ export class UsersController {
       throw new HttpErrors.Unauthorized('Refresh tokens are not matched');
     }
 
-    userProfile = this.userService.convertToUserProfile(user);
-    userProfile.aud = 'access';
-
-    accessToken = await this.jwtService.generateToken(userProfile);
+    // Convert user to user profile
+    const userProfile = this.userService.convertToUserProfile(user);
+    userProfile.aud = 'refresh';
+    // Generate access token
+    const accessToken = await this.jwtService.generateToken(userProfile);
 
     return {accessToken: accessToken};
   }

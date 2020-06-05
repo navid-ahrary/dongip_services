@@ -44,7 +44,7 @@ export class FirebaseService {
   }
 
   // send a message to a device
-  sendToDeviceMessage(
+  public async sendToDeviceMessage(
     firebaseToken: string | string[],
     payload: messaging.MessagingPayload,
     options?: messaging.MessagingOptions | undefined,
