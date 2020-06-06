@@ -469,13 +469,21 @@ export class UsersController {
   @authenticate('jwt.access')
   async updateById(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @requestBody(UserPatchRequestBody) user: Omit<Users, '_key'>,
+    @requestBody(UserPatchRequestBody) patchUserReqBOdy: Omit<Users, '_key'>,
   ): Promise<void> {
     const userId = Number(currentUserProfile[securityId]);
 
-    return this.usersRepository.updateById(userId, user).catch((err) => {
-      throw new HttpErrors.NotAcceptable(err.message);
-    });
+    if (patchUserReqBOdy.avatar) {
+      await this.usersRepository
+        .usersRels(userId)
+        .patch({avatar: patchUserReqBOdy.avatar}, {type: 'self'});
+    }
+
+    return this.usersRepository
+      .updateById(userId, patchUserReqBOdy)
+      .catch((err) => {
+        throw new HttpErrors.NotAcceptable(err.message);
+      });
   }
 
   @get('/users/refresh-token', {
