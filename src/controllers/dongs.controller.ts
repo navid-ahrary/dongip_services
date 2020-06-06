@@ -132,12 +132,6 @@ export class DongsController {
       currentUserIsPayer: Boolean = false,
       firebaseMessagesList: BatchMessage = [];
 
-    if (payerList.length !== 1) {
-      throw new HttpErrors.UnprocessableEntity(
-        'فعلن بیشتر از یک پرداخت کننده امکان پذیر نیس!',
-      );
-    }
-
     // Must get from validate userrels interceptor
     const currentUserFoundUsersRelsList = await this.usersRepository
       .usersRels(userId)

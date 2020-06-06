@@ -55,6 +55,12 @@ export class ValidateUsersRelsIdsInterceptor implements Provider<Interceptor> {
         invocationCtx.args[0].payerList,
       allUsersRelsIdList: {userRelId: number}[] = [];
 
+    if (payerList.length !== 1) {
+      throw new HttpErrors.UnprocessableEntity(
+        'فعلن بیشتر از یک پرداخت کننده امکان پذیر نیس!',
+      );
+    }
+
     if (invocationCtx.methodName === 'createDongs') {
       payerList.forEach((item) => {
         if (
