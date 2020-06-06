@@ -13,8 +13,8 @@ import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 
-import {Category} from '../models';
-import {UsersRepository, CategoryRepository} from '../repositories';
+import {Categories} from '../models';
+import {UsersRepository, CategoriesRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
 @api({
@@ -26,8 +26,8 @@ export class CategoriesController {
   constructor(
     @repository(UsersRepository)
     protected usersRepository: UsersRepository,
-    @repository(CategoryRepository)
-    protected categoryRepository: CategoryRepository,
+    @repository(CategoriesRepository)
+    protected categoryRepository: CategoriesRepository,
     @inject(SecurityBindings.USER)
     protected currentUserProfile: UserProfile,
   ) {}
@@ -37,16 +37,16 @@ export class CategoriesController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: "Array of Category's belonging to Users",
+        description: "Array of Categories's belonging to Users",
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(Category)},
+            schema: {type: 'array', items: getModelSchemaRef(Categories)},
           },
         },
       },
     },
   })
-  async find(): Promise<Category[]> {
+  async find(): Promise<Categories[]> {
     const userId = Number(this.currentUserProfile[securityId]);
 
     return this.usersRepository.categories(userId).find();
@@ -60,18 +60,18 @@ export class CategoriesController {
         description: 'A category model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Category),
+            schema: getModelSchemaRef(Categories),
           },
         },
       },
     },
   })
-  async createCategory(
+  async createCategories(
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Category, {
-            title: 'NewCategory',
+          schema: getModelSchemaRef(Categories, {
+            title: 'NewCategories',
             partial: false,
             exclude: ['categoryId', 'userId'],
           }),
@@ -82,17 +82,19 @@ export class CategoriesController {
         },
       },
     })
-    newCategories: Omit<Category, '_key'>,
-  ): Promise<Category> {
+    newCategories: Omit<Categories, '_key'>,
+  ): Promise<Categories> {
     const userId = Number(this.currentUserProfile[securityId]);
 
-    const createdCat: Category = await this.usersRepository
+    const createdCat: Categories = await this.usersRepository
       .categories(userId)
       .create(newCategories)
       .catch((err) => {
         // Duplicate title error handling
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          throw new HttpErrors.Conflict('این اسم توی دسته بندی هات وجود داره!');
+          throw new HttpErrors.Conflict(
+            'این دسته بندی رو داری. یه اسم دیگه انتخاب کن',
+          );
         } else {
           throw new HttpErrors.NotAcceptable(err);
         }
@@ -113,11 +115,11 @@ export class CategoriesController {
   })
   async patch(
     @param.path.number('categoryId')
-    categoryId: typeof Category.prototype.categoryId,
+    categoryId: typeof Categories.prototype.categoryId,
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Category, {
+          schema: getModelSchemaRef(Categories, {
             partial: true,
             exclude: ['categoryId', 'userId'],
           }),
@@ -139,7 +141,7 @@ export class CategoriesController {
         },
       },
     })
-    category: Partial<Category>,
+    category: Partial<Categories>,
   ): Promise<void> {
     const userId = Number(this.currentUserProfile[securityId]);
 

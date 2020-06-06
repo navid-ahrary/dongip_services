@@ -8,52 +8,55 @@ import {inject, Getter} from '@loopback/core';
 
 import {MysqlDataSource} from '../datasources';
 import {
-  Dong,
-  DongRelations,
+  Dongs,
+  DongsRelations,
   Users,
   BillList,
   PayerList,
-  Category,
+  Categories,
 } from '../models';
 import {UsersRepository} from './users.repository';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
-import {CategoryRepository} from './category.repository';
+import {CategoriesRepository} from './categories.repository';
 
-export class DongRepository extends DefaultTransactionalRepository<
-  Dong,
-  typeof Dong.prototype.dongId,
-  DongRelations
+export class DongsRepository extends DefaultTransactionalRepository<
+  Dongs,
+  typeof Dongs.prototype.dongId,
+  DongsRelations
 > {
-  public readonly users: BelongsToAccessor<Users, typeof Dong.prototype.dongId>;
+  public readonly users: BelongsToAccessor<
+    Users,
+    typeof Dongs.prototype.dongId
+  >;
 
   public readonly billList: HasManyRepositoryFactory<
     BillList,
-    typeof Dong.prototype.dongId
+    typeof Dongs.prototype.dongId
   >;
 
   public readonly payerList: HasManyRepositoryFactory<
     PayerList,
-    typeof Dong.prototype.dongId
+    typeof Dongs.prototype.dongId
   >;
 
   public readonly categories: BelongsToAccessor<
-    Category,
-    typeof Dong.prototype.dongId
+    Categories,
+    typeof Dongs.prototype.dongId
   >;
 
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
-    @repository.getter('CategoryRepository')
-    protected categoryRepositoryGetter: Getter<CategoryRepository>,
+    @repository.getter('CategoriesRepository')
+    protected categoryRepositoryGetter: Getter<CategoriesRepository>,
     @repository.getter('BillListRepository')
     protected billListRepositoryGetter: Getter<BillListRepository>,
     @repository.getter('PayerListRepository')
     protected payerListRepositoryGetter: Getter<PayerListRepository>,
   ) {
-    super(Dong, dataSource);
+    super(Dongs, dataSource);
 
     this.categories = this.createBelongsToAccessorFor(
       'categories',

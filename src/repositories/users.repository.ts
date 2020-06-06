@@ -9,22 +9,24 @@ import {MysqlDataSource} from '../datasources';
 import {PasswordHasher} from '../services';
 import {
   VirtualUsersRepository,
-  DongRepository,
-  CategoryRepository,
+  DongsRepository,
+  CategoriesRepository,
   UsersRelsRepository,
 } from './';
 import {PasswordHasherBindings} from '../keys';
 import {
   Users,
   VirtualUsers,
-  Dong,
-  Category,
+  Dongs,
+  Categories,
   UsersRels,
   BillList,
   PayerList,
+  Scores,
 } from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
+import {ScoresRepository} from './scores.repository';
 
 export class UsersRepository extends DefaultTransactionalRepository<
   Users,
@@ -36,12 +38,12 @@ export class UsersRepository extends DefaultTransactionalRepository<
   >;
 
   public readonly dongs: HasManyRepositoryFactory<
-    Dong,
+    Dongs,
     typeof Users.prototype.userId
   >;
 
   public readonly categories: HasManyRepositoryFactory<
-    Category,
+    Categories,
     typeof Users.prototype.userId
   >;
 
@@ -60,14 +62,19 @@ export class UsersRepository extends DefaultTransactionalRepository<
     typeof Users.prototype.userId
   >;
 
+  public readonly scores: HasManyRepositoryFactory<
+    Scores,
+    typeof Users.prototype.userId
+  >;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
     protected virtualUsersRepositoryGetter: Getter<VirtualUsersRepository>,
-    @repository.getter('DongRepository')
-    protected dongRepositoryGetter: Getter<DongRepository>,
-    @repository.getter('CategoryRepository')
-    protected categoryRepositoryGetter: Getter<CategoryRepository>,
+    @repository.getter('DongsRepository')
+    protected dongsRepositoryGetter: Getter<DongsRepository>,
+    @repository.getter('CategoriesRepository')
+    protected categoryRepositoryGetter: Getter<CategoriesRepository>,
     @repository.getter('UsersRelsRepository')
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
@@ -76,8 +83,17 @@ export class UsersRepository extends DefaultTransactionalRepository<
     protected billListRepositoryGetter: Getter<BillListRepository>,
     @repository.getter('PayerListRepository')
     protected payerListRepositoryGetter: Getter<PayerListRepository>,
+    @repository.getter('ScoresRepository')
+    protected scoresRepositoryGetter: Getter<ScoresRepository>,
   ) {
     super(Users, dataSource);
+
+    this.scores = this.createHasManyRepositoryFactoryFor(
+      'scores',
+      scoresRepositoryGetter,
+    );
+    this.registerInclusionResolver('scores', this.scores.inclusionResolver);
+
     this.payerList = this.createHasManyRepositoryFactoryFor(
       'payerList',
       payerListRepositoryGetter,
@@ -114,7 +130,7 @@ export class UsersRepository extends DefaultTransactionalRepository<
 
     this.dongs = this.createHasManyRepositoryFactoryFor(
       'dongs',
-      dongRepositoryGetter,
+      dongsRepositoryGetter,
     );
     this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
 

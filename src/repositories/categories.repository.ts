@@ -7,8 +7,8 @@ import {
 import {inject, Getter} from '@loopback/core';
 
 import {
-  Category,
-  CategoryRelations,
+  Categories,
+  CategoriesRelations,
   Users,
   VirtualUsers,
   BillList,
@@ -19,24 +19,24 @@ import {UsersRepository} from './';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 
-export class CategoryRepository extends DefaultTransactionalRepository<
-  Category,
-  typeof Category.prototype.categoryId,
-  CategoryRelations
+export class CategoriesRepository extends DefaultTransactionalRepository<
+  Categories,
+  typeof Categories.prototype.categoryId,
+  CategoriesRelations
 > {
   public readonly users: BelongsToAccessor<
     Users | VirtualUsers,
-    typeof Category.prototype.categoryId
+    typeof Categories.prototype.categoryId
   >;
 
   public readonly billLists: HasManyRepositoryFactory<
     BillList,
-    typeof Category.prototype.categoryId
+    typeof Categories.prototype.categoryId
   >;
 
   public readonly payerLists: HasManyRepositoryFactory<
     PayerList,
-    typeof Category.prototype.categoryId
+    typeof Categories.prototype.categoryId
   >;
 
   constructor(
@@ -48,7 +48,7 @@ export class CategoryRepository extends DefaultTransactionalRepository<
     @repository.getter('PayerListRepository')
     protected payerListRepositoryGetter: Getter<PayerListRepository>,
   ) {
-    super(Category, dataSource);
+    super(Categories, dataSource);
 
     this.payerLists = this.createHasManyRepositoryFactoryFor(
       'payerLists',

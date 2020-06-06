@@ -9,7 +9,7 @@ import {
 } from '@loopback/context';
 import {repository} from '@loopback/repository';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {CategoryRepository} from '../repositories';
+import {CategoriesRepository} from '../repositories';
 import {HttpErrors} from '@loopback/rest';
 
 /**
@@ -21,7 +21,8 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidateCategoryIdInterceptor.name}`;
 
   constructor(
-    @repository(CategoryRepository) public categoryRepo: CategoryRepository,
+    @repository(CategoriesRepository)
+    public categoriesRepo: CategoriesRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
   ) {}
 
@@ -48,7 +49,7 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
       categoryId = invocationCtx.args[0].categoryId;
 
     if (invocationCtx.methodName === 'createDongs') {
-      const curretnUserFoundCategory = await this.categoryRepo.findOne({
+      const curretnUserFoundCategory = await this.categoriesRepo.findOne({
         where: {userId: userId, categoryId: categoryId},
       });
       // Validate categoryId

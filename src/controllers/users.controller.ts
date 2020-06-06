@@ -210,7 +210,7 @@ export class UsersController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Login user',
+        description: 'Some Users Properties',
         content: {
           'application/josn': {
             schema: getModelSchemaRef(Credentials),
@@ -245,6 +245,12 @@ export class UsersController {
     refreshToken: string;
   }> {
     const verifyId = Number(currentUserProfile[securityId]);
+
+    // Add token to bliacklist
+    await this.blacklistRepository.create({
+      token: this.ctx.request.headers['authorization']!.split(' ')[1],
+      createdAt: new Date(),
+    });
 
     try {
       const verify = await this.verifySerivce.verifyCredentials(
@@ -339,15 +345,21 @@ export class UsersController {
     newUser: NewUser,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
   ): Promise<{
-    id: string;
+    userId: typeof Users.prototype.userId;
     accessToken: string;
     refreshToken: string;
   }> {
     const verifyId = Number(currentUserProfile[securityId]),
-      credentials = Object.assign(new Credentials(), {
+      credentials: Credentials = new Credentials({
         phone: newUser.phone,
         password: newUser.password,
       });
+
+    // Add token to bliacklist
+    await this.blacklistRepository.create({
+      token: this.ctx.request.headers['authorization']!.split(' ')[1],
+      createdAt: new Date(),
+    });
 
     const verify = await this.verifySerivce.verifyCredentials(
       verifyId,
@@ -396,7 +408,7 @@ export class UsersController {
       await userRepoTx.commit();
 
       return {
-        id: savedUser.getId(),
+        userId: savedUser.getId(),
         accessToken: accessToken,
         refreshToken: savedUser.refreshToken,
       };
@@ -434,7 +446,7 @@ export class UsersController {
     // Blacklist the access token
     await this.blacklistRepository
       .create({
-        token: this.ctx.request.headers['authorization']?.split(' ')[1],
+        token: this.ctx.request.headers['authorization']!.split(' ')[1],
         createdAt: new Date(),
       })
       .catch((err) => {

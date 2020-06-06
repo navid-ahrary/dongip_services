@@ -13,13 +13,13 @@ import {authenticate} from '@loopback/authentication';
 import {inject, service, intercept} from '@loopback/core';
 import _ from 'underscore';
 
-import {Dong, PostNewDong} from '../models';
+import {Dongs, PostNewDong} from '../models';
 import {
   UsersRepository,
-  DongRepository,
+  DongsRepository,
   BillListRepository,
   PayerListRepository,
-  CategoryRepository,
+  CategoriesRepository,
   UsersRelsRepository,
 } from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
@@ -40,9 +40,9 @@ export class DongsController {
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(UsersRelsRepository)
     public usersRelsRepository: UsersRelsRepository,
-    @repository(CategoryRepository)
-    public categoryRepository: CategoryRepository,
-    @repository(DongRepository) public dongRepository: DongRepository,
+    @repository(DongsRepository) public dongRepository: DongsRepository,
+    @repository(CategoriesRepository)
+    public categoriesRepository: CategoriesRepository,
     @repository(PayerListRepository)
     public payerListRepository: PayerListRepository,
     @repository(BillListRepository)
@@ -53,7 +53,7 @@ export class DongsController {
   ) {}
 
   @get('/dongs', {
-    summary: 'Get array of all Dongs model instance',
+    summary: 'Get array of all Dongs',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -62,17 +62,17 @@ export class DongsController {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(Dong, {includeRelations: false}),
+              items: getModelSchemaRef(Dongs, {includeRelations: false}),
             },
           },
         },
       },
     },
   })
-  async findDongs(): Promise<Dong[]> {
+  async findDongs(): Promise<Dongs[]> {
     const userId = Number(this.currentUserProfile[securityId]);
 
-    const filter: Filter<Dong> = {
+    const filter: Filter<Dongs> = {
       order: ['createdAt DESC'],
       include: [{relation: 'payerList'}, {relation: 'billList'}],
     };
@@ -92,7 +92,7 @@ export class DongsController {
         description: 'Dongs model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Dong, {includeRelations: false}),
+            schema: getModelSchemaRef(Dongs, {includeRelations: false}),
           },
         },
       },
@@ -111,7 +111,7 @@ export class DongsController {
       },
     })
     newDong: Omit<PostNewDong, 'id'>,
-  ): Promise<Dong> {
+  ): Promise<Dongs> {
     const userId = Number(this.currentUserProfile[securityId]);
 
     if (newDong.userId) {
@@ -147,10 +147,10 @@ export class DongsController {
       where: {and: [{userRelId: payerList[0].userRelId}, {userId: userId}]},
     });
 
-    if (userRel?.type === 'self') currentUserIsPayer = true;
+    if (userRel && userRel.type === 'self') currentUserIsPayer = true;
 
     // Create a Dongs entity
-    const dong: Dong = new Dong(
+    const dong: Dongs = new Dongs(
       _.pick(newDong, ['title', 'createdAt', 'categoryId', 'desc', 'pong']),
     );
 
@@ -200,7 +200,7 @@ export class DongsController {
       );
 
       if (currentUserIsPayer) {
-        const currentUserCategory = await this.categoryRepository.findById(
+        const currentUserCategory = await this.categoriesRepository.findById(
           newDong.categoryId,
           {fields: {title: true}},
         );

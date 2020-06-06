@@ -8,12 +8,12 @@ import {
 } from '@loopback/repository';
 
 import {Users} from './users.model';
-import {Category} from './category.model';
+import {Categories} from './categories.model';
 import {PayerList} from './payer-list.model';
 import {BillList} from './bill-list.model';
 
 @model()
-export class Dong extends Entity {
+export class Dongs extends Entity {
   @property({
     type: 'number',
     id: true,
@@ -51,7 +51,7 @@ export class Dong extends Entity {
       keyFrom: 'userId',
       keyTo: 'userId',
       source: Users,
-      target: () => Dong,
+      target: () => Dongs,
       type: RelationType.belongsTo,
     },
     {type: 'number', required: true},
@@ -62,7 +62,7 @@ export class Dong extends Entity {
     name: 'billList',
     keyFrom: 'dongId',
     keyTo: 'dongId',
-    source: Dong,
+    source: Dongs,
     target: () => BillList,
     type: RelationType.hasMany,
     targetsMany: true,
@@ -73,7 +73,7 @@ export class Dong extends Entity {
     name: 'payerList',
     keyFrom: 'dongId',
     keyTo: 'dongId',
-    source: Dong,
+    source: Dongs,
     target: () => PayerList,
     type: RelationType.hasMany,
     targetsMany: true,
@@ -81,24 +81,24 @@ export class Dong extends Entity {
   payerList: PayerList[];
 
   @belongsTo(
-    () => Category,
+    () => Categories,
     {
       name: 'categories',
       keyFrom: 'categoryId',
       keyTo: 'categoryId',
-      source: Category,
-      target: () => Dong,
+      source: Categories,
+      target: () => Dongs,
       type: RelationType.belongsTo,
     },
     {type: 'number', required: true},
   )
   categoryId: number;
 
-  constructor(data?: Partial<Dong>) {
+  constructor(data?: Partial<Dongs>) {
     super(data);
   }
 }
 
-export interface DongRelations {}
+export interface DongsRelations {}
 
-export type DongWithRelations = Dong & DongRelations;
+export type DongsWithRelations = Dongs & DongsRelations;

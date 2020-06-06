@@ -12,7 +12,7 @@ import {BillList} from './bill-list.model';
 import {PayerList} from './payer-list.model';
 
 @model()
-export class Category extends Entity {
+export class Categories extends Entity {
   @property({
     type: 'number',
     id: true,
@@ -40,7 +40,7 @@ export class Category extends Entity {
       keyFrom: 'userId',
       keyTo: 'userId',
       source: Users,
-      target: () => Category,
+      target: () => Categories,
     },
     {
       type: 'number',
@@ -54,7 +54,7 @@ export class Category extends Entity {
     keyFrom: 'categoryId',
     keyTo: 'categoryId',
     type: RelationType.hasMany,
-    source: Category,
+    source: Categories,
     target: () => BillList,
     targetsMany: true,
   })
@@ -65,17 +65,17 @@ export class Category extends Entity {
     keyFrom: 'categoryId',
     keyTo: 'categoryId',
     type: RelationType.hasMany,
-    source: Category,
+    source: Categories,
     target: () => PayerList,
     targetsMany: true,
   })
   payerList: PayerList[];
 
-  constructor(data?: Partial<Category>) {
+  constructor(data?: Partial<Categories>) {
     super(data);
   }
 }
 
-export interface CategoryRelations {}
+export interface CategoriesRelations {}
 
-export type CategoryWithRelations = Category & CategoryRelations;
+export type CategoriesWithRelations = Categories & CategoriesRelations;
