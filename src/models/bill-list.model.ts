@@ -30,7 +30,7 @@ export class BillList extends Entity {
     type: 'date',
     required: true,
   })
-  createdAt: Date;
+  createdAt: string;
 
   @belongsTo(
     () => UsersRels,

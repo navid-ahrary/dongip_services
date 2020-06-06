@@ -250,7 +250,7 @@ export class UsersController {
     // Add token to bliacklist
     await this.blacklistRepository.create({
       token: this.ctx.request.headers['authorization']!.split(' ')[1],
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     });
 
     try {
@@ -360,7 +360,7 @@ export class UsersController {
     // Add token to bliacklist
     await this.blacklistRepository.create({
       token: this.ctx.request.headers['authorization']!.split(' ')[1],
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     });
 
     const verify = await this.verifySerivce.verifyCredentials(
@@ -449,7 +449,7 @@ export class UsersController {
     await this.blacklistRepository
       .create({
         token: this.ctx.request.headers['authorization']!.split(' ')[1],
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
       })
       .catch((err) => {
         throw new HttpErrors.NotImplemented(`Error logout: ${err.message}`);

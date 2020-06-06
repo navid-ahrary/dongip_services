@@ -84,7 +84,7 @@ export class UsersRelsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
-            exclude: ['userRelId', 'userId', 'type'],
+            exclude: ['userRelId', 'userId', 'type', 'createdAt'],
           }),
           example: {
             phone: '+989122222222',
@@ -102,6 +102,7 @@ export class UsersRelsController {
         avatar: userRelReqBody.avatar,
         type: 'virtual',
         phone: userRelReqBody.phone,
+        createdAt: new Date().toISOString(),
       });
 
     // Check phone number is not user's
@@ -142,9 +143,11 @@ export class UsersRelsController {
       });
 
     // Create a VirtualUser belongs to current user
-    await this.usersRepository
-      .virtualUsers(userId)
-      .create({phone: userRelReqBody.phone, userRelId: createdUserRel.getId()});
+    await this.usersRepository.virtualUsers(userId).create({
+      phone: userRelReqBody.phone,
+      userRelId: createdUserRel.getId(),
+      createdAt: new Date().toISOString(),
+    });
 
     return createdUserRel;
   }
@@ -166,7 +169,7 @@ export class UsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             partial: true,
-            exclude: ['userId', 'type'],
+            exclude: ['userId', 'type', 'createdAt'],
           }),
           examples: {
             someProps: {

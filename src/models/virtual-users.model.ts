@@ -27,9 +27,9 @@ export class VirtualUsers extends Entity {
 
   @property({
     type: 'date',
-    required: false,
+    required: true,
   })
-  createdAt: Date;
+  createdAt: string;
 
   @belongsTo(
     () => Users,
