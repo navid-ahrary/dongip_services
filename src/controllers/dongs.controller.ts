@@ -52,6 +52,10 @@ export class DongsController {
     private currentUserProfile: UserProfile,
   ) {}
 
+  public numberWithCommas(x: string): string {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
   @get('/dongs', {
     summary: 'Get array of all Dongs',
     security: OPERATION_SECURITY_SPEC,
@@ -217,7 +221,7 @@ export class DongsController {
 
               if (foundMutualUsersRels) {
                 // Get dong amount
-                const dongAmount = _.find(billList, {
+                const dongAmount: string = _.find(billList, {
                   userRelId: relation.getId(),
                 })
                   ? _.find(billList, {
@@ -225,15 +229,18 @@ export class DongsController {
                     })!.dongAmount.toString()
                   : '0';
 
+                // Seperate thousands with "," for use in notification body
+                const notifyBodyDongAmount = this.numberWithCommas(dongAmount);
                 // Generate notification messages
                 firebaseMessagesList.push({
                   token: user.firebaseToken,
                   notification: {
                     title: 'دنگیپ شدی',
-                    body: foundMutualUsersRels.name,
+                    body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount}`,
                   },
                   data: {
                     desc: createdDong.desc ? createdDong.desc : '',
+                    type: 'dong',
                     categoryTitle: currentUserCategory.title,
                     createdAt: newDong.createdAt,
                     userRelId: foundMutualUsersRels.getId().toString(),

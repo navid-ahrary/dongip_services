@@ -23,9 +23,9 @@ export interface FirebaseService {
     message: messaging.MulticastMessage,
     dryRun?: boolean,
   ): void;
-  sendAllMessage(
-    messages: Array<messaging.Message>,
-  ): Promise<messaging.BatchResponse>;
+  // sendAllMessage(
+  //   messages: Array<messaging.Message>,
+  // ): Promise<messaging.BatchResponse>;
 }
 
 @bind({scope: BindingScope.SINGLETON})
