@@ -9,9 +9,10 @@ import {
 import {BillList} from './bill-list.model';
 import {PayerList} from './payer-list.model';
 import {VirtualUsers} from './virtual-users.model';
-import {Dong} from './dong.model';
-import {Category} from './category.model';
+import {Dongs} from './dongs.model';
+import {Categories} from './categories.model';
 import {UsersRels} from './users-rels.model';
+import {Scores} from './scores.model';
 
 @model()
 export class Users extends Entity {
@@ -86,27 +87,27 @@ export class Users extends Entity {
   })
   virtualUsers: VirtualUsers[];
 
-  @hasMany(() => Dong, {
+  @hasMany(() => Dongs, {
     name: 'dongs',
     keyTo: 'userId',
     keyFrom: 'userId',
     type: RelationType.hasMany,
     source: Users,
-    target: () => Dong,
+    target: () => Dongs,
     targetsMany: true,
   })
-  dongs: Dong[];
+  dongs: Dongs[];
 
-  @hasMany(() => Category, {
+  @hasMany(() => Categories, {
     name: 'categories',
     keyTo: 'userId',
     keyFrom: 'userId',
     type: RelationType.hasMany,
     source: Users,
-    target: () => Category,
+    target: () => Categories,
     targetsMany: true,
   })
-  categories: Category[];
+  categories: Categories[];
 
   @hasMany(() => UsersRels, {
     name: 'usersRels',
@@ -140,6 +141,17 @@ export class Users extends Entity {
     targetsMany: true,
   })
   payerList: PayerList[];
+
+  @hasMany(() => Scores, {
+    type: RelationType.hasMany,
+    keyTo: 'userId',
+    keyFrom: 'userId',
+    name: 'scores',
+    source: Users,
+    target: () => Scores,
+    targetsMany: true,
+  })
+  scores: Scores[];
 
   constructor(data?: Partial<Users>) {
     super(data);

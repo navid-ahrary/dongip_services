@@ -4,18 +4,18 @@ import {
   DefaultTransactionalRepository,
 } from '@loopback/repository';
 import {
-  Dong,
+  Dongs,
   UsersRels,
   BillList,
   BillListRelations,
-  Category,
+  Categories,
   Users,
 } from '../models';
 import {MysqlDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
-import {DongRepository} from './dong.repository';
+import {DongsRepository} from './dongs.repository';
 import {UsersRelsRepository} from './users-rels.repository';
-import {CategoryRepository} from './category.repository';
+import {CategoriesRepository} from './categories.repository';
 import {UsersRepository} from './users.repository';
 
 export class BillListRepository extends DefaultTransactionalRepository<
@@ -24,7 +24,7 @@ export class BillListRepository extends DefaultTransactionalRepository<
   BillListRelations
 > {
   public readonly dongs: BelongsToAccessor<
-    Dong,
+    Dongs,
     typeof BillList.prototype.billListId
   >;
 
@@ -34,7 +34,7 @@ export class BillListRepository extends DefaultTransactionalRepository<
   >;
 
   public readonly categories: BelongsToAccessor<
-    Category,
+    Categories,
     typeof BillList.prototype.billListId
   >;
 
@@ -45,12 +45,12 @@ export class BillListRepository extends DefaultTransactionalRepository<
 
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
-    @repository.getter('DongRepository')
-    protected dongRepositoryGetter: Getter<DongRepository>,
+    @repository.getter('DongsRepository')
+    protected dongsRepositoryGetter: Getter<DongsRepository>,
     @repository.getter('UsersRelsRepository')
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
-    @repository.getter('CategoryRepository')
-    protected categoryRepositoryGetter: Getter<CategoryRepository>,
+    @repository.getter('CategoriesRepository')
+    protected categoryRepositoryGetter: Getter<CategoriesRepository>,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
@@ -77,7 +77,10 @@ export class BillListRepository extends DefaultTransactionalRepository<
     );
     this.registerInclusionResolver('userRels', this.userRels.inclusionResolver);
 
-    this.dongs = this.createBelongsToAccessorFor('dongs', dongRepositoryGetter);
+    this.dongs = this.createBelongsToAccessorFor(
+      'dongs',
+      dongsRepositoryGetter,
+    );
     this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
   }
 }

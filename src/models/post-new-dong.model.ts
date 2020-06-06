@@ -1,5 +1,5 @@
 import {model, property, Model} from '@loopback/repository';
-import {Category} from './category.model';
+import {Categories} from './categories.model';
 import {UsersRels} from './users-rels.model';
 
 @model()
@@ -36,7 +36,7 @@ export class PostNewDong extends Model {
   @property({
     type: 'number',
   })
-  categoryId: typeof Category.prototype.categoryId;
+  categoryId: typeof Categories.prototype.categoryId;
 
   @property({
     type: 'array',

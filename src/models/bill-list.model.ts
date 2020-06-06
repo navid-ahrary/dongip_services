@@ -5,9 +5,9 @@ import {
   belongsTo,
   RelationType,
 } from '@loopback/repository';
-import {Dong} from './dong.model';
+import {Dongs} from './dongs.model';
 import {UsersRels} from './users-rels.model';
-import {Category} from './category.model';
+import {Categories} from './categories.model';
 import {Users} from './users.model';
 
 @model()
@@ -47,13 +47,13 @@ export class BillList extends Entity {
   userRelId: number;
 
   @belongsTo(
-    () => Dong,
+    () => Dongs,
     {
       name: 'dongs',
       keyFrom: 'dongId',
       keyTo: 'dongId',
       type: RelationType.belongsTo,
-      source: Dong,
+      source: Dongs,
       target: () => BillList,
     },
     {type: 'number', required: true},
@@ -61,13 +61,13 @@ export class BillList extends Entity {
   dongId: number;
 
   @belongsTo(
-    () => Category,
+    () => Categories,
     {
       name: 'categories',
       keyFrom: 'categoryId',
       keyTo: 'categoryId',
       type: RelationType.belongsTo,
-      source: Category,
+      source: Categories,
       target: () => BillList,
     },
     {type: 'number', required: true},

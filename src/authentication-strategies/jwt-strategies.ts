@@ -123,9 +123,6 @@ export class JWTVerifyAutehticationStrategy implements AuthenticationStrategy {
       throw new HttpErrors.Unauthorized('Verify token is not provided!');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.blacklistRepo.create({token: token});
-
     return userProfile;
   }
 
