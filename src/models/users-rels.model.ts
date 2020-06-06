@@ -20,12 +20,6 @@ export class UsersRels extends Entity {
   })
   userRelId: number;
 
-  @property({
-    type: 'date',
-    required: true,
-  })
-  createdAt: string;
-
   @belongsTo(
     () => Users,
     {

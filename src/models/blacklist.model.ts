@@ -13,7 +13,7 @@ export class Blacklist extends Entity {
     type: 'date',
     required: true,
   })
-  createdAt: string;
+  createdAt: Date;
 
   constructor(data?: Partial<Blacklist>) {
     super(data);

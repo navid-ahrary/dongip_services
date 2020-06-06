@@ -25,7 +25,7 @@ export class PostNewDong extends Model {
     type: 'date',
     required: true,
   })
-  createdAt: string;
+  createdAt: Date;
 
   @property({
     type: 'number',

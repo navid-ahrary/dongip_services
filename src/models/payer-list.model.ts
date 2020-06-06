@@ -29,7 +29,7 @@ export class PayerList extends Entity {
     type: 'date',
     required: true,
   })
-  createdAt: string;
+  createdAt: Date;
 
   @belongsTo(
     () => Dongs,
