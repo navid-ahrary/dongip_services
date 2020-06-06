@@ -447,7 +447,6 @@ export class UsersController {
     await this.blacklistRepository
       .create({
         token: this.ctx.request.headers['authorization']!.split(' ')[1],
-        createdAt: new Date().toISOString(),
       })
       .catch((err) => {
         throw new HttpErrors.NotImplemented(`Error logout: ${err.message}`);
