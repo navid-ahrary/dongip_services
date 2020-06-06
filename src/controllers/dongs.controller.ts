@@ -25,10 +25,7 @@ import {
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {PostNewDongExample} from './specs';
 import {FirebaseService, BatchMessage} from '../services';
-import {
-  ValidateCategoryIdInterceptor,
-  ValidateUsersRelsIdsInterceptor,
-} from '../interceptors';
+import {ValidateCategoryIdInterceptor} from '../interceptors';
 
 @api({
   basePath: '/api/',
@@ -52,8 +49,8 @@ export class DongsController {
     private currentUserProfile: UserProfile,
   ) {}
 
-  public numberWithCommas(x: number): number {
-    return Number(x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+  public numberWithCommas(x: string): string {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
   @get('/dongs', {
@@ -84,10 +81,7 @@ export class DongsController {
     return this.usersRepository.dongs(userId).find(filter);
   }
 
-  @intercept(
-    ValidateCategoryIdInterceptor.BINDING_KEY,
-    ValidateUsersRelsIdsInterceptor.BINDING_KEY,
-  )
+  @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
   @post('/dongs', {
     summary: 'Create a new Dongs model instance',
     security: OPERATION_SECURITY_SPEC,
@@ -136,10 +130,25 @@ export class DongsController {
       currentUserIsPayer: Boolean = false,
       firebaseMessagesList: BatchMessage = [];
 
-    // Must get from validate userrels interceptor
-    const currentUserFoundUsersRelsList = await this.usersRepository
-      .usersRels(userId)
-      .find({where: {or: allUsersRelsIdList}});
+    payerList.forEach((item) => {
+      if (_.findIndex(allUsersRelsIdList, {userRelId: item.userRelId}) === -1) {
+        allUsersRelsIdList.push({userRelId: item.userRelId});
+      }
+    });
+
+    billList.forEach((item) => {
+      if (_.findIndex(allUsersRelsIdList, {userRelId: item.userRelId}) === -1) {
+        allUsersRelsIdList.push({userRelId: item.userRelId});
+      }
+    });
+
+    // Validate userRelIds in billList and payerList
+    const currentUserFoundUsersRelsList = await this.usersRelsRepository.find({
+      where: {or: allUsersRelsIdList, and: [{userId: userId}]},
+    });
+    if (currentUserFoundUsersRelsList.length !== allUsersRelsIdList.length) {
+      throw new HttpErrors.NotFound('بعضی از دوستی ها معتبر نیستن!');
+    }
 
     const userRel = await this.usersRelsRepository.findOne({
       where: {and: [{userRelId: payerList[0].userRelId}, {userId: userId}]},
@@ -230,9 +239,8 @@ export class DongsController {
                   : '0';
 
                 // Seperate thousands with "," for use in notification body
-                const notifyBodyDongAmount = this.numberWithCommas(
-                  Number(dongAmount),
-                );
+                const notifyBodyDongAmount = this.numberWithCommas(dongAmount);
+
                 // Generate notification messages
                 firebaseMessagesList.push({
                   token: user.firebaseToken,
