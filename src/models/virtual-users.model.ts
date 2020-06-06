@@ -29,7 +29,7 @@ export class VirtualUsers extends Entity {
     type: 'date',
     required: false,
   })
-  createdAt: string;
+  createdAt: string = new Date().toISOString();
 
   @belongsTo(
     () => Users,
