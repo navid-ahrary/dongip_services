@@ -49,7 +49,7 @@ export class Users extends Entity {
     type: 'date',
     required: true,
   })
-  registeredAt: Date;
+  registeredAt: string;
 
   @property({
     type: 'string',

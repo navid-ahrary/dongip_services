@@ -11,9 +11,9 @@ export class Blacklist extends Entity {
 
   @property({
     type: 'date',
-    required: true,
+    required: false,
   })
-  createdAt: Date;
+  createdAt: string = new Date().toISOString();
 
   constructor(data?: Partial<Blacklist>) {
     super(data);

@@ -172,7 +172,7 @@ export class UsersController {
         registered: user ? true : false,
         firebaseToken: verifyReqBody.firebaseToken,
         userAgent: userAgent,
-        issuedAt: new Date(),
+        issuedAt: new Date().toISOString(),
       })
       .catch((err) => {
         throw new HttpErrors.NotAcceptable(err.message);
@@ -250,7 +250,6 @@ export class UsersController {
     // Add token to bliacklist
     await this.blacklistRepository.create({
       token: this.ctx.request.headers['authorization']!.split(' ')[1],
-      createdAt: new Date(),
     });
 
     try {
@@ -360,7 +359,6 @@ export class UsersController {
     // Add token to bliacklist
     await this.blacklistRepository.create({
       token: this.ctx.request.headers['authorization']!.split(' ')[1],
-      createdAt: new Date(),
     });
 
     const verify = await this.verifySerivce.verifyCredentials(
@@ -449,7 +447,7 @@ export class UsersController {
     await this.blacklistRepository
       .create({
         token: this.ctx.request.headers['authorization']!.split(' ')[1],
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
       })
       .catch((err) => {
         throw new HttpErrors.NotImplemented(`Error logout: ${err.message}`);

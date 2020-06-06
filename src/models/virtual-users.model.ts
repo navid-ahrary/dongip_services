@@ -29,7 +29,7 @@ export class VirtualUsers extends Entity {
     type: 'date',
     required: false,
   })
-  createdAt: Date;
+  createdAt: string;
 
   @belongsTo(
     () => Users,
