@@ -36,7 +36,7 @@ export class Dongs extends Entity {
     type: 'date',
     required: true,
   })
-  createdAt: object;
+  createdAt: string;
 
   @property({
     type: 'number',

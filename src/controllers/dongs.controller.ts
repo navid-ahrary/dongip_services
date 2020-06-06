@@ -235,7 +235,7 @@ export class DongsController {
                   data: {
                     desc: createdDong.desc ? createdDong.desc : '',
                     categoryTitle: currentUserCategory.title,
-                    createdAt: createdDong.createdAt.toString(),
+                    createdAt: newDong.createdAt,
                     userRelId: foundMutualUsersRels.getId().toString(),
                     dongAmount: dongAmount,
                   },
