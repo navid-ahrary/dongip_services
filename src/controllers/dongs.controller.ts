@@ -52,8 +52,8 @@ export class DongsController {
     private currentUserProfile: UserProfile,
   ) {}
 
-  public numberWithCommas(x: string): string {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  public numberWithCommas(x: number): number {
+    return Number(x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
   }
 
   @get('/dongs', {
@@ -230,13 +230,15 @@ export class DongsController {
                   : '0';
 
                 // Seperate thousands with "," for use in notification body
-                const notifyBodyDongAmount = this.numberWithCommas(dongAmount);
+                const notifyBodyDongAmount = this.numberWithCommas(
+                  Number(dongAmount),
+                );
                 // Generate notification messages
                 firebaseMessagesList.push({
                   token: user.firebaseToken,
                   notification: {
                     title: 'دنگیپ شدی',
-                    body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount}`,
+                    body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
                   },
                   data: {
                     desc: createdDong.desc ? createdDong.desc : '',
