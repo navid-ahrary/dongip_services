@@ -252,15 +252,15 @@ export class DongsController {
         }
       }
 
-      dong.billList = createdBillList;
-      dong.payerList = createdPayerList;
+      createdDong.billList = createdBillList;
+      createdDong.payerList = createdPayerList;
 
       // Commit trasactions
       await dongRepoTx.commit();
       await payerRepoTx.commit();
       await billRepoTx.commit();
 
-      return dong;
+      return createdDong;
     } catch (err) {
       // Rollback transactions
       await dongRepoTx.rollback();
