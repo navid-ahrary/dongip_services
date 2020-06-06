@@ -46,6 +46,7 @@ import {
   VerifyService,
 } from '../services';
 import {ValidatePhoneNumInterceptor} from '../interceptors';
+import {InitCategoriesInterceptor} from '../interceptors/init-categories.interceptor';
 
 @model()
 export class NewUser extends Users {
@@ -313,6 +314,7 @@ export class UsersController {
       },
     },
   })
+  @intercept(InitCategoriesInterceptor.BINDING_KEY)
   @authenticate('jwt.verify')
   async signup(
     @requestBody({
