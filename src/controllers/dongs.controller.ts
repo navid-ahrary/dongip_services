@@ -244,17 +244,24 @@ export class DongsController {
                 // Generate notification messages
                 firebaseMessagesList.push({
                   token: user.firebaseToken,
-                  notification: {
-                    title: 'دنگیپ شدی',
-                    body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
-                  },
-                  data: {
-                    desc: createdDong.desc ? createdDong.desc : '',
-                    type: 'dong',
-                    categoryTitle: currentUserCategory.title,
-                    createdAt: newDong.createdAt,
-                    userRelId: foundMutualUsersRels.getId().toString(),
-                    dongAmount: dongAmount,
+                  // notification: {
+                  //   title: 'دنگیپ شدی',
+                  //   body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
+                  // },
+                  android: {
+                    notification: {
+                      title: 'دنگیپ شدی',
+                      body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
+                      clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+                    },
+                    data: {
+                      desc: createdDong.desc ? createdDong.desc : '',
+                      type: 'dong',
+                      categoryTitle: currentUserCategory.title,
+                      createdAt: newDong.createdAt,
+                      userRelId: foundMutualUsersRels.getId().toString(),
+                      dongAmount: dongAmount,
+                    },
                   },
                 });
               }
