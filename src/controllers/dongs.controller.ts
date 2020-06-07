@@ -257,6 +257,8 @@ export class DongsController {
                       clickAction: 'FLUTTER_NOTIFICATION_CLICK',
                     },
                     data: {
+                      title: 'دنگیپ شدی',
+                      body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
                       desc: createdDong.desc ? createdDong.desc : '',
                       type: 'dong',
                       categoryTitle: currentUserCategory.title,
