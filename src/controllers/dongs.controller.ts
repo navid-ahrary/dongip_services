@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable prefer-const */
 import {Filter, repository, IsolationLevel} from '@loopback/repository';
 import {
@@ -249,12 +251,15 @@ export class DongsController {
                     body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
                   },
                   data: {
+                    title: 'دنگیپ شدی',
+                    body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
                     desc: createdDong.desc ? createdDong.desc : '',
                     type: 'dong',
                     categoryTitle: currentUserCategory.title,
                     createdAt: newDong.createdAt,
                     userRelId: foundMutualUsersRels.getId().toString(),
                     dongAmount: dongAmount,
+                    click_action: 'FLUTTER_NOTIFICATION_CLICK',
                   },
                 });
               }
