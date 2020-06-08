@@ -1,5 +1,11 @@
 /* eslint-disable prefer-const */
-import {Filter, repository, IsolationLevel} from '@loopback/repository';
+import {
+  Filter,
+  repository,
+  IsolationLevel,
+  property,
+  model,
+} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -26,6 +32,12 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {PostNewDongExample} from './specs';
 import {FirebaseService, BatchMessage} from '../services';
 import {ValidateCategoryIdInterceptor} from '../interceptors';
+
+@model()
+class ResponseNewDong extends Dongs {
+  @property({type: 'number', required: true})
+  score: number;
+}
 
 @api({
   basePath: '/api/',
@@ -90,7 +102,9 @@ export class DongsController {
         description: 'Dongs model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Dongs, {includeRelations: false}),
+            schema: getModelSchemaRef(ResponseNewDong, {
+              includeRelations: false,
+            }),
           },
         },
       },
@@ -109,8 +123,11 @@ export class DongsController {
       },
     })
     newDong: Omit<PostNewDong, 'id'>,
-  ): Promise<Dongs> {
+  ): Promise<ResponseNewDong> {
     const userId = Number(this.currentUserProfile[securityId]);
+    const newDongScore = 50;
+    const mutualFriendScore = 20;
+    let mutualFactor = 0;
 
     if (newDong.userId) {
       if (newDong.userId !== userId) {
@@ -162,7 +179,7 @@ export class DongsController {
     );
 
     // Begin transactions
-    const dongRepoTx = await this.usersRepository.beginTransaction(
+    const usersRepoTx = await this.usersRepository.beginTransaction(
       IsolationLevel.READ_COMMITTED,
     );
     const payerRepoTx = await this.payerListRepository.beginTransaction(
@@ -175,7 +192,7 @@ export class DongsController {
     try {
       const createdDong = await this.usersRepository
         .dongs(userId)
-        .create(dong, {transaction: dongRepoTx});
+        .create(dong, {transaction: usersRepoTx});
 
       payerList.forEach((item) => {
         item = Object.assign(item, {
@@ -229,6 +246,8 @@ export class DongsController {
               );
 
               if (foundMutualUsersRels) {
+                // Increament scoreFactor for every mutual friend dong contribution
+                mutualFactor++;
                 // Get dong amount
                 const dongAmount: string = _.find(billList, {
                   userRelId: relation.getId(),
@@ -276,18 +295,29 @@ export class DongsController {
         }
       }
 
+      const createdScore = await this.usersRepository.scores(userId).create({
+        createdAt: newDong.createdAt,
+        score: newDongScore + mutualFactor * mutualFriendScore,
+        desc: `dong-${createdDong.getId()}`,
+      });
+
       createdDong.billList = createdBillList;
       createdDong.payerList = createdPayerList;
 
       // Commit trasactions
-      await dongRepoTx.commit();
+      await usersRepoTx.commit();
       await payerRepoTx.commit();
       await billRepoTx.commit();
 
-      return createdDong;
+      const response: ResponseNewDong = Object({
+        ...createdDong,
+        score: createdScore.score,
+      });
+
+      return response;
     } catch (err) {
       // Rollback transactions
-      await dongRepoTx.rollback();
+      await usersRepoTx.rollback();
       await payerRepoTx.rollback();
       await billRepoTx.rollback();
 
