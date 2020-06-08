@@ -34,6 +34,12 @@ export class PostNewDong extends Model {
   pong: number;
 
   @property({
+    type: 'boolean',
+    required: true,
+  })
+  sendNotify: boolean;
+
+  @property({
     type: 'number',
   })
   categoryId: typeof Categories.prototype.categoryId;

@@ -4,6 +4,7 @@ export const PostNewDongExample = {
   createdAt: '2020-06-06T06:14:35.977Z',
   categoryId: 1,
   pong: 80000,
+  sendNotify: true,
   payerList: [{userRelId: 1, paidAmount: 80000}],
   billList: [
     {userRelId: 1, dongAmount: 20000},

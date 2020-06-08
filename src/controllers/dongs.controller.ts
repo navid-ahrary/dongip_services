@@ -110,7 +110,7 @@ export class DongsController {
         },
       },
     })
-    newDong: Omit<PostNewDong, 'id'>,
+    newDong: PostNewDong,
   ): Promise<Dongs> {
     const userId = Number(this.currentUserProfile[securityId]);
 
@@ -208,7 +208,7 @@ export class DongsController {
         {transaction: billRepoTx},
       );
 
-      if (currentUserIsPayer) {
+      if (currentUserIsPayer && newDong.sendNotify) {
         const currentUserCategory = await this.categoriesRepository.findById(
           newDong.categoryId,
           {fields: {title: true}},
@@ -246,10 +246,7 @@ export class DongsController {
                 // Generate notification messages
                 firebaseMessagesList.push({
                   token: user.firebaseToken,
-                  // notification: {
-                  //   title: 'دنگیپ شدی',
-                  //   body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
-                  // },
+                  // Android push notification messages
                   android: {
                     notification: {
                       title: 'دنگیپ شدی',
@@ -267,6 +264,8 @@ export class DongsController {
                       dongAmount: dongAmount,
                     },
                   },
+                  // iOS push notification messages
+                  // apns: {},
                 });
               }
             }
@@ -278,6 +277,7 @@ export class DongsController {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           this.firebaseSerice.sendAllMessage(firebaseMessagesList);
         }
+        // console.log(firebaseMessagesList);
       }
 
       createdDong.billList = createdBillList;
@@ -295,7 +295,7 @@ export class DongsController {
       await payerRepoTx.rollback();
       await billRepoTx.rollback();
 
-      throw new HttpErrors.NotImplemented(err.message);
+      throw new HttpErrors.UnprocessableEntity(err);
     }
   }
 }

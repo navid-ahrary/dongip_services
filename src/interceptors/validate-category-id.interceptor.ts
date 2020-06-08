@@ -54,7 +54,7 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
       });
       // Validate categoryId
       if (!curretnUserFoundCategory) {
-        throw new HttpErrors.NotFound('این دسته بندی موجود نیس!');
+        throw new HttpErrors.NotFound('این دسته بندی معتبر نیس!');
       }
     }
 
