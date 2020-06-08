@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable prefer-const */
-import {Filter, repository, IsolationLevel} from '@loopback/repository';
+import {
+  Filter,
+  repository,
+  IsolationLevel,
+  property,
+  model,
+} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -28,6 +34,12 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {PostNewDongExample} from './specs';
 import {FirebaseService, BatchMessage} from '../services';
 import {ValidateCategoryIdInterceptor} from '../interceptors';
+
+@model()
+class ResponseNewDong extends Dongs {
+  @property({type: 'number', required: true})
+  score: number;
+}
 
 @api({
   basePath: '/api/',
@@ -92,7 +104,9 @@ export class DongsController {
         description: 'Dongs model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Dongs, {includeRelations: false}),
+            schema: getModelSchemaRef(ResponseNewDong, {
+              includeRelations: false,
+            }),
           },
         },
       },
@@ -110,9 +124,12 @@ export class DongsController {
         },
       },
     })
-    newDong: PostNewDong,
-  ): Promise<Dongs> {
+    newDong: Omit<PostNewDong, 'id'>,
+  ): Promise<ResponseNewDong> {
     const userId = Number(this.currentUserProfile[securityId]);
+    const newDongScore = 50;
+    const mutualFriendScore = 20;
+    let mutualFactor = 0;
 
     if (newDong.userId) {
       if (newDong.userId !== userId) {
@@ -121,14 +138,14 @@ export class DongsController {
     }
     // Current user
     const currentUser = await this.usersRepository.findOne({
-      where: {userId: userId},
-      fields: {userId: true, phone: true, name: true},
-    }),
+        where: {userId: userId},
+        fields: {userId: true, phone: true, name: true},
+      }),
       currentUserPhone = currentUser!.phone;
 
     let billList = newDong.billList,
       payerList = newDong.payerList,
-      allUsersRelsIdList: {userRelId: number;}[] = [],
+      allUsersRelsIdList: {userRelId: number}[] = [],
       currentUserIsPayer: Boolean = false,
       firebaseMessagesList: BatchMessage = [];
 
@@ -164,7 +181,7 @@ export class DongsController {
     );
 
     // Begin transactions
-    const dongRepoTx = await this.usersRepository.beginTransaction(
+    const usersRepoTx = await this.usersRepository.beginTransaction(
       IsolationLevel.READ_COMMITTED,
     );
     const payerRepoTx = await this.payerListRepository.beginTransaction(
@@ -177,7 +194,7 @@ export class DongsController {
     try {
       const createdDong = await this.usersRepository
         .dongs(userId)
-        .create(dong, {transaction: dongRepoTx});
+        .create(dong, {transaction: usersRepoTx});
 
       payerList.forEach((item) => {
         item = Object.assign(item, {
@@ -232,13 +249,15 @@ export class DongsController {
               );
 
               if (foundMutualUsersRels) {
+                // Increament scoreFactor for every mutual friend dong contribution
+                mutualFactor++;
                 // Get dong amount
                 const dongAmount: string = _.find(billList, {
                   userRelId: relation.getId(),
                 })
                   ? _.find(billList, {
-                    userRelId: relation.getId(),
-                  })!.dongAmount.toString()
+                      userRelId: relation.getId(),
+                    })!.dongAmount.toString()
                   : '0';
 
                 // Seperate thousands with "," for use in notification body
@@ -281,18 +300,29 @@ export class DongsController {
         // console.log(firebaseMessagesList);
       }
 
+      const createdScore = await this.usersRepository.scores(userId).create({
+        createdAt: newDong.createdAt,
+        score: newDongScore + mutualFactor * mutualFriendScore,
+        desc: `dong-${createdDong.getId()}`,
+      });
+
       createdDong.billList = createdBillList;
       createdDong.payerList = createdPayerList;
 
       // Commit trasactions
-      await dongRepoTx.commit();
+      await usersRepoTx.commit();
       await payerRepoTx.commit();
       await billRepoTx.commit();
 
-      return createdDong;
+      const response: ResponseNewDong = Object({
+        ...createdDong,
+        score: createdScore.score,
+      });
+
+      return response;
     } catch (err) {
       // Rollback transactions
-      await dongRepoTx.rollback();
+      await usersRepoTx.rollback();
       await payerRepoTx.rollback();
       await billRepoTx.rollback();
 

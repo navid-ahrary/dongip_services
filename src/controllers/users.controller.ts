@@ -217,6 +217,7 @@ export class UsersController {
             schema: getModelSchemaRef(Credentials),
             example: {
               userId: 1,
+              score: 260,
               accessToken: 'string',
               refreshToken: 'string',
             },
@@ -244,6 +245,7 @@ export class UsersController {
     userId: typeof Users.prototype.userId;
     accessToken: string;
     refreshToken: string;
+    totalScores: number;
   }> {
     const verifyId = Number(currentUserProfile[securityId]);
 
@@ -261,6 +263,13 @@ export class UsersController {
       // Ensure the user exists and the password is correct
       const user = await this.userService.verifyCredentials(credentials);
 
+      // Get total user's scores
+      const scoresList = await this.usersRepository.scores(user.getId()).find();
+      let totalScores = 0;
+      scoresList.forEach((scoreItem) => {
+        totalScores += scoreItem.score;
+      });
+
       await this.usersRepository.updateById(user.getId(), {
         userAgent: verify.userAgent,
         firebaseToken: verify.firebaseToken,
@@ -276,6 +285,7 @@ export class UsersController {
         userId: user.getId(),
         accessToken: accessToken,
         refreshToken: user.refreshToken,
+        totalScores: totalScores,
       };
     } catch (_err) {
       console.log(_err);
@@ -305,6 +315,7 @@ export class UsersController {
             }),
             example: {
               id: 7,
+              totalScores: 50,
               accessToken: 'string',
               refreshToken: 'string',
             },
@@ -349,6 +360,7 @@ export class UsersController {
     userId: typeof Users.prototype.userId;
     accessToken: string;
     refreshToken: string;
+    totalScores: number;
   }> {
     const verifyId = Number(currentUserProfile[securityId]),
       credentials: Credentials = new Credentials({
@@ -384,6 +396,14 @@ export class UsersController {
         transaction: userRepoTx,
       });
 
+      const savedScore = await this.usersRepository
+        .scores(savedUser.getId())
+        .create({
+          score: 50,
+          createdAt: new Date().toISOString(),
+          desc: 'signup',
+        });
+
       // Convert user object to a UserProfile object (reduced set of properties)
       const userProfile: UserProfile = this.userService.convertToUserProfile(
         savedUser,
@@ -411,6 +431,7 @@ export class UsersController {
         userId: savedUser.getId(),
         accessToken: accessToken,
         refreshToken: savedUser.refreshToken,
+        totalScores: savedScore.score,
       };
     } catch (err) {
       // rollback transaction
