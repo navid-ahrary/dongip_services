@@ -121,14 +121,14 @@ export class DongsController {
     }
     // Current user
     const currentUser = await this.usersRepository.findOne({
-        where: {userId: userId},
-        fields: {userId: true, phone: true, name: true},
-      }),
+      where: {userId: userId},
+      fields: {userId: true, phone: true, name: true},
+    }),
       currentUserPhone = currentUser!.phone;
 
     let billList = newDong.billList,
       payerList = newDong.payerList,
-      allUsersRelsIdList: {userRelId: number}[] = [],
+      allUsersRelsIdList: {userRelId: number;}[] = [],
       currentUserIsPayer: Boolean = false,
       firebaseMessagesList: BatchMessage = [];
 
@@ -208,7 +208,8 @@ export class DongsController {
         {transaction: billRepoTx},
       );
 
-      if (currentUserIsPayer && newDong.sendNotify) {
+      const sendNotify = newDong.sendNotify ? newDong.sendNotify : true;
+      if (currentUserIsPayer && sendNotify) {
         const currentUserCategory = await this.categoriesRepository.findById(
           newDong.categoryId,
           {fields: {title: true}},
@@ -236,8 +237,8 @@ export class DongsController {
                   userRelId: relation.getId(),
                 })
                   ? _.find(billList, {
-                      userRelId: relation.getId(),
-                    })!.dongAmount.toString()
+                    userRelId: relation.getId(),
+                  })!.dongAmount.toString()
                   : '0';
 
                 // Seperate thousands with "," for use in notification body

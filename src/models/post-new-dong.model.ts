@@ -35,9 +35,8 @@ export class PostNewDong extends Model {
 
   @property({
     type: 'boolean',
-    required: true,
   })
-  sendNotify: boolean;
+  sendNotify?: boolean;
 
   @property({
     type: 'number',
