@@ -48,15 +48,22 @@ export class FirebaseService {
     firebaseToken: string | string[],
     payload: messaging.MessagingPayload,
     options?: messaging.MessagingOptions | undefined,
-  ) {
-    messaging()
-      .sendToDevice(firebaseToken, payload, options)
-      .then(function (_response) {
-        console.log(_response);
-      })
-      .catch(function (_error) {
-        console.error(_error);
-      });
+  ): Promise<messaging.MessagingDevicesResponse> {
+    const response = await messaging().sendToDevice(
+      firebaseToken,
+      payload,
+      options,
+    );
+
+    if (response.successCount) {
+      console.log(`Sucessfully sent notification: ${JSON.stringify(response)}`);
+    } else if (response.failureCount) {
+      console.error(`Failed sent notification${JSON.stringify(response)}`);
+    } else {
+      console.error('There is no response from firebase');
+    }
+
+    return response;
   }
 
   // send a message to multi devices
@@ -101,9 +108,11 @@ export class FirebaseService {
       });
 
     if (response.successCount) {
-      console.log(`Successfully sent notifications, ${response.successCount}`);
+      console.log(
+        `Successfully sent notifications, ${JSON.stringify(response)}`,
+      );
     } else if (response.failureCount) {
-      console.error(`Failed sent notifications: ${response.failureCount}`);
+      console.error(`Failed sent notifications: ${JSON.stringify(response)}`);
     } else {
       console.error('There is no response from firebase');
     }
