@@ -104,6 +104,8 @@ export class FirebaseService {
       console.log(`Successfully sent notifications, ${response.successCount}`);
     } else if (response.failureCount) {
       console.error(`Failed sent notifications: ${response.failureCount}`);
+    } else {
+      console.error('There is no response from firebase');
     }
 
     return response;
