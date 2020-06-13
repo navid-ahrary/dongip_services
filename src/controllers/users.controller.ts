@@ -48,6 +48,7 @@ import {
 import {
   ValidatePhoneNumInterceptor,
   FirebasetokenInterceptor,
+  ValidatePasswordInterceptor,
 } from '../interceptors';
 import {InitCategoriesInterceptor} from '../interceptors/init-categories.interceptor';
 
@@ -63,7 +64,10 @@ export class NewUser extends Users {
   basePath: '/api/',
   paths: {},
 })
-@intercept(ValidatePhoneNumInterceptor.BINDING_KEY)
+@intercept(
+  ValidatePhoneNumInterceptor.BINDING_KEY,
+  ValidatePasswordInterceptor.BINDING_KEY,
+)
 export class UsersController {
   constructor(
     @inject.context() public ctx: RequestContext,

@@ -1,6 +1,5 @@
 export * from './firebase.service';
 export * from './user.service';
-export * from './validator';
 export * from './jwt.service';
 export * from './hash.password.bcryptjs';
 export * from './sms.service';
