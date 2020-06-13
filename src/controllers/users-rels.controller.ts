@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import {repository} from '@loopback/repository';
+import {repository, Transaction, IsolationLevel} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -248,13 +248,33 @@ export class UsersRelsController {
   ): Promise<void> {
     const userId = Number(this.currentUserProfile[securityId]);
 
+    // begin userRepo transaction
+    const usersRepoTx: Transaction = await this.usersRepository.beginTransaction(
+      IsolationLevel.READ_COMMITTED,
+    );
+
     await this.usersRepository
       .usersRels(userId)
-      .delete({and: [{userRelId: userRelId}, {type: {neq: 'self'}}]})
+      .delete(
+        {and: [{userRelId: userRelId}, {type: {neq: 'self'}}]},
+        {transaction: usersRepoTx},
+      )
       .then((countDeleted) => {
         if (!countDeleted.count) {
           throw new HttpErrors.NotFound('این رابطه دوستی رو پیدا نکردم');
         }
       });
+
+    await this.usersRepository
+      .virtualUsers(userId)
+      .delete({userRelId: userRelId}, {transaction: usersRepoTx})
+      .catch(async (err) => {
+        // Rollback transaction
+        await usersRepoTx.rollback();
+        throw new HttpErrors.NotImplemented(err.message);
+      });
+
+    // Commit transaction
+    await usersRepoTx.commit();
   }
 }
