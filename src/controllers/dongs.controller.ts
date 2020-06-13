@@ -313,7 +313,7 @@ export class DongsController {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           this.firebaseSerice.sendAllMessage(firebaseMessagesList);
         }
-        console.log(JSON.stringify(firebaseMessagesList));
+        // console.log(JSON.stringify(firebaseMessagesList));
       }
 
       const createdScore = await this.usersRepository.scores(userId).create({
