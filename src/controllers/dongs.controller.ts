@@ -21,6 +21,7 @@ import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {inject, service, intercept} from '@loopback/core';
 import _ from 'underscore';
+import {floor} from 'lodash';
 
 import {Dongs, PostNewDong} from '../models';
 import {
@@ -68,7 +69,7 @@ export class DongsController {
     private currentUserProfile: UserProfile,
   ) {}
 
-  public numberWithCommas(x: string): string {
+  public numberWithCommas(x: number): string {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
@@ -262,17 +263,21 @@ export class DongsController {
               if (foundMutualUsersRels) {
                 // Increament scoreFactor for every mutual friend dong contribution
                 mutualFactor++;
-                // Get dong amount
-                const dongAmount: string = _.find(billList, {
+                // Get rounded dong amount
+                const roundedDongAmount = _.find(billList, {
                   userRelId: relation.getId(),
                 })
-                  ? _.find(billList, {
-                      userRelId: relation.getId(),
-                    })!.dongAmount.toString()
-                  : '0';
+                  ? floor(
+                      _.find(billList, {
+                        userRelId: relation.getId(),
+                      })!.dongAmount,
+                    )
+                  : 0;
 
                 // Seperate thousands with "," for use in notification body
-                const notifyBodyDongAmount = this.numberWithCommas(dongAmount);
+                const notifyBodyDongAmount = this.numberWithCommas(
+                  roundedDongAmount,
+                );
 
                 // Generate notification messages
                 firebaseMessagesList.push({
@@ -292,7 +297,7 @@ export class DongsController {
                       categoryTitle: currentUserCategory.title,
                       createdAt: newDong.createdAt,
                       userRelId: foundMutualUsersRels.getId().toString(),
-                      dongAmount: dongAmount,
+                      dongAmount: roundedDongAmount.toString(),
                     },
                   },
                   // iOS push notification messages
@@ -308,7 +313,7 @@ export class DongsController {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           this.firebaseSerice.sendAllMessage(firebaseMessagesList);
         }
-        // console.log(firebaseMessagesList);
+        console.log(JSON.stringify(firebaseMessagesList));
       }
 
       const createdScore = await this.usersRepository.scores(userId).create({
