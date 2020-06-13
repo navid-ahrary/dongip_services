@@ -11,16 +11,18 @@ import {
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
-import {inject} from '@loopback/core';
+import {inject, intercept} from '@loopback/core';
 
 import {Categories} from '../models';
 import {UsersRepository, CategoriesRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
+import {FirebasetokenInterceptor} from '../interceptors';
 
 @api({
   basePath: '/api/',
   paths: {},
 })
+@intercept(FirebasetokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class CategoriesController {
   constructor(
@@ -46,7 +48,9 @@ export class CategoriesController {
       },
     },
   })
-  async find(): Promise<Categories[]> {
+  async find(
+    @param.header.string('firebase-token') firebaseToken: string,
+  ): Promise<Categories[]> {
     const userId = Number(this.currentUserProfile[securityId]);
 
     return this.usersRepository.categories(userId).find();
@@ -83,6 +87,7 @@ export class CategoriesController {
       },
     })
     newCategories: Omit<Categories, '_key'>,
+    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<Categories> {
     const userId = Number(this.currentUserProfile[securityId]);
 
@@ -142,6 +147,7 @@ export class CategoriesController {
       },
     })
     category: Partial<Categories>,
+    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
     const userId = Number(this.currentUserProfile[securityId]);
 

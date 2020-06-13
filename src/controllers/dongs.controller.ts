@@ -15,6 +15,7 @@ import {
   requestBody,
   HttpErrors,
   api,
+  param,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
@@ -33,7 +34,10 @@ import {
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {PostNewDongExample} from './specs';
 import {FirebaseService, BatchMessage} from '../services';
-import {ValidateCategoryIdInterceptor} from '../interceptors';
+import {
+  ValidateCategoryIdInterceptor,
+  FirebasetokenInterceptor,
+} from '../interceptors';
 
 @model()
 class ResponseNewDong extends Dongs {
@@ -45,6 +49,7 @@ class ResponseNewDong extends Dongs {
   basePath: '/api/',
   paths: {},
 })
+@intercept(FirebasetokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class DongsController {
   constructor(
@@ -84,7 +89,9 @@ export class DongsController {
       },
     },
   })
-  async findDongs(): Promise<Dongs[]> {
+  async findDongs(
+    @param.header.string('firebase-token') firebaseToken?: string,
+  ): Promise<Dongs[]> {
     const userId = Number(this.currentUserProfile[securityId]);
 
     const filter: Filter<Dongs> = {
@@ -125,6 +132,7 @@ export class DongsController {
       },
     })
     newDong: Omit<PostNewDong, 'id'>,
+    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<ResponseNewDong> {
     const userId = Number(this.currentUserProfile[securityId]);
     const newDongScore = 50;

@@ -45,7 +45,10 @@ import {
   TimeService,
   VerifyService,
 } from '../services';
-import {ValidatePhoneNumInterceptor} from '../interceptors';
+import {
+  ValidatePhoneNumInterceptor,
+  FirebasetokenInterceptor,
+} from '../interceptors';
 import {InitCategoriesInterceptor} from '../interceptors/init-categories.interceptor';
 
 @model()
@@ -120,27 +123,15 @@ export class UsersController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(Verify, {
-            exclude: [
-              'verifyId',
-              'userAgent',
-              'password',
-              'issuedAt',
-              'registered',
-            ],
+            exclude: ['verifyId', 'password', 'issuedAt', 'registered'],
           }),
           example: {
             phone: '+989176502184',
-            firebaseToken: 'string',
           },
         },
       },
     })
     verifyReqBody: Verify,
-    @param.header.string('user-agent', {
-      required: true,
-      example: 'Android29/Google_Pixel_4',
-    })
-    userAgent: string,
   ): Promise<{
     status: boolean;
     name: string;
@@ -170,8 +161,6 @@ export class UsersController {
         phone: verifyReqBody.phone,
         password: hashedPass,
         registered: user ? true : false,
-        firebaseToken: verifyReqBody.firebaseToken,
-        userAgent: userAgent,
         issuedAt: new Date().toISOString(),
       })
       .catch((err) => {
@@ -185,13 +174,9 @@ export class UsersController {
     };
 
     // Generate verify token
-    const token: string = await this.jwtService.generateToken(userProfile);
-
-    // Send verify token via notification
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.firebaseService.sendToDeviceMessage(verifyReqBody.firebaseToken, {
-      data: {verifyToken: token},
-    });
+    const verifyToken: string = await this.jwtService.generateToken(
+      userProfile,
+    );
 
     // send verify code via sms
     this.smsService.sendSms('dongip', randomCode, verifyReqBody.phone);
@@ -202,12 +187,12 @@ export class UsersController {
       name: user ? user.name : 'noob',
       prefix: randomStr,
       code: randomCode,
-      verifyToken: token,
+      verifyToken: verifyToken,
     };
   }
 
   @post('/users/login', {
-    summary: 'Login to the app',
+    summary: 'Login to app',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -241,6 +226,8 @@ export class UsersController {
     })
     credentials: Credentials,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @param.header.string('user-agent') userAgent: string,
+    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<{
     userId: typeof Users.prototype.userId;
     accessToken: string;
@@ -255,13 +242,21 @@ export class UsersController {
     });
 
     try {
-      const verify = await this.verifySerivce.verifyCredentials(
+      await this.verifySerivce.verifyCredentials(
         verifyId,
         credentials.password,
       );
 
       // Ensure the user exists and the password is correct
       const user = await this.userService.verifyCredentials(credentials);
+
+      // Update user's "user agent" and "firebase token"
+      if (firebaseToken) {
+        await this.usersRepository.updateById(user.getId(), {
+          firebaseToken: firebaseToken,
+          userAgent: userAgent,
+        });
+      }
 
       // Get total user's scores
       const scoresList = await this.usersRepository.scores(user.getId()).find();
@@ -270,10 +265,6 @@ export class UsersController {
         totalScores += scoreItem.score;
       });
 
-      await this.usersRepository.updateById(user.getId(), {
-        userAgent: verify.userAgent,
-        firebaseToken: verify.firebaseToken,
-      });
       //convert a User object to a UserProfile object (reduced set of properties)
       const userProfile = this.userService.convertToUserProfile(user);
       userProfile['aud'] = 'access';
@@ -324,8 +315,8 @@ export class UsersController {
       },
     },
   })
-  @intercept(InitCategoriesInterceptor.BINDING_KEY)
   @authenticate('jwt.verify')
+  @intercept(InitCategoriesInterceptor.BINDING_KEY)
   async signup(
     @requestBody({
       content: {
@@ -356,6 +347,8 @@ export class UsersController {
     })
     newUser: NewUser,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @param.header.string('user-agent') userAgent: string,
+    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<{
     userId: typeof Users.prototype.userId;
     accessToken: string;
@@ -368,20 +361,17 @@ export class UsersController {
         password: newUser.password,
       });
 
-    // Add token to bliacklist
+    // Add token to blacklist
     await this.blacklistRepository.create({
       token: this.ctx.request.headers['authorization']!.split(' ')[1],
     });
 
-    const verify = await this.verifySerivce.verifyCredentials(
-      verifyId,
-      credentials.password,
-    );
+    await this.verifySerivce.verifyCredentials(verifyId, credentials.password);
 
     Object.assign(newUser, {
       registeredAt: new Date(),
-      firebaseToken: verify.firebaseToken,
-      userAgent: verify.userAgent,
+      firebaseToken: firebaseToken ? firebaseToken : 'null',
+      userAgent: userAgent,
     });
     delete newUser.password;
 
@@ -463,7 +453,9 @@ export class UsersController {
     },
   })
   @authenticate('jwt.access')
-  async logout(): Promise<void> {
+  async logout(
+    @param.header.string('firebase-token') firebaseToken?: string,
+  ): Promise<void> {
     // Blacklist the access token
     await this.blacklistRepository
       .create({
@@ -474,6 +466,7 @@ export class UsersController {
       });
   }
 
+  @intercept(FirebasetokenInterceptor.BINDING_KEY)
   @patch('/users', {
     summary: 'Update some of user properties',
     description: 'Request body includes desired properties to update',

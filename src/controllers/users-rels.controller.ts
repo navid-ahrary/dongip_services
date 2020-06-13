@@ -25,14 +25,20 @@ import {
 } from '../repositories';
 import {FirebaseService} from '../services';
 import _ from 'underscore';
-import {ValidatePhoneNumInterceptor} from '../interceptors';
+import {
+  ValidatePhoneNumInterceptor,
+  FirebasetokenInterceptor,
+} from '../interceptors';
 
 @api({
   basePath: '/api/',
   paths: {},
 })
+@intercept(
+  ValidatePhoneNumInterceptor.BINDING_KEY,
+  FirebasetokenInterceptor.BINDING_KEY,
+)
 @authenticate('jwt.access')
-@intercept(ValidatePhoneNumInterceptor.BINDING_KEY)
 export class UsersRelsController {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -60,7 +66,9 @@ export class UsersRelsController {
       },
     },
   })
-  async find(): Promise<UsersRels[]> {
+  async find(
+    @param.header.string('firebase-token') firebaseToken?: string,
+  ): Promise<UsersRels[]> {
     const userId = Number(this.currentUserProfile[securityId]);
     return this.usersRepository.usersRels(userId).find();
   }
@@ -95,6 +103,7 @@ export class UsersRelsController {
       },
     })
     userRelReqBody: Omit<UsersRels, 'id'>,
+    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<UsersRels> {
     const userId = Number(this.currentUserProfile[securityId]),
       userRelObject: UsersRels = new UsersRels({
@@ -188,6 +197,7 @@ export class UsersRelsController {
     userRelReqBody: Partial<UsersRels>,
     @param.path.number('userRelId', {required: true, example: 30})
     userRelId: typeof UsersRels.prototype.userRelId,
+    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
     const userId = Number(this.currentUserProfile[securityId]);
 
@@ -245,6 +255,7 @@ export class UsersRelsController {
   async deleteById(
     @param.path.number('userRelId', {required: true, example: 36})
     userRelId: typeof UsersRels.prototype.userRelId,
+    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
     const userId = Number(this.currentUserProfile[securityId]);
 

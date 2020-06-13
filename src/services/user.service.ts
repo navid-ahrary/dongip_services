@@ -6,14 +6,13 @@ import {HttpErrors} from '@loopback/rest';
 import {inject} from '@loopback/core';
 
 import {Users, Credentials} from '../models';
-import {UsersRepository, VerifyRepository} from '../repositories';
+import {UsersRepository} from '../repositories';
 import {PasswordHasherBindings} from '../keys';
 import {PasswordHasher} from '../services';
 
 export class MyUserService implements UserService<Users, Credentials> {
   constructor(
     @repository(UsersRepository) public userRepository: UsersRepository,
-    @repository(VerifyRepository) public verifyRepo: VerifyRepository,
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
     public passwordHasher: PasswordHasher,
   ) {}

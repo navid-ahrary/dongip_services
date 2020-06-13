@@ -30,18 +30,6 @@ export class Verify extends Entity {
   phone: string;
 
   @property({
-    type: 'string',
-    required: true,
-  })
-  firebaseToken: string;
-
-  @property({
-    type: 'string',
-    required: true,
-  })
-  userAgent: string;
-
-  @property({
     type: 'date',
     required: true,
   })
