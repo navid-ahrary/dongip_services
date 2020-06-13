@@ -225,7 +225,10 @@ export class DongsController {
         {transaction: billRepoTx},
       );
 
-      const sendNotify = newDong.sendNotify ? newDong.sendNotify : true;
+      const sendNotify = _.has(newDong, 'sendNotify')
+        ? newDong.sendNotify
+        : true;
+
       if (currentUserIsPayer && sendNotify) {
         const currentUserCategory = await this.categoriesRepository.findById(
           newDong.categoryId,
