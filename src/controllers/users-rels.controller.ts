@@ -22,6 +22,7 @@ import {
   VirtualUsersRepository,
   BlacklistRepository,
   UsersRelsRepository,
+  ContactsRepository,
 } from '../repositories';
 import {FirebaseService} from '../services';
 import _ from 'underscore';
@@ -48,6 +49,8 @@ export class UsersRelsController {
     public blacklistRepository: BlacklistRepository,
     @repository(UsersRelsRepository)
     public usersRelsRepository: UsersRelsRepository,
+    @repository(ContactsRepository)
+    public contactsRepository: ContactsRepository,
     @service(FirebaseService) public firebaseService: FirebaseService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {}
@@ -287,5 +290,50 @@ export class UsersRelsController {
 
     // Commit transaction
     await usersRepoTx.commit();
+  }
+
+  @post('/users-rels/phones', {
+    summary: 'Get contacts those exist in dongip',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {},
+  })
+  async findContacts(
+    @requestBody({
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'array',
+            items: {type: 'string'},
+            example: ['+989176502184', '+989387401240'],
+          },
+        },
+      },
+    })
+    phones: string[],
+  ): Promise<string[]> {
+    // Generate filter object
+    let where: {or: {phone: string}[]} = {or: []};
+    phones.forEach((phone) => {
+      where.or.push({phone: phone});
+    });
+
+    // Store phones in database
+    await this.contactsRepository.createAll(where.or);
+
+    // Get phones those exist in database
+    const foundUsers = await this.usersRepository
+      .find({where: where})
+      .catch((err) => {
+        throw new HttpErrors.NotImplemented(err.message);
+      });
+
+    // Generate resposne entity
+    let phonesExists: string[] = [];
+    foundUsers.forEach((userObject) => {
+      phonesExists.push(userObject.phone);
+    });
+
+    return phonesExists;
   }
 }

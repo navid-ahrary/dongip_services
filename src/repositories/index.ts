@@ -9,3 +9,4 @@ export * from './category-source.repository';
 export * from './bill-list.repository';
 export * from './payer-list.repository';
 export * from './scores.repository';
+export * from './contacts.repository';
