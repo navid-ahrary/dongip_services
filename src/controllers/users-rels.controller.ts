@@ -319,7 +319,7 @@ export class UsersRelsController {
     });
 
     // Store phones in database
-    await this.contactsRepository.createAll(where.or);
+    await this.contactsRepository.createAll(where.or).catch((err) => {});
 
     // Get phones those exist in database
     const foundUsers = await this.usersRepository
