@@ -172,17 +172,19 @@ export class DongsController {
     });
 
     // Validate userRelIds in billList and payerList
-    const currentUserFoundUsersRelsList = await this.usersRelsRepository.find({
-      where: {or: allUsersRelsIdList, and: [{userId: userId}]},
-    });
+    const currentUserFoundUsersRelsList = await this.usersRepository
+      .usersRels(userId)
+      .find({
+        where: {or: allUsersRelsIdList},
+      });
     if (currentUserFoundUsersRelsList.length !== allUsersRelsIdList.length) {
       throw new HttpErrors.NotFound('بعضی از دوستی ها معتبر نیستن!');
     }
 
+    // Check payer is user himself
     const userRel = await this.usersRepository.usersRels(userId).find({
       where: {and: [{userRelId: payerList[0].userRelId}, {type: 'self'}]},
     });
-
     if (userRel.length === 1) currentUserIsPayer = true;
 
     // Create a Dongs entity
