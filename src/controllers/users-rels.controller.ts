@@ -363,4 +363,14 @@ export class UsersRelsController {
 
     return phonesExists;
   }
+
+  @del('/users-rels', {
+    description: "Delete all user's usersRels ",
+    security: OPERATION_SECURITY_SPEC,
+    responses: {'200': {description: 'Count deleted UsersRels'}},
+  })
+  async deleteAllUsersRels() {
+    const userId = Number(this.currentUserProfile[securityId]);
+    return this.usersRepository.usersRels(userId).delete({type: {neq: 'self'}});
+  }
 }
