@@ -294,7 +294,7 @@ export class UsersController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        desciption: "Some user's properties",
+        description: "Some user's properties",
         content: {
           'application/json': {
             schema: getModelSchemaRef(Users, {
