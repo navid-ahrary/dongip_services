@@ -103,6 +103,7 @@ export class UsersController {
     summary: 'Verify mobile number for login/signup',
     responses: {
       '200': {
+        description: 'Is registered and prefix',
         content: {
           'application/json': {
             schema: {
@@ -293,6 +294,7 @@ export class UsersController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
+        desciption: "Some user's properties",
         content: {
           'application/json': {
             schema: getModelSchemaRef(Users, {
