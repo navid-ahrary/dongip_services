@@ -8,6 +8,7 @@ import {
   requestBody,
   HttpErrors,
   api,
+  del,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
@@ -168,5 +169,15 @@ export class CategoriesController {
         }
         throw new HttpErrors.NotAcceptable(err.message);
       });
+  }
+
+  @del('/categories', {
+    summary: "Delete all user's Categories ",
+    security: OPERATION_SECURITY_SPEC,
+    responses: {'200': {description: 'Count deleted Categories'}},
+  })
+  async deleteAllCategories() {
+    const userId = Number(this.currentUserProfile[securityId]);
+    return this.usersRepository.categories(userId).delete();
   }
 }
