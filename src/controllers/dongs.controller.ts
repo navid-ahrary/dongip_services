@@ -147,14 +147,14 @@ export class DongsController {
     }
     // Current user
     const currentUser = await this.usersRepository.findOne({
-        where: {userId: userId},
-        fields: {userId: true, phone: true, name: true},
-      }),
+      where: {userId: userId},
+      fields: {userId: true, phone: true, name: true},
+    }),
       currentUserPhone = currentUser!.phone;
 
     let billList = newDong.billList,
       payerList = newDong.payerList,
-      allUsersRelsIdList: {userRelId: number}[] = [],
+      allUsersRelsIdList: {userRelId: number;}[] = [],
       currentUserIsPayer: Boolean = false,
       firebaseMessagesList: BatchMessage = [];
 
@@ -178,11 +178,13 @@ export class DongsController {
       throw new HttpErrors.NotFound('بعضی از دوستی ها معتبر نیستن!');
     }
 
-    const userRel = await this.usersRelsRepository.findOne({
-      where: {and: [{userRelId: payerList[0].userRelId}, {userId: userId}]},
+
+    const userRel = await this.usersRepository.usersRels(userId).find({
+      where: {and: [{userRelId: payerList[0].userRelId}, {type: 'self'}]},
     });
 
-    if (userRel && userRel.type === 'self') currentUserIsPayer = true;
+
+    if (userRel.length === 1) currentUserIsPayer = true;
 
     // Create a Dongs entity
     const dong: Dongs = new Dongs(
@@ -268,10 +270,10 @@ export class DongsController {
                   userRelId: relation.getId(),
                 })
                   ? floor(
-                      _.find(billList, {
-                        userRelId: relation.getId(),
-                      })!.dongAmount,
-                    )
+                    _.find(billList, {
+                      userRelId: relation.getId(),
+                    })!.dongAmount,
+                  )
                   : 0;
 
                 // Seperate thousands with "," for use in notification body
