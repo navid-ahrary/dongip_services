@@ -11,4 +11,3 @@ export * from './bill-list.model';
 export * from './payer-list.model';
 export * from './post-new-dong.model';
 export * from './scores.model';
-export * from './contacts.model';

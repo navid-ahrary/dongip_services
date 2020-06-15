@@ -22,7 +22,6 @@ import {
   VirtualUsersRepository,
   BlacklistRepository,
   UsersRelsRepository,
-  ContactsRepository,
 } from '../repositories';
 import {FirebaseService} from '../services';
 import _ from 'underscore';
@@ -49,8 +48,6 @@ export class UsersRelsController {
     public blacklistRepository: BlacklistRepository,
     @repository(UsersRelsRepository)
     public usersRelsRepository: UsersRelsRepository,
-    @repository(ContactsRepository)
-    public contactsRepository: ContactsRepository,
     @service(FirebaseService) public firebaseService: FirebaseService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {}
@@ -317,9 +314,6 @@ export class UsersRelsController {
     phones.forEach((phone) => {
       where.or.push({phone: phone});
     });
-
-    // Store phones in database
-    await this.contactsRepository.createAll(where.or).catch((err) => {});
 
     // Get phones those exist in database
     const foundUsers = await this.usersRepository
