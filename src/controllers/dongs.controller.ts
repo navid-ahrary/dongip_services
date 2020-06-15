@@ -16,6 +16,7 @@ import {
   HttpErrors,
   api,
   param,
+  del,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
@@ -147,14 +148,14 @@ export class DongsController {
     }
     // Current user
     const currentUser = await this.usersRepository.findOne({
-      where: {userId: userId},
-      fields: {userId: true, phone: true, name: true},
-    }),
+        where: {userId: userId},
+        fields: {userId: true, phone: true, name: true},
+      }),
       currentUserPhone = currentUser!.phone;
 
     let billList = newDong.billList,
       payerList = newDong.payerList,
-      allUsersRelsIdList: {userRelId: number;}[] = [],
+      allUsersRelsIdList: {userRelId: number}[] = [],
       currentUserIsPayer: Boolean = false,
       firebaseMessagesList: BatchMessage = [];
 
@@ -178,11 +179,9 @@ export class DongsController {
       throw new HttpErrors.NotFound('بعضی از دوستی ها معتبر نیستن!');
     }
 
-
     const userRel = await this.usersRepository.usersRels(userId).find({
       where: {and: [{userRelId: payerList[0].userRelId}, {type: 'self'}]},
     });
-
 
     if (userRel.length === 1) currentUserIsPayer = true;
 
@@ -270,10 +269,10 @@ export class DongsController {
                   userRelId: relation.getId(),
                 })
                   ? floor(
-                    _.find(billList, {
-                      userRelId: relation.getId(),
-                    })!.dongAmount,
-                  )
+                      _.find(billList, {
+                        userRelId: relation.getId(),
+                      })!.dongAmount,
+                    )
                   : 0;
 
                 // Seperate thousands with "," for use in notification body
@@ -346,5 +345,31 @@ export class DongsController {
 
       throw new HttpErrors.UnprocessableEntity(err);
     }
+  }
+
+  @del('/dongs', {
+    summary: "Delete all user's created Dongs & PayerLis & BillList ",
+    security: OPERATION_SECURITY_SPEC,
+    responses: {'200': {description: 'Count deleted Dongs'}},
+  })
+  async deleteAllDongs() {
+    const userId = Number(this.currentUserProfile[securityId]);
+    let countDeletedDongs;
+
+    const usersRepoTx = await this.usersRepository.beginTransaction(
+      IsolationLevel.SERIALIZABLE,
+    );
+    try {
+      // Delete dongs 7 payerList & billList
+      await this.usersRepository.billList(userId).delete();
+      await this.usersRepository.payerList(userId).delete();
+      countDeletedDongs = await this.usersRepository.dongs(userId).delete();
+    } catch (err) {
+      await usersRepoTx.rollback(); // Rollback transaction
+
+      throw new HttpErrors.NotImplemented(err.message);
+    }
+    await usersRepoTx.commit(); // Commit transaction
+    return countDeletedDongs;
   }
 }
