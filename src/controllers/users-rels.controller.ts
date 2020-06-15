@@ -365,7 +365,7 @@ export class UsersRelsController {
   }
 
   @del('/users-rels', {
-    description: "Delete all user's usersRels ",
+    summary: "Delete all user's UsersRels ",
     security: OPERATION_SECURITY_SPEC,
     responses: {'200': {description: 'Count deleted UsersRels'}},
   })
