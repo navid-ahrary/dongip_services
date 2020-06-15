@@ -1,5 +1,12 @@
 /* eslint-disable prefer-const */
-import {repository, Transaction, IsolationLevel} from '@loopback/repository';
+import {
+  repository,
+  Transaction,
+  IsolationLevel,
+  model,
+  Model,
+  property,
+} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -29,6 +36,16 @@ import {
   ValidatePhoneNumInterceptor,
   FirebasetokenInterceptor,
 } from '../interceptors';
+
+@model()
+class FindFriendsReponseItemModel extends Model {
+  @property({type: 'string'})
+  name: string;
+  @property({type: 'string'})
+  phone: string;
+  @property({type: 'string'})
+  avatar: string;
+}
 
 @api({
   basePath: '/api/',
@@ -289,10 +306,22 @@ export class UsersRelsController {
     await usersRepoTx.commit();
   }
 
-  @post('/users-rels/phones', {
-    summary: 'Get contacts those exist in dongip',
+  @post('/users-rels/find-friends', {
+    summary: "Get Arrays of user's phone number those registered at dongip",
     security: OPERATION_SECURITY_SPEC,
-    responses: {},
+    responses: {
+      '200': {
+        description: 'Array of phone, name, avatar',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'array',
+              items: getModelSchemaRef(FindFriendsReponseItemModel),
+            },
+          },
+        },
+      },
+    },
   })
   async findContacts(
     @requestBody({
@@ -308,7 +337,7 @@ export class UsersRelsController {
       },
     })
     phones: string[],
-  ): Promise<string[]> {
+  ): Promise<Partial<FindFriendsReponseItemModel>[]> {
     // Generate filter object
     let where: {or: {phone: string}[]} = {or: []};
     phones.forEach((phone) => {
@@ -323,9 +352,13 @@ export class UsersRelsController {
       });
 
     // Generate resposne entity
-    let phonesExists: string[] = [];
+    let phonesExists: Partial<FindFriendsReponseItemModel>[] = [];
     foundUsers.forEach((userObject) => {
-      phonesExists.push(userObject.phone);
+      phonesExists.push({
+        name: userObject.name,
+        phone: userObject.phone,
+        avatar: userObject.avatar,
+      });
     });
 
     return phonesExists;
