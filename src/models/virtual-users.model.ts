@@ -8,13 +8,19 @@ import {
 import {Users} from './';
 import {UsersRels} from './users-rels.model';
 
-@model()
+@model({name: 'virtual_users'})
 export class VirtualUsers extends Entity {
   @property({
-    type: 'number',
+    type: 'Number',
     id: true,
-    generated: true,
     required: false,
+    generated: true,
+    mysql: {
+      columnName: 'id',
+      dataType: 'int',
+      dataLength: null,
+      nullable: 'N',
+    },
   })
   virtualUserId: number;
 
@@ -22,12 +28,18 @@ export class VirtualUsers extends Entity {
     type: 'string',
     required: true,
     length: 13,
+    mysql: {dataType: 'varchar', dataLength: 13, nullable: 'N'},
   })
   phone: string;
 
   @property({
     type: 'date',
-    required: false,
+    required: true,
+    mysql: {
+      columnName: 'created_at',
+      dataType: 'datetime',
+      nullable: 'N',
+    },
   })
   createdAt: string = new Date().toISOString();
 
@@ -42,7 +54,17 @@ export class VirtualUsers extends Entity {
       source: Users,
       target: () => VirtualUsers,
     },
-    {type: 'number', required: true},
+    {
+      type: 'Number',
+      required: true,
+      index: {normal: true},
+      mysql: {
+        columnName: 'user_id',
+        dataType: 'int',
+        dataLength: null,
+        nullable: 'N',
+      },
+    },
   )
   userId: number;
 
@@ -56,7 +78,17 @@ export class VirtualUsers extends Entity {
       source: UsersRels,
       target: () => VirtualUsers,
     },
-    {type: 'number', required: true},
+    {
+      type: 'Number',
+      required: true,
+      index: {normal: true},
+      mysql: {
+        columnName: 'user_rel_id',
+        dataType: 'int',
+        dataLength: null,
+        nullable: 'N',
+      },
+    },
   )
   userRelId: number;
 

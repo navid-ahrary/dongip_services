@@ -1,24 +1,40 @@
 import {Entity, model, property} from '@loopback/repository';
 
-@model()
+@model({name: 'verify'})
 export class Verify extends Entity {
   @property({
-    type: 'number',
+    type: 'Number',
     id: true,
-    generated: true,
     required: false,
+    generated: true,
+    mysql: {
+      columnName: 'id',
+      dataType: 'int',
+      dataLength: null,
+      nullable: 'N',
+    },
   })
   verifyId: number;
 
   @property({
     type: 'string',
     required: true,
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 255,
+      nullable: 'N',
+    },
   })
   password: string;
 
   @property({
     type: 'boolean',
     required: true,
+    mysql: {
+      dataType: 'tinyint',
+      dataLength: 1,
+      nullable: 'N',
+    },
   })
   registered: boolean;
 
@@ -26,12 +42,23 @@ export class Verify extends Entity {
     type: 'string',
     required: true,
     length: 13,
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 13,
+      nullable: 'N',
+    },
   })
   phone: string;
 
   @property({
     type: 'date',
     required: true,
+    mysql: {
+      columnName: 'issued_at',
+      dataType: 'datetime',
+      dataLength: null,
+      nullable: 'N',
+    },
   })
   issuedAt: string;
 

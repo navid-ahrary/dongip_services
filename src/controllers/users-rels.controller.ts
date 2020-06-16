@@ -151,13 +151,13 @@ export class UsersRelsController {
           let errorMessage: string;
 
           // Duplicate name&phone error handling
-          if (err.sqlMessage.endsWith("'UsersRels.name&phone'")) {
+          if (err.sqlMessage.endsWith("'users_rels.user_id&name&phone'")) {
             errorMessage = 'یه دوست داری دقیقن به همین اسم و شماره موبایل!';
             // Duplicate name error handling
-          } else if (err.sqlMessage.endsWith("'UsersRels.name'")) {
+          } else if (err.sqlMessage.endsWith("'users_rels.user_id&name'")) {
             errorMessage = 'این اسم توی لیست دوستات وجود داره!';
             // Duplicate phone error handling
-          } else if (err.sqlMessage.endsWith("'UsersRels.phone'")) {
+          } else if (err.sqlMessage.endsWith("'users_rels.user_id&phone'")) {
             errorMessage = 'این شماره موبایل توی لیست دوستات وجود داره!';
           } else errorMessage = err.message; // Otherwise
 
@@ -245,11 +245,11 @@ export class UsersRelsController {
       // Duplicate error handling
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         // Duplicate name error hanfling
-        if (err.sqlMessage.endsWith("'UsersRels.name'")) {
+        if (err.sqlMessage.endsWith("'users_rels.user_id&name'")) {
           errorMessage = 'این اسم توی لیست دوستات وجود داره!';
           // Duplicate phone error handling
         } else if (
-          err.sqlMessage.endsWith("'UsersRels.phone'") ||
+          err.sqlMessage.endsWith("'users_rels.user_id&phone'") ||
           err.sqlMessage.endsWith("'VirtualUsers.phone'")
         ) {
           errorMessage = 'این شماره توی لیست دوستات وجود داره!';

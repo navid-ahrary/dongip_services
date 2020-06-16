@@ -1,6 +1,6 @@
 import {Entity, model, property} from '@loopback/repository';
 
-@model()
+@model({name: 'categories_source'})
 export class CategorySource extends Entity {
   @property({
     type: 'string',

@@ -46,7 +46,7 @@ export class JWTService implements TokenService {
         const userId = Number(decryptedToken.sub);
         const isExistUser = await this.usersRepository.exists(userId);
 
-        if (!isExistUser) throw new Error('User not exists in database');
+        if (!isExistUser) throw new Error('User is not exists');
       }
 
       userProfile = Object.assign(

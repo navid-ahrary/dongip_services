@@ -14,13 +14,19 @@ import {Categories} from './categories.model';
 import {UsersRels} from './users-rels.model';
 import {Scores} from './scores.model';
 
-@model()
+@model({name: 'users'})
 export class Users extends Entity {
   @property({
     type: 'number',
     id: true,
     required: false,
     generated: true,
+    mysql: {
+      columnName: 'id',
+      dataType: 'int',
+      dataLength: null,
+      nullable: 'N',
+    },
   })
   userId: number;
 
@@ -28,51 +34,94 @@ export class Users extends Entity {
     type: 'string',
     required: true,
     length: 13,
+    index: {unique: true},
+    mysql: {
+      columnName: 'phone',
+      dataType: 'varchar',
+      dataLength: 13,
+      nullable: 'N',
+    },
   })
   phone: string;
 
   @property({
     type: 'string',
     required: true,
-    length: 30,
+    jsonSchema: {minLength: 3, maxLength: 30},
+    mysql: {
+      columnName: 'name',
+      dataType: 'varchar',
+      dataLength: 30,
+      nullable: 'N',
+    },
   })
   name: string;
 
   @property({
     type: 'string',
     required: true,
-    length: 180,
+    jsonSchema: {minLength: 3, maxLength: 512},
+    mysql: {dataType: 'varchar', dataLength: 512, nullable: 'N'},
   })
   avatar: string;
 
   @property({
     type: 'date',
     required: true,
+    mysql: {
+      columnName: 'registered_at',
+      dataType: 'datetime',
+      dataLength: null,
+      nullable: 'N',
+    },
   })
   registeredAt: string;
 
   @property({
     type: 'string',
+    mysql: {
+      columnName: 'refresh_token',
+      dataType: 'varchar',
+      dataLength: 512,
+      nullable: 'Y',
+    },
   })
   refreshToken: string;
 
   @property({
     type: 'string',
     required: true,
-    length: 20,
     default: 'bronze',
+    mysql: {
+      columnName: 'account_type',
+      dataType: 'varchar',
+      dataLength: 20,
+      nullable: 'N',
+    },
   })
   accountType: string;
 
   @property({
     type: 'string',
     required: true,
+    mysql: {
+      columnName: 'firebase_token',
+      dataType: 'varchar',
+      dataLength: 512,
+      nullable: 'N',
+    },
   })
   firebaseToken: string;
 
   @property({
     type: 'string',
     required: true,
+    mysql: {
+      columnName: 'user_agent',
+      dataType: 'varchar',
+      dataLength: 512,
+      nullable: 'N',
+    },
   })
   userAgent: string;
 

@@ -10,25 +10,43 @@ import {UsersRels} from './users-rels.model';
 import {Categories} from './categories.model';
 import {Users} from './users.model';
 
-@model()
+@model({name: 'bill_list'})
 export class BillList extends Entity {
   @property({
-    type: 'number',
+    type: 'Number',
     id: true,
-    generated: true,
     required: false,
+    generated: true,
+    mysql: {
+      columnName: 'id',
+      dataType: 'int',
+      dataLength: null,
+      nullable: 'N',
+    },
   })
   billListId: number;
 
   @property({
-    type: 'number',
+    type: 'Number',
     required: true,
+    mysql: {
+      columnName: 'dong_amount',
+      dataType: 'bigint',
+      dataLength: null,
+      nullable: 'N',
+    },
   })
   dongAmount: number;
 
   @property({
     type: 'date',
     required: true,
+    mysql: {
+      columnName: 'created_at',
+      dataType: 'datetime',
+      dataLength: null,
+      nullable: 'N',
+    },
   })
   createdAt: string;
 
@@ -42,7 +60,17 @@ export class BillList extends Entity {
       source: UsersRels,
       target: () => BillList,
     },
-    {type: 'number', required: true},
+    {
+      type: 'number',
+      required: true,
+      index: {normal: true},
+      mysql: {
+        columnName: 'user_rel_id',
+        dataType: 'int',
+        dataLength: null,
+        nullable: 'N',
+      },
+    },
   )
   userRelId: number;
 
@@ -56,7 +84,17 @@ export class BillList extends Entity {
       source: Dongs,
       target: () => BillList,
     },
-    {type: 'number', required: true},
+    {
+      type: 'Number',
+      required: true,
+      index: {normal: true},
+      mysql: {
+        columnName: 'dong_id',
+        dataType: 'int',
+        dataLength: null,
+        nullable: 'N',
+      },
+    },
   )
   dongId: number;
 
@@ -70,7 +108,17 @@ export class BillList extends Entity {
       source: Categories,
       target: () => BillList,
     },
-    {type: 'number', required: true},
+    {
+      type: 'number',
+      required: true,
+      index: {normal: true},
+      mysql: {
+        columnName: 'category_id',
+        dataType: 'int',
+        dataLength: null,
+        nullable: 'N',
+      },
+    },
   )
   categoryId: number;
 
@@ -84,7 +132,17 @@ export class BillList extends Entity {
       source: Users,
       target: () => BillList,
     },
-    {type: 'number', required: true},
+    {
+      type: 'number',
+      required: true,
+      index: {normal: true},
+      mysql: {
+        columnName: 'user_id',
+        dataType: 'int',
+        dataLength: null,
+        nullable: 'N',
+      },
+    },
   )
   userId: number;
 

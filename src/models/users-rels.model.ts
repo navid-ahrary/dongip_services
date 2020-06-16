@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {
   Entity,
   model,
@@ -10,15 +11,75 @@ import {
 import {Users} from './';
 import {VirtualUsers} from './virtual-users.model';
 
-@model()
+@model({
+  name: 'users_rels',
+  settings: {
+    indexes: {
+      'user_id&name': {
+        name: 'user_id&name',
+        columns: 'user_id, name',
+        options: {unique: true},
+      },
+      'user_id&phone': {
+        name: 'user_id&phone',
+        columns: 'user_id, phone',
+        options: {unique: true},
+      },
+      'user_id&name&phone': {
+        name: 'user_id&name&phone',
+        columns: 'user_id, name, phone',
+        options: {unique: true},
+      },
+    },
+  },
+})
 export class UsersRels extends Entity {
   @property({
-    type: 'number',
+    type: 'Number',
     id: true,
-    generated: true,
     required: false,
+    generated: true,
+    mysql: {
+      columnName: 'id',
+      dataType: 'int',
+      dataLength: null,
+      nullable: 'N',
+    },
   })
   userRelId: number;
+
+  @property({
+    type: 'string',
+    mysql: {dataType: 'varchar', dataLength: 50, nullable: 'Y'},
+  })
+  name?: string;
+
+  @property({
+    type: 'string',
+    required: true,
+    jsonSchema: {minLength: 3, maxLength: 512},
+    mysql: {dataType: 'varchar', dataLength: 512, nullable: 'N'},
+  })
+  avatar: string;
+
+  @property({
+    type: 'string',
+    required: true,
+    mysql: {dataType: 'varchar', dataLength: 20, nullable: 'N'},
+  })
+  type: string;
+
+  @property({
+    type: 'string',
+    length: 13,
+    index: {normal: true},
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 13,
+      nullable: 'Y',
+    },
+  })
+  phone: string;
 
   @belongsTo(
     () => Users,
@@ -27,7 +88,12 @@ export class UsersRels extends Entity {
       name: 'belongsToUser',
       type: RelationType.belongsTo,
     },
-    {type: 'number', required: true},
+    {
+      type: 'number',
+      required: true,
+      index: {normal: true},
+      mysql: {columnName: 'user_id', dataType: 'int', nullable: 'N'},
+    },
   )
   userId: number;
 
@@ -40,30 +106,6 @@ export class UsersRels extends Entity {
     type: RelationType.hasOne,
   })
   hasOneVirtualUser: VirtualUsers;
-
-  @property({
-    type: 'string',
-  })
-  name?: string;
-
-  @property({
-    type: 'string',
-    required: true,
-  })
-  avatar: string;
-
-  @property({
-    type: 'string',
-    required: true,
-  })
-  type: string;
-
-  @property({
-    type: 'string',
-    rqeuired: true,
-    length: 13,
-  })
-  phone: string;
 
   constructor(data?: Partial<UsersRels>) {
     super(data);
