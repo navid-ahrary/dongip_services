@@ -287,11 +287,13 @@ export class UsersRelsController {
   }
 
   @post('/users-rels/find-friends', {
-    summary: "Get Arrays of user's phone number those registered at dongip",
+    summary: 'Find friends with phone numbers',
+    description:
+      'Post array of phone numbers to know whom registered at dongip',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: "Array of Users's name & avatar & phone properties",
+        description: "Array of Users's name, avatar, phone",
         content: {
           'application/json': {
             schema: {
@@ -316,7 +318,7 @@ export class UsersRelsController {
   })
   async findContacts(
     @requestBody({
-      description: 'List of phone numbers, list cannot be empty',
+      description: 'List of phone numbers',
       required: true,
       content: {
         'application/json': {
