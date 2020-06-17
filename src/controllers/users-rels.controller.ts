@@ -1,12 +1,5 @@
 /* eslint-disable prefer-const */
-import {
-  repository,
-  Transaction,
-  IsolationLevel,
-  model,
-  Model,
-  property,
-} from '@loopback/repository';
+import {repository, Transaction, IsolationLevel} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -23,7 +16,7 @@ import {authenticate} from '@loopback/authentication';
 import {inject, service, intercept} from '@loopback/core';
 
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {UsersRels} from '../models';
+import {UsersRels, Users} from '../models';
 import {
   UsersRepository,
   VirtualUsersRepository,
@@ -37,20 +30,7 @@ import {
   FirebasetokenInterceptor,
 } from '../interceptors';
 
-@model()
-class FindFriendsReponseItemModel extends Model {
-  @property({type: 'string'})
-  name: string;
-  @property({type: 'string'})
-  phone: string;
-  @property({type: 'string'})
-  avatar: string;
-}
-
-@api({
-  basePath: '/api/',
-  paths: {},
-})
+@api({basePath: '/api/', paths: {}})
 @intercept(
   ValidatePhoneNumInterceptor.BINDING_KEY,
   FirebasetokenInterceptor.BINDING_KEY,
@@ -311,12 +291,23 @@ export class UsersRelsController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Array of phone, name, avatar',
+        description: "Array of Users's name, avatar, phone",
         content: {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(FindFriendsReponseItemModel),
+              items: getModelSchemaRef(Users, {
+                includeRelations: false,
+                exclude: [
+                  'userId',
+                  'accountType',
+                  'billList',
+                  'firebaseToken',
+                  'refreshToken',
+                  'registeredAt',
+                  'userAgent',
+                ],
+              }),
             },
           },
         },
@@ -337,14 +328,13 @@ export class UsersRelsController {
       },
     })
     phones: string[],
-  ): Promise<Partial<FindFriendsReponseItemModel>[]> {
+  ): Promise<Partial<Users>[]> {
     // Generate filter object
     let where: {or: {phone: string}[]} = {or: []};
     phones.forEach((phone) => {
       where.or.push({phone: phone});
     });
 
-    // Get phones those exist in database
     return this.usersRepository
       .find({where: where, fields: {name: true, phone: true, avatar: true}})
       .catch((err) => {
