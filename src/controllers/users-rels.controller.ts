@@ -318,7 +318,7 @@ export class UsersRelsController {
   })
   async findContacts(
     @requestBody({
-      description: 'List of phone numbers',
+      description: 'Array of phone numbers',
       required: true,
       content: {
         'application/json': {
