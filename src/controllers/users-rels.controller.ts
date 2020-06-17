@@ -291,7 +291,7 @@ export class UsersRelsController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: "Array of Users's name, avatar, phone",
+        description: "Array of Users's name & avatar & phone properties",
         content: {
           'application/json': {
             schema: {
@@ -316,12 +316,16 @@ export class UsersRelsController {
   })
   async findContacts(
     @requestBody({
+      description: 'List of phone numbers, list cannot be empty',
       required: true,
       content: {
         'application/json': {
           schema: {
             type: 'array',
             items: {type: 'string'},
+            readOnly: true,
+            nullable: false,
+            additionalProperties: false,
             example: ['+989176502184', '+989387401240'],
           },
         },
@@ -329,6 +333,9 @@ export class UsersRelsController {
     })
     phones: string[],
   ): Promise<Partial<Users>[]> {
+    // For fix a bug when list is empty so return all users
+    if (phones.length === 0) return [];
+
     // Generate filter's where's "or" list
     let orPhoneList: {phone: string}[] = [];
     phones.forEach((phoneItem) => {
@@ -337,8 +344,9 @@ export class UsersRelsController {
 
     return this.usersRepository
       .find({
-        where: {or: orPhoneList},
+        order: ['userId ASC'],
         fields: {name: true, phone: true, avatar: true},
+        where: {or: orPhoneList},
       })
       .catch((err) => {
         throw new HttpErrors.NotImplemented(err.message);
