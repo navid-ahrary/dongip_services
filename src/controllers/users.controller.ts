@@ -54,16 +54,9 @@ import {InitCategoriesInterceptor} from '../interceptors/init-categories.interce
 
 @model()
 export class NewUser extends Users {
-  @property({
-    type: 'string',
-    required: true,
-  })
-  password: string;
+  @property({type: 'string', required: true, length: 9}) password: string;
 }
-@api({
-  basePath: '/api/',
-  paths: {},
-})
+@api({basePath: '/api/', paths: {}})
 @intercept(
   ValidatePhoneNumInterceptor.BINDING_KEY,
   ValidatePasswordInterceptor.BINDING_KEY,
