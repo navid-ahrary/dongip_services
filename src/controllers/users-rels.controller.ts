@@ -345,23 +345,11 @@ export class UsersRelsController {
     });
 
     // Get phones those exist in database
-    const foundUsers = await this.usersRepository
-      .find({where: where})
+    return this.usersRepository
+      .find({where: where, fields: {name: true, phone: true, avatar: true}})
       .catch((err) => {
         throw new HttpErrors.NotImplemented(err.message);
       });
-
-    // Generate resposne entity
-    let phonesExists: Partial<FindFriendsReponseItemModel>[] = [];
-    foundUsers.forEach((userObject) => {
-      phonesExists.push({
-        name: userObject.name,
-        phone: userObject.phone,
-        avatar: userObject.avatar,
-      });
-    });
-
-    return phonesExists;
   }
 
   @del('/users-rels', {
