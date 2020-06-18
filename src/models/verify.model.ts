@@ -41,10 +41,9 @@ export class Verify extends Entity {
   @property({
     type: 'string',
     required: true,
-    length: 13,
     mysql: {
       dataType: 'varchar',
-      dataLength: 13,
+      dataLength: 20,
       nullable: 'N',
     },
   })

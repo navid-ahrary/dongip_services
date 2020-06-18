@@ -27,8 +27,7 @@ export class VirtualUsers extends Entity {
   @property({
     type: 'string',
     required: true,
-    length: 13,
-    mysql: {dataType: 'varchar', dataLength: 13, nullable: 'N'},
+    mysql: {dataType: 'varchar', dataLength: 20, nullable: 'N'},
   })
   phone: string;
 

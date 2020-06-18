@@ -71,13 +71,8 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'string',
-    length: 13,
     index: {normal: true},
-    mysql: {
-      dataType: 'varchar',
-      dataLength: 13,
-      nullable: 'Y',
-    },
+    mysql: {dataType: 'varchar', dataLength: 20, nullable: 'Y'},
   })
   phone: string;
 

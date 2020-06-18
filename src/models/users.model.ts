@@ -33,12 +33,11 @@ export class Users extends Entity {
   @property({
     type: 'string',
     required: true,
-    length: 13,
     index: {unique: true},
     mysql: {
       columnName: 'phone',
       dataType: 'varchar',
-      dataLength: 13,
+      dataLength: 20,
       nullable: 'N',
     },
   })
