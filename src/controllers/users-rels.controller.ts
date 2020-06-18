@@ -6,6 +6,7 @@ import {
   model,
   Model,
   property,
+  Count,
 } from '@loopback/repository';
 import {
   get,
@@ -371,6 +372,39 @@ export class UsersRelsController {
   })
   async deleteAllUsersRels() {
     const userId = Number(this.currentUserProfile[securityId]);
-    return this.usersRepository.usersRels(userId).delete({type: {neq: 'self'}});
+    let countDeletedUsersRels: Count;
+
+    // Begin virtualUserRepo transaction
+    const virtualUsersRepoTx = await this.usersRelsRepository.beginTransaction(
+      IsolationLevel.READ_COMMITTED,
+    );
+    // Begin usersRelsRepo transaction
+    const usersRelsRepoTx = await this.usersRelsRepository.beginTransaction(
+      IsolationLevel.READ_COMMITTED,
+    );
+
+    try {
+      await this.virtualUsersRepository.deleteAll(
+        {userId: userId},
+        {transaction: virtualUsersRepoTx},
+      );
+
+      countDeletedUsersRels = await this.usersRelsRepository.deleteAll(
+        {type: {neq: 'self'}, userId: userId},
+        {transaction: usersRelsRepoTx},
+      );
+
+      // Commit transactions
+      await virtualUsersRepoTx.commit();
+      await usersRelsRepoTx.commit();
+
+      return countDeletedUsersRels;
+    } catch (err) {
+      // Rollback transactions
+      await virtualUsersRepoTx.rollback();
+      await usersRelsRepoTx.rollback();
+
+      throw new HttpErrors.NotImplemented(err.message);
+    }
   }
 }
