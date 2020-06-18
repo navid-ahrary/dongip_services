@@ -24,8 +24,8 @@ export class CategoriesRepository extends DefaultTransactionalRepository<
   typeof Categories.prototype.categoryId,
   CategoriesRelations
 > {
-  public readonly users: BelongsToAccessor<
-    Users | VirtualUsers,
+  public readonly user: BelongsToAccessor<
+    Users,
     typeof Categories.prototype.categoryId
   >;
 
@@ -68,10 +68,7 @@ export class CategoriesRepository extends DefaultTransactionalRepository<
       this.billLists.inclusionResolver,
     );
 
-    this.users = this.createBelongsToAccessorFor(
-      'users',
-      usersRepositoryGetter,
-    );
-    this.registerInclusionResolver('users', this.users.inclusionResolver);
+    this.user = this.createBelongsToAccessorFor('user', usersRepositoryGetter);
+    this.registerInclusionResolver('user', this.user.inclusionResolver);
   }
 }

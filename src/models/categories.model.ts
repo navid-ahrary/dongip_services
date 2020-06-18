@@ -63,7 +63,7 @@ export class Categories extends Entity {
   @belongsTo(
     () => Users,
     {
-      name: 'users',
+      name: 'user',
       keyFrom: 'userId',
       keyTo: 'userId',
       source: Users,
