@@ -8,7 +8,10 @@ import {
   ValueOrPromise,
 } from '@loopback/context';
 import {repository} from '@loopback/repository';
-import {CategorySourceRepository, CategoriesRepository} from '../repositories';
+import {
+  CategoriesSourceRepository,
+  CategoriesRepository,
+} from '../repositories';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -19,8 +22,8 @@ export class InitCategoriesInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${InitCategoriesInterceptor.name}`;
 
   constructor(
-    @repository(CategorySourceRepository)
-    public catSrcRepo: CategorySourceRepository,
+    @repository(CategoriesSourceRepository)
+    public catsSrcRepo: CategoriesSourceRepository,
     @repository(CategoriesRepository) public catsRepo: CategoriesRepository,
   ) {}
 
@@ -48,7 +51,7 @@ export class InitCategoriesInterceptor implements Provider<Interceptor> {
 
       if (invocationCtx.methodName === 'signup') {
         const userId = result.userId,
-          initCatList = await this.catSrcRepo.find();
+          initCatList = await this.catsSrcRepo.find();
 
         // Add userId property to every Categories
         initCatList.forEach((cat) => {

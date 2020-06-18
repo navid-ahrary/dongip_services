@@ -3,9 +3,6 @@ import {
   repository,
   Transaction,
   IsolationLevel,
-  model,
-  Model,
-  property,
   Count,
 } from '@loopback/repository';
 import {
@@ -24,7 +21,7 @@ import {authenticate} from '@loopback/authentication';
 import {inject, service, intercept} from '@loopback/core';
 
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {UsersRels} from '../models';
+import {UsersRels, Users} from '../models';
 import {
   UsersRepository,
   VirtualUsersRepository,
@@ -38,20 +35,7 @@ import {
   FirebasetokenInterceptor,
 } from '../interceptors';
 
-@model()
-class FindFriendsReponseItemModel extends Model {
-  @property({type: 'string'})
-  name: string;
-  @property({type: 'string'})
-  phone: string;
-  @property({type: 'string'})
-  avatar: string;
-}
-
-@api({
-  basePath: '/api/',
-  paths: {},
-})
+@api({basePath: '/api/', paths: {}})
 @intercept(
   ValidatePhoneNumInterceptor.BINDING_KEY,
   FirebasetokenInterceptor.BINDING_KEY,
@@ -308,16 +292,29 @@ export class UsersRelsController {
   }
 
   @post('/users-rels/find-friends', {
-    summary: "Get Arrays of user's phone number those registered at dongip",
+    summary: 'Find friends with phone numbers',
+    description:
+      'Post array of phone numbers to know whom registered at dongip',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Array of phone, name, avatar',
+        description: "Array of Users's name, avatar, phone",
         content: {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(FindFriendsReponseItemModel),
+              items: getModelSchemaRef(Users, {
+                includeRelations: false,
+                exclude: [
+                  'userId',
+                  'accountType',
+                  'billList',
+                  'firebaseToken',
+                  'refreshToken',
+                  'registeredAt',
+                  'userAgent',
+                ],
+              }),
             },
           },
         },
@@ -326,43 +323,41 @@ export class UsersRelsController {
   })
   async findContacts(
     @requestBody({
+      description: 'Array of phone numbers',
       required: true,
       content: {
         'application/json': {
           schema: {
             type: 'array',
             items: {type: 'string'},
+            readOnly: true,
+            nullable: false,
+            additionalProperties: false,
             example: ['+989176502184', '+989387401240'],
           },
         },
       },
     })
     phones: string[],
-  ): Promise<Partial<FindFriendsReponseItemModel>[]> {
-    // Generate filter object
-    let where: {or: {phone: string}[]} = {or: []};
-    phones.forEach((phone) => {
-      where.or.push({phone: phone});
+  ): Promise<Partial<Users>[]> {
+    // For fix a bug when list is empty so return all users
+    if (phones.length === 0) return [];
+
+    // Generate filter's where's "or" list
+    let orPhoneList: {phone: string}[] = [];
+    phones.forEach((phoneItem) => {
+      orPhoneList.push({phone: phoneItem});
     });
 
-    // Get phones those exist in database
-    const foundUsers = await this.usersRepository
-      .find({where: where})
+    return this.usersRepository
+      .find({
+        order: ['userId ASC'],
+        fields: {name: true, phone: true, avatar: true},
+        where: {or: orPhoneList},
+      })
       .catch((err) => {
         throw new HttpErrors.NotImplemented(err.message);
       });
-
-    // Generate resposne entity
-    let phonesExists: Partial<FindFriendsReponseItemModel>[] = [];
-    foundUsers.forEach((userObject) => {
-      phonesExists.push({
-        name: userObject.name,
-        phone: userObject.phone,
-        avatar: userObject.avatar,
-      });
-    });
-
-    return phonesExists;
   }
 
   @del('/users-rels', {
