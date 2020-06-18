@@ -8,7 +8,7 @@ export class Blacklist extends Entity {
     id: true,
     mysql: {
       dataType: 'varchar',
-      dataLength: null,
+      dataLength: 512,
       nullable: 'N',
     },
   })
