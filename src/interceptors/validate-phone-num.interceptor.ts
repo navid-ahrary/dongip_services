@@ -41,11 +41,7 @@ export class ValidatePhoneNumInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
-    // Add pre-invocation logic here
-    const invalidPhoneValueMessage = 'شماره موبایل وارد شده معتبر نیست!',
-      invalidRegionMessage =
-        'در حال حاضر تنها شماره موبایل ایران قابل قبول است!';
-
+    const invalidPhoneValueMessage = 'شماره موبایل وارد شده معتبر نیست!';
     let phoneValue: string, pn: AwesomePhoneNumber;
 
     // Validate phone number value in expected methods below
@@ -64,13 +60,6 @@ export class ValidatePhoneNumInterceptor implements Provider<Interceptor> {
 
         if (!pn.isMobile()) {
           throw new HttpErrors.UnprocessableEntity(invalidPhoneValueMessage);
-        }
-
-        // Check phone number country fot verify/login/signup methods
-        if (invocationCtx.targetClass.name === 'UsersController') {
-          if (pn.getRegionCode() !== 'IR') {
-            throw new HttpErrors.UnprocessableEntity(invalidRegionMessage);
-          }
         }
 
         // Convert phone value to e.164 format
