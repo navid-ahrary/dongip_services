@@ -42,7 +42,7 @@ export class Categories extends Entity {
   @property({
     type: 'string',
     required: true,
-    length: 255,
+    jsonSchema: {maxLength: 255},
     mysql: {
       columnName: 'title',
       dataType: 'varchar',

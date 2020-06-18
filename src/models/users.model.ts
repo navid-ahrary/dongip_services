@@ -34,6 +34,7 @@ export class Users extends Entity {
     type: 'string',
     required: true,
     index: {unique: true},
+    jsonSchema: {maxLength: 20},
     mysql: {
       columnName: 'phone',
       dataType: 'varchar',

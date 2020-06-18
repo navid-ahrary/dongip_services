@@ -50,6 +50,7 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'string',
+    jsonSchema: {maxLength: 50},
     mysql: {dataType: 'varchar', dataLength: 50, nullable: 'Y'},
   })
   name?: string;
@@ -65,6 +66,7 @@ export class UsersRels extends Entity {
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {maxLength: 20},
     mysql: {dataType: 'varchar', dataLength: 20, nullable: 'N'},
   })
   type: string;
@@ -72,6 +74,7 @@ export class UsersRels extends Entity {
   @property({
     type: 'string',
     index: {normal: true},
+    jsonSchema: {maxLength: 20},
     mysql: {dataType: 'varchar', dataLength: 20, nullable: 'Y'},
   })
   phone: string;

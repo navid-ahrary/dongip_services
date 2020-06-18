@@ -34,7 +34,7 @@ export class Dongs extends Entity {
 
   @property({
     type: 'string',
-    length: 255,
+    jsonSchema: {maxLength: 255},
     mysql: {
       columnName: 'title',
       dataType: 'varchar',
@@ -46,7 +46,7 @@ export class Dongs extends Entity {
 
   @property({
     type: 'string',
-    length: 255,
+    jsonSchema: {maxLength: 255},
     mysql: {
       columnName: 'desc',
       dataType: 'varchar',

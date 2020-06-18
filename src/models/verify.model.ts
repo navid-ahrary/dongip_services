@@ -41,6 +41,7 @@ export class Verify extends Entity {
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {maxLength: 20},
     mysql: {
       dataType: 'varchar',
       dataLength: 20,
