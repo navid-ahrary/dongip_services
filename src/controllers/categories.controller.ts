@@ -120,7 +120,7 @@ export class CategoriesController {
     },
   })
   async patch(
-    @param.path.number('categoryId')
+    @param.path.number('categoryId', {required: true})
     categoryId: typeof Categories.prototype.categoryId,
     @requestBody({
       content: {
