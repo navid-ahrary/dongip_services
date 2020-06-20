@@ -43,6 +43,8 @@ const pkg: PackageInfo = require('../package.json');
 export class MyApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
 ) {
+  hashRound: number;
+
   constructor(options: ApplicationConfig = {}) {
     super(options);
 
@@ -53,6 +55,8 @@ export class MyApplication extends BootMixin(
       components: {securitySchemes: SECURITY_SCHEME_SPEC},
       servers: [{url: '/'}],
     });
+
+    this.hashRound = Number(process.env.HASH_ROUND);
 
     this.setupBinding();
 
@@ -123,7 +127,7 @@ export class MyApplication extends BootMixin(
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
 
     // Bind bcrypt hash service
-    this.bind(PasswordHasherBindings.ROUNDS).to(Number(process.env.HASH_ROUND));
+    this.bind(PasswordHasherBindings.ROUNDS).to(this.hashRound);
     this.bind(PasswordHasherBindings.PASSWORD_HASHER).toClass(BcryptHasher);
 
     this.bind(UserServiceBindings.USER_SERVICE).toClass(MyUserService);
