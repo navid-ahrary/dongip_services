@@ -1,7 +1,7 @@
 import {
   repository,
   HasManyRepositoryFactory,
-  DefaultTransactionalRepository,
+  DefaultCrudRepository,
 } from '@loopback/repository';
 import {inject, Getter} from '@loopback/core';
 
@@ -30,7 +30,7 @@ import {PayerListRepository} from './payer-list.repository';
 import {ScoresRepository} from './scores.repository';
 import {GroupsRepository} from './groups.repository';
 
-export class UsersRepository extends DefaultTransactionalRepository<
+export class UsersRepository extends DefaultCrudRepository<
   Users,
   typeof Users.prototype.userId
 > {

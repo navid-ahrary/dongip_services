@@ -1,11 +1,5 @@
 import {inject, service, intercept} from '@loopback/core';
-import {
-  repository,
-  property,
-  model,
-  IsolationLevel,
-  Transaction,
-} from '@loopback/repository';
+import {repository, property, model} from '@loopback/repository';
 import {
   post,
   requestBody,
@@ -374,16 +368,9 @@ export class UsersController {
     });
     delete newUser.password;
 
-    // Begin trasactions
-    const userRepoTx: Transaction = await this.usersRepository.beginTransaction(
-      IsolationLevel.READ_COMMITTED,
-    );
-
     try {
       // Create a new user
-      const savedUser: Users = await this.usersRepository.create(newUser, {
-        transaction: userRepoTx,
-      });
+      const savedUser: Users = await this.usersRepository.create(newUser);
 
       const savedScore = await this.usersRepository
         .scores(savedUser.getId())
@@ -405,16 +392,10 @@ export class UsersController {
       );
 
       // Create self-relation
-      await this.usersRepository.usersRels(savedUser.getId()).create(
-        {
-          avatar: savedUser.avatar,
-          type: 'self',
-        },
-        {transaction: userRepoTx},
-      );
-
-      // Commit transaction
-      await userRepoTx.commit();
+      await this.usersRepository.usersRels(savedUser.getId()).create({
+        avatar: savedUser.avatar,
+        type: 'self',
+      });
 
       return {
         userId: savedUser.getId(),
@@ -423,9 +404,6 @@ export class UsersController {
         totalScores: savedScore.score,
       };
     } catch (err) {
-      // rollback transaction
-      await userRepoTx.rollback();
-
       // Duplicate phone number error handling
       // base on search in stackoverflow, throw a conflict[409] error code
       // see https://stackoverflow.com/questions/12658574/rest-api-design-post-to-create-with-duplicate-data-would-be-integrityerror-500

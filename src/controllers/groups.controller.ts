@@ -165,51 +165,22 @@ export class GroupsController {
     groupId: typeof Groups.prototype.groupId,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
-    const dongsRepoTx = await this.dongsRepository.beginTransaction();
-    const billListRepoTx = await this.billListRepository.beginTransaction();
-    const payerListRepoTx = await this.payerListRepository.beginTransaction();
-    const groupsRepoTx = await this.groupsRepository.beginTransaction();
-
     try {
       await this.dongsRepository.updateAll(
         {groupId: undefined},
         {groupId: groupId, userId: this.userId},
-        {transaction: dongsRepoTx},
       );
 
-      // await this.billListRepository.updateAll(
-      //   {groupId: undefined},
-      //   {userId: this.userId, groupId: {neq: undefined}},
-      //   {transaction: billListRepoTx},
-      // );
-      // await this.payerListRepository.updateAll(
-      //   {groupId: undefined},
-      //   {userId: this.userId, groupId: {neq: undefined}},
-      //   {transaction: payerListRepoTx},
-      // );
-
-      const countDeleted = await this.groupsRepository.deleteAll(
-        {groupId: groupId, userId: this.userId},
-        {transaction: groupsRepoTx},
-      );
+      const countDeleted = await this.groupsRepository.deleteAll({
+        groupId: groupId,
+        userId: this.userId,
+      });
 
       if (!countDeleted.count) {
         const errorMessage = 'این گروه رو پیدا نکردم!';
         throw new HttpErrors.NotFound(errorMessage);
       }
-
-      // Commit Tx
-      await dongsRepoTx.commit();
-      await payerListRepoTx.commit();
-      await billListRepoTx.commit();
-      await groupsRepoTx.commit();
     } catch (err) {
-      // Rollback Tx
-      await dongsRepoTx.rollback();
-      await payerListRepoTx.rollback();
-      await billListRepoTx.rollback();
-      await groupsRepoTx.rollback();
-
       throw new HttpErrors.NotFound(err);
     }
   }
@@ -232,37 +203,18 @@ export class GroupsController {
   async deleteAllGroups(
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<Count> {
-    const dongsRepoTx = await this.dongsRepository.beginTransaction();
-    const billListRepoTx = await this.billListRepository.beginTransaction();
-    const payerListRepoTx = await this.payerListRepository.beginTransaction();
-    const groupsRepoTx = await this.groupsRepository.beginTransaction();
-
     try {
       await this.dongsRepository.updateAll(
         {groupId: undefined},
         {userId: this.userId, groupId: {neq: undefined}},
-        {transaction: dongsRepoTx},
       );
 
-      const countDeleted = await this.groupsRepository.deleteAll(
-        {userId: this.userId},
-        {transaction: groupsRepoTx},
-      );
-
-      // Commit Tx
-      await dongsRepoTx.commit();
-      await payerListRepoTx.commit();
-      await billListRepoTx.commit();
-      await groupsRepoTx.commit();
+      const countDeleted = await this.groupsRepository.deleteAll({
+        userId: this.userId,
+      });
 
       return countDeleted;
     } catch (err) {
-      // Rollback Tx
-      await dongsRepoTx.rollback();
-      await payerListRepoTx.rollback();
-      await billListRepoTx.rollback();
-      await groupsRepoTx.rollback();
-
       throw new HttpErrors.NotFound(err.message);
     }
   }

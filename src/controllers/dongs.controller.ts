@@ -1,13 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable prefer-const */
-import {
-  Filter,
-  repository,
-  IsolationLevel,
-  property,
-  model,
-} from '@loopback/repository';
+import {Filter, repository, property, model} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -197,21 +191,8 @@ export class DongsController {
       ]),
     );
 
-    // Begin transactions
-    const usersRepoTx = await this.usersRepository.beginTransaction(
-      IsolationLevel.READ_COMMITTED,
-    );
-    const payerRepoTx = await this.payerListRepository.beginTransaction(
-      IsolationLevel.READ_COMMITTED,
-    );
-    const billRepoTx = await this.billListRepository.beginTransaction(
-      IsolationLevel.READ_COMMITTED,
-    );
-
     try {
-      const createdDong = await this.usersRepository
-        .dongs(userId)
-        .create(dong, {transaction: usersRepoTx});
+      const createdDong = await this.usersRepository.dongs(userId).create(dong);
 
       payerList.forEach((item) => {
         item = Object.assign(item, {
@@ -234,13 +215,9 @@ export class DongsController {
       // Store billlists in database
       const createdPayerList = await this.payerListRepository.createAll(
         payerList,
-        {transaction: payerRepoTx},
       );
       // Store payerLists in database
-      const createdBillList = await this.billListRepository.createAll(
-        billList,
-        {transaction: billRepoTx},
-      );
+      const createdBillList = await this.billListRepository.createAll(billList);
 
       const sendNotify = _.has(newDong, 'sendNotify')
         ? newDong.sendNotify
@@ -333,11 +310,6 @@ export class DongsController {
       createdDong.billList = createdBillList;
       createdDong.payerList = createdPayerList;
 
-      // Commit trasactions
-      await usersRepoTx.commit();
-      await payerRepoTx.commit();
-      await billRepoTx.commit();
-
       const response: ResponseNewDong = Object({
         ...createdDong,
         score: createdScore.score,
@@ -345,11 +317,6 @@ export class DongsController {
 
       return response;
     } catch (err) {
-      // Rollback transactions
-      await usersRepoTx.rollback();
-      await payerRepoTx.rollback();
-      await billRepoTx.rollback();
-
       throw new HttpErrors.UnprocessableEntity(err);
     }
   }
@@ -363,20 +330,15 @@ export class DongsController {
     const userId = Number(this.currentUserProfile[securityId]);
     let countDeletedDongs;
 
-    const usersRepoTx = await this.usersRepository.beginTransaction(
-      IsolationLevel.SERIALIZABLE,
-    );
     try {
       // Delete dongs 7 payerList & billList
       await this.usersRepository.billList(userId).delete();
       await this.usersRepository.payerList(userId).delete();
+
       countDeletedDongs = await this.usersRepository.dongs(userId).delete();
     } catch (err) {
-      await usersRepoTx.rollback(); // Rollback transaction
-
       throw new HttpErrors.NotImplemented(err.message);
     }
-    await usersRepoTx.commit(); // Commit transaction
     return countDeletedDongs;
   }
 }

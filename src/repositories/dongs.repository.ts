@@ -2,7 +2,7 @@ import {
   repository,
   BelongsToAccessor,
   HasManyRepositoryFactory,
-  DefaultTransactionalRepository,
+  DefaultCrudRepository,
 } from '@loopback/repository';
 import {inject, Getter} from '@loopback/core';
 
@@ -22,7 +22,7 @@ import {PayerListRepository} from './payer-list.repository';
 import {CategoriesRepository} from './categories.repository';
 import {GroupsRepository} from './groups.repository';
 
-export class DongsRepository extends DefaultTransactionalRepository<
+export class DongsRepository extends DefaultCrudRepository<
   Dongs,
   typeof Dongs.prototype.dongId,
   DongsRelations

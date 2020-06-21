@@ -1,10 +1,5 @@
 /* eslint-disable prefer-const */
-import {
-  repository,
-  Transaction,
-  IsolationLevel,
-  Count,
-} from '@loopback/repository';
+import {repository, Count} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -261,17 +256,9 @@ export class UsersRelsController {
   ): Promise<void> {
     const userId = Number(this.currentUserProfile[securityId]);
 
-    // begin userRepo transaction
-    const usersRepoTx: Transaction = await this.usersRepository.beginTransaction(
-      IsolationLevel.READ_COMMITTED,
-    );
-
     await this.usersRepository
       .usersRels(userId)
-      .delete(
-        {and: [{userRelId: userRelId}, {type: {neq: 'self'}}]},
-        {transaction: usersRepoTx},
-      )
+      .delete({and: [{userRelId: userRelId}, {type: {neq: 'self'}}]})
       .then((countDeleted) => {
         if (!countDeleted.count) {
           throw new HttpErrors.NotFound('این رابطه دوستی رو پیدا نکردم');
@@ -280,15 +267,10 @@ export class UsersRelsController {
 
     await this.usersRepository
       .virtualUsers(userId)
-      .delete({userRelId: userRelId}, {transaction: usersRepoTx})
+      .delete({userRelId: userRelId})
       .catch(async (err) => {
-        // Rollback transaction
-        await usersRepoTx.rollback();
         throw new HttpErrors.NotImplemented(err.message);
       });
-
-    // Commit transaction
-    await usersRepoTx.commit();
   }
 
   @post('/users-rels/find-friends', {
@@ -369,36 +351,16 @@ export class UsersRelsController {
     const userId = Number(this.currentUserProfile[securityId]);
     let countDeletedUsersRels: Count;
 
-    // Begin virtualUserRepo transaction
-    const virtualUsersRepoTx = await this.usersRelsRepository.beginTransaction(
-      IsolationLevel.READ_COMMITTED,
-    );
-    // Begin usersRelsRepo transaction
-    const usersRelsRepoTx = await this.usersRelsRepository.beginTransaction(
-      IsolationLevel.READ_COMMITTED,
-    );
-
     try {
-      await this.virtualUsersRepository.deleteAll(
-        {userId: userId},
-        {transaction: virtualUsersRepoTx},
-      );
+      await this.virtualUsersRepository.deleteAll({userId: userId});
 
-      countDeletedUsersRels = await this.usersRelsRepository.deleteAll(
-        {type: {neq: 'self'}, userId: userId},
-        {transaction: usersRelsRepoTx},
-      );
-
-      // Commit transactions
-      await virtualUsersRepoTx.commit();
-      await usersRelsRepoTx.commit();
+      countDeletedUsersRels = await this.usersRelsRepository.deleteAll({
+        type: {neq: 'self'},
+        userId: userId,
+      });
 
       return countDeletedUsersRels;
     } catch (err) {
-      // Rollback transactions
-      await virtualUsersRepoTx.rollback();
-      await usersRelsRepoTx.rollback();
-
       throw new HttpErrors.NotImplemented(err.message);
     }
   }

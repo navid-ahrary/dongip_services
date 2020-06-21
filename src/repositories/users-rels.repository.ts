@@ -1,8 +1,8 @@
 import {
   repository,
   BelongsToAccessor,
-  DefaultTransactionalRepository,
   HasOneRepositoryFactory,
+  DefaultCrudRepository,
 } from '@loopback/repository';
 import {UsersRels, UsersRelsRelations, Users, VirtualUsers} from '../models';
 import {MysqlDataSource} from '../datasources';
@@ -10,7 +10,7 @@ import {inject, Getter} from '@loopback/core';
 import {UsersRepository} from './';
 import {VirtualUsersRepository} from './virtual-users.repository';
 
-export class UsersRelsRepository extends DefaultTransactionalRepository<
+export class UsersRelsRepository extends DefaultCrudRepository<
   UsersRels,
   typeof UsersRels.prototype.userRelId,
   UsersRelsRelations

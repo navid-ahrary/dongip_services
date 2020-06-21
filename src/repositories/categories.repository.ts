@@ -2,7 +2,7 @@ import {
   repository,
   BelongsToAccessor,
   HasManyRepositoryFactory,
-  DefaultTransactionalRepository,
+  DefaultCrudRepository,
 } from '@loopback/repository';
 import {inject, Getter} from '@loopback/core';
 
@@ -10,7 +10,6 @@ import {
   Categories,
   CategoriesRelations,
   Users,
-  VirtualUsers,
   BillList,
   PayerList,
 } from '../models';
@@ -19,7 +18,7 @@ import {UsersRepository} from './';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 
-export class CategoriesRepository extends DefaultTransactionalRepository<
+export class CategoriesRepository extends DefaultCrudRepository<
   Categories,
   typeof Categories.prototype.categoryId,
   CategoriesRelations

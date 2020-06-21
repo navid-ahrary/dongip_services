@@ -2,24 +2,15 @@ import {
   repository,
   BelongsToAccessor,
   HasManyRepositoryFactory,
-  DefaultTransactionalRepository,
+  DefaultCrudRepository,
 } from '@loopback/repository';
-import {
-  Groups,
-  GroupsRelations,
-  Users,
-  Dongs,
-  BillList,
-  PayerList,
-} from '../models';
+import {Groups, GroupsRelations, Users, Dongs} from '../models';
 import {MysqlDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
 import {UsersRepository} from './users.repository';
 import {DongsRepository} from './dongs.repository';
-import {BillListRepository} from './bill-list.repository';
-import {PayerListRepository} from './payer-list.repository';
 
-export class GroupsRepository extends DefaultTransactionalRepository<
+export class GroupsRepository extends DefaultCrudRepository<
   Groups,
   typeof Groups.prototype.groupId,
   GroupsRelations
