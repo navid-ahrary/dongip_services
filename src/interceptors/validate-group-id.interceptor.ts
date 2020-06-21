@@ -50,15 +50,18 @@ export class ValidateGroupIdInterceptor implements Provider<Interceptor> {
     next: () => ValueOrPromise<InvocationResult>,
   ) {
     if (invocationCtx.methodName === 'createDongs') {
-      const groupId = invocationCtx.args[0].groupId;
+      if (invocationCtx.args[0].groupId) {
+        const groupId = invocationCtx.args[0].groupId;
 
-      await this.groupsRepository
-        .findOne({
-          where: {userId: this.userId, groupId: groupId},
-        })
-        .then((result) => {
-          if (!result) throw new HttpErrors.NotFound('این گروه رو پیدا نکردم!');
-        });
+        await this.groupsRepository
+          .findOne({
+            where: {userId: this.userId, groupId: groupId},
+          })
+          .then((result) => {
+            if (!result)
+              throw new HttpErrors.NotFound('این گروه رو پیدا نکردم!');
+          });
+      }
     } else if (
       invocationCtx.methodName === 'deleteGroupsByIdAllDongs' ||
       invocationCtx.methodName === 'deleteGroupsById' ||
