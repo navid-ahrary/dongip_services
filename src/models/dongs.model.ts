@@ -141,6 +141,7 @@ export class Dongs extends Entity {
     },
     {
       type: 'number',
+      index: {normal: true},
       mysql: {
         columnName: 'group_id',
         dataType: 'int',
