@@ -206,7 +206,7 @@ export class GroupsController {
     try {
       await this.dongsRepository.updateAll(
         {groupId: undefined},
-        {userId: this.userId, groupId: {neq: undefined}},
+        {userId: this.userId},
       );
 
       const countDeleted = await this.groupsRepository.deleteAll({
