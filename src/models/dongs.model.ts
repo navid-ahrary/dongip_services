@@ -13,6 +13,7 @@ import {Users} from './users.model';
 import {Categories} from './categories.model';
 import {PayerList} from './payer-list.model';
 import {BillList} from './bill-list.model';
+import {Groups} from './groups.model';
 
 @model({
   name: 'dongs',
@@ -127,6 +128,28 @@ export class Dongs extends Entity {
     },
   )
   categoryId: number;
+
+  @belongsTo(
+    () => Groups,
+    {
+      name: 'group',
+      keyFrom: 'groupId',
+      keyTo: 'groupId',
+      source: Groups,
+      target: () => Dongs,
+      type: RelationType.belongsTo,
+    },
+    {
+      type: 'number',
+      mysql: {
+        columnName: 'group_id',
+        dataType: 'int',
+        dataLength: null,
+        nullable: 'Y',
+      },
+    },
+  )
+  groupId?: number;
 
   @hasMany(() => BillList, {
     name: 'billList',

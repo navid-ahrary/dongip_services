@@ -23,10 +23,12 @@ import {
   BillList,
   PayerList,
   Scores,
+  Groups,
 } from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 import {ScoresRepository} from './scores.repository';
+import {GroupsRepository} from './groups.repository';
 
 export class UsersRepository extends DefaultTransactionalRepository<
   Users,
@@ -67,6 +69,11 @@ export class UsersRepository extends DefaultTransactionalRepository<
     typeof Users.prototype.userId
   >;
 
+  public readonly groups: HasManyRepositoryFactory<
+    Groups,
+    typeof Users.prototype.userId
+  >;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -85,8 +92,15 @@ export class UsersRepository extends DefaultTransactionalRepository<
     protected payerListRepositoryGetter: Getter<PayerListRepository>,
     @repository.getter('ScoresRepository')
     protected scoresRepositoryGetter: Getter<ScoresRepository>,
+    @repository.getter('GroupsRepository')
+    protected groupsRepositoryGetter: Getter<GroupsRepository>,
   ) {
     super(Users, dataSource);
+    this.groups = this.createHasManyRepositoryFactoryFor(
+      'groups',
+      groupsRepositoryGetter,
+    );
+    this.registerInclusionResolver('groups', this.groups.inclusionResolver);
 
     this.scores = this.createHasManyRepositoryFactoryFor(
       'scores',

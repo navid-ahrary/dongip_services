@@ -14,11 +14,13 @@ import {
   BillList,
   PayerList,
   Categories,
+  Groups,
 } from '../models';
 import {UsersRepository} from './users.repository';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 import {CategoriesRepository} from './categories.repository';
+import {GroupsRepository} from './groups.repository';
 
 export class DongsRepository extends DefaultTransactionalRepository<
   Dongs,
@@ -45,6 +47,11 @@ export class DongsRepository extends DefaultTransactionalRepository<
     typeof Dongs.prototype.dongId
   >;
 
+  public readonly group: BelongsToAccessor<
+    Groups,
+    typeof Dongs.prototype.dongId
+  >;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
@@ -55,8 +62,15 @@ export class DongsRepository extends DefaultTransactionalRepository<
     protected billListRepositoryGetter: Getter<BillListRepository>,
     @repository.getter('PayerListRepository')
     protected payerListRepositoryGetter: Getter<PayerListRepository>,
+    @repository.getter('GroupsRepository')
+    protected groupsRepositoryGetter: Getter<GroupsRepository>,
   ) {
     super(Dongs, dataSource);
+    this.group = this.createBelongsToAccessorFor(
+      'group',
+      groupsRepositoryGetter,
+    );
+    this.registerInclusionResolver('group', this.group.inclusionResolver);
 
     this.categories = this.createBelongsToAccessorFor(
       'categories',

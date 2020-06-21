@@ -9,6 +9,7 @@ import {Dongs} from './dongs.model';
 import {UsersRels} from './users-rels.model';
 import {Categories} from './categories.model';
 import {Users} from './users.model';
+import {Groups} from './groups.model';
 
 @model({name: 'payer_list'})
 export class PayerList extends Entity {

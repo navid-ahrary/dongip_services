@@ -10,6 +10,7 @@ import {
   UsersRels,
   Categories,
   Users,
+  Groups,
 } from '../models';
 import {MysqlDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
@@ -17,6 +18,7 @@ import {DongsRepository} from './dongs.repository';
 import {UsersRelsRepository} from './users-rels.repository';
 import {CategoriesRepository} from './categories.repository';
 import {UsersRepository} from './users.repository';
+import {GroupsRepository} from './groups.repository';
 
 export class PayerListRepository extends DefaultTransactionalRepository<
   PayerList,

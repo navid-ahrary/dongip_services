@@ -40,17 +40,15 @@ import {
   ValidateCategoryIdInterceptor,
   FirebasetokenInterceptor,
 } from '../interceptors';
+import {ValidateGroupIdInterceptor} from '../interceptors/validate-group-id.interceptor';
 
 @model()
 class ResponseNewDong extends Dongs {
   @property({type: 'number', required: true})
   score: number;
 }
-
-@api({
-  basePath: '/api/',
-  paths: {},
-})
+@intercept(ValidateGroupIdInterceptor.BINDING_KEY)
+@api({basePath: '/api/', paths: {}})
 @intercept(FirebasetokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class DongsController {
@@ -127,7 +125,7 @@ export class DongsController {
         'application/json': {
           schema: getModelSchemaRef(PostNewDong, {
             title: 'NewDongs',
-            optional: ['title', 'desc'],
+            optional: ['title', 'desc', 'groupId'],
           }),
           example: PostNewDongExample,
         },
@@ -189,7 +187,14 @@ export class DongsController {
 
     // Create a Dongs entity
     const dong: Dongs = new Dongs(
-      _.pick(newDong, ['title', 'createdAt', 'categoryId', 'desc', 'pong']),
+      _.pick(newDong, [
+        'title',
+        'createdAt',
+        'categoryId',
+        'desc',
+        'pong',
+        'groupId',
+      ]),
     );
 
     // Begin transactions
