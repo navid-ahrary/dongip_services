@@ -22,9 +22,10 @@ import {
   VirtualUsersRepository,
   BlacklistRepository,
   UsersRelsRepository,
+  GroupsRepository,
 } from '../repositories';
 import {FirebaseService} from '../services';
-import _ from 'underscore';
+import _ from 'lodash';
 import {
   ValidatePhoneNumInterceptor,
   FirebasetokenInterceptor,
@@ -37,17 +38,22 @@ import {
 )
 @authenticate('jwt.access')
 export class UsersRelsController {
+  userId: number;
+
   constructor(
-    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(UsersRepository) protected usersRepository: UsersRepository,
+    @repository(GroupsRepository) protected groupsRepository: GroupsRepository,
     @repository(VirtualUsersRepository)
-    public virtualUsersRepository: VirtualUsersRepository,
+    protected virtualUsersRepository: VirtualUsersRepository,
     @repository(BlacklistRepository)
-    public blacklistRepository: BlacklistRepository,
+    protected blacklistRepository: BlacklistRepository,
     @repository(UsersRelsRepository)
-    public usersRelsRepository: UsersRelsRepository,
-    @service(FirebaseService) public firebaseService: FirebaseService,
+    protected usersRelsRepository: UsersRelsRepository,
+    @service(FirebaseService) protected firebaseService: FirebaseService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
-  ) {}
+  ) {
+    this.userId = Number(this.currentUserProfile[securityId]);
+  }
 
   @get('/users-rels', {
     summary: 'Get array of all UsersRels',
@@ -66,8 +72,7 @@ export class UsersRelsController {
   async find(
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<UsersRels[]> {
-    const userId = Number(this.currentUserProfile[securityId]);
-    return this.usersRepository.usersRels(userId).find();
+    return this.usersRepository.usersRels(this.userId).find();
   }
 
   @post('/users-rels', {
@@ -102,18 +107,17 @@ export class UsersRelsController {
     userRelReqBody: Omit<UsersRels, 'id'>,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<UsersRels> {
-    const userId = Number(this.currentUserProfile[securityId]),
-      userRelObject: UsersRels = new UsersRels({
-        name: userRelReqBody.name,
-        avatar: userRelReqBody.avatar,
-        type: 'virtual',
-        phone: userRelReqBody.phone,
-      });
+    const userRelObject: UsersRels = new UsersRels({
+      name: userRelReqBody.name,
+      avatar: userRelReqBody.avatar,
+      type: 'virtual',
+      phone: userRelReqBody.phone,
+    });
 
     // Check phone number is not user's
     await this.usersRepository
       .count({
-        userId: userId,
+        userId: this.userId,
         phone: userRelReqBody.phone,
       })
       .then((result) => {
@@ -123,7 +127,7 @@ export class UsersRelsController {
 
     // Create a UserRel belongs to current user
     const createdUserRel: UsersRels = await this.usersRepository
-      .usersRels(userId)
+      .usersRels(this.userId)
       .create(userRelObject)
       .catch((err) => {
         // Duplicate error handling
@@ -149,7 +153,7 @@ export class UsersRelsController {
 
     // Create a VirtualUser belongs to current user
     await this.usersRepository
-      .virtualUsers(userId)
+      .virtualUsers(this.userId)
       .create({phone: userRelReqBody.phone, userRelId: createdUserRel.getId()});
 
     return createdUserRel;
@@ -196,14 +200,12 @@ export class UsersRelsController {
     userRelId: typeof UsersRels.prototype.userRelId,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
-    const userId = Number(this.currentUserProfile[securityId]);
-
     let errorMessage: string;
 
     try {
       // Patch UserRel
       await this.usersRepository
-        .usersRels(userId)
+        .usersRels(this.userId)
         .patch(userRelReqBody, {
           and: [{userRelId: userRelId}, {type: {neq: 'self'}}],
         })
@@ -219,7 +221,7 @@ export class UsersRelsController {
       if (vu.phone) {
         await this.usersRelsRepository
           .hasOneVirtualUser(userRelId)
-          .patch(vu, {userId: userId});
+          .patch(vu, {userId: this.userId});
       }
     } catch (err) {
       // Duplicate error handling
@@ -254,10 +256,24 @@ export class UsersRelsController {
     userRelId: typeof UsersRels.prototype.userRelId,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
-    const userId = Number(this.currentUserProfile[securityId]);
+    // Remove userRelId from Groups
+    const foundGroupsUserRelIds = await this.groupsRepository.find({
+      where: {userId: this.userId},
+      fields: {groupId: true, userRelIds: true},
+    });
+    for (const group of foundGroupsUserRelIds) {
+      if (group.userRelIds.includes(userRelId)) {
+        const updatedUserRelIds = _.remove(group.userRelIds, function (id) {
+          return id !== userRelId;
+        });
+        await this.groupsRepository.updateById(group.groupId, {
+          userRelIds: updatedUserRelIds,
+        });
+      }
+    }
 
     await this.usersRepository
-      .usersRels(userId)
+      .usersRels(this.userId)
       .delete({and: [{userRelId: userRelId}, {type: {neq: 'self'}}]})
       .then((countDeleted) => {
         if (!countDeleted.count) {
@@ -266,7 +282,7 @@ export class UsersRelsController {
       });
 
     await this.usersRepository
-      .virtualUsers(userId)
+      .virtualUsers(this.userId)
       .delete({userRelId: userRelId})
       .catch(async (err) => {
         throw new HttpErrors.NotImplemented(err.message);
@@ -303,7 +319,7 @@ export class UsersRelsController {
       },
     },
   })
-  async findContacts(
+  async findFriends(
     @requestBody({
       description: 'Array of phone numbers',
       required: true,
@@ -348,15 +364,14 @@ export class UsersRelsController {
     responses: {'200': {description: 'Count deleted UsersRels'}},
   })
   async deleteAllUsersRels() {
-    const userId = Number(this.currentUserProfile[securityId]);
     let countDeletedUsersRels: Count;
 
     try {
-      await this.virtualUsersRepository.deleteAll({userId: userId});
+      await this.virtualUsersRepository.deleteAll({userId: this.userId});
 
       countDeletedUsersRels = await this.usersRelsRepository.deleteAll({
         type: {neq: 'self'},
-        userId: userId,
+        userId: this.userId,
       });
 
       return countDeletedUsersRels;
