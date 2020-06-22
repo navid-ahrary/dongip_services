@@ -66,21 +66,23 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
       }
     } else if (invocationCtx.methodName === 'patchGroupsById') {
       const userId = Number(this.currentUserProfile[securityId]);
-      const userRelIds = invocationCtx.args[1].userRelIds;
-      // eslint-disable-next-line prefer-const
-      let userRelIdsFilter: {userRelId: number}[] = [];
+      if (invocationCtx.args[1].userRelIds) {
+        const userRelIds = invocationCtx.args[1].userRelIds;
+        // eslint-disable-next-line prefer-const
+        let userRelIdsFilter: {userRelId: number}[] = [];
 
-      userRelIds.forEach((id: number) => {
-        userRelIdsFilter.push({userRelId: id});
-      });
+        userRelIds.forEach((id: number) => {
+          userRelIdsFilter.push({userRelId: id});
+        });
 
-      const countUserRels = await this.usersRelsRepository.count({
-        userId: userId,
-        or: userRelIdsFilter,
-      });
+        const countUserRels = await this.usersRelsRepository.count({
+          userId: userId,
+          or: userRelIdsFilter,
+        });
 
-      if (countUserRels.count !== userRelIds.length) {
-        throw new HttpErrors.NotFound('اعضا معتبر نیستن!');
+        if (countUserRels.count !== userRelIds.length) {
+          throw new HttpErrors.NotFound('اعضا معتبر نیستن!');
+        }
       }
     }
     const result = await next();
