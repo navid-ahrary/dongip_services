@@ -23,6 +23,7 @@ import {
   BlacklistRepository,
   UsersRelsRepository,
   GroupsRepository,
+  DongsRepository,
 } from '../repositories';
 import {FirebaseService} from '../services';
 import _ from 'lodash';
@@ -43,6 +44,7 @@ export class UsersRelsController {
   constructor(
     @repository(UsersRepository) protected usersRepository: UsersRepository,
     @repository(GroupsRepository) protected groupsRepository: GroupsRepository,
+    @repository(DongsRepository) protected dongsRepository: DongsRepository,
     @repository(VirtualUsersRepository)
     protected virtualUsersRepository: VirtualUsersRepository,
     @repository(BlacklistRepository)
@@ -212,7 +214,7 @@ export class UsersRelsController {
         .then((countPatched) => {
           if (!countPatched.count) {
             errorMessage = 'این رابطه دوستی رو پیدا نکردم!';
-            throw new HttpErrors.NotFound(errorMessage);
+            throw new HttpErrors.UnprocessableEntity(errorMessage);
           }
         });
 
@@ -256,6 +258,24 @@ export class UsersRelsController {
     userRelId: typeof UsersRels.prototype.userRelId,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
+    await this.usersRepository
+      .usersRels(this.userId)
+      .delete({and: [{userRelId: userRelId}, {type: {neq: 'self'}}]})
+      .then((countDeleted) => {
+        if (!countDeleted.count) {
+          throw new HttpErrors.UnprocessableEntity(
+            'این رابطه دوستی رو پیدا نکردم',
+          );
+        }
+      });
+
+    await this.usersRepository
+      .virtualUsers(this.userId)
+      .delete({userRelId: userRelId})
+      .catch(async (err) => {
+        throw new HttpErrors.NotImplemented(err.message);
+      });
+
     // Remove userRelId from Groups
     const foundGroupsUserRelIds = await this.groupsRepository.find({
       where: {userId: this.userId},
@@ -271,22 +291,6 @@ export class UsersRelsController {
         });
       }
     }
-
-    await this.usersRepository
-      .usersRels(this.userId)
-      .delete({and: [{userRelId: userRelId}, {type: {neq: 'self'}}]})
-      .then((countDeleted) => {
-        if (!countDeleted.count) {
-          throw new HttpErrors.NotFound('این رابطه دوستی رو پیدا نکردم');
-        }
-      });
-
-    await this.usersRepository
-      .virtualUsers(this.userId)
-      .delete({userRelId: userRelId})
-      .catch(async (err) => {
-        throw new HttpErrors.NotImplemented(err.message);
-      });
   }
 
   @post('/users-rels/find-friends', {
@@ -349,7 +353,7 @@ export class UsersRelsController {
 
     return this.usersRepository
       .find({
-        order: ['userId ASC'],
+        order: ['name ASC'],
         fields: {name: true, phone: true, avatar: true},
         where: {or: orPhoneList},
       })
@@ -373,6 +377,14 @@ export class UsersRelsController {
         type: {neq: 'self'},
         userId: this.userId,
       });
+
+      // Delete all Groups
+      await this.groupsRepository.deleteAll({userId: this.userId});
+      // Update all Dongs
+      await this.dongsRepository.updateAll(
+        {groupId: undefined},
+        {userId: this.userId},
+      );
 
       return countDeletedUsersRels;
     } catch (err) {
