@@ -21,7 +21,7 @@ export class Verify extends Entity {
     required: true,
     mysql: {
       dataType: 'varchar',
-      dataLength: 255,
+      dataLength: 10,
       nullable: 'N',
     },
   })
@@ -61,6 +61,61 @@ export class Verify extends Entity {
     },
   })
   issuedAt: string;
+
+  @property({
+    type: 'number',
+    mysql: {
+      columnName: 'kavenegar_message_id',
+      dataType: 'int',
+      dataLength: null,
+      nullable: 'Y',
+    },
+  })
+  kavenegarMessageId?: number;
+
+  @property({
+    type: 'string',
+    mysql: {
+      columnName: 'kavenegar_sender',
+      dataType: 'varchar',
+      dataLength: 50,
+      nullable: 'Y',
+    },
+  })
+  kavenegarSender?: string;
+
+  @property({
+    type: 'Number',
+    mysql: {
+      columnName: 'kavenegar_date',
+      dataType: 'int',
+      dataLength: null,
+      nullable: 'Y',
+    },
+  })
+  kavenegarDate?: number;
+
+  @property({
+    type: 'number',
+    mysql: {
+      columnName: 'kavenegar_status_code',
+      dataType: 'int',
+      dataLength: 3,
+      nullable: 'Y',
+    },
+  })
+  kavenegarStatusCode?: number;
+
+  @property({
+    type: 'string',
+    mysql: {
+      columnName: 'kavenegar_status_text',
+      dataType: 'varchar',
+      dataLength: 100,
+      nullable: 'Y',
+    },
+  })
+  kavenegarStatusText?: string;
 
   constructor(data?: Partial<Verify>) {
     super(data);

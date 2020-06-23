@@ -130,7 +130,6 @@ export class UsersController {
     avatar: string;
     prefix: string;
     verifyToken: string;
-    code: string;
   }> {
     const randomCode = Math.random().toFixed(7).slice(3),
       randomStr = this.generateRandomString(3);
@@ -143,15 +142,10 @@ export class UsersController {
       },
     });
 
-    // Hash the generated password
-    const hashedPass = await this.passwordHasher.hashPassword(
-      randomStr + randomCode,
-    );
-
     const createdVerify = await this.verifyRepository
       .create({
         phone: verifyReqBody.phone,
-        password: hashedPass,
+        password: randomStr + randomCode,
         registered: user ? true : false,
         issuedAt: new Date().toISOString(),
       })
@@ -171,14 +165,18 @@ export class UsersController {
     );
 
     // send verify code via sms
-    this.smsService.sendSms('dongip', randomCode, verifyReqBody.phone);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.smsService.sendSms(
+      randomCode,
+      verifyReqBody.phone,
+      createdVerify.getId(),
+    );
 
     return {
       status: user ? true : false,
       avatar: user ? user.avatar : 'dongip',
       name: user ? user.name : 'noob',
       prefix: randomStr,
-      code: randomCode,
       verifyToken: verifyToken,
     };
   }
