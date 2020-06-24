@@ -7,14 +7,10 @@ const debug = Debug('dongip');
 
 import {VerifyRepository} from '../repositories';
 import {Verify} from '../models';
-import {PasswordHasher} from '../services';
-import {PasswordHasherBindings} from '../keys';
 
 @bind({scope: BindingScope.TRANSIENT})
 export class VerifyService {
   constructor(
-    @inject(PasswordHasherBindings.PASSWORD_HASHER)
-    public passwordHasher: PasswordHasher,
     @repository(VerifyRepository) public verifyRepo: VerifyRepository,
   ) {}
 
@@ -33,12 +29,7 @@ export class VerifyService {
       throw new HttpErrors.Unauthorized(invalidCredentialsError);
     }
 
-    const isMatched = await this.passwordHasher.comparePassword(
-      password,
-      foundVerify.password,
-    );
-
-    if (!isMatched) {
+    if (password !== foundVerify.password) {
       console.log(invalidCredentialsError);
       throw new HttpErrors.Unauthorized(invalidCredentialsError);
     }
