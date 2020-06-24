@@ -14,6 +14,7 @@ import {Categories} from './categories.model';
 import {UsersRels} from './users-rels.model';
 import {Scores} from './scores.model';
 import {Groups} from './groups.model';
+import {Tickets} from './tickets.model';
 
 @model({name: 'users'})
 export class Users extends Entity {
@@ -205,6 +206,9 @@ export class Users extends Entity {
 
   @hasMany(() => Groups, {keyTo: 'userId'})
   groups: Groups[];
+
+  @hasMany(() => Tickets, {keyTo: 'userId'})
+  tickets: Tickets[];
 
   constructor(data?: Partial<Users>) {
     super(data);

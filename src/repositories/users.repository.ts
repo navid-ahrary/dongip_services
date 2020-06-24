@@ -24,11 +24,13 @@ import {
   PayerList,
   Scores,
   Groups,
+  Tickets,
 } from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 import {ScoresRepository} from './scores.repository';
 import {GroupsRepository} from './groups.repository';
+import {TicketsRepository} from './tickets.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
@@ -74,6 +76,11 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
+  public readonly tickets: HasManyRepositoryFactory<
+    Tickets,
+    typeof Users.prototype.userId
+  >;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -94,8 +101,16 @@ export class UsersRepository extends DefaultCrudRepository<
     protected scoresRepositoryGetter: Getter<ScoresRepository>,
     @repository.getter('GroupsRepository')
     protected groupsRepositoryGetter: Getter<GroupsRepository>,
+    @repository.getter('TicketsRepository')
+    protected ticketsRepositoryGetter: Getter<TicketsRepository>,
   ) {
     super(Users, dataSource);
+
+    this.tickets = this.createHasManyRepositoryFactoryFor(
+      'tickets',
+      ticketsRepositoryGetter,
+    );
+
     this.groups = this.createHasManyRepositoryFactoryFor(
       'groups',
       groupsRepositoryGetter,
