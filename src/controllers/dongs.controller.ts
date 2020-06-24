@@ -41,9 +41,11 @@ class ResponseNewDong extends Dongs {
   @property({type: 'number', required: true})
   score: number;
 }
-@intercept(ValidateGroupIdInterceptor.BINDING_KEY)
+@intercept(
+  ValidateGroupIdInterceptor.BINDING_KEY,
+  FirebasetokenInterceptor.BINDING_KEY,
+)
 @api({basePath: '/api/', paths: {}})
-@intercept(FirebasetokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class DongsController {
   constructor(
