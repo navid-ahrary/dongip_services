@@ -8,8 +8,12 @@ import {RepositoryMixin} from '@loopback/repository';
 import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
 import {registerAuthenticationStrategy} from '@loopback/authentication';
-import {MetricsComponent, MetricsBindings} from '@loopback/extension-metrics';
-import {HealthComponent, HealthBindings} from '@loopback/extension-health';
+import {
+  AuthorizationDecision,
+  AuthorizationOptions,
+  AuthorizationComponent,
+  AuthorizationBindings,
+} from '@loopback/authorization';
 import * as path from 'path';
 
 import {MyAuthenticationSequence} from './sequence';
@@ -27,6 +31,8 @@ import {
 } from './keys';
 import {JWTService, BcryptHasher, MyUserService} from './services';
 import {SECURITY_SCHEME_SPEC} from './utils/security-specs';
+import {MetricsComponent, MetricsBindings} from '@loopback/extension-metrics';
+import {HealthComponent, HealthBindings} from '@loopback/extension-health';
 
 /**
  * Information from package.json
@@ -62,6 +68,15 @@ export class MyApplication extends BootMixin(
 
     // Bind authentication components related elemets
     this.component(UserAuthenticationComponent);
+
+    const authoriazationOptions: AuthorizationOptions = {
+      precedence: AuthorizationDecision.DENY,
+      defaultDecision: AuthorizationDecision.DENY,
+    };
+
+    this.configure(AuthorizationBindings.COMPONENT).to(authoriazationOptions);
+    this.component(AuthorizationComponent);
+
     // Bind Prometheus metric component
     this.component(MetricsComponent);
     // Bind health checking compnent
@@ -115,14 +130,17 @@ export class MyApplication extends BootMixin(
     this.bind(TokenServiceBindings.TOKEN_SECRET).to(
       TokenServiceConstants.TOKEN_SECRET_VALUE!,
     );
+    this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(
+      TokenServiceConstants.JWT_TOKEN_ALGORITHM,
+    );
     this.bind(TokenServiceBindings.VERIFY_TOKEN_EXPIRES_IN).to(
-      TokenServiceConstants.VERIFY_TOKEN_EXPIRES_IN_VALUE!,
+      TokenServiceConstants.VERIFY_TOKEN_EXPIRES_IN_VALUE,
     );
     this.bind(TokenServiceBindings.ACCESS_TOKEN_EXPIRES_IN).to(
-      TokenServiceConstants.ACCESS_TOKEN_EXPIRES_IN_VALUE!,
+      TokenServiceConstants.ACCESS_TOKEN_EXPIRES_IN_VALUE,
     );
     this.bind(TokenServiceBindings.REFRESH_TOKEN_EXPIRES_IN).to(
-      TokenServiceConstants.REFRESH_TOKEN_EXPIRES_IN_VALUE!,
+      TokenServiceConstants.REFRESH_TOKEN_EXPIRES_IN_VALUE,
     );
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
 

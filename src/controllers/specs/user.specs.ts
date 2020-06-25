@@ -8,7 +8,7 @@ export const UserPatchRequestBody = {
         partial: true,
         exclude: [
           'userId',
-          'accountType',
+          'roles',
           'registeredAt',
           'dongs',
           'usersRels',

@@ -285,7 +285,7 @@ export class UsersController {
             schema: getModelSchemaRef(Users, {
               exclude: [
                 'userAgent',
-                'accountType',
+                'roles',
                 'phone',
                 'name',
                 'registeredAt',
@@ -316,7 +316,7 @@ export class UsersController {
             title: 'NewUser',
             exclude: [
               'userId',
-              'accountType',
+              'roles',
               'categories',
               'dongs',
               'userAgent',

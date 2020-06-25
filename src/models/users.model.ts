@@ -91,17 +91,17 @@ export class Users extends Entity {
   refreshToken: string;
 
   @property({
-    type: 'string',
+    type: 'array',
+    itemType: 'string',
     required: true,
-    default: 'bronze',
+    default: ['BRONZE'],
     mysql: {
-      columnName: 'account_type',
-      dataType: 'varchar',
-      dataLength: 20,
+      dataType: 'text',
+      dataLength: 100,
       nullable: 'N',
     },
   })
-  accountType: string;
+  roles: string[];
 
   @property({
     type: 'string',

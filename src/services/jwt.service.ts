@@ -5,7 +5,7 @@ import {inject} from '@loopback/core';
 import {UserProfile, securityId} from '@loopback/security';
 import {HttpErrors} from '@loopback/rest';
 import {repository} from '@loopback/repository';
-import {sign, verify} from 'jsonwebtoken';
+import {sign, verify, Algorithm} from 'jsonwebtoken';
 
 import {UsersRepository, BlacklistRepository} from '../repositories';
 import {TokenServiceBindings} from '../keys';
@@ -16,6 +16,8 @@ export class JWTService implements TokenService {
     @repository(BlacklistRepository)
     public blacklistRepository: BlacklistRepository,
     @inject(TokenServiceBindings.TOKEN_SECRET) private jwtSecret: string,
+    @inject(TokenServiceBindings.TOKEN_ALGORITHM)
+    private jwtAlgorithm: Algorithm,
     @inject(TokenServiceBindings.VERIFY_TOKEN_EXPIRES_IN)
     private jwtVerifyExpiresIn: string,
     @inject(TokenServiceBindings.ACCESS_TOKEN_EXPIRES_IN)
@@ -36,10 +38,12 @@ export class JWTService implements TokenService {
     try {
       // check token is not in blacklist
       const isBlacklisted = await this.blacklistRepository.exists(accessToken);
-      if (isBlacklisted) throw new Error('Token is in blacklist!');
+      if (isBlacklisted) throw new Error('توکن شما بلاک شده!');
 
       // Decode user profile from token
-      decryptedToken = verify(accessToken, this.jwtSecret);
+      decryptedToken = verify(accessToken, this.jwtSecret, {
+        algorithms: [this.jwtAlgorithm],
+      });
 
       // In access audience, the user should exists in database certainly
       if (decryptedToken.aud === 'access') {
@@ -50,8 +54,12 @@ export class JWTService implements TokenService {
       }
 
       userProfile = Object.assign(
-        {[securityId]: '', aud: ''},
-        {[securityId]: decryptedToken.sub, aud: decryptedToken.aud},
+        {},
+        {
+          [securityId]: decryptedToken.sub,
+          aud: decryptedToken.aud,
+          roles: decryptedToken.roles,
+        },
       );
     } catch (err) {
       throw new HttpErrors.Unauthorized(
@@ -87,19 +95,18 @@ export class JWTService implements TokenService {
     }
 
     //generate a JWT token
-    let accessToken: string;
     try {
-      accessToken = sign(userProfile, this.jwtSecret, {
-        algorithm: 'HS512',
+      const generatedToken = sign(userProfile, this.jwtSecret, {
+        algorithm: this.jwtAlgorithm,
         expiresIn: expiresIn,
         subject: String(userProfile[securityId]),
       });
+
+      return generatedToken;
     } catch (err) {
       throw new HttpErrors.Unauthorized(
         `Error generating token: ${err.message}`,
       );
     }
-
-    return accessToken;
   }
 }

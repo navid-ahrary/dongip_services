@@ -7,16 +7,19 @@ import {
   api,
   param,
 } from '@loopback/rest';
+import {inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {Tickets, TicketsRelations} from '../models';
-import {TicketsRepository, UsersRepository} from '../repositories';
-import {inject, intercept} from '@loopback/core';
 import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+
+import {Tickets} from '../models';
+import {TicketsRepository, UsersRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {ValidateTicketIdInterceptor} from '../interceptors/validate-ticket-id.interceptor';
+import {basicAuthorization} from '../services';
 
 @api({basePath: '/api/', paths: {}})
 @authenticate('jwt.access')
+@authorize({allowedRoles: ['GOD'], voters: [basicAuthorization]})
 export class TicketsController {
   userId: number;
 
@@ -28,78 +31,32 @@ export class TicketsController {
     this.userId = Number(this.currentUserProfile[securityId]);
   }
 
-  @post('/tickets', {
-    summary: 'Create a Ticket',
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'Tickets model instance',
-        content: {
-          'application/json': {
-            schema: getModelSchemaRef(Tickets, {
-              exclude: ['responseMessage', 'respondAt'],
-            }),
-          },
-        },
-      },
-    },
-  })
-  async createTickets(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Tickets, {
-            title: 'NewTickets',
-            exclude: [
-              'ticketId',
-              'userId',
-              'responseMessage',
-              'askedAt',
-              'respondAt',
-            ],
-            includeRelations: false,
-          }),
-          example: {
-            question: 'How can I buy gold account?',
-          },
-        },
-      },
-    })
-    newTicket: Omit<Tickets, 'ticketId'>,
-  ): Promise<Tickets> {
-    newTicket.userId = this.userId;
-    return this.ticketsRepository.create(newTicket);
-  }
-
-  @get('/tickets', {
-    summary: 'Get all Tickets',
+  @get('/tickets/', {
+    summary: 'Get array of asked tickets recently',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Array of Tickets model instances',
         content: {
           'application/json': {
-            schema: {
-              type: 'array',
-              items: getModelSchemaRef(Tickets, {includeRelations: false}),
-            },
+            schema: {type: 'array', items: getModelSchemaRef(Tickets)},
           },
         },
       },
     },
   })
-  async findTickets(): Promise<Tickets[]> {
-    return this.usersRepository
-      .tickets(this.userId)
-      .find({order: ['askedAt DESC']});
+  async getTickets(): Promise<Tickets[]> {
+    return this.ticketsRepository.find({
+      order: ['askedAt DESC', 'respondAt ASC'],
+    });
   }
 
-  @get('/tickets/{ticketId}', {
-    summary: 'Get a Ticket by ticketId',
+  @post('/tickets/{ticketId}/respond', {
+    summary: 'Reponse to a Ticket by ticketId',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'A Tcikets model instance',
+        description: 'Tickets model instance',
         content: {
           'application/json': {
             schema: getModelSchemaRef(Tickets, {includeRelations: false}),
@@ -108,10 +65,27 @@ export class TicketsController {
       },
     },
   })
-  @intercept(ValidateTicketIdInterceptor.BINDING_KEY)
-  async findTicketById(
-    @param.path.number('ticketId') ticketId: typeof Tickets.prototype.ticketId,
-  ): Promise<Tickets> {
-    return this.ticketsRepository.findById(ticketId);
+  async respondToTickets(
+    @param.path.number('ticketId', {required: true})
+    ticketId: typeof Tickets.prototype.ticketId,
+    @requestBody({
+      required: true,
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Tickets, {
+            title: 'NewTickets',
+            exclude: ['ticketMessage', 'askedAt', 'respondAt', 'userId'],
+            includeRelations: false,
+          }),
+          example: {
+            responseMessage: 'Pay money',
+          },
+        },
+      },
+    })
+    responseReqBody: Omit<Tickets, 'ticketId'>,
+  ): Promise<void> {
+    responseReqBody.respondAt = new Date().toISOString();
+    return this.ticketsRepository.updateById(ticketId, responseReqBody);
   }
 }

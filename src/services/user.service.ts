@@ -38,7 +38,7 @@ export class MyUserService implements UserService<Users, Credentials> {
 
     return {
       [securityId]: user.getId(),
-      accountType: user.accountType,
+      roles: user.roles,
     };
   }
 }

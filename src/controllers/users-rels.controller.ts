@@ -309,7 +309,7 @@ export class UsersRelsController {
                 includeRelations: false,
                 exclude: [
                   'userId',
-                  'accountType',
+                  'roles',
                   'billList',
                   'firebaseToken',
                   'refreshToken',
