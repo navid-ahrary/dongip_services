@@ -74,19 +74,24 @@ export class TicketsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(Tickets, {
-            title: 'NewTickets',
-            exclude: ['ticketMessage', 'askedAt', 'respondAt', 'userId'],
-            includeRelations: false,
+            title: 'RespondTickets',
+            exclude: [
+              'askedAt',
+              'respondAt',
+              'userId',
+              'ticketMessage',
+              'ticketId',
+            ],
           }),
-          example: {
-            responseMessage: 'Pay money',
-          },
+          example: {responseMessage: 'Pay money'},
         },
       },
     })
     responseReqBody: Omit<Tickets, 'ticketId'>,
   ): Promise<void> {
     responseReqBody.respondAt = new Date().toISOString();
+
+    console.log(responseReqBody);
     // Update Ticket with reponse message
     await this.ticketsRepository.updateById(ticketId, responseReqBody);
 

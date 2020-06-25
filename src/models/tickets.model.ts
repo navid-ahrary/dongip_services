@@ -17,7 +17,6 @@ export class Tickets extends Entity {
 
   @property({
     type: 'string',
-    required: true,
     mysql: {
       columnName: 'ticket_message',
       dataType: 'varchar',
@@ -25,7 +24,7 @@ export class Tickets extends Entity {
       nullable: 'N',
     },
   })
-  ticketMessage: string;
+  ticketMessage?: string;
 
   @property({
     type: 'date',
