@@ -7,7 +7,7 @@ import {
   api,
   param,
 } from '@loopback/rest';
-import {inject} from '@loopback/core';
+import {inject, service} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
@@ -15,7 +15,7 @@ import {authorize} from '@loopback/authorization';
 import {Tickets} from '../models';
 import {TicketsRepository, UsersRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {basicAuthorization} from '../services';
+import {basicAuthorization, FirebaseService} from '../services';
 
 @api({basePath: '/api/', paths: {}})
 @authenticate('jwt.access')
@@ -27,6 +27,7 @@ export class TicketsController {
     @repository(TicketsRepository) public ticketsRepository: TicketsRepository,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @service(FirebaseService) protected firebaseService: FirebaseService,
   ) {
     this.userId = Number(this.currentUserProfile[securityId]);
   }
@@ -86,6 +87,31 @@ export class TicketsController {
     responseReqBody: Omit<Tickets, 'ticketId'>,
   ): Promise<void> {
     responseReqBody.respondAt = new Date().toISOString();
-    return this.ticketsRepository.updateById(ticketId, responseReqBody);
+    // Update Ticket with reponse message
+    await this.ticketsRepository.updateById(ticketId, responseReqBody);
+
+    const foundTicket = await this.ticketsRepository.findById(ticketId, {
+      fields: {userId: true},
+    });
+
+    const foundUser = await this.usersRepository.findById(foundTicket.userId, {
+      fields: {firebaseToken: true},
+    });
+
+    if (foundUser.firebaseToken && responseReqBody.responseMessage) {
+      // Send respond notify to User
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.firebaseService.sendToDeviceMessage(foundUser.firebaseToken, {
+        notification: {
+          title: 'پاسخ به تیکت',
+          body: responseReqBody.responseMessage,
+          clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+        },
+        data: {
+          ticketId: ticketId.toString(),
+          respondMessage: responseReqBody.responseMessage,
+        },
+      });
+    }
   }
 }
