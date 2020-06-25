@@ -114,7 +114,7 @@ export class TicketsController {
         },
         data: {
           ticketId: ticketId.toString(),
-          respondMessage: responseReqBody.responseMessage,
+          responseMessage: responseReqBody.responseMessage,
         },
       });
     }
