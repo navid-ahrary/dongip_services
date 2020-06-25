@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/camelcase */
 module.exports = {
   apps: [{
     name: "dongip",
     script: "./index.js",
-    instances: 4,
+    instances: "max",
+    exec_mode: "cluster",
     watch: false,
     env: {
       NODE_ENV: "development"
