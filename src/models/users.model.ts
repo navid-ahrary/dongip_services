@@ -15,6 +15,7 @@ import {UsersRels} from './users-rels.model';
 import {Scores} from './scores.model';
 import {Groups} from './groups.model';
 import {Tickets} from './tickets.model';
+import {Messages} from './messages.model';
 
 @model({name: 'users'})
 export class Users extends Entity {
@@ -204,11 +205,38 @@ export class Users extends Entity {
   })
   scores: Scores[];
 
-  @hasMany(() => Groups, {keyTo: 'userId'})
+  @hasMany(() => Groups, {
+    type: RelationType.hasMany,
+    keyTo: 'userId',
+    keyFrom: 'userId',
+    name: 'groups',
+    source: Users,
+    target: () => Groups,
+    targetsMany: true,
+  })
   groups: Groups[];
 
-  @hasMany(() => Tickets, {keyTo: 'userId'})
+  @hasMany(() => Tickets, {
+    type: RelationType.hasMany,
+    keyTo: 'userId',
+    keyFrom: 'userId',
+    name: 'tickets',
+    source: Users,
+    target: () => Tickets,
+    targetsMany: true,
+  })
   tickets: Tickets[];
+
+  @hasMany(() => Messages, {
+    type: RelationType.hasMany,
+    keyTo: 'userId',
+    keyFrom: 'userId',
+    name: 'messages',
+    source: Users,
+    target: () => Messages,
+    targetsMany: true,
+  })
+  messages: Messages[];
 
   constructor(data?: Partial<Users>) {
     super(data);

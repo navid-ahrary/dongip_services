@@ -48,6 +48,8 @@ class ResponseNewDong extends Dongs {
 @api({basePath: '/api/', paths: {}})
 @authenticate('jwt.access')
 export class DongsController {
+  userId: number;
+
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(UsersRelsRepository)
@@ -62,7 +64,9 @@ export class DongsController {
     @service(FirebaseService) private firebaseSerice: FirebaseService,
     @inject(SecurityBindings.USER)
     private currentUserProfile: UserProfile,
-  ) {}
+  ) {
+    this.userId = Number(this.currentUserProfile[securityId]);
+  }
 
   public numberWithCommas(x: number): string {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -88,14 +92,12 @@ export class DongsController {
   async findDongs(
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<Dongs[]> {
-    const userId = Number(this.currentUserProfile[securityId]);
-
     const filter: Filter<Dongs> = {
       order: ['createdAt DESC'],
       include: [{relation: 'payerList'}, {relation: 'billList'}],
     };
 
-    return this.usersRepository.dongs(userId).find(filter);
+    return this.usersRepository.dongs(this.userId).find(filter);
   }
 
   @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
@@ -130,19 +132,18 @@ export class DongsController {
     newDong: Omit<PostNewDong, 'id'>,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<ResponseNewDong> {
-    const userId = Number(this.currentUserProfile[securityId]);
     const newDongScore = 50;
     const mutualFriendScore = 20;
     let mutualFactor = 0;
 
     if (newDong.userId) {
-      if (newDong.userId !== userId) {
+      if (newDong.userId !== this.userId) {
         throw new HttpErrors.Unauthorized('userId با توکن شما همخوانی نداره');
       }
     }
     // Current user
     const currentUser = await this.usersRepository.findOne({
-        where: {userId: userId},
+        where: {userId: this.userId},
         fields: {userId: true, phone: true, name: true},
       }),
       currentUserPhone = currentUser!.phone;
@@ -167,7 +168,7 @@ export class DongsController {
 
     // Validate userRelIds in billList and payerList
     const currentUserFoundUsersRelsList = await this.usersRepository
-      .usersRels(userId)
+      .usersRels(this.userId)
       .find({
         where: {or: allUsersRelsIdList},
       });
@@ -176,7 +177,7 @@ export class DongsController {
     }
 
     // Check payer is user himself
-    const userRel = await this.usersRepository.usersRels(userId).find({
+    const userRel = await this.usersRepository.usersRels(this.userId).find({
       where: {and: [{userRelId: payerList[0].userRelId}, {type: 'self'}]},
     });
     if (userRel.length === 1) currentUserIsPayer = true;
@@ -194,11 +195,13 @@ export class DongsController {
     );
 
     try {
-      const createdDong = await this.usersRepository.dongs(userId).create(dong);
+      const createdDong = await this.usersRepository
+        .dongs(this.userId)
+        .create(dong);
 
       payerList.forEach((item) => {
         item = Object.assign(item, {
-          userId: userId,
+          userId: this.userId,
           dongId: createdDong.getId(),
           createdAt: createdDong.createdAt,
           categoryId: createdDong.categoryId,
@@ -207,7 +210,7 @@ export class DongsController {
 
       billList.forEach((item) => {
         item = Object.assign(item, {
-          userId: userId,
+          userId: this.userId,
           dongId: createdDong.getId(),
           createdAt: createdDong.createdAt,
           categoryId: createdDong.categoryId,
@@ -303,11 +306,13 @@ export class DongsController {
         // console.log(JSON.stringify(firebaseMessagesList));
       }
 
-      const createdScore = await this.usersRepository.scores(userId).create({
-        createdAt: newDong.createdAt,
-        score: newDongScore + mutualFactor * mutualFriendScore,
-        desc: `dong-${createdDong.getId()}`,
-      });
+      const createdScore = await this.usersRepository
+        .scores(this.userId)
+        .create({
+          createdAt: newDong.createdAt,
+          score: newDongScore + mutualFactor * mutualFriendScore,
+          desc: `dong-${createdDong.getId()}`,
+        });
 
       createdDong.billList = createdBillList;
       createdDong.payerList = createdPayerList;
@@ -323,21 +328,45 @@ export class DongsController {
     }
   }
 
+  @del('/dongs/{dongId}', {
+    summary: 'DELETE a Dong by dongId',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {'204': {description: 'No content'}},
+  })
+  async deleteDongsById(
+    @param.path.number('dongId', {required: true})
+    dongId: typeof Dongs.prototype.dongId,
+  ): Promise<void> {
+    // Delete Dong by dongId
+    const countDeleted = await this.usersRepository.dongs(this.userId).delete({
+      dongId: dongId,
+    });
+
+    if (countDeleted.count !== 1) {
+      throw new HttpErrors.UnprocessableEntity('دنگ مورد نظر وجود ندارد!');
+    }
+
+    // Delete PayerList and BillList belongs to Dong
+    await this.dongRepository.billList(dongId).delete();
+    await this.dongRepository.payerList(dongId).delete();
+  }
+
   @del('/dongs', {
-    summary: "Delete all user's created Dongs & PayerLis & BillList ",
+    summary: 'DELETE all Dongs ',
     security: OPERATION_SECURITY_SPEC,
     responses: {'200': {description: 'Count deleted Dongs'}},
   })
   async deleteAllDongs() {
-    const userId = Number(this.currentUserProfile[securityId]);
     let countDeletedDongs;
 
     try {
       // Delete dongs 7 payerList & billList
-      await this.usersRepository.billList(userId).delete();
-      await this.usersRepository.payerList(userId).delete();
+      await this.usersRepository.billList(this.userId).delete();
+      await this.usersRepository.payerList(this.userId).delete();
 
-      countDeletedDongs = await this.usersRepository.dongs(userId).delete();
+      countDeletedDongs = await this.usersRepository
+        .dongs(this.userId)
+        .delete();
     } catch (err) {
       throw new HttpErrors.NotImplemented(err.message);
     }

@@ -47,12 +47,26 @@ export class ValidateTicketIdInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
-    if (invocationCtx.methodName === 'findTicketById') {
+    if (invocationCtx.methodName === 'createMessages') {
+      const ticketId = invocationCtx.args[1];
+
       const foundTicket = await this.ticketsRepo.findOne({
-        where: {userId: this.userId, ticketId: invocationCtx.args[0]},
+        where: {userId: this.userId, ticketId: ticketId},
       });
-      if (!foundTicket)
-        throw new HttpErrors.UnprocessableEntity('ticketId پیدا نشد');
+
+      if (!foundTicket) {
+        throw new HttpErrors.UnprocessableEntity('تیکت مورد نظر پیدا نشد!');
+      }
+    } else if (invocationCtx.methodName === 'findMessages') {
+      const ticketId = invocationCtx.args[0];
+
+      const foundTicket = await this.ticketsRepo.findOne({
+        where: {userId: this.userId, ticketId: ticketId},
+      });
+
+      if (!foundTicket) {
+        throw new HttpErrors.UnprocessableEntity('تیکت مورد نظر پیدا نشد!');
+      }
     }
     // Add pre-invocation logic here
     const result = await next();

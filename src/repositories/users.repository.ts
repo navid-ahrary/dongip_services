@@ -25,12 +25,14 @@ import {
   Scores,
   Groups,
   Tickets,
+  Messages,
 } from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 import {ScoresRepository} from './scores.repository';
 import {GroupsRepository} from './groups.repository';
 import {TicketsRepository} from './tickets.repository';
+import {MessagesRepository} from './messages.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
@@ -81,6 +83,11 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
+  public readonly messages: HasManyRepositoryFactory<
+    Messages,
+    typeof Users.prototype.userId
+  >;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -103,8 +110,15 @@ export class UsersRepository extends DefaultCrudRepository<
     protected groupsRepositoryGetter: Getter<GroupsRepository>,
     @repository.getter('TicketsRepository')
     protected ticketsRepositoryGetter: Getter<TicketsRepository>,
+    @repository.getter('MessagesRepository')
+    protected messagesRepositoryGetter: Getter<MessagesRepository>,
   ) {
     super(Users, dataSource);
+    this.messages = this.createHasManyRepositoryFactoryFor(
+      'messages',
+      messagesRepositoryGetter,
+    );
+    this.registerInclusionResolver('messages', this.messages.inclusionResolver);
 
     this.tickets = this.createHasManyRepositoryFactoryFor(
       'tickets',

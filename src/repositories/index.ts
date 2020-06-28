@@ -11,3 +11,4 @@ export * from './payer-list.repository';
 export * from './scores.repository';
 export * from './groups.repository';
 export * from './tickets.repository';
+export * from './messages.repository';

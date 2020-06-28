@@ -1,5 +1,12 @@
-import {Entity, model, property, belongsTo} from '@loopback/repository';
+import {
+  Entity,
+  model,
+  property,
+  belongsTo,
+  hasMany,
+} from '@loopback/repository';
 import {Users} from './users.model';
+import {Messages} from './messages.model';
 
 @model({name: 'tickets'})
 export class Tickets extends Entity {
@@ -16,47 +23,25 @@ export class Tickets extends Entity {
   ticketId: number;
 
   @property({
-    type: 'string',
-    mysql: {
-      columnName: 'ticket_message',
-      dataType: 'varchar',
-      dataLength: 512,
-      nullable: 'N',
-    },
-  })
-  ticketMessage?: string;
-
-  @property({
     type: 'date',
-    requried: false,
+    required: true,
     mysql: {
-      columnName: 'asked_at',
+      columnName: 'created_at',
       dataType: 'datetime',
       nullable: 'N',
     },
   })
-  askedAt: string = new Date().toISOString();
-
-  @property({
-    type: 'string',
-    mysql: {
-      columnName: 'response_message',
-      dataType: 'varchar',
-      dataLength: 512,
-      nullable: 'Y',
-    },
-  })
-  responseMessage?: string;
+  createdAt: string;
 
   @property({
     type: 'date',
     mysql: {
-      columnName: 'respond_at',
+      columnName: 'updated_at',
       dataType: 'datetime',
       nullable: 'Y',
     },
   })
-  respondAt?: string;
+  updatedAt?: string;
 
   @belongsTo(
     () => Users,
@@ -80,6 +65,9 @@ export class Tickets extends Entity {
     },
   )
   userId: number;
+
+  @hasMany(() => Messages, {keyTo: 'ticketId'})
+  messages: Messages[];
 
   constructor(data?: Partial<Tickets>) {
     super(data);
