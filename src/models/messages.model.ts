@@ -27,23 +27,25 @@ export class Messages extends Entity {
     type: 'boolean',
     required: true,
     mysql: {
+      columnName: 'is_question',
       dataType: 'tinyint',
       dataLength: 1,
       nullable: 'N',
     },
   })
-  question: boolean;
+  isQuestion: boolean;
 
   @property({
     type: 'boolean',
     required: true,
     mysql: {
+      columnName: 'is_answer',
       dataType: 'tinyint',
       dataLength: 1,
       nullable: 'N',
     },
   })
-  answer: boolean;
+  isAnswer: boolean;
 
   @property({
     type: 'date',
