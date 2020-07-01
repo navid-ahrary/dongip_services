@@ -88,7 +88,7 @@ export class MessagesController {
   })
   async findMessages(): Promise<Messages[]> {
     return this.messagesRepository.find({
-      order: ['createdAt DESC'],
+      order: ['createdAt ASC'],
       where: {userId: this.userId},
     });
   }
