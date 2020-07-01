@@ -49,7 +49,23 @@ export class SupportController {
     },
   })
   async findMessages(
-    @param.filter(Messages)
+    @param.query.object('filterOnMessage', {
+      example: {
+        offset: 0,
+        limit: 100,
+        skip: 0,
+        where: {},
+        order: ['createdAt ASC'],
+        fields: {
+          messageId: true,
+          message: true,
+          isQuestion: true,
+          isAnswer: true,
+          createdAt: true,
+          userId: true,
+        },
+      },
+    })
     filterOnMessage?: Filter<Messages>,
   ): Promise<Messages[]> {
     return this.messagesRepository.find(filterOnMessage);
