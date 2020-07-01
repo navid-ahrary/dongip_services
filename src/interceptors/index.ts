@@ -6,4 +6,3 @@ export * from './validate-password.interceptor';
 export * from './validate-users-rels.interceptor';
 export * from './validate-group-id.interceptor';
 export * from './validate-user-id.interceptor';
-export * from './validate-ticket-id.interceptor';

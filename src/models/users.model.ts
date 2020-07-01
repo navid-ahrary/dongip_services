@@ -14,7 +14,6 @@ import {Categories} from './categories.model';
 import {UsersRels} from './users-rels.model';
 import {Scores} from './scores.model';
 import {Groups} from './groups.model';
-import {Tickets} from './tickets.model';
 import {Messages} from './messages.model';
 
 @model({name: 'users'})
@@ -215,17 +214,6 @@ export class Users extends Entity {
     targetsMany: true,
   })
   groups: Groups[];
-
-  @hasMany(() => Tickets, {
-    type: RelationType.hasMany,
-    keyTo: 'userId',
-    keyFrom: 'userId',
-    name: 'tickets',
-    source: Users,
-    target: () => Tickets,
-    targetsMany: true,
-  })
-  tickets: Tickets[];
 
   @hasMany(() => Messages, {
     type: RelationType.hasMany,

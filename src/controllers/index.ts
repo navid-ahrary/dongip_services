@@ -4,5 +4,4 @@ export * from './categories.controller';
 export * from './users-rels.controller';
 export * from './groups.controller';
 export * from './groups-dongs.controller';
-export * from './tickets.controller';
-export * from './tickets-messages.controller';
+export * from './messages.controller';

@@ -1,5 +1,4 @@
 import {Entity, model, property, belongsTo} from '@loopback/repository';
-import {Tickets} from './tickets.model';
 import {Users} from './users.model';
 
 @model({name: 'messages'})
@@ -61,29 +60,6 @@ export class Messages extends Entity {
     },
   })
   createdAt: string;
-
-  @belongsTo(
-    () => Users,
-    {
-      name: 'ticket',
-      keyFrom: 'ticketId',
-      keyTo: 'ticketId',
-      source: Tickets,
-      target: () => Messages,
-    },
-    {
-      type: 'Number',
-      required: true,
-      index: {normal: true},
-      mysql: {
-        columnName: 'ticket_id',
-        dataType: 'int',
-        dataLength: null,
-        nullable: 'N',
-      },
-    },
-  )
-  ticketId: number;
 
   @belongsTo(
     () => Users,

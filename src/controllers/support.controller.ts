@@ -1,13 +1,13 @@
 import {get, getModelSchemaRef, api, param} from '@loopback/rest';
 import {authorize} from '@loopback/authorization';
 import {authenticate} from '@loopback/authentication';
-import {repository, Filter} from '@loopback/repository';
+import {repository, Where} from '@loopback/repository';
 import {inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 
-import {Tickets, Messages} from '../models';
+import {Messages} from '../models';
 import {basicAuthorization} from '../services';
-import {TicketsRepository, MessagesRepository} from '../repositories';
+import {MessagesRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
 @api({basePath: '/api/support/', paths: {}})
@@ -17,7 +17,6 @@ export class SupportController {
   userId: number;
 
   constructor(
-    @repository(TicketsRepository) public ticketsRepository: TicketsRepository,
     @repository(MessagesRepository)
     public messagesRepository: MessagesRepository,
     @inject(SecurityBindings.USER) protected curretnUserProfile: UserProfile,
@@ -33,19 +32,20 @@ export class SupportController {
         description: 'Message model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Tickets),
+            schema: getModelSchemaRef(Messages),
           },
         },
       },
     },
   })
   async findMessages(
-    @param.filter(Messages) filter: Filter<Messages>,
+    @param.where(Messages) where?: Where<Messages>,
   ): Promise<Messages[]> {
     return this.messagesRepository.find({
       offset: 0,
       limit: 10,
       order: ['createdAt DESC'],
+      where: where,
     });
   }
 }
