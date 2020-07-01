@@ -18,12 +18,8 @@ export class Messages extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {maxLength: 512},
-    mysql: {
-      dataType: 'varchar',
-      dataLength: 512,
-      nullable: 'N',
-    },
+    jsonSchema: {minLength: 3, maxLength: 2048},
+    mysql: {dataType: 'varchar', dataLength: 2048, nullable: 'N'},
   })
   message: string;
 
