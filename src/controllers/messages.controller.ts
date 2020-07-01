@@ -59,17 +59,15 @@ export class MessagesController {
     })
     newMessage: Omit<Messages, 'messageId'>,
   ): Promise<Messages> {
-    const nowTime = new Date().toISOString();
-
-    const createdMessage = await this.messagesRepository.create({
+    const messageEntity = {
       message: newMessage.message,
-      createdAt: nowTime,
+      createdAt: new Date().toISOString(),
       userId: this.userId,
       isQuestion: true,
       isAnswer: false,
-    });
+    };
 
-    return createdMessage;
+    return this.messagesRepository.create(messageEntity);
   }
 
   @get('/messages', {

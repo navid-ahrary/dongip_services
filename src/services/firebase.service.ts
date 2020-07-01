@@ -11,6 +11,7 @@ import {HttpErrors} from '@loopback/rest';
 import {config} from 'dotenv';
 config();
 
+export type MessagePayload = messaging.MessagingPayload;
 export type BatchMessage = Array<messaging.Message>;
 
 export interface FirebaseService {
