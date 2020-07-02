@@ -342,15 +342,11 @@ export class UsersRelsController {
     })
     phonesList: string[],
   ): Promise<Partial<Users>[]> {
-    return this.usersRepository
-      .find({
-        order: ['name ASC'],
-        fields: {name: true, phone: true, avatar: true},
-        where: {phone: {inq: phonesList}},
-      })
-      .catch((err) => {
-        throw new HttpErrors.NotImplemented(err.message);
-      });
+    return this.usersRepository.find({
+      order: ['name ASC'],
+      fields: {name: true, phone: true, avatar: true},
+      where: {phone: {inq: phonesList}},
+    });
   }
 
   @del('/users-rels', {
