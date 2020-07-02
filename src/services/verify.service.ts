@@ -34,9 +34,6 @@ export class VerifyService {
       throw new HttpErrors.Unauthorized(invalidCredentialsError);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.verifyRepo.delete(foundVerify);
-
     return foundVerify;
   }
 }
