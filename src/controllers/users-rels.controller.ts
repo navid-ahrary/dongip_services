@@ -340,22 +340,13 @@ export class UsersRelsController {
         },
       },
     })
-    phones: string[],
+    phonesList: string[],
   ): Promise<Partial<Users>[]> {
-    // For fix a bug when list is empty so return all users
-    if (phones.length === 0) return [];
-
-    // Generate filter's where's "or" list
-    let orPhoneList: {phone: string}[] = [];
-    phones.forEach((phoneItem) => {
-      orPhoneList.push({phone: phoneItem});
-    });
-
     return this.usersRepository
       .find({
         order: ['name ASC'],
         fields: {name: true, phone: true, avatar: true},
-        where: {or: orPhoneList},
+        where: {phone: {inq: phonesList}},
       })
       .catch((err) => {
         throw new HttpErrors.NotImplemented(err.message);
