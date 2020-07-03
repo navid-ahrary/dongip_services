@@ -54,13 +54,13 @@ export class Verify extends Entity {
     type: 'date',
     required: true,
     mysql: {
-      columnName: 'issued_at',
+      columnName: 'created_at',
       dataType: 'datetime',
       dataLength: null,
       nullable: 'N',
     },
   })
-  issuedAt: string;
+  createdAt: string;
 
   @property({
     type: 'number',

@@ -115,7 +115,7 @@ export class UsersController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(Verify, {
-            exclude: ['verifyId', 'password', 'issuedAt', 'registered'],
+            exclude: ['verifyId', 'password', 'createdAt', 'registered'],
           }),
           example: {
             phone: '+989176502184',
@@ -147,7 +147,7 @@ export class UsersController {
         phone: verifyReqBody.phone,
         password: randomStr + randomCode,
         registered: user ? true : false,
-        issuedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
       })
       .catch((err) => {
         throw new HttpErrors.NotAcceptable(err.message);
