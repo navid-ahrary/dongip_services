@@ -25,12 +25,14 @@ import {
   Scores,
   Groups,
   Messages,
+  Notifications,
 } from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 import {ScoresRepository} from './scores.repository';
 import {GroupsRepository} from './groups.repository';
 import {MessagesRepository} from './messages.repository';
+import {NotificationsRepository} from './notifications.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
@@ -81,6 +83,11 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
+  public readonly notifications: HasManyRepositoryFactory<
+    Notifications,
+    typeof Users.prototype.userId
+  >;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -103,8 +110,20 @@ export class UsersRepository extends DefaultCrudRepository<
     protected groupsRepositoryGetter: Getter<GroupsRepository>,
     @repository.getter('MessagesRepository')
     protected messagesRepositoryGetter: Getter<MessagesRepository>,
+    @repository.getter('NotificationsRepository')
+    protected notificationsRepositoryGetter: Getter<NotificationsRepository>,
   ) {
     super(Users, dataSource);
+
+    this.notifications = this.createHasManyRepositoryFactoryFor(
+      'notifications',
+      notificationsRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'notifications',
+      this.notifications.inclusionResolver,
+    );
+
     this.messages = this.createHasManyRepositoryFactoryFor(
       'messages',
       messagesRepositoryGetter,

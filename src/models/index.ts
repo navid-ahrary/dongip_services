@@ -13,3 +13,4 @@ export * from './post-new-dong.model';
 export * from './scores.model';
 export * from './groups.model';
 export * from './messages.model';
+export * from './notifications.model';

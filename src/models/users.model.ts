@@ -15,6 +15,7 @@ import {UsersRels} from './users-rels.model';
 import {Scores} from './scores.model';
 import {Groups} from './groups.model';
 import {Messages} from './messages.model';
+import {Notifications} from './notifications.model';
 
 @model({name: 'users'})
 export class Users extends Entity {
@@ -225,6 +226,9 @@ export class Users extends Entity {
     targetsMany: true,
   })
   messages: Messages[];
+
+  @hasMany(() => Notifications, {keyTo: 'userId'})
+  notifications: Notifications[];
 
   constructor(data?: Partial<Users>) {
     super(data);
