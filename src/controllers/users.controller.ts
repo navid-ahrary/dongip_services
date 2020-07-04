@@ -36,15 +36,14 @@ import {
   FirebaseService,
   SmsService,
   PasswordHasher,
-  TimeService,
   VerifyService,
 } from '../services';
 import {
   ValidatePhoneNumInterceptor,
   FirebasetokenInterceptor,
   ValidatePasswordInterceptor,
+  InitCategoriesInterceptor,
 } from '../interceptors';
-import {InitCategoriesInterceptor} from '../interceptors/init-categories.interceptor';
 
 @model()
 export class NewUser extends Users {
@@ -73,7 +72,6 @@ export class UsersController {
     @service(FirebaseService) public firebaseService: FirebaseService,
     @service(VerifyService) public verifySerivce: VerifyService,
     @service(SmsService) public smsService: SmsService,
-    @service(TimeService) public timeService: TimeService,
   ) {}
 
   generateRandomString(length: number) {
@@ -84,6 +82,15 @@ export class UsersController {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
+  }
+
+  async getUserScores(userId: typeof Users.prototype.userId): Promise<number> {
+    const scoresList = await this.usersRepository.scores(userId).find();
+    let totalScores = 0;
+    scoresList.forEach((scoreItem) => {
+      totalScores += scoreItem.score;
+    });
+    return totalScores;
   }
 
   @post('/users/verify', {
@@ -249,12 +256,7 @@ export class UsersController {
       }
 
       // Get total user's scores
-      const scoresList = await this.usersRepository.scores(user.getId()).find();
-      let totalScores = 0;
-      scoresList.forEach((scoreItem) => {
-        totalScores += scoreItem.score;
-      });
-
+      const scores = await this.getUserScores(user.getId());
       //convert a User object to a UserProfile object (reduced set of properties)
       const userProfile = this.userService.convertToUserProfile(user);
       userProfile['aud'] = 'access';
@@ -266,7 +268,7 @@ export class UsersController {
         userId: user.getId(),
         accessToken: accessToken,
         refreshToken: user.refreshToken,
-        totalScores: totalScores,
+        totalScores: scores,
       };
     } catch (_err) {
       console.log(_err);
@@ -417,28 +419,49 @@ export class UsersController {
     }
   }
 
-  @get('/users/logout', {
-    summary: 'Logout from app',
-    description: 'Logout from app and blacklist the current access token',
+  @intercept(FirebasetokenInterceptor.BINDING_KEY)
+  @get('/users/info', {
+    summary: "GET User's info",
     security: OPERATION_SECURITY_SPEC,
     responses: {
-      '204': {
-        description: 'No content',
+      '200': {
+        description: "User's props",
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                name: {type: 'string'},
+                roles: {type: 'array', items: {type: 'string'}},
+                totalScores: {type: 'number'},
+              },
+            },
+          },
+        },
       },
     },
   })
   @authenticate('jwt.access')
-  async logout(
-    @param.header.string('firebase-token') firebaseToken?: string,
-  ): Promise<void> {
-    // Blacklist the access token
-    await this.blacklistRepository
-      .create({
-        token: this.ctx.request.headers['authorization']!.split(' ')[1],
-      })
-      .catch((err) => {
-        throw new HttpErrors.NotImplemented(`Error logout: ${err.message}`);
-      });
+  async findUserRrops(
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+  ): Promise<{
+    name: string;
+    roles: string[];
+    registeredAt: string;
+    totalScores: number;
+  }> {
+    const userId = Number(currentUserProfile[securityId]);
+    const scores = await this.getUserScores(userId);
+    const foundUser = await this.usersRepository.findById(userId, {
+      fields: {name: true, roles: true, registeredAt: true, userAgent: true},
+    });
+
+    return {
+      name: foundUser.name,
+      roles: foundUser.roles,
+      registeredAt: foundUser.registeredAt,
+      totalScores: scores,
+    };
   }
 
   @intercept(FirebasetokenInterceptor.BINDING_KEY)
@@ -472,7 +495,7 @@ export class UsersController {
       });
   }
 
-  @get('/users/refresh-token', {
+  @get('/users/access-token', {
     summary:
       'Get a new access token with provided refresh token - not implemented yet',
     security: OPERATION_SECURITY_SPEC,
@@ -507,5 +530,29 @@ export class UsersController {
     const accessToken = await this.jwtService.generateToken(userProfile);
 
     return {accessToken: accessToken};
+  }
+
+  @get('/users/logout', {
+    summary: 'Logout from app',
+    description: 'Logout from app and blacklist the current access token',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '204': {
+        description: 'No content',
+      },
+    },
+  })
+  @authenticate('jwt.access')
+  async logout(
+    @param.header.string('firebase-token') firebaseToken?: string,
+  ): Promise<void> {
+    // Blacklist the access token
+    await this.blacklistRepository
+      .create({
+        token: this.ctx.request.headers['authorization']!.split(' ')[1],
+      })
+      .catch((err) => {
+        throw new HttpErrors.NotImplemented(`Error logout: ${err.message}`);
+      });
   }
 }
