@@ -43,7 +43,7 @@ export class NotificationsController {
     @param.query.object('filter', {
       example: {
         limit: 20,
-        order: ['createAt ASC'],
+        orders: ['createAt ASC'],
         where: {
           additionalProp1: {},
         },
