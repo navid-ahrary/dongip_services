@@ -49,6 +49,29 @@ export class Notifications extends Entity {
     type: 'string',
     required: true,
     mysql: {
+      dataType: 'varchar',
+      dataLength: 50,
+      nullable: 'Y',
+    },
+  })
+  type: string;
+
+  @property({
+    type: 'string',
+    jsonSchema: {maxLength: 255},
+    mysql: {
+      columnName: 'desc',
+      dataType: 'varchar',
+      dataLength: 255,
+      nullable: 'Y',
+    },
+  })
+  desc?: string;
+
+  @property({
+    type: 'string',
+    required: true,
+    mysql: {
       columnName: 'category_title',
       dataType: 'varchar',
       dataLength: 255,
@@ -69,7 +92,7 @@ export class Notifications extends Entity {
   userRelId: number;
 
   @property({
-    type: 'number',
+    type: 'Number',
     required: true,
     mysql: {
       columnName: 'dong_amount',

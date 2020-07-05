@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable prefer-const */
-import {Filter, repository, property, model} from '@loopback/repository';
+import {
+  Filter,
+  repository,
+  property,
+  model,
+  DataObject,
+} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -18,7 +24,7 @@ import {inject, service, intercept} from '@loopback/core';
 import _ from 'underscore';
 import {floor} from 'lodash';
 
-import {Dongs, PostNewDong} from '../models';
+import {Dongs, PostNewDong, Notifications} from '../models';
 import {
   UsersRepository,
   DongsRepository,
@@ -268,7 +274,21 @@ export class DongsController {
                 const notifyBodyDongAmount = this.numberWithCommas(
                   roundedDongAmount,
                 );
+                // Notification data payload
+                const notifyData: DataObject<Notifications> = {
+                  title: 'دنگیپ شدی',
+                  body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
+                  desc: createdDong.desc ? createdDong.desc : '',
+                  type: 'dong',
+                  categoryTitle: currentUserCategory.title,
+                  createdAt: newDong.createdAt,
+                  userRelId: foundMutualUsersRels.getId(),
+                  dongAmount: roundedDongAmount,
+                };
 
+                const createdNotify = await this.usersRepository
+                  .notifications(user.getId())
+                  .create(notifyData);
                 // Generate notification messages
                 firebaseMessagesList.push({
                   token: user.firebaseToken,
@@ -280,6 +300,7 @@ export class DongsController {
                       clickAction: 'FLUTTER_NOTIFICATION_CLICK',
                     },
                     data: {
+                      notifyId: createdNotify.getId().toString(),
                       title: 'دنگیپ شدی',
                       body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
                       desc: createdDong.desc ? createdDong.desc : '',
