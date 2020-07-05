@@ -433,6 +433,7 @@ export class UsersController {
               properties: {
                 name: {type: 'string'},
                 roles: {type: 'array', items: {type: 'string'}},
+                registeredAt: {type: 'string'},
                 totalScores: {type: 'number'},
               },
             },
