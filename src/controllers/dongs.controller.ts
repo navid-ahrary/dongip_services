@@ -284,6 +284,7 @@ export class DongsController {
                   createdAt: newDong.createdAt,
                   userRelId: foundMutualUsersRels.getId(),
                   dongAmount: roundedDongAmount,
+                  dongId: createdDong.getId(),
                 };
 
                 const createdNotify = await this.usersRepository
@@ -309,6 +310,7 @@ export class DongsController {
                       createdAt: newDong.createdAt,
                       userRelId: foundMutualUsersRels.getId().toString(),
                       dongAmount: roundedDongAmount.toString(),
+                      dongId: createdDong.getId().toString(),
                     },
                   },
                   // iOS push notification messages

@@ -92,6 +92,17 @@ export class Notifications extends Entity {
   userRelId: number;
 
   @property({
+    type: 'number',
+    required: true,
+    mysql: {
+      columnName: 'dong_id',
+      dataLength: null,
+      dataType: 'int',
+    },
+  })
+  dongId: number;
+
+  @property({
     type: 'Number',
     required: true,
     mysql: {
