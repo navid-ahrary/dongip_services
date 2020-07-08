@@ -26,12 +26,12 @@ export class VerifyService {
 
     if (!foundVerify) {
       debug(invalidCredentialsError);
-      throw new HttpErrors.Unauthorized(invalidCredentialsError);
+      throw new HttpErrors.UnprocessableEntity(invalidCredentialsError);
     }
 
     if (password !== foundVerify.password) {
       console.log(invalidCredentialsError);
-      throw new HttpErrors.Unauthorized(invalidCredentialsError);
+      throw new HttpErrors.UnprocessableEntity(invalidCredentialsError);
     }
 
     return foundVerify;

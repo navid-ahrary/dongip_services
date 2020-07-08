@@ -33,7 +33,7 @@ export class MyUserService implements UserService<Users, Credentials> {
 
   convertToUserProfile(user: Users) {
     if (!user.phone) {
-      throw new HttpErrors.Unauthorized('phone is null');
+      throw new HttpErrors.UnprocessableEntity('phone is null');
     }
 
     return {
