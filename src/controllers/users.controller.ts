@@ -272,7 +272,7 @@ export class UsersController {
       };
     } catch (_err) {
       console.log(_err);
-      throw new HttpErrors.Unauthorized(_err.message);
+      throw new HttpErrors.UnprocessableEntity(_err.message);
     }
   }
 
