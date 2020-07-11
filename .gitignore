@@ -63,3 +63,4 @@ typings/
 
 .directory
 dongip-firebase-adminsdk.json
+.compose.env
