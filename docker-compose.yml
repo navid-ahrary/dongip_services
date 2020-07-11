@@ -1,9 +1,9 @@
 version: "3.6"
 
 services:
-  mariadb:
+  backend-db:
     image: mariadb:${MARIADB_VERSION:-latest}
-    container_name: mariadb
+    container_name: backend-db
     env_file:
       - .env
     volumes:
