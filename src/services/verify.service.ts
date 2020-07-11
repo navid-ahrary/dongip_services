@@ -18,20 +18,18 @@ export class VerifyService {
     verifyId: number,
     password: string,
   ): Promise<Verify> {
-    const invalidCredentialsError = 'Invalid credentials!';
-
     const foundVerify = await this.verifyRepo.findOne({
       where: {verifyId: verifyId},
     });
 
     if (!foundVerify) {
-      debug(invalidCredentialsError);
-      throw new HttpErrors.Unauthorized(invalidCredentialsError);
+      console.error('برای شماره موبایل شما کدی ارسال نشده');
+      throw new HttpErrors.NotFound('برای شماره موبایل شما کدی ارسال نشده');
     }
 
     if (password !== foundVerify.password) {
-      console.log(invalidCredentialsError);
-      throw new HttpErrors.Unauthorized(invalidCredentialsError);
+      console.error('کد وارد شده اشتباهه');
+      throw new HttpErrors.UnprocessableEntity('کد وارد شده اشتباهه');
     }
 
     return foundVerify;

@@ -2,10 +2,8 @@ import {AuthenticationStrategy, TokenService} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {UserProfile} from '@loopback/security';
 import {HttpErrors, Request} from '@loopback/rest';
-import {repository} from '@loopback/repository';
 
 import {TokenServiceBindings} from '../keys';
-import {BlacklistRepository} from '../repositories';
 
 export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
   name = 'jwt.access';
@@ -109,7 +107,6 @@ export class JWTVerifyAutehticationStrategy implements AuthenticationStrategy {
   constructor(
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     public tokenService: TokenService,
-    @repository(BlacklistRepository) public blacklistRepo: BlacklistRepository,
   ) {}
 
   public async authenticate(

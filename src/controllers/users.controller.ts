@@ -233,11 +233,6 @@ export class UsersController {
   }> {
     const verifyId = Number(currentUserProfile[securityId]);
 
-    // Add token to bliacklist
-    await this.blacklistRepository.create({
-      token: this.ctx.request.headers['authorization']!.split(' ')[1],
-    });
-
     try {
       await this.verifySerivce.verifyCredentials(
         verifyId,
@@ -272,7 +267,7 @@ export class UsersController {
       };
     } catch (_err) {
       console.log(_err);
-      throw new HttpErrors.Unauthorized(_err.message);
+      throw new HttpErrors.UnprocessableEntity(_err.message);
     }
   }
 
@@ -353,11 +348,6 @@ export class UsersController {
         phone: newUser.phone,
         password: newUser.password,
       });
-
-    // Add token to blacklist
-    await this.blacklistRepository.create({
-      token: this.ctx.request.headers['authorization']!.split(' ')[1],
-    });
 
     await this.verifySerivce.verifyCredentials(verifyId, credentials.password);
 
