@@ -15,30 +15,10 @@ import {VirtualUsers} from './virtual-users.model';
   name: 'users_rels',
   settings: {
     indexes: {
-      // 'user_id&name': {
-      //   name: 'user_id&name',
-      //   columns: 'user_id, name',
-      //   options: {unique: true},
-      // },
       'user_id&phone': {
         name: 'user_id&phone',
         columns: 'user_id, phone',
         options: {unique: true},
-      },
-      // 'user_id&name&phone': {
-      //   name: 'user_id&name&phone',
-      //   columns: 'user_id, name, phone',
-      //   options: {unique: true},
-      // },
-    },
-    foreignKeys: {
-      fkUsersRelsUserId: {
-        name: 'fk_users-rels_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'restrict',
-        onDelete: 'cascade',
       },
     },
   },
@@ -61,7 +41,12 @@ export class UsersRels extends Entity {
   @property({
     type: 'string',
     jsonSchema: {maxLength: 50},
-    mysql: {dataType: 'varchar', dataLength: 50, nullable: 'Y'},
+    mysql: {
+      columnName: 'name',
+      dataType: 'varchar',
+      dataLength: 50,
+      nullable: 'Y',
+    },
   })
   name?: string;
 
@@ -69,7 +54,12 @@ export class UsersRels extends Entity {
     type: 'string',
     required: true,
     jsonSchema: {minLength: 3, maxLength: 512},
-    mysql: {dataType: 'varchar', dataLength: 512, nullable: 'N'},
+    mysql: {
+      columnName: 'avatar',
+      dataType: 'varchar',
+      dataLength: 512,
+      nullable: 'N',
+    },
   })
   avatar: string;
 
@@ -77,7 +67,12 @@ export class UsersRels extends Entity {
     type: 'string',
     required: true,
     jsonSchema: {maxLength: 20},
-    mysql: {dataType: 'varchar', dataLength: 20, nullable: 'N'},
+    mysql: {
+      columnName: 'type',
+      dataType: 'varchar',
+      dataLength: 20,
+      nullable: 'N',
+    },
   })
   type: string;
 
@@ -85,7 +80,12 @@ export class UsersRels extends Entity {
     type: 'string',
     index: {normal: true},
     jsonSchema: {maxLength: 20},
-    mysql: {dataType: 'varchar', dataLength: 20, nullable: 'Y'},
+    mysql: {
+      columnName: 'phone',
+      dataType: 'varchar',
+      dataLength: 20,
+      nullable: 'Y',
+    },
   })
   phone: string;
 
@@ -95,6 +95,9 @@ export class UsersRels extends Entity {
       source: Users,
       name: 'belongsToUser',
       type: RelationType.belongsTo,
+      keyFrom: 'userId',
+      keyTo: 'userId',
+      target: () => UsersRels,
     },
     {
       type: 'number',
