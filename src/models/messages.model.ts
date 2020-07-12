@@ -1,7 +1,21 @@
 import {Entity, model, property, belongsTo} from '@loopback/repository';
 import {Users} from './users.model';
 
-@model({name: 'messages'})
+@model({
+  name: 'messages',
+  settings: {
+    foreignKeys: {
+      fkMessagesUserId: {
+        name: 'fk_messages_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'restrict',
+      },
+    },
+  },
+})
 export class Messages extends Entity {
   @property({
     type: 'number',

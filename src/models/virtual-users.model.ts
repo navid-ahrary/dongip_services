@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {
   Entity,
   model,
@@ -12,12 +13,12 @@ import {UsersRels} from './users-rels.model';
   name: 'virtual_users',
   settings: {
     indexes: {
-      useIidPhone: {
+      'user_id&phone': {
         name: 'user_id&phone',
         columns: 'user_id, phone',
         options: {unique: true},
       },
-      userIdUserRelId: {
+      'user_id&user_rel_id': {
         name: 'user_id&user_rel_id',
         columns: 'user_id, user_rel_id',
         options: {unique: true},

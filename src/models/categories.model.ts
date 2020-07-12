@@ -23,6 +23,16 @@ import {Dongs} from './dongs.model';
         options: {unique: true},
       },
     },
+    foreignKeys: {
+      fkCategoriesUserId: {
+        name: 'fk_categories_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'cascade',
+      },
+    },
   },
 })
 export class Categories extends Entity {
