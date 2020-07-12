@@ -12,42 +12,42 @@ import {Users} from './users.model';
 
 @model({
   name: 'bill_list',
-  settings: {
-    foreignKeys: {
-      fkBillListCategoryId: {
-        name: 'fk_bill_list_category_id',
-        entity: 'categories',
-        entityKey: 'id',
-        foreignKey: 'categoryId',
-        onUpdate: 'restrict',
-        onDelete: 'cascade',
-      },
-      fkBillListDongId: {
-        name: 'fk_bill_list_dong_id',
-        entity: 'dongs',
-        entityKey: 'id',
-        foreignKey: 'dongId',
-        onUpdate: 'restrict',
-        onDelete: 'cascade',
-      },
-      fkBillListUserRelId: {
-        name: 'fk_bill_list_user_rel_id',
-        entity: 'users_rels',
-        entityKey: 'id',
-        foreignKey: 'userRelId',
-        onUpdate: 'restrict',
-        onDelete: 'cascade',
-      },
-      fkBillListUserId: {
-        name: 'fk_bill_list_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'restrict',
-        onDelete: 'cascade',
-      },
-    },
-  },
+  // settings: {
+  //   foreignKeys: {
+  //     fkBillListCategoryId: {
+  //       name: 'fk_bill_list_category_id',
+  //       entity: 'categories',
+  //       entityKey: 'id',
+  //       foreignKey: 'categoryId',
+  //       onUpdate: 'restrict',
+  //       onDelete: 'cascade',
+  //     },
+  //     fkBillListDongId: {
+  //       name: 'fk_bill_list_dong_id',
+  //       entity: 'dongs',
+  //       entityKey: 'id',
+  //       foreignKey: 'dongId',
+  //       onUpdate: 'restrict',
+  //       onDelete: 'cascade',
+  //     },
+  //     fkBillListUserRelId: {
+  //       name: 'fk_bill_list_user_rel_id',
+  //       entity: 'users_rels',
+  //       entityKey: 'id',
+  //       foreignKey: 'userRelId',
+  //       onUpdate: 'restrict',
+  //       onDelete: 'cascade',
+  //     },
+  //     fkBillListUserId: {
+  //       name: 'fk_bill_list_user_id',
+  //       entity: 'users',
+  //       entityKey: 'id',
+  //       foreignKey: 'userId',
+  //       onUpdate: 'restrict',
+  //       onDelete: 'cascade',
+  //     },
+  //   },
+  // },
 })
 export class BillList extends Entity {
   @property({
