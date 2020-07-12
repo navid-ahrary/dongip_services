@@ -368,10 +368,6 @@ export class DongsController {
     if (countDeleted.count !== 1) {
       throw new HttpErrors.UnprocessableEntity('دنگ مورد نظر وجود ندارد!');
     }
-
-    // Delete PayerList and BillList belongs to Dong
-    await this.dongRepository.billList(dongId).delete();
-    await this.dongRepository.payerList(dongId).delete();
   }
 
   @del('/dongs', {
@@ -380,19 +376,6 @@ export class DongsController {
     responses: {'200': {description: 'Count deleted Dongs'}},
   })
   async deleteAllDongs() {
-    let countDeletedDongs;
-
-    try {
-      // Delete dongs 7 payerList & billList
-      await this.usersRepository.billList(this.userId).delete();
-      await this.usersRepository.payerList(this.userId).delete();
-
-      countDeletedDongs = await this.usersRepository
-        .dongs(this.userId)
-        .delete();
-    } catch (err) {
-      throw new HttpErrors.NotImplemented(err.message);
-    }
-    return countDeletedDongs;
+    return this.usersRepository.dongs(this.userId).delete();
   }
 }
