@@ -18,15 +18,15 @@ import {Groups} from './groups.model';
 @model({
   name: 'dongs',
   settings: {
-    // foreignKeys: {
-    //   fkDongsCategoryId: {
-    //     name: 'fk_dongs_category_id',
-    //     entity: 'categories',
-    //     entityKey: 'id',
-    //     foreignKey: 'categoryId',
-    //     onUpdate: 'restrict',
-    //     onDelete: 'cascade',
-    //   },
+    foreignKeys: {
+      fkDongsCategoryId: {
+         name: 'fk_dongs_category_id',
+         entity: 'categories',
+         entityKey: 'id',
+         foreignKey: 'categoryId',
+         onUpdate: 'restrict',
+         onDelete: 'cascade',
+       },
     //   fkDongsUserId: {
     //     name: 'fk_dongs_user_id',
     //     entity: 'users',
@@ -43,7 +43,7 @@ import {Groups} from './groups.model';
     //     onUpdate: 'restrict',
     //     onDelete: 'no action',
     //   },
-    // },
+     },
   },
 })
 export class Dongs extends Entity {
