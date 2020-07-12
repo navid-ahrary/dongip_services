@@ -9,7 +9,7 @@ import {
 } from '@loopback/context';
 import {repository} from '@loopback/repository';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {CategoriesRepository} from '../repositories';
+import {CategoriesRepository, UsersRepository} from '../repositories';
 import {HttpErrors} from '@loopback/rest';
 
 /**
@@ -19,12 +19,16 @@ import {HttpErrors} from '@loopback/rest';
 @bind({tags: {key: ValidateCategoryIdInterceptor.BINDING_KEY}})
 export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidateCategoryIdInterceptor.name}`;
+  userId: number;
 
   constructor(
     @repository(CategoriesRepository)
     public categoriesRepo: CategoriesRepository,
+    @repository(UsersRepository) public usersRepo: UsersRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
-  ) {}
+  ) {
+    this.userId = Number(this.currentUserProfile[securityId]);
+  }
 
   /**
    * This method is used by LoopBack context to produce an interceptor function
@@ -45,19 +49,32 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
-    const userId = Number(this.currentUserProfile[securityId]),
-      categoryId = invocationCtx.args[0].categoryId;
-
     if (invocationCtx.methodName === 'createDongs') {
+      const categoryId = invocationCtx.args[0].categoryId;
+
       const curretnUserFoundCategory = await this.categoriesRepo.findOne({
-        where: {userId: userId, categoryId: categoryId},
+        where: {userId: this.userId, categoryId: categoryId},
       });
       // Validate categoryId
       if (!curretnUserFoundCategory) {
-        throw new HttpErrors.NotFound('این دسته بندی معتبر نیس!');
+        throw new HttpErrors.UnprocessableEntity(
+          'دسته بندی مورد نظر یافت نیست',
+        );
+      }
+    } else if (
+      invocationCtx.methodName === 'deleteCategoriesById' ||
+      invocationCtx.methodName === 'patchCategoriesById'
+    ) {
+      const categoryId = invocationCtx.args[0];
+      const foundCategory = await this.usersRepo
+        .categories(this.userId)
+        .find({where: {categoryId: categoryId}});
+      if (foundCategory.length !== 1) {
+        throw new HttpErrors.UnprocessableEntity(
+          'دسته بندی مورد نظر یافت نیست',
+        );
       }
     }
-
     const result = await next();
     // Add post-invocation logic here
     return result;

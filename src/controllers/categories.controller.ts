@@ -17,15 +17,23 @@ import {inject, intercept} from '@loopback/core';
 import {Categories} from '../models';
 import {UsersRepository, CategoriesRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {FirebasetokenInterceptor} from '../interceptors';
+import {
+  FirebasetokenInterceptor,
+  ValidateCategoryIdInterceptor,
+} from '../interceptors';
 
+@intercept(
+  FirebasetokenInterceptor.BINDING_KEY,
+  ValidateCategoryIdInterceptor.BINDING_KEY,
+)
+@authenticate('jwt.access')
 @api({
   basePath: '/api/',
   paths: {},
 })
-@intercept(FirebasetokenInterceptor.BINDING_KEY)
-@authenticate('jwt.access')
 export class CategoriesController {
+  userId: number;
+
   constructor(
     @repository(UsersRepository)
     protected usersRepository: UsersRepository,
@@ -33,7 +41,9 @@ export class CategoriesController {
     protected categoryRepository: CategoriesRepository,
     @inject(SecurityBindings.USER)
     protected currentUserProfile: UserProfile,
-  ) {}
+  ) {
+    this.userId = Number(this.currentUserProfile[securityId]);
+  }
 
   @get('/categories', {
     summary: 'Get array of all category belongs to current user',
@@ -52,9 +62,7 @@ export class CategoriesController {
   async find(
     @param.header.string('firebase-token') firebaseToken: string,
   ): Promise<Categories[]> {
-    const userId = Number(this.currentUserProfile[securityId]);
-
-    return this.usersRepository.categories(userId).find();
+    return this.usersRepository.categories(this.userId).find();
   }
 
   @post('/categories', {
@@ -90,10 +98,8 @@ export class CategoriesController {
     newCategories: Omit<Categories, '_key'>,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<Categories> {
-    const userId = Number(this.currentUserProfile[securityId]);
-
     const createdCat: Categories = await this.usersRepository
-      .categories(userId)
+      .categories(this.userId)
       .create(newCategories)
       .catch((err) => {
         // Duplicate title error handling
@@ -114,12 +120,13 @@ export class CategoriesController {
     description: 'Just desired properties place in request body',
     security: OPERATION_SECURITY_SPEC,
     responses: {
-      '204': {
-        description: 'Category PATCH success - No content',
+      '204': {description: 'Category PATCH success, no content'},
+      '422': {
+        description: 'Categories DELETE failure, User has not this categoryId',
       },
     },
   })
-  async patch(
+  async patchCategoriesById(
     @param.path.number('categoryId', {required: true})
     categoryId: typeof Categories.prototype.categoryId,
     @requestBody({
@@ -150,10 +157,8 @@ export class CategoriesController {
     category: Partial<Categories>,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
-    const userId = Number(this.currentUserProfile[securityId]);
-
     await this.usersRepository
-      .categories(userId)
+      .categories(this.userId)
       .patch(category, {categoryId: categoryId})
       .then((result) => {
         if (!result.count) {
@@ -171,13 +176,29 @@ export class CategoriesController {
       });
   }
 
+  @del('/categories/{categoryId}', {
+    summary: 'DELETE a Category by id',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '204': {description: 'Caregories DELETE success, no content'},
+      '422': {
+        description: 'Categories DELETE failure, User has not this categoryId',
+      },
+    },
+  })
+  async deleteCategoriesById(
+    @param.path.number('categoryId', {required: true, allowEmptyValue: false})
+    categoryId: typeof Categories.prototype.categoryId,
+  ): Promise<void> {
+    return this.categoryRepository.deleteById(categoryId);
+  }
+
   @del('/categories', {
     summary: "Delete all user's Categories ",
     security: OPERATION_SECURITY_SPEC,
     responses: {'200': {description: 'Count deleted Categories'}},
   })
   async deleteAllCategories() {
-    const userId = Number(this.currentUserProfile[securityId]);
-    return this.usersRepository.categories(userId).delete();
+    return this.usersRepository.categories(this.userId).delete();
   }
 }

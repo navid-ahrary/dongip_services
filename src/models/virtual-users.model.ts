@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {
   Entity,
   model,
@@ -13,15 +12,25 @@ import {UsersRels} from './users-rels.model';
   name: 'virtual_users',
   settings: {
     indexes: {
-      'user_id&phone': {
+      useIidPhone: {
         name: 'user_id&phone',
         columns: 'user_id, phone',
         options: {unique: true},
       },
-      'user_id&user_rel_id': {
+      userIdUserRelId: {
         name: 'user_id&user_rel_id',
         columns: 'user_id, user_rel_id',
         options: {unique: true},
+      },
+    },
+    foreignKeys: {
+      fkVirtualUsersUserId: {
+        name: 'fk_virtual_users_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'cascade',
       },
     },
   },

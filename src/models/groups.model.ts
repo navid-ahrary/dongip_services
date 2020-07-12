@@ -7,10 +7,22 @@ import {
 } from '@loopback/repository';
 import {Users} from './users.model';
 import {Dongs} from './dongs.model';
-import {BillList} from './bill-list.model';
-import {PayerList} from './payer-list.model';
 
-@model({name: 'groups'})
+@model({
+  name: 'groups',
+  settings: {
+    foreignKeys: {
+      fkGroupsUserId: {
+        name: 'fk_groups_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'cascade',
+      },
+    },
+  },
+})
 export class Groups extends Entity {
   @property({
     type: 'number',

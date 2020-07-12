@@ -7,7 +7,21 @@ import {
 } from '@loopback/repository';
 import {Users} from './users.model';
 
-@model({name: 'scores'})
+@model({
+  name: 'scores',
+  settings: {
+    foreignKeys: {
+      fkScoresUserId: {
+        name: 'fk_scores_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'cascade',
+      },
+    },
+  },
+})
 export class Scores extends Entity {
   @property({
     type: 'Number',

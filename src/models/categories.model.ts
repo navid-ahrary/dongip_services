@@ -11,6 +11,7 @@ import {
 import {Users} from './';
 import {BillList} from './bill-list.model';
 import {PayerList} from './payer-list.model';
+import {Dongs} from './dongs.model';
 
 @model({
   name: 'categories',
@@ -99,6 +100,16 @@ export class Categories extends Entity {
     targetsMany: true,
   })
   payerList: PayerList[];
+
+  @hasMany(() => Dongs, {
+    keyTo: 'categoryId',
+    keyFrom: 'categoryId',
+    type: RelationType.hasMany,
+    source: Categories,
+    target: () => Dongs,
+    targetsMany: true,
+  })
+  dongs: Dongs[];
 
   constructor(data?: Partial<Categories>) {
     super(data);

@@ -15,20 +15,30 @@ import {VirtualUsers} from './virtual-users.model';
   name: 'users_rels',
   settings: {
     indexes: {
-      'user_id&name': {
-        name: 'user_id&name',
-        columns: 'user_id, name',
-        options: {unique: true},
-      },
+      // 'user_id&name': {
+      //   name: 'user_id&name',
+      //   columns: 'user_id, name',
+      //   options: {unique: true},
+      // },
       'user_id&phone': {
         name: 'user_id&phone',
         columns: 'user_id, phone',
         options: {unique: true},
       },
-      'user_id&name&phone': {
-        name: 'user_id&name&phone',
-        columns: 'user_id, name, phone',
-        options: {unique: true},
+      // 'user_id&name&phone': {
+      //   name: 'user_id&name&phone',
+      //   columns: 'user_id, name, phone',
+      //   options: {unique: true},
+      // },
+    },
+    foreignKeys: {
+      fkUsersRelsUserId: {
+        name: 'fk_users-rels_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'cascade',
       },
     },
   },
