@@ -76,6 +76,7 @@ export class SupportController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
+        description: 'Message model instance',
         content: {
           'application/json': {
             schema: getModelSchemaRef(Messages),
