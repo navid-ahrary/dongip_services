@@ -76,28 +76,9 @@ export class GroupsDongsController {
     @param.path.number('groupId', {required: true})
     groupId: typeof Groups.prototype.groupId,
   ): Promise<Count> {
-    try {
-      const foundDongsId = await this.groupsRepository
-        .dongs(groupId)
-        .find({fields: {dongId: true}});
-
-      // eslint-disable-next-line prefer-const
-      let orDongsId: {dongId: number}[] = [];
-      foundDongsId.forEach((dong) => {
-        orDongsId.push({dongId: dong.dongId});
-      });
-      // Delete Dongs
-      const countDeletedDongs = await this.groupsRepository
-        .dongs(groupId)
-        .delete({userId: this.userId, groupId: groupId});
-
-      // Delete PayerList and BillList
-      await this.billListRepository.deleteAll({or: orDongsId});
-      await this.payerListRepository.deleteAll({or: orDongsId});
-
-      return countDeletedDongs;
-    } catch (err) {
-      throw new HttpErrors.NotImplemented(err.message);
-    }
+    // Delete Dongs
+    return this.groupsRepository
+      .dongs(groupId)
+      .delete({userId: this.userId, groupId: groupId});
   }
 }
