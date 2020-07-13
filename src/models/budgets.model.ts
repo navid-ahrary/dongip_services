@@ -13,32 +13,32 @@ import {Groups} from './groups.model';
 @model({
   name: 'budgets',
   settings: {
-    // foreignKeys: {
-    //   fkBudgetsCategoryId: {
-    //     name: 'fk_budgets_category_id',
-    //     entity: 'categories',
-    //     entityKey: 'id',
-    //     foreignKey: 'categoryId',
-    //     onUpdate: 'no action',
-    //     onDelete: 'cascade',
-    //   },
-    //   fkBudgetsUserRelId: {
-    //     name: 'fk_budgets_user_rel_id',
-    //     entity: 'users_rels',
-    //     entityKey: 'id',
-    //     foreignKey: 'userRelId',
-    //     onUpdate: 'no action',
-    //     onDelete: 'cascade',
-    //   },
-    //   fkBudgetsGroupId: {
-    //     name: 'fk_budgets_group_id',
-    //     entity: 'groups',
-    //     entityKey: 'id',
-    //     foreignKey: 'groupId',
-    //     onUpdate: 'no action',
-    //     onDelete: 'cascade',
-    //   },
-    // },
+    foreignKeys: {
+      fkBudgetsCategoryId: {
+        name: 'fk_budgets_category_id',
+        entity: 'categories',
+        entityKey: 'id',
+        foreignKey: 'categoryId',
+        onUpdate: 'no action',
+        onDelete: 'cascade',
+      },
+      fkBudgetsUserRelId: {
+        name: 'fk_budgets_user_rel_id',
+        entity: 'users_rels',
+        entityKey: 'id',
+        foreignKey: 'userRelId',
+        onUpdate: 'no action',
+        onDelete: 'cascade',
+      },
+      fkBudgetsGroupId: {
+        name: 'fk_budgets_group_id',
+        entity: 'groups',
+        entityKey: 'id',
+        foreignKey: 'groupId',
+        onUpdate: 'no action',
+        onDelete: 'cascade',
+      },
+    },
   },
 })
 export class Budgets extends Entity {
