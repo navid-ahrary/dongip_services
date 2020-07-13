@@ -99,7 +99,7 @@ export class Verify extends Entity {
     type: 'number',
     mysql: {
       columnName: 'kavenegar_status_code',
-      dataType: 'int',
+      dataType: 'smallint',
       dataLength: 3,
       nullable: 'Y',
     },

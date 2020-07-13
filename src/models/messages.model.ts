@@ -4,16 +4,16 @@ import {Users} from './users.model';
 @model({
   name: 'messages',
   settings: {
-    // foreignKeys: {
-    //   fkMessagesUserId: {
-    //     name: 'fk_messages_user_id',
-    //     entity: 'users',
-    //     entityKey: 'id',
-    //     foreignKey: 'userId',
-    //     onUpdate: 'restrict',
-    //     onDelete: 'restrict',
-    //   },
-    // },
+    foreignKeys: {
+      fkMessagesUserId: {
+        name: 'fk_messages_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'restrict',
+      },
+    },
   },
 })
 export class Messages extends Entity {
@@ -88,7 +88,7 @@ export class Messages extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'int',
+        dataType: 'mediumint',
         dataLength: null,
         nullable: 'N',
       },

@@ -11,12 +11,13 @@ import {
   CategoriesRelations,
   Users,
   BillList,
-  PayerList, Dongs} from '../models';
+  PayerList, Dongs, Budgets} from '../models';
 import {MysqlDataSource} from '../datasources';
 import {UsersRepository} from './';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 import {DongsRepository} from './dongs.repository';
+import {BudgetsRepository} from './budgets.repository';
 
 export class CategoriesRepository extends DefaultCrudRepository<
   Categories,
@@ -40,6 +41,8 @@ export class CategoriesRepository extends DefaultCrudRepository<
 
   public readonly dongs: HasManyRepositoryFactory<Dongs, typeof Categories.prototype.categoryId>;
 
+  public readonly budgets: HasManyRepositoryFactory<Budgets, typeof Categories.prototype.categoryId>;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
@@ -47,9 +50,11 @@ export class CategoriesRepository extends DefaultCrudRepository<
     @repository.getter('BillListRepository')
     protected billListRepositoryGetter: Getter<BillListRepository>,
     @repository.getter('PayerListRepository')
-    protected payerListRepositoryGetter: Getter<PayerListRepository>, @repository.getter('DongsRepository') protected dongsRepositoryGetter: Getter<DongsRepository>,
+    protected payerListRepositoryGetter: Getter<PayerListRepository>, @repository.getter('DongsRepository') protected dongsRepositoryGetter: Getter<DongsRepository>, @repository.getter('BudgetsRepository') protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
   ) {
     super(Categories, dataSource);
+    this.budgets = this.createHasManyRepositoryFactoryFor('budgets', budgetsRepositoryGetter,);
+    this.registerInclusionResolver('budgets', this.budgets.inclusionResolver);
     this.dongs = this.createHasManyRepositoryFactoryFor('dongs', dongsRepositoryGetter,);
     this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
 

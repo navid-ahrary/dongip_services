@@ -7,6 +7,7 @@ import {
 } from '@loopback/repository';
 import {Users} from './users.model';
 import {Dongs} from './dongs.model';
+import {Budgets} from './budgets.model';
 
 @model({
   name: 'groups',
@@ -28,7 +29,12 @@ export class Groups extends Entity {
     type: 'number',
     id: true,
     generated: true,
-    mysql: {columnName: 'id', dataType: 'int', dataLength: null, nullable: 'N'},
+    mysql: {
+      columnName: 'id',
+      dataType: 'int',
+      dataLength: null,
+      nullable: 'N',
+    },
   })
   groupId?: number;
 
@@ -75,13 +81,21 @@ export class Groups extends Entity {
       type: 'number',
       required: true,
       index: {normal: true},
-      mysql: {columnName: 'user_id', dataLength: null, nullable: 'N'},
+      mysql: {
+        columnName: 'user_id',
+        dataType: 'mediumint',
+        dataLength: null,
+        nullable: 'N',
+      },
     },
   )
   userId: number;
 
   @hasMany(() => Dongs, {keyTo: 'groupId'})
   dongs: Dongs[];
+
+  @hasMany(() => Budgets, {keyTo: 'groupId'})
+  budgets: Budgets[];
 
   constructor(data?: Partial<Groups>) {
     super(data);

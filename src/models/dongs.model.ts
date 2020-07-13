@@ -20,30 +20,30 @@ import {Groups} from './groups.model';
   settings: {
     foreignKeys: {
       fkDongsCategoryId: {
-         name: 'fk_dongs_category_id',
-         entity: 'categories',
-         entityKey: 'id',
-         foreignKey: 'categoryId',
-         onUpdate: 'restrict',
-         onDelete: 'cascade',
-       },
-    //   fkDongsUserId: {
-    //     name: 'fk_dongs_user_id',
-    //     entity: 'users',
-    //     entityKey: 'id',
-    //     foreignKey: 'userId',
-    //     onUpdate: 'restrict',
-    //     onDelete: 'cascade',
-    //   },
-    //   fkDongsGroupId: {
-    //     name: 'fk_dongs_group_id',
-    //     entity: 'groups',
-    //     entityKey: 'id',
-    //     foreignKey: 'groupId',
-    //     onUpdate: 'restrict',
-    //     onDelete: 'no action',
-    //   },
-     },
+        name: 'fk_dongs_category_id',
+        entity: 'categories',
+        entityKey: 'id',
+        foreignKey: 'categoryId',
+        onUpdate: 'restrict',
+        onDelete: 'cascade',
+      },
+      fkDongsUserId: {
+        name: 'fk_dongs_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'cascade',
+      },
+      fkDongsGroupId: {
+        name: 'fk_dongs_group_id',
+        entity: 'groups',
+        entityKey: 'id',
+        foreignKey: 'groupId',
+        onUpdate: 'restrict',
+        onDelete: 'no action',
+      },
+    },
   },
 })
 export class Dongs extends Entity {
@@ -125,7 +125,7 @@ export class Dongs extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'int',
+        dataType: 'mediumint',
         dataLength: null,
         nullable: 'N',
       },

@@ -12,6 +12,7 @@ import {Users} from './';
 import {BillList} from './bill-list.model';
 import {PayerList} from './payer-list.model';
 import {Dongs} from './dongs.model';
+import {Budgets} from './budgets.model';
 
 @model({
   name: 'categories',
@@ -23,16 +24,16 @@ import {Dongs} from './dongs.model';
         options: {unique: true},
       },
     },
-    // foreignKeys: {
-    //   fkCategoriesUserId: {
-    //     name: 'fk_categories_user_id',
-    //     entity: 'users',
-    //     entityKey: 'id',
-    //     foreignKey: 'userId',
-    //     onUpdate: 'restrict',
-    //     onDelete: 'cascade',
-    //   },
-    // },
+    foreignKeys: {
+      fkCategoriesUserId: {
+        name: 'fk_categories_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'cascade',
+      },
+    },
   },
 })
 export class Categories extends Entity {
@@ -84,7 +85,7 @@ export class Categories extends Entity {
       type: 'number',
       required: true,
       index: {normal: true},
-      mysql: {columnName: 'user_id', dataType: 'int', nullable: 'N'},
+      mysql: {columnName: 'user_id', dataType: 'mediumint', nullable: 'N'},
     },
   )
   userId: number;
@@ -120,6 +121,9 @@ export class Categories extends Entity {
     targetsMany: true,
   })
   dongs: Dongs[];
+
+  @hasMany(() => Budgets, {keyTo: 'categoryId'})
+  budgets: Budgets[];
 
   constructor(data?: Partial<Categories>) {
     super(data);

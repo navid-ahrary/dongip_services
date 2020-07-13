@@ -26,7 +26,7 @@ export class Users extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'int',
+      dataType: 'mediumint',
       dataLength: null,
       nullable: 'N',
     },
@@ -71,6 +71,7 @@ export class Users extends Entity {
   @property({
     type: 'date',
     required: true,
+    defaultFn: 'now',
     mysql: {
       columnName: 'registered_at',
       dataType: 'datetime',
