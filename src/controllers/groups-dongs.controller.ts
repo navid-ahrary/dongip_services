@@ -1,12 +1,5 @@
 import {Count, CountSchema, repository} from '@loopback/repository';
-import {
-  del,
-  get,
-  getModelSchemaRef,
-  param,
-  api,
-  HttpErrors,
-} from '@loopback/rest';
+import {del, get, getModelSchemaRef, param, api} from '@loopback/rest';
 import {authenticate} from '@loopback/authentication';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {inject, intercept} from '@loopback/core';
@@ -53,7 +46,7 @@ export class GroupsDongsController {
     },
   })
   async findGroupsDongsByGroupId(
-    @param.path.number('groupId', {required: true})
+    @param.path.number('groupId', {required: true, example: 1})
     groupId: typeof Groups.prototype.groupId,
   ): Promise<Dongs[]> {
     return this.groupsRepository.dongs(groupId).find({
@@ -73,7 +66,7 @@ export class GroupsDongsController {
     },
   })
   async deleteGroupsByIdAllDongs(
-    @param.path.number('groupId', {required: true})
+    @param.path.number('groupId', {required: true, example: 1})
     groupId: typeof Groups.prototype.groupId,
   ): Promise<Count> {
     // Delete Dongs

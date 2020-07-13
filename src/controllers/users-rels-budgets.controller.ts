@@ -51,7 +51,7 @@ export class UsersRelsBudgetsController {
     },
   })
   async findUsersRelsBudgets(
-    @param.path.number('userRelId')
+    @param.path.number('userRelId', {required: true, example: 1})
     userRelId: typeof UsersRels.prototype.userRelId,
   ): Promise<Budgets[]> {
     return this.usersRelsRepository.budgets(userRelId).find();

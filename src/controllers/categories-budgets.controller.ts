@@ -1,4 +1,4 @@
-import {repository, Filter} from '@loopback/repository';
+import {repository} from '@loopback/repository';
 import {
   getModelSchemaRef,
   param,
@@ -51,7 +51,7 @@ export class CategoriesBudgetsController {
     },
   })
   async findUsersRelsBudgets(
-    @param.path.number('categoryId')
+    @param.path.number('categoryId', {required: true, example: 1})
     categoryId: typeof Categories.prototype.categoryId,
   ): Promise<Budgets[]> {
     return this.categoriesRepository.budgets(categoryId).find();
