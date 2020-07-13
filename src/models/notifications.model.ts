@@ -10,16 +10,16 @@ import {Users} from './users.model';
 @model({
   name: 'notifications',
   settings: {
-    foreignKeys: {
-      fkNotificationsUserId: {
-        name: 'fk_notifications_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'restrict',
-        onDelete: 'restrict',
-      },
-    },
+    // foreignKeys: {
+    //   fkNotificationsUserId: {
+    //     name: 'fk_notifications_user_id',
+    //     entity: 'users',
+    //     entityKey: 'id',
+    //     foreignKey: 'userId',
+    //     onUpdate: 'restrict',
+    //     onDelete: 'restrict',
+    //   },
+    // },
   },
 })
 export class Notifications extends Entity {

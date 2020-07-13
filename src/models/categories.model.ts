@@ -24,16 +24,16 @@ import {Budgets} from './budgets.model';
         options: {unique: true},
       },
     },
-    foreignKeys: {
-      fkCategoriesUserId: {
-        name: 'fk_categories_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'restrict',
-        onDelete: 'cascade',
-      },
-    },
+    // foreignKeys: {
+    //   fkCategoriesUserId: {
+    //     name: 'fk_categories_user_id',
+    //     entity: 'users',
+    //     entityKey: 'id',
+    //     foreignKey: 'userId',
+    //     onUpdate: 'restrict',
+    //     onDelete: 'cascade',
+    //   },
+    // },
   },
 })
 export class Categories extends Entity {
