@@ -94,7 +94,7 @@ export class CategoriesBudgetsController {
             ],
           }),
           example: {
-            title: 'My first budget',
+            title: 'My Category budget',
             date: 139905,
             budgetAmount: 500000,
           },
