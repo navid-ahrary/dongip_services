@@ -14,3 +14,4 @@ export * from './scores.model';
 export * from './groups.model';
 export * from './messages.model';
 export * from './notifications.model';
+export * from './budgets.model';
