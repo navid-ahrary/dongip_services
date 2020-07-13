@@ -48,9 +48,8 @@ export class CategoriesBudgetsController {
   async findCategoriesBudgets(
     @param.path.number('categoryId')
     categoryId: typeof Categories.prototype.categoryId,
-    @param.query.object('filter') filter?: Filter<Budgets>,
   ): Promise<Budgets[]> {
-    return this.categoriesRepository.budgets(categoryId).find(filter);
+    return this.categoriesRepository.budgets(categoryId).find();
   }
 
   @post('/categories/{categoryId}/budgets', {
