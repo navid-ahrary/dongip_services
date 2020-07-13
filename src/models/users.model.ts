@@ -16,6 +16,7 @@ import {Scores} from './scores.model';
 import {Groups} from './groups.model';
 import {Messages} from './messages.model';
 import {Notifications} from './notifications.model';
+import {Budgets} from './budgets.model';
 
 @model({name: 'users'})
 export class Users extends Entity {
@@ -230,6 +231,9 @@ export class Users extends Entity {
 
   @hasMany(() => Notifications, {keyTo: 'userId'})
   notifications: Notifications[];
+
+  @hasMany(() => Budgets, {keyTo: 'userId'})
+  budgets: Budgets[];
 
   constructor(data?: Partial<Users>) {
     super(data);

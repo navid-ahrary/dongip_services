@@ -20,7 +20,7 @@ import {HttpErrors} from '@loopback/rest';
 @bind({tags: {key: ValidateGroupIdInterceptor.BINDING_KEY}})
 export class ValidateGroupIdInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidateGroupIdInterceptor.name}`;
-  userId: number;
+  readonly userId: number;
 
   constructor(
     @repository(GroupsRepository)
@@ -59,14 +59,18 @@ export class ValidateGroupIdInterceptor implements Provider<Interceptor> {
           })
           .then((result) => {
             if (!result)
-              throw new HttpErrors.NotFound('این گروه رو پیدا نکردم!');
+              throw new HttpErrors.UnprocessableEntity(
+                'گروه مورد نظر معتبر نیست',
+              );
           });
       }
     } else if (
       invocationCtx.methodName === 'deleteGroupsByIdAllDongs' ||
       invocationCtx.methodName === 'deleteGroupsById' ||
       invocationCtx.methodName === 'findGroupsDongsByGroupId' ||
-      invocationCtx.methodName === 'patchGroupsById'
+      invocationCtx.methodName === 'patchGroupsById' ||
+      invocationCtx.methodName === 'findGroupsBudgets' ||
+      invocationCtx.methodName === 'createGroupsBudgets'
     ) {
       const groupId = invocationCtx.args[0];
 
@@ -75,7 +79,10 @@ export class ValidateGroupIdInterceptor implements Provider<Interceptor> {
           where: {userId: this.userId, groupId: groupId},
         })
         .then((result) => {
-          if (!result) throw new HttpErrors.NotFound('این گروه رو پیدا نکردم!');
+          if (!result)
+            throw new HttpErrors.UnprocessableEntity(
+              'گروه مورد نظر معتبر نیست',
+            );
         });
     }
     const result = await next();

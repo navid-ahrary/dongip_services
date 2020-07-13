@@ -10,7 +10,7 @@ import {
 } from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {UsersRelsRepository} from '../repositories';
+import {UsersRelsRepository, UsersRepository} from '../repositories';
 import {HttpErrors} from '@loopback/rest';
 
 /**
@@ -20,12 +20,16 @@ import {HttpErrors} from '@loopback/rest';
 @bind({tags: {key: ValidateUsersRelsInterceptor.BINDING_KEY}})
 export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidateUsersRelsInterceptor.name}`;
+  readonly userId: number;
 
   constructor(
     @repository(UsersRelsRepository)
     public usersRelsRepository: UsersRelsRepository,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
-  ) {}
+  ) {
+    this.userId = Number(this.currentUserProfile[securityId]);
+  }
 
   /**
    * This method is used by LoopBack context to produce an interceptor function
@@ -47,7 +51,6 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
     next: () => ValueOrPromise<InvocationResult>,
   ) {
     if (invocationCtx.methodName === 'createGroups') {
-      const userId = Number(this.currentUserProfile[securityId]);
       const userRelIds = invocationCtx.args[0].userRelIds;
       // eslint-disable-next-line prefer-const
       let userRelIdsFilter: {userRelId: number}[] = [];
@@ -57,7 +60,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
       });
 
       const countUserRels = await this.usersRelsRepository.count({
-        userId: userId,
+        userId: this.userId,
         or: userRelIdsFilter,
       });
 
@@ -65,7 +68,6 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         throw new HttpErrors.NotFound('اعضا معتبر نیستن!');
       }
     } else if (invocationCtx.methodName === 'patchGroupsById') {
-      const userId = Number(this.currentUserProfile[securityId]);
       if (invocationCtx.args[1].userRelIds) {
         const userRelIds = invocationCtx.args[1].userRelIds;
         // eslint-disable-next-line prefer-const
@@ -76,7 +78,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         });
 
         const countUserRels = await this.usersRelsRepository.count({
-          userId: userId,
+          userId: this.userId,
           or: userRelIdsFilter,
         });
 
@@ -84,7 +86,21 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
           throw new HttpErrors.NotFound('اعضا معتبر نیستن!');
         }
       }
+    } else if (
+      invocationCtx.methodName === 'findUsersRelsBudgets' ||
+      invocationCtx.methodName === 'createUsersRelsBudgets'
+    ) {
+      const userRelId = invocationCtx.args[0];
+
+      const foundUsersRels = await this.usersRepository
+        .usersRels(this.userId)
+        .find({where: {userRelId: userRelId}});
+
+      if (foundUsersRels.length !== 1) {
+        throw new HttpErrors.UnprocessableEntity('دسته بندی معتبر نیست');
+      }
     }
+
     const result = await next();
     // Add post-invocation logic here
     return result;

@@ -25,14 +25,14 @@ import {
   Scores,
   Groups,
   Messages,
-  Notifications,
-} from '../models';
+  Notifications, Budgets} from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 import {ScoresRepository} from './scores.repository';
 import {GroupsRepository} from './groups.repository';
 import {MessagesRepository} from './messages.repository';
 import {NotificationsRepository} from './notifications.repository';
+import {BudgetsRepository} from './budgets.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
@@ -88,6 +88,8 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
+  public readonly budgets: HasManyRepositoryFactory<Budgets, typeof Users.prototype.userId>;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -111,9 +113,11 @@ export class UsersRepository extends DefaultCrudRepository<
     @repository.getter('MessagesRepository')
     protected messagesRepositoryGetter: Getter<MessagesRepository>,
     @repository.getter('NotificationsRepository')
-    protected notificationsRepositoryGetter: Getter<NotificationsRepository>,
+    protected notificationsRepositoryGetter: Getter<NotificationsRepository>, @repository.getter('BudgetsRepository') protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
   ) {
     super(Users, dataSource);
+    this.budgets = this.createHasManyRepositoryFactoryFor('budgets', budgetsRepositoryGetter,);
+    this.registerInclusionResolver('budgets', this.budgets.inclusionResolver);
 
     this.notifications = this.createHasManyRepositoryFactoryFor(
       'notifications',
