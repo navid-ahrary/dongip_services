@@ -12,3 +12,4 @@ export * from './scores.repository';
 export * from './groups.repository';
 export * from './messages.repository';
 export * from './notifications.repository';
+export * from './budgets.repository';

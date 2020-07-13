@@ -87,7 +87,7 @@ export class VirtualUsers extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'int',
+        dataType: 'mediumint',
         dataLength: null,
         nullable: 'N',
       },

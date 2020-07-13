@@ -352,7 +352,6 @@ export class UsersController {
     await this.verifySerivce.verifyCredentials(verifyId, credentials.password);
 
     Object.assign(newUser, {
-      registeredAt: new Date(),
       firebaseToken: firebaseToken ? firebaseToken : 'null',
       userAgent: userAgent,
     });

@@ -4,11 +4,12 @@ import {
   HasManyRepositoryFactory,
   DefaultCrudRepository,
 } from '@loopback/repository';
-import {Groups, GroupsRelations, Users, Dongs} from '../models';
+import {Groups, GroupsRelations, Users, Dongs, Budgets} from '../models';
 import {MysqlDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
 import {UsersRepository} from './users.repository';
 import {DongsRepository} from './dongs.repository';
+import {BudgetsRepository} from './budgets.repository';
 
 export class GroupsRepository extends DefaultCrudRepository<
   Groups,
@@ -25,14 +26,18 @@ export class GroupsRepository extends DefaultCrudRepository<
     typeof Groups.prototype.groupId
   >;
 
+  public readonly budgets: HasManyRepositoryFactory<Budgets, typeof Groups.prototype.groupId>;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('DongsRepository')
-    protected dongsRepositoryGetter: Getter<DongsRepository>,
+    protected dongsRepositoryGetter: Getter<DongsRepository>, @repository.getter('BudgetsRepository') protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
   ) {
     super(Groups, dataSource);
+    this.budgets = this.createHasManyRepositoryFactoryFor('budgets', budgetsRepositoryGetter,);
+    this.registerInclusionResolver('budgets', this.budgets.inclusionResolver);
 
     this.dongs = this.createHasManyRepositoryFactoryFor(
       'dongs',

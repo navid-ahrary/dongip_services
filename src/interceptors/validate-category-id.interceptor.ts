@@ -57,22 +57,20 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
       });
       // Validate categoryId
       if (!curretnUserFoundCategory) {
-        throw new HttpErrors.UnprocessableEntity(
-          'دسته بندی مورد نظر یافت نیست',
-        );
+        throw new HttpErrors.UnprocessableEntity('دسته بندی معتبر نیست');
       }
     } else if (
       invocationCtx.methodName === 'deleteCategoriesById' ||
-      invocationCtx.methodName === 'patchCategoriesById'
+      invocationCtx.methodName === 'patchCategoriesById' ||
+      invocationCtx.methodName === 'createCategoriesBudgets' ||
+      invocationCtx.methodName === 'findCategoriesBudgets'
     ) {
       const categoryId = invocationCtx.args[0];
       const foundCategory = await this.usersRepo
         .categories(this.userId)
         .find({where: {categoryId: categoryId}});
       if (foundCategory.length !== 1) {
-        throw new HttpErrors.UnprocessableEntity(
-          'دسته بندی مورد نظر یافت نیست',
-        );
+        throw new HttpErrors.UnprocessableEntity('دسته بندی معتبر نیست');
       }
     }
     const result = await next();

@@ -54,7 +54,7 @@ export class Scores extends Entity {
     required: true,
     jsonSchema: {maxLength: 3},
     mysql: {
-      dataType: 'int',
+      dataType: 'smallint',
       dataLength: 3,
       nullable: 'N',
     },
@@ -89,7 +89,7 @@ export class Scores extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'int',
+        dataType: 'mediumint',
         dataLength: null,
         nullable: 'N',
       },

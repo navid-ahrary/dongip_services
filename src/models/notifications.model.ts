@@ -10,16 +10,16 @@ import {Users} from './users.model';
 @model({
   name: 'notifications',
   settings: {
-    // foreignKeys: {
-    //   fkNotificationsUserId: {
-    //     name: 'fk_notifications_user_id',
-    //     entity: 'users',
-    //     entityKey: 'id',
-    //     foreignKey: 'userId',
-    //     onUpdate: 'restrict',
-    //     onDelete: 'restrict',
-    //   },
-    // },
+    foreignKeys: {
+      fkNotificationsUserId: {
+        name: 'fk_notifications_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'restrict',
+      },
+    },
   },
 })
 export class Notifications extends Entity {
@@ -101,6 +101,7 @@ export class Notifications extends Entity {
       columnName: 'user_rel_id',
       dataLength: null,
       dataType: 'int',
+      nullable: 'N',
     },
   })
   userRelId: number;
@@ -112,6 +113,7 @@ export class Notifications extends Entity {
       columnName: 'dong_id',
       dataLength: null,
       dataType: 'int',
+      nullable: 'N',
     },
   })
   dongId: number;
@@ -123,6 +125,7 @@ export class Notifications extends Entity {
       columnName: 'dong_amount',
       dataLength: null,
       dataType: 'bigint',
+      nullable: 'N',
     },
   })
   dongAmount: number;
@@ -149,7 +152,7 @@ export class Notifications extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'int',
+        dataType: 'mediumint',
         dataLength: null,
         nullable: 'N',
       },

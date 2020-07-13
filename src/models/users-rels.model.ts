@@ -6,10 +6,12 @@ import {
   belongsTo,
   RelationType,
   hasOne,
+  hasMany,
 } from '@loopback/repository';
 
 import {Users} from './';
 import {VirtualUsers} from './virtual-users.model';
+import {Budgets} from './budgets.model';
 
 @model({
   name: 'users_rels',
@@ -103,7 +105,7 @@ export class UsersRels extends Entity {
       type: 'number',
       required: true,
       index: {normal: true},
-      mysql: {columnName: 'user_id', dataType: 'int', nullable: 'N'},
+      mysql: {columnName: 'user_id', dataType: 'mediumint', nullable: 'N'},
     },
   )
   userId: number;
@@ -117,6 +119,15 @@ export class UsersRels extends Entity {
     type: RelationType.hasOne,
   })
   hasOneVirtualUser: VirtualUsers;
+
+  @hasMany(() => Budgets, {
+    keyTo: 'userRelId',
+    source: UsersRels,
+    target: () => Budgets,
+    name: 'budgets',
+    type: RelationType.hasMany,
+  })
+  budgets: Budgets[];
 
   constructor(data?: Partial<UsersRels>) {
     super(data);
