@@ -38,14 +38,19 @@ export class CategoriesBudgetsController {
         description: 'Array of Budgets',
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(Budgets)},
+            schema: {
+              type: 'array',
+              items: getModelSchemaRef(Budgets, {
+                exclude: ['groupId', 'userRelId'],
+              }),
+            },
           },
         },
       },
       '422': {description: 'Failure, categoryId is unprocessable'},
     },
   })
-  async findCategoriesBudgets(
+  async findUsersRelsBudgets(
     @param.path.number('categoryId')
     categoryId: typeof Categories.prototype.categoryId,
   ): Promise<Budgets[]> {
@@ -57,7 +62,7 @@ export class CategoriesBudgetsController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Success, Categories model instance',
+        description: 'Success, Budgets model instance',
         content: {
           'application/json': {
             schema: getModelSchemaRef(Budgets, {
