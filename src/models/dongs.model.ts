@@ -35,14 +35,14 @@ import {Groups} from './groups.model';
         onUpdate: 'restrict',
         onDelete: 'cascade',
       },
-      fkDongsGroupId: {
-        name: 'fk_dongs_group_id',
-        entity: 'groups',
-        entityKey: 'id',
-        foreignKey: 'groupId',
-        onUpdate: 'restrict',
-        onDelete: 'no action',
-      },
+      // fkDongsGroupId: {
+      //   name: 'fk_dongs_group_id',
+      //   entity: 'groups',
+      //   entityKey: 'id',
+      //   foreignKey: 'groupId',
+      //   onUpdate: 'restrict',
+      //   onDelete: 'no action',
+      // },
     },
   },
 })
