@@ -40,7 +40,7 @@ import {Groups} from './groups.model';
         entity: 'groups',
         entityKey: 'id',
         foreignKey: 'groupId',
-        onUpdate: 'restrict',
+        onUpdate: 'no action',
         onDelete: 'no action',
       },
     },
