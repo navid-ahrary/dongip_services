@@ -4,6 +4,7 @@ import {
   property,
   hasMany,
   RelationType,
+  hasOne,
 } from '@loopback/repository';
 
 import {BillList} from './bill-list.model';
@@ -17,6 +18,7 @@ import {Groups} from './groups.model';
 import {Messages} from './messages.model';
 import {Notifications} from './notifications.model';
 import {Budgets} from './budgets.model';
+import {Settings} from './settings.model';
 
 @model({name: 'users'})
 export class Users extends Entity {
@@ -229,11 +231,38 @@ export class Users extends Entity {
   })
   messages: Messages[];
 
-  @hasMany(() => Notifications, {keyTo: 'userId'})
+  @hasMany(() => Notifications, {
+    keyTo: 'userId',
+    type: RelationType.hasMany,
+    keyFrom: 'userId',
+    name: 'notifications',
+    source: Users,
+    target: () => Notifications,
+    targetsMany: true,
+  })
   notifications: Notifications[];
 
-  @hasMany(() => Budgets, {keyTo: 'userId'})
+  @hasMany(() => Budgets, {
+    keyTo: 'userId',
+    type: RelationType.hasMany,
+    keyFrom: 'userId',
+    name: 'budgets',
+    source: Users,
+    target: () => Budgets,
+    targetsMany: true,
+  })
   budgets: Budgets[];
+
+  @hasOne(() => Settings, {
+    keyTo: 'userId',
+    type: RelationType.hasOne,
+    keyFrom: 'userId',
+    name: 'messages',
+    source: Users,
+    target: () => Settings,
+    targetsMany: false,
+  })
+  settings: Settings;
 
   constructor(data?: Partial<Users>) {
     super(data);

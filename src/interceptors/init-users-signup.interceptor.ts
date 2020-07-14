@@ -11,19 +11,22 @@ import {repository} from '@loopback/repository';
 import {
   CategoriesSourceRepository,
   CategoriesRepository,
+  SettingsRepository,
 } from '../repositories';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
  * `boot`
  */
-@bind({tags: {key: InitCategoriesInterceptor.BINDING_KEY}})
-export class InitCategoriesInterceptor implements Provider<Interceptor> {
-  static readonly BINDING_KEY = `interceptors.${InitCategoriesInterceptor.name}`;
+@bind({tags: {key: InitUsersSignup.BINDING_KEY}})
+export class InitUsersSignup implements Provider<Interceptor> {
+  static readonly BINDING_KEY = `interceptors.${InitUsersSignup.name}`;
 
   constructor(
     @repository(CategoriesSourceRepository)
     public catsSrcRepo: CategoriesSourceRepository,
+    @repository(SettingsRepository)
+    public settingsRepo: SettingsRepository,
     @repository(CategoriesRepository) public catsRepo: CategoriesRepository,
   ) {}
 
@@ -58,6 +61,8 @@ export class InitCategoriesInterceptor implements Provider<Interceptor> {
           Object.assign(cat, {userId: userId});
         });
         await this.catsRepo.createAll(initCatList);
+
+        await this.settingsRepo.create({userId: result.userId});
 
         return result;
       }

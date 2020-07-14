@@ -13,3 +13,4 @@ export * from './groups.repository';
 export * from './messages.repository';
 export * from './notifications.repository';
 export * from './budgets.repository';
+export * from './settings.repository';

@@ -42,7 +42,7 @@ import {
   ValidatePhoneNumInterceptor,
   FirebasetokenInterceptor,
   ValidatePasswordInterceptor,
-  InitCategoriesInterceptor,
+  InitUsersSignup,
 } from '../interceptors';
 
 @model()
@@ -304,7 +304,7 @@ export class UsersController {
     },
   })
   @authenticate('jwt.verify')
-  @intercept(InitCategoriesInterceptor.BINDING_KEY)
+  @intercept(InitUsersSignup.BINDING_KEY)
   async signup(
     @requestBody({
       content: {

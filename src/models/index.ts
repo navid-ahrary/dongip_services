@@ -15,3 +15,4 @@ export * from './groups.model';
 export * from './messages.model';
 export * from './notifications.model';
 export * from './budgets.model';
+export * from './settings.model';

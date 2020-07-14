@@ -2,6 +2,7 @@ import {
   repository,
   HasManyRepositoryFactory,
   DefaultCrudRepository,
+  HasOneRepositoryFactory,
 } from '@loopback/repository';
 import {inject, Getter} from '@loopback/core';
 
@@ -25,7 +26,10 @@ import {
   Scores,
   Groups,
   Messages,
-  Notifications, Budgets} from '../models';
+  Notifications,
+  Budgets,
+  Settings,
+} from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 import {ScoresRepository} from './scores.repository';
@@ -33,6 +37,7 @@ import {GroupsRepository} from './groups.repository';
 import {MessagesRepository} from './messages.repository';
 import {NotificationsRepository} from './notifications.repository';
 import {BudgetsRepository} from './budgets.repository';
+import {SettingsRepository} from './settings.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
@@ -88,7 +93,15 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
-  public readonly budgets: HasManyRepositoryFactory<Budgets, typeof Users.prototype.userId>;
+  public readonly budgets: HasManyRepositoryFactory<
+    Budgets,
+    typeof Users.prototype.userId
+  >;
+
+  public readonly settings: HasOneRepositoryFactory<
+    Settings,
+    typeof Users.prototype.userId
+  >;
 
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
@@ -113,10 +126,22 @@ export class UsersRepository extends DefaultCrudRepository<
     @repository.getter('MessagesRepository')
     protected messagesRepositoryGetter: Getter<MessagesRepository>,
     @repository.getter('NotificationsRepository')
-    protected notificationsRepositoryGetter: Getter<NotificationsRepository>, @repository.getter('BudgetsRepository') protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
+    protected notificationsRepositoryGetter: Getter<NotificationsRepository>,
+    @repository.getter('BudgetsRepository')
+    protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
+    @repository.getter('SettingsRepository')
+    protected settingsRepositoryGetter: Getter<SettingsRepository>,
   ) {
     super(Users, dataSource);
-    this.budgets = this.createHasManyRepositoryFactoryFor('budgets', budgetsRepositoryGetter,);
+    this.settings = this.createHasOneRepositoryFactoryFor(
+      'settings',
+      settingsRepositoryGetter,
+    );
+    this.registerInclusionResolver('settings', this.settings.inclusionResolver);
+    this.budgets = this.createHasManyRepositoryFactoryFor(
+      'budgets',
+      budgetsRepositoryGetter,
+    );
     this.registerInclusionResolver('budgets', this.budgets.inclusionResolver);
 
     this.notifications = this.createHasManyRepositoryFactoryFor(
