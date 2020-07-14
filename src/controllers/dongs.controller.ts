@@ -143,11 +143,9 @@ export class DongsController {
     const mutualFriendScore = 20;
     let mutualFactor = 0;
 
-    if (newDong.userId) {
-      if (newDong.userId !== this.userId) {
-        throw new HttpErrors.Unauthorized('userId با توکن شما همخوانی نداره');
-      }
-    }
+    if (newDong.userId) delete newDong.userId;
+    if (newDong.dongId) delete newDong.dongId;
+
     // Current user
     const currentUser = await this.usersRepository.findOne({
         where: {userId: this.userId},

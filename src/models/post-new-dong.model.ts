@@ -4,6 +4,8 @@ import {UsersRels} from './users-rels.model';
 
 @model()
 export class PostNewDong extends Model {
+  @property({type: 'number'}) dongId?: number;
+
   @property({type: 'string', requird: true}) title: string;
 
   @property({type: 'string', required: true}) desc: string;
