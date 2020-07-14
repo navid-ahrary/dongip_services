@@ -229,92 +229,94 @@ export class DongsController {
       // Store payerLists in database
       const createdBillList = await this.billListRepository.createAll(billList);
 
-      const sendNotify = _.has(newDong, 'sendNotify')
-        ? newDong.sendNotify
-        : true;
+      if (currentUserIsPayer) {
+        const foundSettings = await this.usersRepository
+          .settings(this.userId)
+          .get({fields: {dongsNotify: true}});
 
-      if (currentUserIsPayer && sendNotify) {
-        const currentUserCategory = await this.categoriesRepository.findById(
-          newDong.categoryId,
-          {fields: {title: true}},
-        );
+        if (foundSettings.dongsNotify) {
+          const currentUserCategory = await this.categoriesRepository.findById(
+            newDong.categoryId,
+            {fields: {title: true}},
+          );
 
-        for (const relation of currentUserFoundUsersRelsList) {
-          if (relation.type !== 'self') {
-            const user = await this.usersRepository.findOne({
-              where: {phone: relation.phone},
-            });
+          for (const relation of currentUserFoundUsersRelsList) {
+            if (relation.type !== 'self') {
+              const user = await this.usersRepository.findOne({
+                where: {phone: relation.phone},
+              });
 
-            // If relation is mutual, add to notification reciever list
-            if (user) {
-              const foundMutualUsersRels = await this.usersRelsRepository.findOne(
-                {
-                  where: {
-                    and: [{phone: currentUserPhone}, {userId: user.getId()}],
+              // If relation is mutual, add to notification reciever list
+              if (user) {
+                const foundMutualUsersRels = await this.usersRelsRepository.findOne(
+                  {
+                    where: {
+                      and: [{phone: currentUserPhone}, {userId: user.getId()}],
+                    },
                   },
-                },
-              );
-
-              if (foundMutualUsersRels) {
-                // Increament scoreFactor for every mutual friend dong contribution
-                mutualFactor++;
-                // Get rounded dong amount
-                const roundedDongAmount = _.find(billList, {
-                  userRelId: relation.getId(),
-                })
-                  ? floor(
-                      _.find(billList, {
-                        userRelId: relation.getId(),
-                      })!.dongAmount,
-                    )
-                  : 0;
-
-                // Seperate thousands with "," for use in notification body
-                const notifyBodyDongAmount = this.numberWithCommas(
-                  roundedDongAmount,
                 );
-                // Notification data payload
-                const notifyData: DataObject<Notifications> = {
-                  title: 'دنگیپ شدی',
-                  body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
-                  desc: createdDong.desc ? createdDong.desc : '',
-                  type: 'dong',
-                  categoryTitle: currentUserCategory.title,
-                  createdAt: newDong.createdAt,
-                  userRelId: foundMutualUsersRels.getId(),
-                  dongAmount: roundedDongAmount,
-                  dongId: createdDong.getId(),
-                };
 
-                const createdNotify = await this.usersRepository
-                  .notifications(user.getId())
-                  .create(notifyData);
-                // Generate notification messages
-                firebaseMessagesList.push({
-                  token: user.firebaseToken,
-                  // Android push notification messages
-                  android: {
-                    notification: {
-                      title: 'دنگیپ شدی',
-                      body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
-                      clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+                if (foundMutualUsersRels) {
+                  // Increament scoreFactor for every mutual friend dong contribution
+                  mutualFactor++;
+                  // Get rounded dong amount
+                  const roundedDongAmount = _.find(billList, {
+                    userRelId: relation.getId(),
+                  })
+                    ? floor(
+                        _.find(billList, {
+                          userRelId: relation.getId(),
+                        })!.dongAmount,
+                      )
+                    : 0;
+
+                  // Seperate thousands with "," for use in notification body
+                  const notifyBodyDongAmount = this.numberWithCommas(
+                    roundedDongAmount,
+                  );
+                  // Notification data payload
+                  const notifyData: DataObject<Notifications> = {
+                    title: 'دنگیپ شدی',
+                    body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
+                    desc: createdDong.desc ? createdDong.desc : '',
+                    type: 'dong',
+                    categoryTitle: currentUserCategory.title,
+                    createdAt: newDong.createdAt,
+                    userRelId: foundMutualUsersRels.getId(),
+                    dongAmount: roundedDongAmount,
+                    dongId: createdDong.getId(),
+                  };
+
+                  const createdNotify = await this.usersRepository
+                    .notifications(user.getId())
+                    .create(notifyData);
+                  // Generate notification messages
+                  firebaseMessagesList.push({
+                    token: user.firebaseToken,
+                    // Android push notification messages
+                    android: {
+                      notification: {
+                        title: 'دنگیپ شدی',
+                        body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
+                        clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+                      },
+                      data: {
+                        notifyId: createdNotify.getId().toString(),
+                        title: 'دنگیپ شدی',
+                        body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
+                        desc: createdDong.desc ? createdDong.desc : '',
+                        type: 'dong',
+                        categoryTitle: currentUserCategory.title,
+                        createdAt: newDong.createdAt,
+                        userRelId: foundMutualUsersRels.getId().toString(),
+                        dongAmount: roundedDongAmount.toString(),
+                        dongId: createdDong.getId().toString(),
+                      },
                     },
-                    data: {
-                      notifyId: createdNotify.getId().toString(),
-                      title: 'دنگیپ شدی',
-                      body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
-                      desc: createdDong.desc ? createdDong.desc : '',
-                      type: 'dong',
-                      categoryTitle: currentUserCategory.title,
-                      createdAt: newDong.createdAt,
-                      userRelId: foundMutualUsersRels.getId().toString(),
-                      dongAmount: roundedDongAmount.toString(),
-                      dongId: createdDong.getId().toString(),
-                    },
-                  },
-                  // iOS push notification messages
-                  // apns: {},
-                });
+                    // iOS push notification messages
+                    // apns: {},
+                  });
+                }
               }
             }
           }
