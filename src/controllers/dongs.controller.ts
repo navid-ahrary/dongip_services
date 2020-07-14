@@ -7,6 +7,7 @@ import {
   property,
   model,
   DataObject,
+  CountSchema,
 } from '@loopback/repository';
 import {
   get,
@@ -373,7 +374,16 @@ export class DongsController {
   @del('/dongs', {
     summary: 'DELETE all Dongs ',
     security: OPERATION_SECURITY_SPEC,
-    responses: {'200': {description: 'Count deleted Dongs'}},
+    responses: {
+      '200': {
+        description: 'Count DELETE Dongs',
+        content: {
+          'application/json': {
+            schema: CountSchema,
+          },
+        },
+      },
+    },
   })
   async deleteAllDongs() {
     return this.usersRepository.dongs(this.userId).delete();

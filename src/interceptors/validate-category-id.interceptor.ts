@@ -66,11 +66,13 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
       invocationCtx.methodName === 'findCategoriesBudgets'
     ) {
       const categoryId = invocationCtx.args[0];
-      const foundCategory = await this.usersRepo
-        .categories(this.userId)
-        .find({where: {categoryId: categoryId}});
-      if (foundCategory.length !== 1) {
-        throw new HttpErrors.UnprocessableEntity('دسته بندی معتبر نیست');
+
+      const foundCategory = await this.categoriesRepo.findOne({
+        where: {categoryId: categoryId, userId: this.userId},
+      });
+
+      if (!foundCategory) {
+        throw new HttpErrors.UnprocessableEntity('آی دی دسته بندی معتبر نیست');
       }
     }
     const result = await next();

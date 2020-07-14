@@ -65,7 +65,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
       });
 
       if (countUserRels.count !== userRelIds.length) {
-        throw new HttpErrors.NotFound('اعضا معتبر نیستن!');
+        throw new HttpErrors.UnprocessableEntity('آی دی دوستی ها معتبر نیستن');
       }
     } else if (invocationCtx.methodName === 'patchGroupsById') {
       if (invocationCtx.args[1].userRelIds) {
@@ -83,7 +83,9 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         });
 
         if (countUserRels.count !== userRelIds.length) {
-          throw new HttpErrors.NotFound('اعضا معتبر نیستن!');
+          throw new HttpErrors.UnprocessableEntity(
+            'آی دی دوستی ها معتبر نیستن!',
+          );
         }
       }
     } else if (
@@ -92,12 +94,12 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
     ) {
       const userRelId = invocationCtx.args[0];
 
-      const foundUsersRels = await this.usersRepository
-        .usersRels(this.userId)
-        .find({where: {userRelId: userRelId}});
+      const foundUserRel = await this.usersRelsRepository.findOne({
+        where: {userRelId: userRelId, userId: this.userId},
+      });
 
-      if (foundUsersRels.length !== 1) {
-        throw new HttpErrors.UnprocessableEntity('دسته بندی معتبر نیست');
+      if (!foundUserRel) {
+        throw new HttpErrors.UnprocessableEntity('آی دی دسته بندی معتبر نیست');
       }
     }
 

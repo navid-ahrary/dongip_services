@@ -9,3 +9,4 @@ export * from './notifications.controller';
 export * from './categories-budgets.controller';
 export * from './users-rels-budgets.controller';
 export * from './groups-budgets.controller';
+export * from './budgets.controller';

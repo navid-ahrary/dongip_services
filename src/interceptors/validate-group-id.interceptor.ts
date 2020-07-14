@@ -59,9 +59,7 @@ export class ValidateGroupIdInterceptor implements Provider<Interceptor> {
           })
           .then((result) => {
             if (!result)
-              throw new HttpErrors.UnprocessableEntity(
-                'گروه مورد نظر معتبر نیست',
-              );
+              throw new HttpErrors.UnprocessableEntity('آی دی گروه معتبر نیست');
           });
       }
     } else if (
@@ -80,9 +78,7 @@ export class ValidateGroupIdInterceptor implements Provider<Interceptor> {
         })
         .then((result) => {
           if (!result)
-            throw new HttpErrors.UnprocessableEntity(
-              'گروه مورد نظر معتبر نیست',
-            );
+            throw new HttpErrors.UnprocessableEntity('آی دی گروه معتبر نیست');
         });
     }
     const result = await next();

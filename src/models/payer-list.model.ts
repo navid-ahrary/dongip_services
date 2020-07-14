@@ -38,14 +38,14 @@ import {Users} from './users.model';
         onUpdate: 'restrict',
         onDelete: 'cascade',
       },
-      fkPayerListUserId: {
-        name: 'fk_payer_list_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'restrict',
-        onDelete: 'cascade',
-      },
+      // fkPayerListUserId: {
+      //   name: 'fk_payer_list_user_id',
+      //   entity: 'users',
+      //   entityKey: 'id',
+      //   foreignKey: 'userId',
+      //   onUpdate: 'restrict',
+      //   onDelete: 'cascade',
+      // },
     },
   },
 })

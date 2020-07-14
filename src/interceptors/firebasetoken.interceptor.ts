@@ -10,7 +10,7 @@ import {
 import {repository} from '@loopback/repository';
 import {UserProfile, SecurityBindings, securityId} from '@loopback/security';
 import {UsersRepository} from '../repositories';
-import {RestBindings} from '@loopback/rest';
+import {RestBindings, HttpErrors} from '@loopback/rest';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -56,6 +56,10 @@ export class FirebasetokenInterceptor implements Provider<Interceptor> {
         await this.usersRepo.updateById(userId, {
           firebaseToken: firebaseToken,
         });
+      } else {
+        throw new HttpErrors.UnprocessableEntity(
+          'Type of firebase token should be string',
+        );
       }
     }
     // Add pre-invocation logic here

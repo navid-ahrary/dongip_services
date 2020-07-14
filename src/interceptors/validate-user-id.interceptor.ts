@@ -47,7 +47,9 @@ export class ValidateUserIdInterceptor implements Provider<Interceptor> {
     const userIdInPath = invocationCtx.args[0];
 
     if (userIdInPath !== this.userId) {
-      throw new HttpErrors.UnprocessableEntity('userId با توکن همخونی نداره');
+      throw new HttpErrors.UnprocessableEntity(
+        'آی دی کاربر با توکن همخونی نداره',
+      );
     }
     // Add pre-invocation logic here
     const result = await next();
