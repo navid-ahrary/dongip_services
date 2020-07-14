@@ -131,6 +131,7 @@ export class BudgetsController {
       '204': {
         description: 'Budgets PATCH success. No content',
       },
+      '422': {description: 'Failure, budgetId is unprocessable'},
     },
   })
   async updateBudgetsById(
@@ -195,6 +196,7 @@ export class BudgetsController {
       '204': {
         description: 'Budgets DELETE success. No content',
       },
+      '422': {description: 'Failure, budgetId is unprocessable'},
     },
   })
   async deleteBudgetsById(
