@@ -84,19 +84,15 @@ export class UsersRelsBudgetsController {
         'application/json': {
           schema: getModelSchemaRef(Budgets, {
             title: 'NewBudgetsInUsersRels',
-            exclude: [
-              'budgetId',
-              'categoryId',
-              'createdAt',
-              'groupId',
-              'userId',
-              'userRelId',
-            ],
+            exclude: ['budgetId', 'createdAt', 'userId'],
+            optional: ['userRelId'],
           }),
           example: {
             title: 'My UserRel budget',
             date: 139905,
             budgetAmount: 1500000,
+            groupId: undefined,
+            categoryId: undefined,
           },
         },
       },
@@ -104,6 +100,9 @@ export class UsersRelsBudgetsController {
     newBudget: Omit<Budgets, 'budgetId'>,
   ): Promise<Budgets> {
     newBudget.userId = this.userId;
+    delete newBudget.categoryId;
+    delete newBudget.groupId;
+
     return this.usersRelsRepository.budgets(userRelId).create(newBudget);
   }
 }
