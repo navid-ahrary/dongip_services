@@ -10,7 +10,6 @@ import {
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
-import _ from 'lodash';
 
 import {
   BudgetsRepository,
@@ -135,10 +134,6 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
 
       delete entity.groupId;
       delete entity.userRelId;
-    } else {
-      throw new HttpErrors.UnprocessableEntity(
-        'One of categoryId, groupId, userRelId values must be provided',
-      );
     }
 
     return entity;
