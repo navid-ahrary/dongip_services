@@ -134,6 +134,10 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
 
       delete entity.groupId;
       delete entity.userRelId;
+    } else {
+      delete entity.groupId;
+      delete entity.userRelId;
+      delete entity.categoryId;
     }
 
     return entity;
