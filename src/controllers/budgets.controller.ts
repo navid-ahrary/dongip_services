@@ -76,7 +76,7 @@ export class BudgetsController {
         'application/json': {
           schema: getModelSchemaRef(Budgets, {
             title: 'NewBudgets',
-            exclude: ['budgetId', 'createdAt'],
+            exclude: ['budgetId', 'createdAt', 'updatedAt'],
             optional: ['userId'],
           }),
           examples: {
@@ -143,7 +143,7 @@ export class BudgetsController {
         'application/json': {
           schema: getModelSchemaRef(Budgets, {
             partial: true,
-            exclude: ['budgetId', 'createdAt'],
+            exclude: ['budgetId', 'createdAt', 'updatedAt'],
             optional: ['userId'],
           }),
           examples: {
@@ -184,6 +184,7 @@ export class BudgetsController {
     patchBudget: Budgets,
     @param.header.string('firebase-token') firebaseToken: string,
   ): Promise<void> {
+    patchBudget.updatedAt = new Date().toISOString();
     await this.budgetsRepository.updateById(budgetId, patchBudget);
   }
 

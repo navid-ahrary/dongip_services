@@ -88,11 +88,11 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
   }
 
   async validateBudgetReqBody(entity: Budgets): Promise<Budgets> {
+    const errMessage = 'فقط یکی از آیتم ها رو میشه بودجه بندی کرد';
+
     if (entity.categoryId && entity.categoryId > 0) {
       if (entity.userRelId !== 0 || entity.groupId !== 0) {
-        throw new HttpErrors.UnprocessableEntity(
-          'Values of groupId and userRelId must be zero',
-        );
+        throw new HttpErrors.UnprocessableEntity(errMessage);
       }
 
       const foundCategory = await this.categoriessRepo.findOne({
@@ -102,13 +102,11 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
         throw new HttpErrors.UnprocessableEntity('آی دی دسته بندی معتبر نیست');
       }
 
-      delete entity.groupId;
-      delete entity.userRelId;
+      entity.groupId = undefined;
+      entity.userRelId = undefined;
     } else if (entity.userRelId && entity.userRelId > 0) {
       if (entity.categoryId !== 0 || entity.groupId !== 0) {
-        throw new HttpErrors.UnprocessableEntity(
-          'Values of groupId and categoryId must be zero',
-        );
+        throw new HttpErrors.UnprocessableEntity(errMessage);
       }
 
       const foundUserRel = await this.usersRelsRepo.findOne({
@@ -118,13 +116,11 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
         throw new HttpErrors.UnprocessableEntity('آی دی دوستی معتبر نیست');
       }
 
-      delete entity.categoryId;
-      delete entity.groupId;
+      entity.categoryId = undefined;
+      entity.groupId = undefined;
     } else if (entity.groupId && entity.groupId > 0) {
       if (entity.userRelId !== 0 || entity.categoryId !== 0) {
-        throw new HttpErrors.UnprocessableEntity(
-          'Values of categoryId and userRelId must be zero',
-        );
+        throw new HttpErrors.UnprocessableEntity(errMessage);
       }
 
       const foundأGroup = await this.groupsRepo.findOne({
@@ -134,12 +130,12 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
         throw new HttpErrors.UnprocessableEntity('آی دی گروه معتبر نیست');
       }
 
-      delete entity.groupId;
-      delete entity.userRelId;
+      entity.categoryId = undefined;
+      entity.userRelId = undefined;
     } else {
-      delete entity.groupId;
-      delete entity.userRelId;
-      delete entity.categoryId;
+      entity.groupId = undefined;
+      entity.userRelId = undefined;
+      entity.categoryId = undefined;
     }
 
     return entity;

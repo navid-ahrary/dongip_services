@@ -80,7 +80,13 @@ export class Budgets extends Entity {
 
   @belongsTo(
     () => Users,
-    {},
+    {
+      name: 'user',
+      keyFrom: 'userId',
+      keyTo: 'userId',
+      source: Users,
+      target: () => Budgets,
+    },
     {
       type: 'Number',
       required: true,
@@ -106,7 +112,7 @@ export class Budgets extends Entity {
       type: RelationType.belongsTo,
     },
     {
-      type: 'number',
+      type: ['null', 'number'],
       index: {normal: true},
       mysql: {
         columnName: 'category_id',
@@ -116,7 +122,7 @@ export class Budgets extends Entity {
       },
     },
   )
-  categoryId: number;
+  categoryId?: number;
 
   @belongsTo(
     () => UsersRels,
@@ -129,7 +135,7 @@ export class Budgets extends Entity {
       type: RelationType.belongsTo,
     },
     {
-      type: 'number',
+      type: ['null', 'number'],
       index: {normal: true},
       mysql: {
         columnName: 'user_rel_id',
@@ -139,7 +145,7 @@ export class Budgets extends Entity {
       },
     },
   )
-  userRelId: number;
+  userRelId?: number;
 
   @belongsTo(
     () => Groups,
@@ -152,7 +158,7 @@ export class Budgets extends Entity {
       type: RelationType.belongsTo,
     },
     {
-      type: 'number',
+      type: ['null', 'number'],
       index: {normal: true},
       mysql: {
         columnName: 'group_id',
@@ -162,7 +168,7 @@ export class Budgets extends Entity {
       },
     },
   )
-  groupId: number;
+  groupId?: number;
 
   @property({
     type: 'date',
@@ -171,6 +177,14 @@ export class Budgets extends Entity {
     mysql: {columnName: 'created_at', dataType: 'datetime', nullable: 'N'},
   })
   createdAt: string;
+
+  @property({
+    type: 'date',
+    required: true,
+    defaultFn: 'now',
+    mysql: {columnName: 'updated_at', dataType: 'datetime', nullable: 'N'},
+  })
+  updatedAt: string;
 
   constructor(data?: Partial<Budgets>) {
     super(data);
