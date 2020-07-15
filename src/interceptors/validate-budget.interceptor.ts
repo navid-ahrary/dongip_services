@@ -74,12 +74,14 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
       }
     }
 
-    if (
-      invocationCtx.methodName === 'updateBudgetsById' ||
-      invocationCtx.methodName === 'createBudgets'
-    ) {
+    if (invocationCtx.methodName === 'updateBudgetsById') {
       await this.validateBudgetReqBody(invocationCtx.args[1]);
     }
+
+    if (invocationCtx.methodName === 'createBudgets') {
+      await this.validateBudgetReqBody(invocationCtx.args[0]);
+    }
+
     const result = await next();
     // Add post-invocation logic here
     return result;
