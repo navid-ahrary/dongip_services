@@ -164,6 +164,7 @@ export class UsersRelsController {
           .notifications(foundTargetUser.getId())
           .create({
             body: `${user.name} تو رو به دوستاش اضافه کرد`,
+            type: 'userRel',
             name: user.name,
             phone: user.phone,
             avatar: user.avatar,
