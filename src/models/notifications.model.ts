@@ -39,6 +39,7 @@ export class Notifications extends Entity {
   @property({
     type: 'date',
     required: true,
+    defaultFn: 'now',
     mysql: {
       columnName: 'created_at',
       dataType: 'datetime',
@@ -50,7 +51,6 @@ export class Notifications extends Entity {
 
   @property({
     type: 'string',
-    required: true,
     mysql: {
       dataType: 'varchar',
       dataLength: 50,
@@ -61,7 +61,6 @@ export class Notifications extends Entity {
 
   @property({
     type: 'string',
-    required: true,
     mysql: {
       dataType: 'varchar',
       dataLength: 50,
@@ -84,57 +83,85 @@ export class Notifications extends Entity {
 
   @property({
     type: 'string',
-    required: true,
     mysql: {
       columnName: 'category_title',
       dataType: 'varchar',
       dataLength: 255,
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
-  categoryTitle: string;
+  categoryTitle?: string;
 
   @property({
     type: 'number',
-    required: true,
     mysql: {
       columnName: 'user_rel_id',
       dataLength: null,
       dataType: 'int',
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
-  userRelId: number;
+  userRelId?: number;
 
   @property({
     type: 'number',
-    required: true,
     mysql: {
       columnName: 'dong_id',
       dataLength: null,
       dataType: 'int',
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
-  dongId: number;
+  dongId?: number;
 
   @property({
     type: 'Number',
-    required: true,
     mysql: {
       columnName: 'dong_amount',
       dataLength: null,
       dataType: 'bigint',
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
-  dongAmount: number;
+  dongAmount?: number;
 
   @property({
     type: 'string',
     required: true,
   })
   body: string;
+
+  @property({
+    type: 'string',
+    required: true,
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 50,
+      nullable: 'Y',
+    },
+  })
+  name?: string;
+
+  @property({
+    type: 'string',
+    jsonSchema: {minLength: 12, maxLength: 20},
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 20,
+      nullable: 'Y',
+    },
+  })
+  phone?: string;
+
+  @property({
+    type: 'string',
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 512,
+      nullable: 'Y',
+    },
+  })
+  avatar?: string;
 
   @belongsTo(
     () => Users,

@@ -158,17 +158,29 @@ export class UsersRelsController {
         .settings(foundTargetUser.getId())
         .get({fields: {userRelNotify: true}});
 
-      // If target user desired to receiving notificication
+      // Target user desired to receiving userRel suggestion notificication
       if (foundTargetUserSettings.userRelNotify) {
+        const createdNotify = await this.usersRepository
+          .notifications(foundTargetUser.getId())
+          .create({
+            body: `${user.name} تو رو به دوستاش اضافه کرد`,
+            name: user.name,
+            phone: user.phone,
+            avatar: user.avatar,
+          });
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.firebaseService.sendToDeviceMessage(
           foundTargetUser.firebaseToken,
           {
             notification: {
-              title: 'پیشنهاد دوست جدید',
+              title: 'پیشنهاد دوستی',
+              body: `${user.name} تو رو به دوستاش اضافه کرد`,
               clickAction: 'FULTTER_NOTIFICATION_CLICK',
             },
             data: {
+              notifyId: createdNotify.getId().toString(),
+              title: 'پیشنهاد دوستی',
+              body: `${user.name} تو رو به دوستاش اضافه کرد`,
               name: user.name,
               phone: user.phone,
               avatar: user.avatar,
