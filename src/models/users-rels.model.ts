@@ -55,7 +55,6 @@ export class UsersRels extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {minLength: 3, maxLength: 512},
     mysql: {
       columnName: 'avatar',
       dataType: 'varchar',
