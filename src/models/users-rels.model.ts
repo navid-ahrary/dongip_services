@@ -109,6 +109,22 @@ export class UsersRels extends Entity {
   )
   userId: number;
 
+  @property({
+    type: 'date',
+    required: true,
+    defaultFn: 'now',
+    mysql: {columnName: 'created_at', dataType: 'datetime', nullable: 'N'},
+  })
+  createdAt: string;
+
+  @property({
+    type: 'date',
+    required: true,
+    defaultFn: 'now',
+    mysql: {columnName: 'updated_at', dataType: 'datetime', nullable: 'N'},
+  })
+  updatedAt: string;
+
   @hasOne(() => VirtualUsers, {
     keyFrom: 'userRelId',
     keyTo: 'userRelId',

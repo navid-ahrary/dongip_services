@@ -96,7 +96,7 @@ export class UsersRelsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
-            exclude: ['userRelId', 'userId', 'type'],
+            exclude: ['userRelId', 'userId', 'type', 'createdAt', 'updatedAt'],
           }),
           example: {
             phone: '+989122222222',
@@ -117,16 +117,12 @@ export class UsersRelsController {
     });
 
     // Check phone number is not user's
-    await this.usersRepository
-      .count({
-        userId: this.userId,
-        phone: userRelReqBody.phone,
-      })
-      .then((result) => {
-        if (result.count)
-          throw new HttpErrors.UnprocessableEntity('تو بهترین دوست خودتی!');
-      });
-
+    const user = await this.usersRepository.findById(this.userId, {
+      fields: {phone: true, avatar: true, name: true},
+    });
+    if (user.phone === userRelReqBody.phone) {
+      throw new HttpErrors.UnprocessableEntity('تو بهترین دوست خودتی!');
+    }
     // Create a UserRel belongs to current user
     const createdUserRel: UsersRels = await this.usersRepository
       .usersRels(this.userId)
@@ -136,14 +132,8 @@ export class UsersRelsController {
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
           let errorMessage: string;
 
-          // Duplicate name&phone error handling
-          if (err.sqlMessage.endsWith("'users_rels.user_id&name&phone'")) {
-            errorMessage = 'یه دوست داری دقیقن به همین اسم و شماره موبایل!';
-            // Duplicate name error handling
-          } else if (err.sqlMessage.endsWith("'users_rels.user_id&name'")) {
-            errorMessage = 'این اسم توی لیست دوستات وجود داره!';
-            // Duplicate phone error handling
-          } else if (err.sqlMessage.endsWith("'users_rels.user_id&phone'")) {
+          // Duplicate phone error handling
+          if (err.sqlMessage.endsWith("'users_rels.user_id&phone'")) {
             errorMessage = 'این شماره موبایل توی لیست دوستات وجود داره!';
           } else errorMessage = err.message; // Otherwise
 
@@ -157,6 +147,36 @@ export class UsersRelsController {
     await this.usersRepository
       .virtualUsers(this.userId)
       .create({phone: userRelReqBody.phone, userRelId: createdUserRel.getId()});
+
+    const foundTargetUser = await this.usersRepository.findOne({
+      where: {phone: userRelReqBody.phone},
+      fields: {userId: true, firebaseToken: true},
+    });
+
+    if (foundTargetUser) {
+      const foundTargetUserSettings = await this.usersRepository
+        .settings(foundTargetUser.getId())
+        .get({fields: {userRelNotify: true}});
+
+      // If target user desired to receiving notificication
+      if (foundTargetUserSettings.userRelNotify) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.firebaseService.sendToDeviceMessage(
+          foundTargetUser.firebaseToken,
+          {
+            notification: {
+              title: 'پیشنهاد دوست جدید',
+              clickAction: 'FULTTER_NOTIFICATION_CLICK',
+            },
+            data: {
+              name: user.name,
+              phone: user.phone,
+              avatar: user.avatar,
+            },
+          },
+        );
+      }
+    }
 
     return createdUserRel;
   }
@@ -178,7 +198,7 @@ export class UsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             partial: true,
-            exclude: ['userId', 'type'],
+            exclude: ['userId', 'type', 'createdAt', 'updatedAt'],
           }),
           examples: {
             someProps: {
@@ -203,6 +223,7 @@ export class UsersRelsController {
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
     let errorMessage: string;
+    userRelReqBody.updatedAt = new Date().toISOString();
 
     try {
       // Patch UserRel

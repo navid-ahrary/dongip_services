@@ -62,6 +62,19 @@ export class Settings extends Entity {
   lotteriesNotify: boolean;
 
   @property({
+    type: 'boolean',
+    required: true,
+    default: true,
+    mysql: {
+      columnName: 'user_rel_notify',
+      dataType: 'tinyint',
+      dataLength: 1,
+      nullable: 'N',
+    },
+  })
+  userRelNotify: boolean;
+
+  @property({
     type: 'date',
     required: true,
     defaultFn: 'now',
