@@ -9,7 +9,6 @@ export async function main(options: ApplicationConfig = {}) {
   await app.start();
 
   const url = app.restServer.url;
-  console.log(`Server is running at ${url}/`);
   console.log(`Explorer available at ${url}/openapi`);
 
   return app;

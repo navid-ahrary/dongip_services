@@ -14,7 +14,6 @@ import {
   AuthorizationComponent,
   AuthorizationBindings,
 } from '@loopback/authorization';
-import * as path from 'path';
 
 import {MyAuthenticationSequence} from './sequence';
 import {UserAuthenticationComponent} from './components/user.authentication';
@@ -89,8 +88,6 @@ export class MyApplication extends BootMixin(
     // Set up the custom sequence
     this.sequence(MyAuthenticationSequence);
 
-    // Set up default home page
-    this.static('/', path.join(__dirname, '../public'));
     // Customize @loopback/rest-explorer configuration here
     this.bind(RestExplorerBindings.CONFIG).to({
       path: '/openapi',
