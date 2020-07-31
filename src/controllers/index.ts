@@ -1,4 +1,5 @@
 export * from './users.controller';
+export * from './auth.controller';
 export * from './dongs.controller';
 export * from './categories.controller';
 export * from './users-rels.controller';

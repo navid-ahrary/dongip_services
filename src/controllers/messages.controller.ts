@@ -8,7 +8,7 @@ import {Messages} from '../models';
 import {UsersRepository, MessagesRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
-@api({basePath: '/api/', paths: {}})
+@api({basePath: '/', paths: {}})
 @authenticate('jwt.access')
 export class MessagesController {
   userId: number;

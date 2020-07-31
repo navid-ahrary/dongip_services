@@ -29,7 +29,7 @@ import {ValidateGroupIdInterceptor} from '../interceptors/validate-group-id.inte
   ValidateUsersRelsInterceptor.BINDING_KEY,
   ValidateGroupIdInterceptor.BINDING_KEY,
 )
-@api({basePath: '/api/', paths: {}})
+@api({basePath: '/', paths: {}})
 @authenticate('jwt.access')
 export class GroupsController {
   userId: number;

@@ -32,7 +32,7 @@ import {
   FirebasetokenInterceptor,
 } from '../interceptors';
 
-@api({basePath: '/api/', paths: {}})
+@api({basePath: '/', paths: {}})
 @intercept(
   ValidatePhoneNumInterceptor.BINDING_KEY,
   FirebasetokenInterceptor.BINDING_KEY,

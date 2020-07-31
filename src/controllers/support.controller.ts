@@ -17,7 +17,7 @@ import {basicAuthorization, FirebaseService, MessagePayload} from '../services';
 import {MessagesRepository, UsersRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
-@api({basePath: '/api/support/', paths: {}})
+@api({basePath: '/support/', paths: {}})
 @authorize({allowedRoles: ['GOD'], voters: [basicAuthorization]})
 @authenticate('jwt.access')
 export class SupportController {

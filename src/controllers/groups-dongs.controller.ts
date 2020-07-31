@@ -14,7 +14,7 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {ValidateGroupIdInterceptor} from '../interceptors/validate-group-id.interceptor';
 
 @intercept(ValidateGroupIdInterceptor.BINDING_KEY)
-@api({basePath: '/api/groups', paths: {}})
+@api({basePath: '/groups', paths: {}})
 @authenticate('jwt.access')
 export class GroupsDongsController {
   userId: number;

@@ -18,7 +18,7 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
 @authenticate('jwt.access')
 @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
-@api({basePath: '/api/', paths: {}})
+@api({basePath: '/', paths: {}})
 export class CategoriesBudgetsController {
   userId: number;
 

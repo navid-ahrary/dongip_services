@@ -52,7 +52,7 @@ class ResponseNewDong extends Dongs {
   ValidateGroupIdInterceptor.BINDING_KEY,
   FirebasetokenInterceptor.BINDING_KEY,
 )
-@api({basePath: '/api/', paths: {}})
+@api({basePath: '/', paths: {}})
 @authenticate('jwt.access')
 export class DongsController {
   userId: number;

@@ -8,7 +8,7 @@ import {Notifications} from '../models';
 import {UsersRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
-@api({basePath: '/api/', paths: {}})
+@api({basePath: '/', paths: {}})
 @authenticate('jwt.access')
 export class NotificationsController {
   userId: number;

@@ -16,7 +16,7 @@ import {GroupsRepository} from '../repositories';
 import {ValidateGroupIdInterceptor} from '../interceptors';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
-@api({basePath: '/api/', paths: {}})
+@api({basePath: '/', paths: {}})
 @authenticate('jwt.access')
 @intercept(ValidateGroupIdInterceptor.BINDING_KEY)
 export class GroupsBudgetsController {

@@ -19,7 +19,7 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {ValidateBudgetIdInterceptor} from '../interceptors';
 
 @authenticate('jwt.access')
-@api({basePath: '/api/', paths: {}})
+@api({basePath: '/', paths: {}})
 @intercept(ValidateBudgetIdInterceptor.BINDING_KEY)
 export class BudgetsController {
   readonly userId: number;

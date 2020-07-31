@@ -27,10 +27,7 @@ import {
   ValidateCategoryIdInterceptor.BINDING_KEY,
 )
 @authenticate('jwt.access')
-@api({
-  basePath: '/api/',
-  paths: {},
-})
+@api({basePath: '/', paths: {}})
 export class CategoriesController {
   userId: number;
 

@@ -16,7 +16,7 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {authenticate} from '@loopback/authentication';
 
 @authenticate('jwt.access')
-@api({basePath: '/api', paths: {}})
+@api({basePath: '/', paths: {}})
 export class SettingsController {
   readonly userId: number;
 
