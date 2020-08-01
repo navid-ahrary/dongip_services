@@ -133,7 +133,7 @@ export class UsersRelsController {
           let errorMessage: string;
 
           // Duplicate phone error handling
-          if (err.sqlMessage.endsWith("'users_rels.user_id&phone'")) {
+          if (err.sqlMessage.endsWith("'user_id&phone'")) {
             errorMessage = 'این شماره موبایل توی لیست دوستات وجود داره!';
           } else errorMessage = err.message; // Otherwise
 
