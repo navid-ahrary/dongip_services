@@ -163,6 +163,7 @@ export class UsersRelsController {
         const createdNotify = await this.usersRepository
           .notifications(foundTargetUser.getId())
           .create({
+            title: 'پیشنهاد دوستی',
             body: `${user.name} تو رو به دوستاش اضافه کرد`,
             type: 'userRel',
             name: user.name,
