@@ -169,6 +169,9 @@ export class UsersRelsController {
             name: user.name,
             phone: user.phone,
             avatar: user.avatar,
+            createdAt: new Date().toLocaleString('en-US', {
+              timeZone: 'Asia/Tehran',
+            }),
           });
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.firebaseService.sendToDeviceMessage(
