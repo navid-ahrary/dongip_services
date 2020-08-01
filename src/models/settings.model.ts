@@ -75,6 +75,45 @@ export class Settings extends Entity {
   userRelNotify: boolean;
 
   @property({
+    type: 'boolean',
+    required: true,
+    default: true,
+    mysql: {
+      columnName: 'budgets_notify',
+      dataType: 'tinyint',
+      dataLength: 1,
+      nullable: 'N',
+    },
+  })
+  budgetsNotify: boolean;
+
+  @property({
+    type: 'boolean',
+    required: true,
+    default: true,
+    mysql: {
+      columnName: 'schedule_notify',
+      dataType: 'tinyint',
+      dataLength: 1,
+      nullable: 'N',
+    },
+  })
+  scheduleNotify: boolean;
+
+  @property({
+    type: 'string',
+    default: '21:30:00',
+    required: true,
+    mysql: {
+      columnName: 'schedule_time',
+      dataType: 'time',
+      dataLength: 5,
+      nullable: 'N',
+    },
+  })
+  scheduleTime: string;
+
+  @property({
     type: 'date',
     required: true,
     defaultFn: 'now',

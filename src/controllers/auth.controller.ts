@@ -28,6 +28,9 @@ import {
   UsersRepository,
   BlacklistRepository,
   VerifyRepository,
+  CategoriesRepository,
+  SettingsRepository,
+  CategoriesSourceRepository,
 } from '../repositories';
 import {
   FirebaseService,
@@ -38,7 +41,6 @@ import {
 import {
   ValidatePhoneNumInterceptor,
   ValidatePasswordInterceptor,
-  InitUsersSignup,
 } from '../interceptors';
 
 @model()
@@ -57,6 +59,12 @@ export class AuthController {
     @repository(BlacklistRepository)
     public blacklistRepository: BlacklistRepository,
     @repository(VerifyRepository) private verifyRepository: VerifyRepository,
+    @repository(CategoriesSourceRepository)
+    public categoriesSourceRepository: CategoriesSourceRepository,
+    @repository(SettingsRepository)
+    public settingsRepository: SettingsRepository,
+    @repository(CategoriesRepository)
+    public categoriesRepository: CategoriesRepository,
     @inject(PasswordHasherBindings.PASSWORD_HASHER)
     public passwordHasher: PasswordHasher,
     @inject(UserServiceBindings.USER_SERVICE)
@@ -298,7 +306,6 @@ export class AuthController {
     },
   })
   @authenticate('jwt.verify')
-  @intercept(InitUsersSignup.BINDING_KEY)
   async signup(
     @requestBody({
       content: {
@@ -369,16 +376,21 @@ export class AuthController {
       );
       userProfile['aud'] = 'access';
 
-      // Create a JWT token based on the Userprofile
       const accessToken: string = await this.jwtService.generateToken(
         userProfile,
       );
 
-      // Create self-relation
       await this.usersRepository.usersRels(savedUser.getId()).create({
         avatar: savedUser.avatar,
         type: 'self',
       });
+
+      const initCatList = await this.categoriesSourceRepository.find();
+      initCatList.forEach((cat) => {
+        Object.assign(cat, {userId: savedUser.userId});
+      });
+      await this.categoriesRepository.createAll(initCatList);
+      await this.settingsRepository.create({userId: savedUser.userId});
 
       return {
         userId: savedUser.getId(),
