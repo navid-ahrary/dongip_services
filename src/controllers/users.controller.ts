@@ -58,6 +58,7 @@ export class UsersController {
                     group: {type: 'string'},
                     budget: {type: 'string'},
                     addDong: {type: 'string'},
+                    category: {type: 'string'},
                   },
                 },
               },
