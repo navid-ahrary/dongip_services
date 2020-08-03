@@ -132,6 +132,17 @@ export class Users extends Entity {
   })
   userAgent: string;
 
+  @property({
+    type: 'string',
+    mysql: {
+      columnName: 'cafebazaar_purchase_token',
+      dataType: 'varchar',
+      dataLength: 512,
+      nullable: 'Y',
+    },
+  })
+  cafebazaarPurchaseToken?: string;
+
   @hasMany(() => VirtualUsers, {
     name: 'virtualUsers',
     keyTo: 'userId',

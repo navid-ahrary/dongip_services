@@ -1,5 +1,9 @@
 import {BootMixin} from '@loopback/boot';
-import {ApplicationConfig, BindingKey} from '@loopback/core';
+import {
+  ApplicationConfig,
+  BindingKey,
+  createBindingFromClass,
+} from '@loopback/core';
 import {
   RestExplorerBindings,
   RestExplorerComponent,
@@ -14,6 +18,8 @@ import {
   AuthorizationComponent,
   AuthorizationBindings,
 } from '@loopback/authorization';
+import {MetricsComponent, MetricsBindings} from '@loopback/extension-metrics';
+import {HealthComponent, HealthBindings} from '@loopback/extension-health';
 
 import {MyAuthenticationSequence} from './sequence';
 import {UserAuthenticationComponent} from './components/user.authentication';
@@ -30,8 +36,7 @@ import {
 } from './keys';
 import {JWTService, BcryptHasher, MyUserService} from './services';
 import {SECURITY_SCHEME_SPEC} from './utils/security-specs';
-import {MetricsComponent, MetricsBindings} from '@loopback/extension-metrics';
-import {HealthComponent, HealthBindings} from '@loopback/extension-health';
+import {CronJobComponent} from './components';
 
 /**
  * Information from package.json
@@ -55,10 +60,19 @@ export class MyApplication extends BootMixin(
 
     this.api({
       openapi: '3.0.0',
-      info: {title: pkg.name, version: pkg.version},
+      info: {
+        title: pkg.name,
+        version: pkg.version,
+        contact: {
+          name: 'Dongip Team',
+          email: 'tellus@dongip.ir',
+        },
+      },
       paths: {},
-      components: {securitySchemes: SECURITY_SCHEME_SPEC},
-      servers: [{url: '/'}],
+      components: {
+        securitySchemes: SECURITY_SCHEME_SPEC,
+      },
+      servers: [{url: '/', description: 'API Gateway'}],
     });
 
     this.hashRound = Number(process.env.HASH_ROUND);
@@ -72,14 +86,8 @@ export class MyApplication extends BootMixin(
       precedence: AuthorizationDecision.DENY,
       defaultDecision: AuthorizationDecision.DENY,
     };
-
     this.configure(AuthorizationBindings.COMPONENT).to(authoriazationOptions);
     this.component(AuthorizationComponent);
-
-    // Bind Prometheus metric component
-    this.component(MetricsComponent);
-    // Bind health checking compnent
-    this.component(HealthComponent);
 
     registerAuthenticationStrategy(this, JWTAccessAutehticationStrategy);
     registerAuthenticationStrategy(this, JWTRefreshAutehticationStrategy);
@@ -87,6 +95,13 @@ export class MyApplication extends BootMixin(
 
     // Set up the custom sequence
     this.sequence(MyAuthenticationSequence);
+
+    this.component(MetricsComponent);
+
+    this.component(HealthComponent);
+
+    this.component(CronJobComponent);
+    this.add(createBindingFromClass(CronJobComponent));
 
     // Customize @loopback/rest-explorer configuration here
     this.bind(RestExplorerBindings.CONFIG).to({
