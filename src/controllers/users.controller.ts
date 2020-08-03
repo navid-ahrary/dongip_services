@@ -12,13 +12,14 @@ import {UserServiceBindings, TokenServiceBindings} from '../keys';
 import {UserPatchRequestBody} from './specs';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {Users, Credentials} from '../models';
-import {UsersRepository} from '../repositories';
+import {UsersRepository, LinksRepository} from '../repositories';
 import {FirebasetokenInterceptor} from '../interceptors';
 
 @api({basePath: '/', paths: {}})
 export class UsersController {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(LinksRepository) public linkRepository: LinksRepository,
     @inject(UserServiceBindings.USER_SERVICE)
     public userService: UserService<Users, Credentials>,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
@@ -50,6 +51,15 @@ export class UsersController {
                 roles: {type: 'array', items: {type: 'string'}},
                 registeredAt: {type: 'string'},
                 totalScores: {type: 'number'},
+                externalLinks: {
+                  type: 'object',
+                  properties: {
+                    userRel: {type: 'string'},
+                    group: {type: 'string'},
+                    budget: {type: 'string'},
+                    addDong: {type: 'string'},
+                  },
+                },
               },
             },
           },
@@ -65,6 +75,7 @@ export class UsersController {
     roles: string[];
     registeredAt: string;
     totalScores: number;
+    externalLinks: object;
   }> {
     const userId = Number(currentUserProfile[securityId]);
     const scores = await this.getUserScores(userId);
@@ -72,11 +83,18 @@ export class UsersController {
       fields: {name: true, roles: true, registeredAt: true, userAgent: true},
     });
 
+    const foundLinks = await this.linkRepository.find();
+    const externalLinks: {[key: string]: string} = {};
+    foundLinks.forEach((link) => {
+      externalLinks[link.name] = link.url;
+    });
+
     return {
       name: foundUser.name,
       roles: foundUser.roles,
       registeredAt: foundUser.registeredAt,
       totalScores: scores,
+      externalLinks: externalLinks,
     };
   }
 
