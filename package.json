@@ -1,7 +1,7 @@
 {
-  "name": "dongip_services",
-  "version": "0.7.5",
-  "description": "personal accounting and split money between friends",
+  "name": "dongip_services_gateway",
+  "version": "0.9.5",
+  "description": "Dongip OpenAPI Explorer",
   "keywords": [
     "dongip",
     "loopback-application"
@@ -55,6 +55,7 @@
     "@loopback/cli": "^2.10.0",
     "@loopback/context": "^3.9.2",
     "@loopback/core": "^2.9.1",
+    "@loopback/cron": "^0.2.11",
     "@loopback/express": "^1.2.5",
     "@loopback/extension-health": "^0.4.9",
     "@loopback/extension-metrics": "^0.3.9",
@@ -75,7 +76,7 @@
     "kavenegar": "^1.1.4",
     "lodash": "^4.17.15",
     "loopback-connector-mysql": "^5.4.3",
-    "moment": "^2.24.0",
+    "moment": "^2.27.0",
     "morgan": "^1.10.0",
     "underscore": "^1.10.2"
   },
@@ -96,8 +97,6 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-eslint-plugin": "^2.2.1",
     "eslint-plugin-mocha": "^7.0.0",
-    "nodemon": "^2.0.2",
-    "pm2": "^4.2.3",
     "source-map-support": "^0.5.19",
     "typescript": "~3.9.5"
   }
