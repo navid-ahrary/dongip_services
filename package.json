@@ -55,7 +55,7 @@
     "@loopback/cli": "^2.10.0",
     "@loopback/context": "^3.9.2",
     "@loopback/core": "^2.9.1",
-    "@loopback/cron": "^0.2.10",
+    "@loopback/cron": "^0.2.11",
     "@loopback/express": "^1.2.5",
     "@loopback/extension-health": "^0.4.9",
     "@loopback/extension-metrics": "^0.3.9",
