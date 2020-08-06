@@ -1,1 +1,1 @@
-export * from './cronjob.component';
+export * from './user.authentication';

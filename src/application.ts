@@ -3,6 +3,7 @@ import {
   ApplicationConfig,
   BindingKey,
   createBindingFromClass,
+  CoreBindings,
 } from '@loopback/core';
 import {
   RestExplorerBindings,
@@ -20,6 +21,7 @@ import {
 } from '@loopback/authorization';
 import {MetricsComponent, MetricsBindings} from '@loopback/extension-metrics';
 import {HealthComponent, HealthBindings} from '@loopback/extension-health';
+import {CronComponent} from '@loopback/cron';
 
 import {MyAuthenticationSequence} from './sequence';
 import {UserAuthenticationComponent} from './components/user.authentication';
@@ -34,9 +36,13 @@ import {
   PasswordHasherBindings,
   UserServiceBindings,
 } from './keys';
-import {JWTService, BcryptHasher, MyUserService} from './services';
+import {
+  JWTService,
+  BcryptHasher,
+  MyUserService,
+  CronJobService,
+} from './services';
 import {SECURITY_SCHEME_SPEC} from './utils/security-specs';
-import {CronJobComponent} from './components';
 
 /**
  * Information from package.json
@@ -55,7 +61,11 @@ export class MyApplication extends BootMixin(
 ) {
   hashRound: number;
 
-  constructor(options: ApplicationConfig = {}) {
+  constructor(
+    options: ApplicationConfig = {
+      shutdown: {signals: ['SIGTERM'], gracePeriod: 1000},
+    },
+  ) {
     super(options);
 
     this.api({
@@ -100,8 +110,8 @@ export class MyApplication extends BootMixin(
 
     this.component(HealthComponent);
 
-    this.component(CronJobComponent);
-    this.add(createBindingFromClass(CronJobComponent));
+    this.component(CronComponent);
+    this.add(createBindingFromClass(CronJobService));
 
     // Customize @loopback/rest-explorer configuration here
     this.bind(RestExplorerBindings.CONFIG).to({
