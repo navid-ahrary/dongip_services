@@ -40,8 +40,8 @@ export class CronJobService extends CronJob {
         scheduleNotify: true,
         scheduleTime: {
           between: [
-            nowUTC.startOf('m').subtract(5, 'm').format('HH:mm:ss.00000'),
-            nowUTC.startOf('m').add(4, 'm').format('HH:mm:ss.00000'),
+            nowUTC.startOf('m').subtract(4, 'm').format('HH:mm:ss.00000'),
+            nowUTC.startOf('m').add(5, 'm').format('HH:mm:ss.00000'),
           ],
         },
       },
@@ -60,7 +60,7 @@ export class CronJobService extends CronJob {
 
   private async generateFirebaseBatchMessage(settings: Settings[]) {
     const notifyTitle = 'وقتشه حساب کتابهاتو دُنگیپ کنی';
-    const notifyBodyMessage = 'امروز بابت چیا خرج داشتی؟';
+    const notifyBodyMessage = 'امروز بابت چی ها خرج کردی؟';
     const firebaseMessages: BatchMessage = [];
 
     for (const setting of settings) {
