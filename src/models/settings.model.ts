@@ -102,12 +102,13 @@ export class Settings extends Entity {
 
   @property({
     type: 'string',
-    default: '21:30:00',
+    default: '17:00:00',
     required: true,
+    length: 8,
     mysql: {
       columnName: 'schedule_time',
       dataType: 'time',
-      dataLength: 5,
+      dataLength: 8,
       nullable: 'N',
     },
   })
