@@ -1,3 +1,4 @@
+import {inject} from '@loopback/core';
 import {Count, repository} from '@loopback/repository';
 import {
   get,
@@ -8,12 +9,12 @@ import {
   patch,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
+import {authenticate} from '@loopback/authentication';
+import moment from 'moment';
 
 import {Settings} from '../models';
 import {SettingsRepository, UsersRepository} from '../repositories';
-import {inject} from '@loopback/core';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {authenticate} from '@loopback/authentication';
 
 @authenticate('jwt.access')
 @api({basePath: '/', paths: {}})
@@ -72,7 +73,8 @@ export class SettingsController {
     patchSettings: Settings,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<Count> {
-    patchSettings.updatedAt = new Date().toISOString();
+    patchSettings.updatedAt = moment().toISOString();
+
     return this.usersRepository.settings(this.userId).patch(patchSettings);
   }
 }
