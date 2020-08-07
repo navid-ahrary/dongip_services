@@ -3,7 +3,6 @@ import {
   ApplicationConfig,
   BindingKey,
   createBindingFromClass,
-  CoreBindings,
 } from '@loopback/core';
 import {
   RestExplorerBindings,
