@@ -16,41 +16,51 @@ export class CronJobService extends CronJob {
     @service(FirebaseService) public firebaseService: FirebaseService,
   ) {
     super({
-      name: 'scheduleTimeNotify-Job',
+      name: 'reminderNotifyJob',
       onTick: async () => {
-        await this.performMyJob();
+        // Run cronjob only on one instance in pm2
+        if (
+          process.env.NODE_APP_INSTANCE === undefined ||
+          process.env.NODE_APP_INSTANCE === '0'
+        ) {
+          await this.sendReminderNotify();
+        }
       },
-      cronTime: '* 0,30 * * * *',
+      cronTime: '0 */10 * * * *',
       start: true,
-      timeZone: 'Asia/Tehran',
     });
   }
 
-  async performMyJob() {
+  private async sendReminderNotify() {
+    const nowUTC = moment.utc();
+
     const foundSettings = await this.settingsRepository.find({
-      fields: {userId: true, scheduleTime: true},
+      fields: {userId: true},
       where: {
         scheduleNotify: true,
         scheduleTime: {
           between: [
-            moment().subtract(14, 'm').startOf('m').format('HH:mm:ss.00000'),
-            moment().add(15, 'm').startOf('m').format('HH:mm:ss.00000'),
+            nowUTC.startOf('m').subtract(5, 'm').format('HH:mm:ss.00000'),
+            nowUTC.startOf('m').add(4, 'm').format('HH:mm:ss.00000'),
           ],
         },
       },
     });
 
-    const firebaseMessages = await this.generateFirebaseBatchMessage(
-      foundSettings,
-    );
+    if (foundSettings.length) {
+      const firebaseMessages = await this.generateFirebaseBatchMessage(
+        foundSettings,
+      );
 
-    if (firebaseMessages.length) {
-      await this.firebaseService.sendAllMessage(firebaseMessages);
+      if (firebaseMessages.length) {
+        await this.firebaseService.sendAllMessage(firebaseMessages);
+      }
     }
   }
 
   private async generateFirebaseBatchMessage(settings: Settings[]) {
     const notifyTitle = 'وقتشه حساب کتابهاتو دُنگیپ کنی';
+    const notifyBodyMessage = 'امروز بابت چیا خرج داشتی؟';
     const firebaseMessages: BatchMessage = [];
 
     for (const setting of settings) {
@@ -58,12 +68,13 @@ export class CronJobService extends CronJob {
         fields: {firebaseToken: true},
       });
 
-      if (foundUser.firebaseToken) {
+      if (foundUser.firebaseToken && foundUser.firebaseToken !== 'null') {
         firebaseMessages.push({
           token: foundUser.firebaseToken,
           android: {
             notification: {
               title: notifyTitle,
+              body: notifyBodyMessage,
               clickAction: 'FLUTTER_NOTIFICATION_CLICK',
               priority: 'high',
               visibility: 'public',
