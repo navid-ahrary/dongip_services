@@ -108,7 +108,7 @@ export class Settings extends Entity {
     mysql: {
       columnName: 'schedule_time',
       dataType: 'time',
-      dataLength: 8,
+      dataLength: 6,
       nullable: 'N',
     },
   })
