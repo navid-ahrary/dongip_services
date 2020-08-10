@@ -23,6 +23,16 @@ import {Budgets} from './budgets.model';
         options: {unique: true},
       },
     },
+    foreignKeys: {
+      fkUsersRelsUserId: {
+        name: 'fk_users_rels_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'cascade',
+      },
+    },
   },
 })
 export class UsersRels extends Entity {

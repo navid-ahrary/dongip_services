@@ -18,7 +18,6 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 
 @api({basePath: '/', paths: {}})
 @authenticate('jwt.access')
-@intercept(ValidateUsersRelsInterceptor.BINDING_KEY)
 export class UsersRelsBudgetsController {
   readonly userId: number;
 
@@ -30,6 +29,7 @@ export class UsersRelsBudgetsController {
     this.userId = Number(this.currentUserProfile[securityId]);
   }
 
+  @intercept(ValidateUsersRelsInterceptor.BINDING_KEY)
   @get('/users-rels/{userRelId}/budgets', {
     summary: 'GET an array of Budget belongs to a UsersRels by userRelId',
     security: OPERATION_SECURITY_SPEC,
@@ -57,6 +57,7 @@ export class UsersRelsBudgetsController {
     return this.usersRelsRepository.budgets(userRelId).find();
   }
 
+  @intercept(ValidateUsersRelsInterceptor.BINDING_KEY)
   @post('/users-rels/{userRelId}/budgets', {
     summary: 'POST a Budget belongs to an UsersRels by userRelId',
     security: OPERATION_SECURITY_SPEC,

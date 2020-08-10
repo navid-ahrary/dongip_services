@@ -26,7 +26,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
     @repository(UsersRelsRepository)
     public usersRelsRepository: UsersRelsRepository,
     @repository(UsersRepository) public usersRepository: UsersRepository,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
   ) {
     this.userId = Number(this.currentUserProfile[securityId]);
   }
@@ -50,57 +50,58 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
-    if (invocationCtx.methodName === 'createGroups') {
-      const userRelIds = invocationCtx.args[0].userRelIds;
-      // eslint-disable-next-line prefer-const
-      let userRelIdsFilter: {userRelId: number}[] = [];
+    let errMessg: string;
 
-      userRelIds.forEach((id: number) => {
-        userRelIdsFilter.push({userRelId: id});
-      });
-
-      const countUserRels = await this.usersRelsRepository.count({
-        userId: this.userId,
-        or: userRelIdsFilter,
-      });
-
-      if (countUserRels.count !== userRelIds.length) {
-        throw new HttpErrors.UnprocessableEntity('آی دی دوستی ها معتبر نیستن');
-      }
-    } else if (invocationCtx.methodName === 'patchGroupsById') {
-      if (invocationCtx.args[1].userRelIds) {
-        const userRelIds = invocationCtx.args[1].userRelIds;
-        // eslint-disable-next-line prefer-const
-        let userRelIdsFilter: {userRelId: number}[] = [];
-
-        userRelIds.forEach((id: number) => {
-          userRelIdsFilter.push({userRelId: id});
-        });
+    try {
+      if (invocationCtx.methodName === 'createGroups') {
+        const userRelIds = invocationCtx.args[0].userRelIds;
 
         const countUserRels = await this.usersRelsRepository.count({
           userId: this.userId,
-          or: userRelIdsFilter,
+          userRelId: {inq: userRelIds},
         });
 
         if (countUserRels.count !== userRelIds.length) {
-          throw new HttpErrors.UnprocessableEntity(
-            'آی دی دوستی ها معتبر نیستن!',
-          );
+          errMessg = 'آی دی دوستی ها معتبر نیستن';
+          throw new Error(errMessg);
+        }
+      } else if (invocationCtx.methodName === 'patchGroupsById') {
+        if (invocationCtx.args[1].userRelIds) {
+          const userRelIds = invocationCtx.args[1].userRelIds;
+
+          const countUserRels = await this.usersRelsRepository.count({
+            userId: this.userId,
+            userRelId: {inq: userRelIds},
+          });
+
+          if (countUserRels.count !== userRelIds.length) {
+            errMessg = 'آی دی دوستی ها معتبر نیستن';
+            throw new Error(errMessg);
+          }
+        }
+      } else if (
+        invocationCtx.methodName === 'findUsersRelsBudgets' ||
+        invocationCtx.methodName === 'createUsersRelsBudgets' ||
+        invocationCtx.methodName === 'patchUsersRelsById' ||
+        invocationCtx.methodName === 'deleteUsersRelsById'
+      ) {
+        const userRelId = invocationCtx.args[0];
+
+        const foundUserRel = await this.usersRelsRepository.findOne({
+          where: {
+            userRelId: userRelId,
+            userId: this.userId,
+            type: {neq: 'self'},
+          },
+        });
+
+        if (!foundUserRel) {
+          errMessg = 'آی دی دوستی معتبر نیست';
+          throw new Error(errMessg);
         }
       }
-    } else if (
-      invocationCtx.methodName === 'findUsersRelsBudgets' ||
-      invocationCtx.methodName === 'createUsersRelsBudgets'
-    ) {
-      const userRelId = invocationCtx.args[0];
-
-      const foundUserRel = await this.usersRelsRepository.findOne({
-        where: {userRelId: userRelId, userId: this.userId},
-      });
-
-      if (!foundUserRel) {
-        throw new HttpErrors.UnprocessableEntity('آی دی دسته بندی معتبر نیست');
-      }
+    } catch (err) {
+      throw new HttpErrors.UnprocessableEntity(err.message);
     }
 
     const result = await next();

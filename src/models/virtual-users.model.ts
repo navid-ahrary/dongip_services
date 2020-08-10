@@ -24,16 +24,16 @@ import {UsersRels} from './users-rels.model';
         options: {unique: true},
       },
     },
-    // foreignKeys: {
-    //   fkVirtualUsersUserId: {
-    //     name: 'fk_virtual_users_user_id',
-    //     entity: 'users',
-    //     entityKey: 'id',
-    //     foreignKey: 'userId',
-    //     onUpdate: 'restrict',
-    //     onDelete: 'cascade',
-    //   },
-    // },
+    foreignKeys: {
+      fkVirtualUsersUserId: {
+        name: 'fk_virtual_users_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'cascade',
+      },
+    },
   },
 })
 export class VirtualUsers extends Entity {
