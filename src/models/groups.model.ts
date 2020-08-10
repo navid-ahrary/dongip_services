@@ -12,16 +12,16 @@ import {Budgets} from './budgets.model';
 @model({
   name: 'groups',
   settings: {
-    // foreignKeys: {
-    //   fkGroupsUserId: {
-    //     name: 'fk_groups_user_id',
-    //     entity: 'users',
-    //     entityKey: 'id',
-    //     foreignKey: 'userId',
-    //     onUpdate: 'restrict',
-    //     onDelete: 'cascade',
-    //   },
-    // },
+    foreignKeys: {
+      fkGroupsUserId: {
+        name: 'fk_groups_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'cascade',
+      },
+    },
   },
 })
 export class Groups extends Entity {
