@@ -352,6 +352,11 @@ export class AuthController {
 
     await this.verifySerivce.verifyCredentials(verifyId, credentials.password);
 
+    const countRegUsers = await this.usersRepository.count();
+    if (countRegUsers.count < 1000) {
+      newUser.roles = ['GOLD'];
+    }
+
     Object.assign(newUser, {
       firebaseToken: firebaseToken ? firebaseToken : 'null',
       userAgent: userAgent,
