@@ -324,10 +324,12 @@ export class AuthController {
               'usersRels',
               'virtualUsers',
             ],
+            optional: ['username'],
           }),
           example: {
             phone: '+989176502184',
             name: 'Navid',
+            username: 'navid71',
             avatar: '/assets/avatar/avatar_1.png',
             password: 'DNG123456',
           },

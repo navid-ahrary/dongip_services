@@ -1,6 +1,6 @@
 import {inject, intercept} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {requestBody, HttpErrors, get, patch, api} from '@loopback/rest';
+import {requestBody, HttpErrors, get, patch, api, param} from '@loopback/rest';
 import {
   authenticate,
   UserService,
@@ -16,7 +16,10 @@ import {UsersRepository, LinksRepository} from '../repositories';
 import {FirebasetokenInterceptor} from '../interceptors';
 
 @api({basePath: '/', paths: {}})
+@authenticate('jwt.access')
 export class UsersController {
+  private readonly userId: number;
+
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(LinksRepository) public linkRepository: LinksRepository,
@@ -24,7 +27,10 @@ export class UsersController {
     public userService: UserService<Users, Credentials>,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     public jwtService: TokenService,
-  ) {}
+    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+  ) {
+    this.userId = +this.currentUserProfile[securityId];
+  }
 
   async getUserScores(userId: typeof Users.prototype.userId): Promise<number> {
     const scoresList = await this.usersRepository.scores(userId).find();
@@ -68,7 +74,6 @@ export class UsersController {
       },
     },
   })
-  @authenticate('jwt.access')
   async findUserRrops(
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
   ): Promise<{
@@ -78,9 +83,8 @@ export class UsersController {
     totalScores: number;
     externalLinks: object;
   }> {
-    const userId = Number(currentUserProfile[securityId]);
-    const scores = await this.getUserScores(userId);
-    const foundUser = await this.usersRepository.findById(userId, {
+    const scores = await this.getUserScores(this.userId);
+    const foundUser = await this.usersRepository.findById(this.userId, {
       fields: {name: true, roles: true, registeredAt: true, userAgent: true},
     });
 
@@ -110,23 +114,43 @@ export class UsersController {
       },
     },
   })
-  @authenticate('jwt.access')
   async updateById(
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @requestBody(UserPatchRequestBody) patchUserReqBOdy: Omit<Users, '_key'>,
+    @requestBody(UserPatchRequestBody) patchUserReqBody: Omit<Users, '_key'>,
   ): Promise<void> {
-    const userId = Number(currentUserProfile[securityId]);
-
-    if (patchUserReqBOdy.avatar) {
+    if (patchUserReqBody.avatar) {
       await this.usersRepository
-        .usersRels(userId)
-        .patch({avatar: patchUserReqBOdy.avatar}, {type: 'self'});
+        .usersRels(this.userId)
+        .patch({avatar: patchUserReqBody.avatar}, {type: 'self'});
     }
 
     return this.usersRepository
-      .updateById(userId, patchUserReqBOdy)
+      .updateById(this.userId, patchUserReqBody)
       .catch((err) => {
+        if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
+          if (err.sqlMessage.endsWith("'users.username'")) {
+            throw new HttpErrors.Conflict('username مورد نظر در دسترس نیست');
+          }
+        }
         throw new HttpErrors.NotAcceptable(err.message);
       });
+  }
+
+  @get('/users/available', {
+    summary: 'Check username availablity',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '204': {description: 'Username is available [No content]'},
+      '409': {description: 'Username is taken'},
+    },
+  })
+  async findUsername(
+    @param.query.string('username', {required: true}) username: string,
+  ): Promise<void> {
+    const foundUsername = await this.usersRepository.count({
+      userId: {neq: this.userId},
+      username: username,
+    });
+
+    if (foundUsername.count) throw new HttpErrors.Conflict('در دسترس نیست');
   }
 }

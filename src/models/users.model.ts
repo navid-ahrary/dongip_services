@@ -38,6 +38,14 @@ export class Users extends Entity {
 
   @property({
     type: 'string',
+    jsonSchema: {maxLength: 50},
+    index: {unique: true},
+    mysql: {dataType: 'varchar', dataLength: 50, nullable: 'Y'},
+  })
+  username?: string;
+
+  @property({
+    type: 'string',
     required: true,
     index: {unique: true},
     jsonSchema: {maxLength: 20},
