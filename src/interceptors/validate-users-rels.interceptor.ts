@@ -62,7 +62,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         });
 
         if (countUserRels.count !== userRelIds.length) {
-          errMessg = 'با بعضی ها اصلن رفاقتی ندارین';
+          errMessg = 'آی دی دوستی ها معتبر نیستن';
           throw new Error(errMessg);
         }
       } else if (invocationCtx.methodName === 'patchGroupsById') {
@@ -75,7 +75,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
           });
 
           if (countUserRels.count !== userRelIds.length) {
-            errMessg = 'با بعضی ها اصلن رفاقتی ندارین';
+            errMessg = 'آی دی دوستی ها معتبر نیستن';
             throw new Error(errMessg);
           }
         }
@@ -96,7 +96,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         });
 
         if (!foundUserRel) {
-          errMessg = 'عحب! شما که رفاقتی با هم ندارین';
+          errMessg = 'آی دی دوستی معتبر نیست';
           throw new Error(errMessg);
         }
       }

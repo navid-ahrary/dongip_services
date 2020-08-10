@@ -130,7 +130,7 @@ export class UsersRelsController {
       fields: {phone: true, avatar: true, name: true},
     });
     if (user.phone === userRelReqBody.phone) {
-      throw new HttpErrors.UnprocessableEntity(':) قطعن تو بهترین رفیق خودتی');
+      throw new HttpErrors.UnprocessableEntity(':) تو بهترین دوست خودتی');
     }
     // Create a UserRel belongs to current user
     const createdUserRel: UsersRels = await this.usersRepository
@@ -143,7 +143,7 @@ export class UsersRelsController {
 
           // Duplicate phone error handling
           if (err.sqlMessage.endsWith("'user_id&phone'")) {
-            errorMessage = 'این شماره تو لیست رفیقات وجود داره';
+            errorMessage = 'این شماره تو لیست دوستهات وجود داره';
           } else errorMessage = 'خطای مدیریت نشده ' + err.message; // Otherwise
 
           throw new HttpErrors.Conflict(errorMessage);
@@ -183,10 +183,10 @@ export class UsersRelsController {
 
         if (foundBiUserRel) {
           notifyTitle = `سینک حساب با ${foundBiUserRel.name}`;
-          notifyBody = `${foundBiUserRel.name} هم شما رو رفیق دنگیپش میدونه. از این به بعد حساب های مشترک بین تون سینک میشن`;
+          notifyBody = `${foundBiUserRel.name} هم شما رو دوست دنگیپش میدونه. از این به بعد حساب های مشترک بین تون سینک میشن`;
         } else {
-          notifyTitle = 'رفاقت جدید';
-          notifyBody = `${user.name} شما رو رفیق دنگیپش میدونه، اگه میخایی حساب های مشترک بین تون سینک باشه، این پیام رو لمس کن و به رفیقات اضافه ش کن`;
+          notifyTitle = 'دوستی جدید';
+          notifyBody = `${user.name} شما رو دوسته دنگیپش میدونه، اگه میخایی حساب های مشترک بین تون سینک باشه، این پیام رو لمس کن و به دوستهات اضافه ش کن`;
         }
 
         const createdNotify: Notifications = await this.usersRepository
@@ -290,7 +290,7 @@ export class UsersRelsController {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         // Duplicate phone error handling
         if (err.sqlMessage.endsWith("'user_id&phone'")) {
-          errorMessage = 'این شماره تو لیست رفیقات وجود داره';
+          errorMessage = 'این شماره تو لیست دوستهات وجود داره';
         } else errorMessage = 'خطای مدیریت نشده ' + err.message;
 
         throw new HttpErrors.Conflict(errorMessage);
