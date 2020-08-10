@@ -2,8 +2,19 @@ import {Model, model, property} from '@loopback/repository';
 
 @model()
 export class Credentials extends Model {
-  @property({type: 'string', required: true, length: 13}) phone: string;
-  @property({type: 'string', required: true, length: 9}) password: string;
+  @property({
+    type: 'string',
+    required: true,
+    jsonSchema: {minLength: 10, maxLength: 20},
+  })
+  phone: string;
+
+  @property({
+    type: 'string',
+    required: true,
+    jsonSchema: {minLength: 9, maxLength: 9},
+  })
+  password: string;
 
   constructor(data?: Partial<Credentials>) {
     super(data);
