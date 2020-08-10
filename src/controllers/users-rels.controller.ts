@@ -14,9 +14,18 @@ import {
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {inject, service, intercept} from '@loopback/core';
+import _ from 'lodash';
+import moment from 'moment';
 
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {UsersRels, Users} from '../models';
+import {
+  UsersRels,
+  Users,
+  UsersRelsRelations,
+  Settings,
+  UsersRelations,
+  Notifications,
+} from '../models';
 import {
   UsersRepository,
   VirtualUsersRepository,
@@ -26,10 +35,10 @@ import {
   DongsRepository,
 } from '../repositories';
 import {FirebaseService} from '../services';
-import _ from 'lodash';
 import {
   ValidatePhoneNumInterceptor,
   FirebasetokenInterceptor,
+  ValidateUsersRelsInterceptor,
 } from '../interceptors';
 
 @api({basePath: '/', paths: {}})
@@ -121,7 +130,7 @@ export class UsersRelsController {
       fields: {phone: true, avatar: true, name: true},
     });
     if (user.phone === userRelReqBody.phone) {
-      throw new HttpErrors.UnprocessableEntity('تو بهترین دوست خودتی!');
+      throw new HttpErrors.UnprocessableEntity(':) قطعن تو بهترین رفیق خودتی');
     }
     // Create a UserRel belongs to current user
     const createdUserRel: UsersRels = await this.usersRepository
@@ -134,8 +143,8 @@ export class UsersRelsController {
 
           // Duplicate phone error handling
           if (err.sqlMessage.endsWith("'user_id&phone'")) {
-            errorMessage = 'این شماره موبایل توی لیست دوستات وجود داره!';
-          } else errorMessage = err.message; // Otherwise
+            errorMessage = 'این شماره تو لیست رفیقات وجود داره';
+          } else errorMessage = 'خطای مدیریت نشده ' + err.message; // Otherwise
 
           throw new HttpErrors.Conflict(errorMessage);
         }
@@ -148,23 +157,43 @@ export class UsersRelsController {
       .virtualUsers(this.userId)
       .create({phone: userRelReqBody.phone, userRelId: createdUserRel.getId()});
 
-    const foundTargetUser = await this.usersRepository.findOne({
+    const foundTargetUser:
+      | (Users & UsersRelations)
+      | null = await this.usersRepository.findOne({
       where: {phone: userRelReqBody.phone},
       fields: {userId: true, firebaseToken: true},
     });
 
     if (foundTargetUser) {
-      const foundTargetUserSettings = await this.usersRepository
+      const foundTargetUserSettings: Settings = await this.usersRepository
         .settings(foundTargetUser.getId())
         .get({fields: {userRelNotify: true}});
 
       // Target user desired to receiving userRel suggestion notificication
       if (foundTargetUserSettings.userRelNotify) {
-        const createdNotify = await this.usersRepository
+        let notifyTitle: string;
+        let notifyBody: string;
+
+        const foundBiUserRel:
+          | (UsersRels & UsersRelsRelations)
+          | null = await this.usersRelsRepository.findOne({
+          where: {userId: foundTargetUser.getId(), phone: user.phone},
+          fields: {name: true},
+        });
+
+        if (foundBiUserRel) {
+          notifyTitle = `سینک حساب با ${foundBiUserRel.name}`;
+          notifyBody = `${foundBiUserRel.name} هم شما رو رفیق دنگیپش میدونه. از این به بعد حساب های مشترک بین تون سینک میشن`;
+        } else {
+          notifyTitle = 'رفاقت جدید';
+          notifyBody = `${user.name} شما رو رفیق دنگیپش میدونه، اگه میخایی حساب های مشترک بین تون سینک باشه، این پیام رو لمس کن و به رفیقات اضافه ش کن`;
+        }
+
+        const createdNotify: Notifications = await this.usersRepository
           .notifications(foundTargetUser.getId())
           .create({
-            title: 'پیشنهاد دوستی',
-            body: `${user.name} تو رو به دوستاش اضافه کرد`,
+            title: notifyTitle,
+            body: notifyBody,
             type: 'userRel',
             name: user.name,
             phone: user.phone,
@@ -178,14 +207,14 @@ export class UsersRelsController {
           foundTargetUser.firebaseToken,
           {
             notification: {
-              title: 'پیشنهاد دوستی',
-              body: `${user.name} تو رو به دوستاش اضافه کرد`,
+              title: notifyTitle,
+              body: notifyBody,
               clickAction: 'FULTTER_NOTIFICATION_CLICK',
             },
             data: {
               notifyId: createdNotify.getId().toString(),
-              title: 'پیشنهاد دوستی',
-              body: `${user.name} تو رو به دوستاش اضافه کرد`,
+              title: notifyTitle,
+              body: notifyBody,
               name: user.name,
               phone: user.phone,
               avatar: user.avatar,
@@ -198,6 +227,7 @@ export class UsersRelsController {
     return createdUserRel;
   }
 
+  @intercept(ValidateUsersRelsInterceptor.BINDING_KEY)
   @patch('/users-rels/{userRelId}', {
     summary: 'Update a UsersRels by id',
     description: 'Send just desired properties to update',
@@ -208,7 +238,9 @@ export class UsersRelsController {
       },
     },
   })
-  async patchUsersRels(
+  async patchUsersRelsById(
+    @param.path.number('userRelId', {required: true, example: 30})
+    userRelId: typeof UsersRels.prototype.userRelId,
     @requestBody({
       required: true,
       content: {
@@ -235,26 +267,16 @@ export class UsersRelsController {
       },
     })
     userRelReqBody: Partial<UsersRels>,
-    @param.path.number('userRelId', {required: true, example: 30})
-    userRelId: typeof UsersRels.prototype.userRelId,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
     let errorMessage: string;
-    userRelReqBody.updatedAt = new Date().toISOString();
+    userRelReqBody.updatedAt = moment.utc().toISOString();
 
     try {
       // Patch UserRel
-      await this.usersRepository
-        .usersRels(this.userId)
-        .patch(userRelReqBody, {
-          and: [{userRelId: userRelId}, {type: {neq: 'self'}}],
-        })
-        .then((countPatched) => {
-          if (!countPatched.count) {
-            errorMessage = 'این رابطه دوستی رو پیدا نکردم!';
-            throw new HttpErrors.UnprocessableEntity(errorMessage);
-          }
-        });
+      await this.usersRepository.usersRels(this.userId).patch(userRelReqBody, {
+        userRelId: userRelId,
+      });
 
       // Patch related VirtualUser entity
       const vu = _.pick(userRelReqBody, ['phone']);
@@ -266,24 +288,18 @@ export class UsersRelsController {
     } catch (err) {
       // Duplicate error handling
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-        // Duplicate name error hanfling
-        if (err.sqlMessage.endsWith("'users_rels.user_id&name'")) {
-          errorMessage = 'این اسم توی لیست دوستات وجود داره!';
-          // Duplicate phone error handling
-        } else if (
-          err.sqlMessage.endsWith("'users_rels.user_id&phone'") ||
-          err.sqlMessage.endsWith("'VirtualUsers.phone'")
-        ) {
-          errorMessage = 'این شماره توی لیست دوستات وجود داره!';
-        } else {
-          errorMessage = 'خطای مدیریت نشده ' + err.message;
-        }
+        // Duplicate phone error handling
+        if (err.sqlMessage.endsWith("'user_id&phone'")) {
+          errorMessage = 'این شماره تو لیست رفیقات وجود داره';
+        } else errorMessage = 'خطای مدیریت نشده ' + err.message;
+
         throw new HttpErrors.Conflict(errorMessage);
       }
       throw new HttpErrors.NotAcceptable(err.message);
     }
   }
 
+  @intercept(ValidateUsersRelsInterceptor.BINDING_KEY)
   @del('/users-rels/{userRelId}', {
     summary: 'Delete a UsersRels by id',
     security: OPERATION_SECURITY_SPEC,
@@ -291,21 +307,14 @@ export class UsersRelsController {
       '204': {description: 'UsersRels DELETE success - No Content'},
     },
   })
-  async deleteById(
+  async deleteUsersRelsById(
     @param.path.number('userRelId', {required: true, example: 36})
     userRelId: typeof UsersRels.prototype.userRelId,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
     await this.usersRepository
       .usersRels(this.userId)
-      .delete({and: [{userRelId: userRelId}, {type: {neq: 'self'}}]})
-      .then((countDeleted) => {
-        if (!countDeleted.count) {
-          throw new HttpErrors.UnprocessableEntity(
-            'این رابطه دوستی رو پیدا نکردم',
-          );
-        }
-      });
+      .delete({and: [{userRelId: userRelId}, {type: {neq: 'self'}}]});
 
     await this.usersRepository
       .virtualUsers(this.userId)
