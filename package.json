@@ -38,7 +38,8 @@
     "type": "git",
     "url": "git+https://gitlab.com/navid_ahrary/dongip_services.git"
   },
-  "author": "navidarry",
+  "author": "Dongip team",
+  "contributors": ["Navid Ahrary"],
   "license": "ISC",
   "files": [
     "README.md",
