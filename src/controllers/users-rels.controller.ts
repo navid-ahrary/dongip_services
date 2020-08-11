@@ -216,6 +216,7 @@ export class UsersRelsController {
             },
             data: {
               notifyId: createdNotify.getId().toString(),
+              type: notifyType,
               title: notifyTitle,
               body: notifyBody,
               name: user.name,
