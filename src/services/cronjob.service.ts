@@ -59,8 +59,8 @@ export class CronJobService extends CronJob {
   }
 
   private async generateFirebaseBatchMessage(settings: Settings[]) {
-    const notifyTitle = 'وقتشه حساب کتابهاتو دُنگیپ کنی';
-    const notifyBodyMessage = 'امروز بابت چی ها خرج کردی؟';
+    const notifyTitle = 'وقتشه حساب کتاب‌هاتو دُنگیپ کنی';
+    const notifyBodyMessage = 'امروز چه هزینه‌هایی داشتی ؟';
     const firebaseMessages: BatchMessage = [];
 
     for (const setting of settings) {
