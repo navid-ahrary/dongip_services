@@ -82,10 +82,7 @@ export class CronJobService extends CronJob {
               title: notifyTitle,
               body: notifyBodyMessage,
               clickAction: 'FLUTTER_NOTIFICATION_CLICK',
-              priority: 'high',
               visibility: 'public',
-              sticky: true,
-              localOnly: true,
             },
           },
         });
