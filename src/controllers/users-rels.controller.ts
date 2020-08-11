@@ -173,6 +173,7 @@ export class UsersRelsController {
       if (foundTargetUserSettings.userRelNotify) {
         let notifyTitle: string;
         let notifyBody: string;
+        let notifyType: string;
 
         const foundBiUserRel:
           | (UsersRels & UsersRelsRelations)
@@ -182,9 +183,11 @@ export class UsersRelsController {
         });
 
         if (foundBiUserRel) {
+          notifyType = 'biUserRel';
           notifyTitle = `سینک حساب با ${foundBiUserRel.name}`;
           notifyBody = `${foundBiUserRel.name} هم شما رو دوست دنگیپش میدونه. از این به بعد حساب های مشترک بین تون سینک میشن`;
         } else {
+          notifyType = 'userRel';
           notifyTitle = 'دوستی جدید';
           notifyBody = `${user.name} شما رو دوست دنگیپش میدونه، اگه میخایی حساب های مشترک بین تون سینک باشه، این پیام رو لمس کن و به دوستهات اضافه ش کن`;
         }
@@ -194,7 +197,7 @@ export class UsersRelsController {
           .create({
             title: notifyTitle,
             body: notifyBody,
-            type: 'userRel',
+            type: notifyType,
             name: user.name,
             phone: user.phone,
             avatar: user.avatar,
