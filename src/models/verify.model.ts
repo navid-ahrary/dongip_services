@@ -51,12 +51,32 @@ export class Verify extends Entity {
   phone: string;
 
   @property({
+    type: 'boolean',
+    required: true,
+    mysql: {
+      columnName: 'logged_in',
+      dataType: 'tinyint',
+      nullable: 'N',
+    },
+  })
+  loggedIn: boolean;
+
+  @property({
+    type: 'date',
+    mysql: {
+      columnName: 'logged_in_at',
+      dataType: 'datetime',
+      nullable: 'Y',
+    },
+  })
+  loggedInAt?: string;
+
+  @property({
     type: 'date',
     required: true,
     mysql: {
       columnName: 'created_at',
       dataType: 'datetime',
-      dataLength: null,
       nullable: 'N',
     },
   })

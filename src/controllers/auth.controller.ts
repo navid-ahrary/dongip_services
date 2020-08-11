@@ -16,6 +16,7 @@ import {
   TokenService,
 } from '@loopback/authentication';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
+import moment from 'moment';
 
 import {
   PasswordHasherBindings,
@@ -99,7 +100,7 @@ export class AuthController {
     summary: 'Verify mobile number for login/signup',
     responses: {
       '200': {
-        description: 'Is registered and prefix',
+        description: 'Registeration properties',
         content: {
           'application/json': {
             schema: {
@@ -124,7 +125,14 @@ export class AuthController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(Verify, {
-            exclude: ['verifyId', 'password', 'createdAt', 'registered'],
+            exclude: [
+              'verifyId',
+              'password',
+              'createdAt',
+              'registered',
+              'loggedIn',
+              'loggedInAt',
+            ],
           }),
           example: {
             phone: '+989176502184',
@@ -156,7 +164,8 @@ export class AuthController {
         phone: verifyReqBody.phone,
         password: randomStr + randomCode,
         registered: user ? true : false,
-        createdAt: new Date().toISOString(),
+        loggedIn: false,
+        createdAt: moment.utc().toISOString(),
       })
       .catch((err) => {
         throw new HttpErrors.NotAcceptable(err.message);
@@ -175,11 +184,25 @@ export class AuthController {
 
     // send verify code via sms
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.smsService.sendSms(
-      randomCode,
-      verifyReqBody.phone,
-      createdVerify.getId(),
-    );
+    this.smsService
+      .sendSms(randomCode, verifyReqBody.phone)
+      .then((res) => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.verifyRepository.updateById(createdVerify.getId(), {
+          kavenegarMessageId: res.body.messageid,
+          kavenegarDate: res.body.date,
+          kavenegarSender: res.body.sender,
+          kavenegarStatusText: res.body.statustext,
+          kavenegarStatusCode: res.statusCode,
+        });
+      })
+      .catch((err) => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.verifyRepository.updateById(createdVerify.getId(), {
+          kavenegarStatusCode: err.statusCode,
+        });
+        console.error(err.message);
+      });
 
     return {
       status: user ? true : false,
@@ -260,6 +283,12 @@ export class AuthController {
 
       //create a JWT token based on the Userprofile
       const accessToken = await this.jwtService.generateToken(userProfile);
+
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.verifyRepository.updateById(verifyId, {
+        loggedIn: true,
+        loggedInAt: moment.utc().toISOString(),
+      });
 
       return {
         userId: user.getId(),
@@ -373,7 +402,7 @@ export class AuthController {
         .scores(savedUser.getId())
         .create({
           score: 50,
-          createdAt: new Date().toISOString(),
+          createdAt: moment.utc().toISOString(),
           desc: 'signup',
         });
 
@@ -396,8 +425,17 @@ export class AuthController {
       initCatList.forEach((cat) => {
         Object.assign(cat, {userId: savedUser.userId});
       });
-      await this.categoriesRepository.createAll(initCatList);
-      await this.settingsRepository.create({userId: savedUser.userId});
+
+      await Promise.all([
+        this.categoriesRepository.createAll(initCatList),
+        this.settingsRepository.create({userId: savedUser.userId}),
+      ]);
+
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.verifyRepository.updateById(verifyId, {
+        loggedIn: true,
+        loggedInAt: moment.utc().toISOString(),
+      });
 
       return {
         userId: savedUser.getId(),
