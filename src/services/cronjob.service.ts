@@ -2,6 +2,8 @@ import {CronJob, cronJob} from '@loopback/cron';
 import {repository} from '@loopback/repository';
 import {service, BindingScope} from '@loopback/core';
 import moment from 'moment';
+import debug from 'debug';
+const log = debug('api:cronjob');
 
 import {SettingsRepository, UsersRepository} from '../repositories';
 import {FirebaseService, BatchMessage} from '../services';
@@ -54,6 +56,10 @@ export class CronJobService extends CronJob {
 
       if (firebaseMessages.length) {
         await this.firebaseService.sendAllMessage(firebaseMessages);
+
+        log(
+          `Cronjob started at ${nowUTC}, ${firebaseMessages.length} notifications sent`,
+        );
       }
     }
   }
