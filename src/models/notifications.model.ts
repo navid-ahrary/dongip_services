@@ -34,7 +34,7 @@ export class Notifications extends Entity {
       nullable: 'N',
     },
   })
-  notifyId?: number;
+  notifyId: number;
 
   @property({
     type: 'date',
@@ -51,10 +51,11 @@ export class Notifications extends Entity {
 
   @property({
     type: 'string',
+    required: true,
     mysql: {
       dataType: 'varchar',
       dataLength: 50,
-      nullable: 'Y',
+      nullable: 'N',
     },
   })
   title: string;
@@ -91,6 +92,17 @@ export class Notifications extends Entity {
     },
   })
   categoryTitle?: string;
+
+  @property({
+    type: 'string',
+    mysql: {
+      columnName: 'category_icon',
+      dataType: 'varchar',
+      dataLength: 512,
+      nullable: 'Y',
+    },
+  })
+  categoryIcon?: string;
 
   @property({
     type: 'number',
