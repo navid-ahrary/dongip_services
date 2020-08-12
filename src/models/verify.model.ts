@@ -51,8 +51,45 @@ export class Verify extends Entity {
   phone: string;
 
   @property({
+    type: 'string',
+    required: true,
+    mysql: {
+      columnName: 'user_agent',
+      dataType: 'varchar',
+      dataLength: 512,
+      nullable: 'N',
+    },
+  })
+  userAgent: string;
+
+  @property({
+    type: 'string',
+    required: true,
+    default: 'and',
+    jsonSchema: {minLength: 3, maxLength: 3},
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 3,
+      nullable: 'N',
+    },
+  })
+  platform: string;
+
+  @property({
+    type: 'string',
+    required: true,
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 5,
+      nullable: 'N',
+    },
+  })
+  region: string;
+
+  @property({
     type: 'boolean',
     required: true,
+    default: false,
     mysql: {
       columnName: 'logged_in',
       dataType: 'tinyint',

@@ -135,6 +135,9 @@ export class AuthController {
               'registered',
               'loggedIn',
               'loggedInAt',
+              'userAgent',
+              'region',
+              'platform',
             ],
           }),
           example: {
@@ -144,6 +147,7 @@ export class AuthController {
       },
     })
     verifyReqBody: Verify,
+    @param.header.string('user-agent') userAgent: string,
   ): Promise<{
     status: boolean;
     name: string;
@@ -187,6 +191,9 @@ export class AuthController {
         password: randomStr + randomCode,
         registered: user ? true : false,
         createdAt: nowUTC.toISOString(),
+        region: this.phoneNumberService.getRegionCodeISO(verifyReqBody.phone),
+        userAgent: userAgent,
+        platform: userAgent === 'iPhone' ? 'ios' : 'and',
       })
       .catch((err) => {
         throw new HttpErrors.NotAcceptable(err.message);
