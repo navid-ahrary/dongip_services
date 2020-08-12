@@ -14,6 +14,7 @@ import {
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {inject, service, intercept} from '@loopback/core';
+
 import _ from 'lodash';
 import moment from 'moment';
 
@@ -34,7 +35,7 @@ import {
   GroupsRepository,
   DongsRepository,
 } from '../repositories';
-import {FirebaseService} from '../services';
+import {FirebaseService, PhoneNumberService} from '../services';
 import {
   ValidatePhoneNumInterceptor,
   FirebasetokenInterceptor,
@@ -51,16 +52,17 @@ export class UsersRelsController {
   userId: number;
 
   constructor(
-    @repository(UsersRepository) protected usersRepository: UsersRepository,
-    @repository(GroupsRepository) protected groupsRepository: GroupsRepository,
-    @repository(DongsRepository) protected dongsRepository: DongsRepository,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(GroupsRepository) public groupsRepository: GroupsRepository,
+    @repository(DongsRepository) public dongsRepository: DongsRepository,
     @repository(VirtualUsersRepository)
-    protected virtualUsersRepository: VirtualUsersRepository,
+    public virtualUsersRepository: VirtualUsersRepository,
     @repository(BlacklistRepository)
-    protected blacklistRepository: BlacklistRepository,
+    public blacklistRepository: BlacklistRepository,
     @repository(UsersRelsRepository)
-    protected usersRelsRepository: UsersRelsRepository,
-    @service(FirebaseService) protected firebaseService: FirebaseService,
+    public usersRelsRepository: UsersRelsRepository,
+    @service(FirebaseService) public firebaseService: FirebaseService,
+    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {
     this.userId = Number(this.currentUserProfile[securityId]);
@@ -351,23 +353,16 @@ export class UsersRelsController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: "Array of Users's name, avatar, phone",
+        description: 'Array of name, avatar, phone',
         content: {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(Users, {
-                includeRelations: false,
-                exclude: [
-                  'userId',
-                  'roles',
-                  'billList',
-                  'firebaseToken',
-                  'refreshToken',
-                  'registeredAt',
-                  'userAgent',
-                ],
-              }),
+              items: {
+                name: {type: 'string'},
+                avatar: {type: 'string'},
+                phone: {type: 'string'},
+              },
             },
           },
         },
@@ -382,17 +377,32 @@ export class UsersRelsController {
         'application/json': {
           schema: {
             type: 'array',
+            minItems: 1,
+            uniqueItems: true,
             items: {type: 'string'},
-            readOnly: true,
             nullable: false,
             additionalProperties: false,
-            example: ['+989176502184', '+989387401240'],
+            example: ['+989176502184', '+989387401240', '09197744814'],
           },
         },
       },
     })
     phonesList: string[],
   ): Promise<Partial<Users>[]> {
+    const foundUser = await this.usersRepository.findById(this.userId, {
+      fields: {region: true},
+    });
+
+    // Normalize phone value to e.164 format
+    phonesList.forEach((phone) => {
+      phonesList[
+        _.indexOf(phonesList, phone)
+      ] = this.phoneNumberService.replacePrefixZeroWithCountryCode(
+        phone,
+        foundUser.region,
+      );
+    });
+
     return this.usersRepository.find({
       order: ['name ASC'],
       fields: {name: true, phone: true, avatar: true},
