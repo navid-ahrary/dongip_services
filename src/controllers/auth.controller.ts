@@ -279,7 +279,7 @@ export class AuthController {
     const verifyId = Number(currentUserProfile[securityId]);
 
     try {
-      await this.verifySerivce.verifyCredentials(
+      const foundVerify = await this.verifySerivce.verifyCredentials(
         verifyId,
         credentials.password,
       );
@@ -287,13 +287,13 @@ export class AuthController {
       // Ensure the user exists and the password is correct
       const user = await this.userService.verifyCredentials(credentials);
 
-      // Update user's "user agent" and "firebase token"
-      if (firebaseToken) {
-        await this.usersRepository.updateById(user.getId(), {
-          firebaseToken: firebaseToken,
-          userAgent: userAgent,
-        });
-      }
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepository.updateById(user.getId(), {
+        firebaseToken: String(firebaseToken),
+        userAgent: userAgent,
+        region: this.phoneNumberService.getRegionCodeISO(foundVerify.phone),
+        platform: userAgent === 'iPhone' ? 'ios' : 'and',
+      });
 
       // Get total user's scores
       const scores = await this.getUserScores(user.getId());
@@ -417,6 +417,7 @@ export class AuthController {
     }
     newUser.firebaseToken = String(firebaseToken);
     newUser.userAgent = userAgent;
+    newUser.platform = userAgent === 'iPhone' ? 'ios' : 'and';
 
     delete newUser.password;
 
