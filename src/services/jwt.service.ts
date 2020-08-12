@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prefer-const */
 import {TokenService} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {UserProfile, securityId} from '@loopback/security';
 import {HttpErrors} from '@loopback/rest';
 import {repository} from '@loopback/repository';
+
 import {sign, verify, Algorithm} from 'jsonwebtoken';
 
 import {UsersRepository, BlacklistRepository} from '../repositories';
@@ -26,13 +26,19 @@ export class JWTService implements TokenService {
     private jwtRefreshExpiresIn: string,
   ) {}
 
-  public async verifyToken(accessToken: string): Promise<UserProfile> {
+  /**
+   *
+   * @param accessToken string
+   * @return Promise UserProfile
+   */
+  async verifyToken(accessToken: string): Promise<UserProfile> {
     const nullToken = 'Error verifying access token: token is null';
 
     if (!accessToken) {
       throw new HttpErrors.Unauthorized(nullToken);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let userProfile: UserProfile, decryptedToken: any;
 
     try {
@@ -70,6 +76,11 @@ export class JWTService implements TokenService {
     return userProfile;
   }
 
+  /**
+   *
+   * @param userProfile UserProfile
+   * @return Promise string
+   */
   public async generateToken(userProfile: UserProfile): Promise<string> {
     const nullUserProfle = 'Error generating token, userPofile is null.',
       nullAudience =
@@ -78,34 +89,75 @@ export class JWTService implements TokenService {
     if (!userProfile) {
       throw new HttpErrors.Unauthorized(nullUserProfle);
     }
-    let expiresIn;
 
-    switch (userProfile.aud) {
-      case 'verify':
-        expiresIn = +this.jwtVerifyExpiresIn;
-        break;
-      case 'access':
-        expiresIn = +this.jwtAccessExpiresIn;
-        break;
-      case 'refresh':
-        expiresIn = +this.jwtRefreshExpiresIn;
-        break;
-      default:
-        throw new HttpErrors.Unauthorized(nullAudience);
-    }
+    if (userProfile.aud === 'verify') {
+      return this.generateVerifyToken(userProfile);
+    } else if (userProfile.aud === 'access') {
+      return this.generateAccessToken(userProfile);
+    } else if (userProfile.aud === 'refresh') {
+      return this.generateRefreshToken(userProfile);
+    } else throw new HttpErrors.Unauthorized(nullAudience);
+  }
 
-    //generate a JWT token
+  /**
+   *
+   * @param userProfile UserProfile
+   * @return string
+   */
+  private generateVerifyToken(userProfile: UserProfile): string {
     try {
       const generatedToken = sign(userProfile, this.jwtSecret, {
         algorithm: this.jwtAlgorithm,
-        expiresIn: expiresIn,
-        subject: String(userProfile[securityId]),
+        expiresIn: +this.jwtVerifyExpiresIn,
+        subject: userProfile[securityId].toString(),
       });
 
       return generatedToken;
     } catch (err) {
       throw new HttpErrors.Unauthorized(
-        `Error generating token: ${err.message}`,
+        `Error generating verify token: ${err.message}`,
+      );
+    }
+  }
+
+  /**
+   *
+   * @param userProfile UserProfile
+   * @return string
+   */
+  private generateAccessToken(userProfile: UserProfile): string {
+    try {
+      const generatedToken = sign(userProfile, this.jwtSecret, {
+        algorithm: this.jwtAlgorithm,
+        expiresIn: +this.jwtAccessExpiresIn,
+        subject: userProfile[securityId].toString(),
+      });
+
+      return generatedToken;
+    } catch (err) {
+      throw new HttpErrors.Unauthorized(
+        `Error generating access token: ${err.message}`,
+      );
+    }
+  }
+
+  /**
+   *
+   * @param userProfile UserProfile
+   * @return string
+   */
+  private generateRefreshToken(userProfile: UserProfile): string {
+    try {
+      const generatedToken = sign(userProfile, this.jwtSecret, {
+        algorithm: this.jwtAlgorithm,
+        expiresIn: +this.jwtRefreshExpiresIn,
+        subject: userProfile[securityId].toString(),
+      });
+
+      return generatedToken;
+    } catch (err) {
+      throw new HttpErrors.Unauthorized(
+        `Error generating refresh token: ${err.message}`,
       );
     }
   }
