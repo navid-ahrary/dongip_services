@@ -72,7 +72,7 @@
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",
     "firebase-admin": "^9.0.0",
-    "helmet": "^4.0.0",
+    "helmet": "^3.22.0",
     "jsonwebtoken": "^8.5.1",
     "kavenegar": "^1.1.4",
     "lodash": "^4.17.19",
