@@ -148,8 +148,27 @@ export class AuthController {
     prefix: string;
     verifyToken: string;
   }> {
-    const randomCode = Math.random().toFixed(7).slice(3),
+    const nowUTCISO = moment.utc().toISOString(),
+      durationLimit = 5,
+      randomCode = Math.random().toFixed(7).slice(3),
       randomStr = this.generateRandomString(3);
+
+    const countRequstedVerifyCode = await this.verifyRepository.count({
+      loggedIn: false,
+      loggedInAt: undefined,
+      createdAt: {
+        between: [
+          moment.utc().subtract(durationLimit, 'minutes').toISOString(),
+          nowUTCISO,
+        ],
+      },
+    });
+
+    if (countRequstedVerifyCode.count > 5) {
+      throw new HttpErrors.TooManyRequests(
+        'به علت درخواست بیش از حد مجاز، بعد از ۵ دقیقه دوباره تلاش کنید',
+      );
+    }
 
     const user = await this.usersRepository.findOne({
       where: {phone: verifyReqBody.phone},
@@ -165,7 +184,7 @@ export class AuthController {
         password: randomStr + randomCode,
         registered: user ? true : false,
         loggedIn: false,
-        createdAt: moment.utc().toISOString(),
+        createdAt: nowUTCISO,
       })
       .catch((err) => {
         throw new HttpErrors.NotAcceptable(err.message);
