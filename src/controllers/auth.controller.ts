@@ -16,6 +16,7 @@ import {
   TokenService,
 } from '@loopback/authentication';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
+
 import moment from 'moment';
 
 import {
@@ -38,6 +39,7 @@ import {
   SmsService,
   PasswordHasher,
   VerifyService,
+  PhoneNumberService,
 } from '../services';
 import {
   ValidatePhoneNumInterceptor,
@@ -71,10 +73,11 @@ export class AuthController {
     @inject(UserServiceBindings.USER_SERVICE)
     public userService: UserService<Users, Credentials>,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
-    public jwtService: TokenService,
+    private jwtService: TokenService,
     @service(FirebaseService) public firebaseService: FirebaseService,
     @service(VerifyService) public verifySerivce: VerifyService,
     @service(SmsService) public smsService: SmsService,
+    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
   ) {}
 
   generateRandomString(length: number) {
@@ -148,7 +151,7 @@ export class AuthController {
     prefix: string;
     verifyToken: string;
   }> {
-    const nowUTCISO = moment.utc().toISOString(),
+    const nowUTC = moment.utc(),
       durationLimit = 5,
       randomCode = Math.random().toFixed(7).slice(3),
       randomStr = this.generateRandomString(3);
@@ -158,15 +161,15 @@ export class AuthController {
       loggedInAt: undefined,
       createdAt: {
         between: [
-          moment.utc().subtract(durationLimit, 'minutes').toISOString(),
-          nowUTCISO,
+          nowUTC.subtract(durationLimit, 'minutes').toISOString(),
+          nowUTC.toISOString(),
         ],
       },
     });
 
     if (countRequstedVerifyCode.count > 5) {
       throw new HttpErrors.TooManyRequests(
-        'به علت درخواست بیش از حد مجاز، بعد از ۵ دقیقه دوباره تلاش کنید',
+        'تعداد در خواست هاینان بیش از حد مجاز است. ۵ دقیقه منتظر بمانید',
       );
     }
 
@@ -183,8 +186,7 @@ export class AuthController {
         phone: verifyReqBody.phone,
         password: randomStr + randomCode,
         registered: user ? true : false,
-        loggedIn: false,
-        createdAt: nowUTCISO,
+        createdAt: nowUTC.toISOString(),
       })
       .catch((err) => {
         throw new HttpErrors.NotAcceptable(err.message);
@@ -192,7 +194,7 @@ export class AuthController {
 
     // create userProfile
     const userProfile = {
-      [securityId]: String(createdVerify.getId()),
+      [securityId]: createdVerify.getId().toString(),
       aud: 'verify',
     };
 
@@ -201,7 +203,6 @@ export class AuthController {
       userProfile,
     );
 
-    // send verify code via sms
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.smsService
       .sendSms(randomCode, verifyReqBody.phone)
@@ -398,19 +399,25 @@ export class AuthController {
       credentials: Credentials = new Credentials({
         phone: newUser.phone,
         password: newUser.password,
-      });
+      }),
+      nowUTC = moment.utc();
 
-    await this.verifySerivce.verifyCredentials(verifyId, credentials.password);
+    const foundVerify = await this.verifySerivce.verifyCredentials(
+      verifyId,
+      credentials.password,
+    );
+    const userRegion = this.phoneNumberService.getRegionCodeISO(
+      foundVerify.phone,
+    );
+    newUser.region = userRegion;
 
-    const countRegUsers = await this.usersRepository.count();
-    if (countRegUsers.count < 1000) {
+    const countRegisteredUsers = await this.usersRepository.count();
+    if (countRegisteredUsers.count < 1000) {
       newUser.roles = ['GOLD'];
     }
+    newUser.firebaseToken = String(firebaseToken);
+    newUser.userAgent = userAgent;
 
-    Object.assign(newUser, {
-      firebaseToken: firebaseToken ? firebaseToken : 'null',
-      userAgent: userAgent,
-    });
     delete newUser.password;
 
     try {
@@ -421,7 +428,7 @@ export class AuthController {
         .scores(savedUser.getId())
         .create({
           score: 50,
-          createdAt: moment.utc().toISOString(),
+          createdAt: nowUTC.toISOString(),
           desc: 'signup',
         });
 
@@ -453,7 +460,7 @@ export class AuthController {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.verifyRepository.updateById(verifyId, {
         loggedIn: true,
-        loggedInAt: moment.utc().toISOString(),
+        loggedInAt: nowUTC.toISOString(),
       });
 
       return {
