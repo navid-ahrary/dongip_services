@@ -9,7 +9,7 @@ import {SettingsRepository, UsersRepository} from '../repositories';
 import {FirebaseService, BatchMessage} from '../services';
 import {Settings} from '../models';
 
-@cronJob({scope: BindingScope.SINGLETON})
+@cronJob({scope: BindingScope.TRANSIENT})
 export class CronJobService extends CronJob {
   constructor(
     @repository(SettingsRepository)
