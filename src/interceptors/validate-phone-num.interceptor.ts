@@ -1,5 +1,4 @@
 import {
-  /* inject, */
   bind,
   Interceptor,
   InvocationContext,
@@ -7,8 +6,10 @@ import {
   Provider,
   ValueOrPromise,
 } from '@loopback/context';
-import AwesomePhoneNumber from 'awesome-phonenumber';
 import {HttpErrors} from '@loopback/rest';
+import {service} from '@loopback/core';
+
+import {PhoneNumberService} from '../services';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -18,9 +19,9 @@ import {HttpErrors} from '@loopback/rest';
 export class ValidatePhoneNumInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidatePhoneNumInterceptor.name}`;
 
-  /*
-  constructor() {}
-  */
+  constructor(
+    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
+  ) {}
 
   /**
    * This method is used by LoopBack context to produce an interceptor function
@@ -42,9 +43,7 @@ export class ValidatePhoneNumInterceptor implements Provider<Interceptor> {
     next: () => ValueOrPromise<InvocationResult>,
   ) {
     const invalidPhoneValueMessage = 'شماره موبایل وارد شده معتبر نیست!';
-    let phoneValue: string, pn: AwesomePhoneNumber;
 
-    // Validate phone number value in expected methods below
     if (
       invocationCtx.methodName === 'verify' ||
       invocationCtx.methodName === 'login' ||
@@ -52,18 +51,15 @@ export class ValidatePhoneNumInterceptor implements Provider<Interceptor> {
       invocationCtx.methodName === 'createUsersRels' ||
       invocationCtx.methodName === 'patchUsersRels'
     ) {
-      // This check is for "patchUsersRels" method
-      // beacuse reqeust body may not includes a phone value
       if (invocationCtx.args[0].phone) {
-        phoneValue = invocationCtx.args[0].phone;
-        pn = new AwesomePhoneNumber(phoneValue);
+        let phoneValue = invocationCtx.args[0].phone;
+        const isValid = this.phoneNumberService.isValid(phoneValue);
 
-        if (!pn.isMobile()) {
+        if (!isValid) {
           throw new HttpErrors.UnprocessableEntity(invalidPhoneValueMessage);
         }
 
-        // Convert phone value to e.164 format
-        phoneValue = pn.getNumber('e164');
+        phoneValue = this.phoneNumberService.convertToE164Format(phoneValue);
         invocationCtx.args[0].phone = phoneValue;
       }
     }
