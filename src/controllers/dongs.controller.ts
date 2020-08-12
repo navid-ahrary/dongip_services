@@ -1,12 +1,9 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable prefer-const */
 import {
   Filter,
   repository,
   property,
   model,
-  DataObject,
   CountSchema,
 } from '@loopback/repository';
 import {
@@ -246,7 +243,7 @@ export class DongsController {
             });
 
             // If relation is mutual, add to notification reciever list
-            if (user) {
+            if (user && user.firebaseToken !== 'null') {
               const foundMutualUsersRels = await this.usersRelsRepository.findOne(
                 {
                   where: {
@@ -274,12 +271,13 @@ export class DongsController {
                   roundedDongAmount,
                 );
                 // Notification data payload
-                const notifyData: DataObject<Notifications> = {
+                const notifyData: Partial<Notifications> = {
                   title: 'دنگیپ شدی',
                   body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
                   desc: createdDong.desc ? createdDong.desc : '',
                   type: 'dong',
                   categoryTitle: currentUserCategory.title,
+                  categoryIcon: currentUserCategory.icon,
                   createdAt: newDong.createdAt,
                   userRelId: foundMutualUsersRels.getId(),
                   dongAmount: roundedDongAmount,
@@ -292,28 +290,36 @@ export class DongsController {
                 // Generate notification messages
                 firebaseMessagesList.push({
                   token: user.firebaseToken,
-                  // Android push notification messages
-                  android: {
-                    notification: {
-                      title: 'دنگیپ شدی',
-                      body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
-                      clickAction: 'FLUTTER_NOTIFICATION_CLICK',
-                    },
-                    data: {
-                      notifyId: createdNotify.getId().toString(),
-                      title: 'دنگیپ شدی',
-                      body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
-                      desc: createdDong.desc ? createdDong.desc : '',
-                      type: 'dong',
-                      categoryTitle: currentUserCategory.title,
-                      createdAt: newDong.createdAt,
-                      userRelId: foundMutualUsersRels.getId().toString(),
-                      dongAmount: roundedDongAmount.toString(),
-                      dongId: createdDong.getId().toString(),
-                    },
+                  notification: {
+                    title: notifyData.title,
+                    body: notifyData.body,
                   },
-                  // iOS push notification messages
-                  // apns: {},
+                  data: {
+                    notifyId: createdNotify.getId().toString(),
+                    title: notifyData.title!,
+                    body: notifyData.body!,
+                    desc: notifyData.desc!,
+                    type: notifyData.type!,
+                    categoryTitle: notifyData.categoryTitle!,
+                    categoryIcon: notifyData.categoryIcon!,
+                    createdAt: notifyData.createdAt!,
+                    userRelId: notifyData.userRelId!.toString(),
+                    dongAmount: notifyData.dongAmount!.toString(),
+                    dongId: notifyData.dongId!.toString(),
+                  },
+                  // Android options
+                  android: {
+                    notification: {clickAction: 'FLUTTER_NOTIFICATION_CLICK'},
+                  },
+                  // iOS options
+                  apns: {
+                    payload: {
+                      aps: {
+                        alert: {actionLocKey: 'FLUTTER_NOTIFICATION_CLICK'},
+                      },
+                    },
+                    fcmOptions: {},
+                  },
                 });
               }
             }
