@@ -118,14 +118,15 @@ export class Users extends Entity {
 
   @property({
     type: 'string',
+    default: 'null',
     mysql: {
       columnName: 'firebase_token',
       dataType: 'varchar',
       dataLength: 512,
-      nullable: 'Y',
+      nullable: 'N',
     },
   })
-  firebaseToken?: string;
+  firebaseToken: string;
 
   @property({
     type: 'string',
@@ -157,7 +158,7 @@ export class Users extends Entity {
     required: true,
     mysql: {
       dataType: 'varchar',
-      dataLength: 5,
+      dataLength: 2,
       nullable: 'N',
     },
   })
