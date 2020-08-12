@@ -5,12 +5,15 @@ import {
   param,
   post,
   requestBody,
+  HttpErrors,
 } from '@loopback/rest';
 import {authorize} from '@loopback/authorization';
 import {authenticate} from '@loopback/authentication';
 import {repository, Filter} from '@loopback/repository';
 import {inject, service} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
+
+import moment from 'moment';
 
 import {Messages, Users} from '../models';
 import {basicAuthorization, FirebaseService, MessagePayload} from '../services';
@@ -31,7 +34,7 @@ export class SupportController {
     @inject(SecurityBindings.USER) protected curretnUserProfile: UserProfile,
     @service(FirebaseService) protected firebaseService: FirebaseService,
   ) {
-    this.userId = Number(this.curretnUserProfile[securityId]);
+    this.userId = +this.curretnUserProfile[securityId];
   }
 
   @get('/messages', {
@@ -110,31 +113,38 @@ export class SupportController {
     })
     newMessage: Omit<Messages, 'messageId'>,
   ): Promise<Messages> {
-    const messageEntity = {
-      message: newMessage.message,
-      createdAt: new Date().toISOString(),
-      userId: targetUserId,
-      isQuestion: false,
-      isAnswer: true,
-    };
-    const createdMessage = await this.messagesRepository.create(messageEntity);
-
     const foundTargetUser = await this.usersRepository.findById(targetUserId, {
       fields: {firebaseToken: true},
     });
-    const notifyMessage: MessagePayload = {
-      notification: {
-        title: 'پاسخ به تیکت',
-        body: newMessage.message.toString(),
-        clickAction: 'FLUTTER_NOTIFICATION_CLICK',
-      },
-    };
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.firebaseService.sendToDeviceMessage(
-      foundTargetUser.firebaseToken,
-      notifyMessage,
-    );
+    if (
+      foundTargetUser.firebaseToken &&
+      foundTargetUser.firebaseToken !== 'null'
+    ) {
+      const createdMessage = await this.messagesRepository.create({
+        message: newMessage.message,
+        createdAt: moment.utc().toISOString(),
+        userId: targetUserId,
+        isQuestion: false,
+        isAnswer: true,
+      });
 
-    return createdMessage;
+      const notifyMessage: MessagePayload = {
+        notification: {
+          title: 'پاسخ به تیکت',
+          body: newMessage.message.toString(),
+          clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+        },
+      };
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.firebaseService.sendToDeviceMessage(
+        foundTargetUser.firebaseToken,
+        notifyMessage,
+      );
+      return createdMessage;
+    } else {
+      throw new HttpErrors.NotImplemented(
+        'User firebase token is not provided',
+      );
+    }
   }
 }
