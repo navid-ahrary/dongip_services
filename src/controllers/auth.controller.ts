@@ -350,6 +350,8 @@ export class AuthController {
                 'userAgent',
                 'firebaseToken',
                 'avatar',
+                'region',
+                'platform',
               ],
             }),
             example: {
