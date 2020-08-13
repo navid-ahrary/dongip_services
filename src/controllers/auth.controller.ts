@@ -139,6 +139,7 @@ export class AuthController {
               'region',
               'platform',
             ],
+            optional: ['smsSignature'],
           }),
           example: {
             phone: '+989176502184',
@@ -162,6 +163,7 @@ export class AuthController {
       randomStr = this.generateRandomString(3);
 
     const countRequstedVerifyCode = await this.verifyRepository.count({
+      phone: verifyReqBody.phone,
       loggedIn: false,
       loggedInAt: undefined,
       createdAt: {
@@ -190,7 +192,9 @@ export class AuthController {
       .create({
         phone: verifyReqBody.phone,
         password: randomStr + randomCode,
-        smsSignature: verifyReqBody.smsSignature,
+        smsSignature: verifyReqBody.smsSignature
+          ? verifyReqBody.smsSignature
+          : ' ',
         registered: user ? true : false,
         createdAt: nowUTC.toISOString(),
         region: this.phoneNumberService.getRegionCodeISO(verifyReqBody.phone),
@@ -383,6 +387,8 @@ export class AuthController {
               'registeredAt',
               'usersRels',
               'virtualUsers',
+              'region',
+              'platform',
             ],
             optional: ['username'],
           }),
