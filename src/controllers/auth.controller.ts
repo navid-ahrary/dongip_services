@@ -142,6 +142,7 @@ export class AuthController {
           }),
           example: {
             phone: '+989176502184',
+            smsSignature: 'a2V5dG9vbCB',
           },
         },
       },
@@ -189,6 +190,7 @@ export class AuthController {
       .create({
         phone: verifyReqBody.phone,
         password: randomStr + randomCode,
+        smsSignature: verifyReqBody.smsSignature,
         registered: user ? true : false,
         createdAt: nowUTC.toISOString(),
         region: this.phoneNumberService.getRegionCodeISO(verifyReqBody.phone),
@@ -212,7 +214,7 @@ export class AuthController {
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.smsService
-      .sendSms(randomCode, verifyReqBody.phone)
+      .sendSms(randomCode, verifyReqBody.phone, verifyReqBody.smsSignature)
       .then((res) => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.verifyRepository.updateById(createdVerify.getId(), {

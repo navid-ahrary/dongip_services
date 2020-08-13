@@ -87,6 +87,18 @@ export class Verify extends Entity {
   region: string;
 
   @property({
+    type: 'string',
+    required: true,
+    mysql: {
+      columnName: 'sms_signature',
+      dataType: 'varchar',
+      dataLength: 20,
+      nullable: 'N',
+    },
+  })
+  smsSignature: string;
+
+  @property({
     type: 'boolean',
     required: true,
     default: false,

@@ -10,6 +10,7 @@ import {VerifyRepository} from '../repositories';
 
 type VerifyLookupSMS = {
   token: string;
+  token2: string | undefined;
   template: string;
   type: string;
   receptor: string;
@@ -54,11 +55,13 @@ export class SmsService {
   }
 
   public async sendSms(
-    code: string,
+    token1: string,
     receptor: string,
+    token2?: string,
   ): Promise<KavenegarResponse> {
     const sms: VerifyLookupSMS = {
-      token: code,
+      token: token1,
+      token2: token2 ? token2 : undefined,
       template: String(this.SMS_TEMPLATE),
       type: this.LOOKUP_TYPE,
       receptor: receptor,
