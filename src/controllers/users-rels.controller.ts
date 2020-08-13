@@ -378,7 +378,6 @@ export class UsersRelsController {
           schema: {
             type: 'array',
             minItems: 1,
-            uniqueItems: true,
             items: {type: 'string'},
             nullable: false,
             additionalProperties: false,
