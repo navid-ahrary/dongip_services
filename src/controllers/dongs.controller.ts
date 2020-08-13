@@ -233,7 +233,7 @@ export class DongsController {
       if (currentUserIsPayer && sendNotify) {
         const currentUserCategory = await this.categoriesRepository.findById(
           newDong.categoryId,
-          {fields: {title: true}},
+          {fields: {title: true, icon: true}},
         );
 
         for (const relation of currentUserFoundUsersRelsList) {
