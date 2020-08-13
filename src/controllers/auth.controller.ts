@@ -425,6 +425,7 @@ export class AuthController {
     );
 
     newUser.region = foundVerify.region;
+    newUser.phone = foundVerify.phone;
 
     const countRegisteredUsers = await this.usersRepository.count();
     if (countRegisteredUsers.count < 1000) {
