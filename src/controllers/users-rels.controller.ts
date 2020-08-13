@@ -389,21 +389,32 @@ export class UsersRelsController {
     })
     phonesList: string[],
   ): Promise<Partial<Users>[]> {
-    // Normalize phone value to e.164 format
-    const normalizedResult = await this.normalizePhonesList(
-      phonesList,
-      this.userId,
-    );
-
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRepository.updateById(this.userId, {
-      region: normalizedResult.referenceRegionCode,
+    let referenceRegionCode = '';
+    const foundUser = await this.usersRepository.findById(this.userId, {
+      fields: {phone: true, region: true},
     });
+
+    if (foundUser.region) {
+      referenceRegionCode = foundUser.region;
+    } else {
+      referenceRegionCode = this.phoneNumberService.getRegionCodeISO(
+        foundUser.phone,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepository.updateById(this.userId, {
+        region: referenceRegionCode,
+      });
+    }
+    // Normalize phone value to e.164 format
+    const normalizedPhonesList = this.normalizePhonesList(
+      phonesList,
+      referenceRegionCode,
+    );
 
     return this.usersRepository.find({
       order: ['name ASC'],
       fields: {name: true, phone: true, avatar: true},
-      where: {phone: {inq: normalizedResult.phonesList}},
+      where: {phone: {inq: normalizedPhonesList}},
     });
   }
 
@@ -440,32 +451,21 @@ export class UsersRelsController {
   /**
    *
    * @param phoneList string[]
-   * @param userId number
-   * @return Promsise<string[]>
+   * @param refrenceRegionCode string
+   * @return string[]
    */
-  async normalizePhonesList(
+  normalizePhonesList(
     phonesList: string[],
-    userId: typeof Users.prototype.userId,
-  ): Promise<{phonesList: string[]; referenceRegionCode: string}> {
-    const foundUser = await this.usersRepository.findById(userId);
-    let currentUserRegionCode = '';
-
+    refrenceRegionCode: string,
+  ): string[] {
     phonesList.forEach((phone, index) => {
-      if (foundUser.region) {
-        currentUserRegionCode = foundUser.region;
-      } else {
-        currentUserRegionCode = this.phoneNumberService.getRegionCodeISO(
-          foundUser.phone,
-        );
-      }
       phonesList[
         index
       ] = this.phoneNumberService.normalizePhoneNumberWithZeroPrefix(
         phone,
-        currentUserRegionCode,
+        refrenceRegionCode,
       );
     });
-
-    return {phonesList: phonesList, referenceRegionCode: currentUserRegionCode};
+    return phonesList;
   }
 }
