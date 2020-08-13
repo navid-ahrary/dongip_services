@@ -390,17 +390,31 @@ export class UsersRelsController {
     phonesList: string[],
   ): Promise<Partial<Users>[]> {
     const foundUser = await this.usersRepository.findById(this.userId, {
-      fields: {region: true},
+      fields: {region: true, phone: true},
     });
 
     // Normalize phone value to e.164 format
     phonesList.forEach((phone) => {
-      phonesList[
-        _.indexOf(phonesList, phone)
-      ] = this.phoneNumberService.replacePrefixZeroWithCountryCode(
-        phone,
-        foundUser.region,
-      );
+      if (foundUser.region) {
+        phonesList[
+          _.indexOf(phonesList, phone)
+        ] = this.phoneNumberService.replacePrefixZeroWithCountryCode(
+          phone,
+          foundUser.region,
+        );
+        // If processing user region code not implemented yet
+      } else {
+        const userRegionCode = this.phoneNumberService.getRegionCodeISO(
+          foundUser.phone,
+        );
+
+        phonesList[
+          _.indexOf(phonesList, phone)
+        ] = this.phoneNumberService.replacePrefixZeroWithCountryCode(
+          phone,
+          userRegionCode,
+        );
+      }
     });
 
     return this.usersRepository.find({
