@@ -389,41 +389,21 @@ export class UsersRelsController {
     })
     phonesList: string[],
   ): Promise<Partial<Users>[]> {
-    const foundUser = await this.usersRepository.findById(this.userId, {
-      fields: {region: true, phone: true},
-    });
-
     // Normalize phone value to e.164 format
-    phonesList.forEach((phone, index) => {
-      if (foundUser.region) {
-        phonesList[
-          index
-        ] = this.phoneNumberService.normalizePhoneNumberWithZeroPrefix(
-          phone,
-          foundUser.region,
-        );
-        // If processing user region code not implemented yet
-      } else {
-        const userRegionCode = this.phoneNumberService.getRegionCodeISO(
-          foundUser.phone,
-        );
+    const normalizedResult = await this.normalizePhonesList(
+      phonesList,
+      this.userId,
+    );
 
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.usersRepository.updateById(this.userId, {region: userRegionCode});
-
-        phonesList[
-          index
-        ] = this.phoneNumberService.normalizePhoneNumberWithZeroPrefix(
-          phone,
-          userRegionCode,
-        );
-      }
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.usersRepository.updateById(this.userId, {
+      region: normalizedResult.referenceRegionCode,
     });
 
     return this.usersRepository.find({
       order: ['name ASC'],
       fields: {name: true, phone: true, avatar: true},
-      where: {phone: {inq: phonesList}},
+      where: {phone: {inq: normalizedResult.phonesList}},
     });
   }
 
@@ -455,5 +435,37 @@ export class UsersRelsController {
     } catch (err) {
       throw new HttpErrors.NotImplemented(err.message);
     }
+  }
+
+  /**
+   *
+   * @param phoneList string[]
+   * @param userId number
+   * @return Promsise<string[]>
+   */
+  async normalizePhonesList(
+    phonesList: string[],
+    userId: typeof Users.prototype.userId,
+  ): Promise<{phonesList: string[]; referenceRegionCode: string}> {
+    const foundUser = await this.usersRepository.findById(userId);
+    let currentUserRegionCode = '';
+
+    phonesList.forEach((phone, index) => {
+      if (foundUser.region) {
+        currentUserRegionCode = foundUser.region;
+      } else {
+        currentUserRegionCode = this.phoneNumberService.getRegionCodeISO(
+          foundUser.phone,
+        );
+      }
+      phonesList[
+        index
+      ] = this.phoneNumberService.normalizePhoneNumberWithZeroPrefix(
+        phone,
+        currentUserRegionCode,
+      );
+    });
+
+    return {phonesList: phonesList, referenceRegionCode: currentUserRegionCode};
   }
 }
