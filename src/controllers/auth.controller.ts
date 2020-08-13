@@ -226,6 +226,7 @@ export class AuthController {
           kavenegarDate: res.body.date,
           kavenegarSender: res.body.sender,
           kavenegarStatusText: res.body.statustext,
+          kavenegarCost: res.body.cost,
           kavenegarStatusCode: res.statusCode,
         });
       })

@@ -186,6 +186,17 @@ export class Verify extends Entity {
   })
   kavenegarStatusText?: string;
 
+  @property({
+    type: 'number',
+    mysql: {
+      columnName: 'kavenegar_cost',
+      dataType: 'smallint',
+      dataLength: 5,
+      nullable: 'Y',
+    },
+  })
+  kavenegarCost?: number;
+
   constructor(data?: Partial<Verify>) {
     super(data);
   }
