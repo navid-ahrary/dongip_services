@@ -423,10 +423,8 @@ export class AuthController {
       verifyId,
       credentials.password,
     );
-    const userRegion = this.phoneNumberService.getRegionCodeISO(
-      foundVerify.phone,
-    );
-    newUser.region = userRegion;
+
+    newUser.region = foundVerify.region;
 
     const countRegisteredUsers = await this.usersRepository.count();
     if (countRegisteredUsers.count < 1000) {
