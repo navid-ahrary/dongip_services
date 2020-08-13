@@ -408,6 +408,9 @@ export class UsersRelsController {
           foundUser.phone,
         );
 
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository.updateById(this.userId, {region: userRegionCode});
+
         phonesList[
           _.indexOf(phonesList, phone)
         ] = this.phoneNumberService.replacePrefixZeroWithCountryCode(
