@@ -398,7 +398,7 @@ export class UsersRelsController {
       if (foundUser.region) {
         phonesList[
           index
-        ] = this.phoneNumberService.replacePrefixZeroWithCountryCode(
+        ] = this.phoneNumberService.normalizePhoneNumberWithZeroPrefix(
           phone,
           foundUser.region,
         );
@@ -413,7 +413,7 @@ export class UsersRelsController {
 
         phonesList[
           index
-        ] = this.phoneNumberService.replacePrefixZeroWithCountryCode(
+        ] = this.phoneNumberService.normalizePhoneNumberWithZeroPrefix(
           phone,
           userRegionCode,
         );
