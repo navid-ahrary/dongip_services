@@ -394,10 +394,10 @@ export class UsersRelsController {
     });
 
     // Normalize phone value to e.164 format
-    phonesList.forEach((phone) => {
+    phonesList.forEach((phone, index) => {
       if (foundUser.region) {
         phonesList[
-          _.indexOf(phonesList, phone)
+          index
         ] = this.phoneNumberService.replacePrefixZeroWithCountryCode(
           phone,
           foundUser.region,
@@ -412,7 +412,7 @@ export class UsersRelsController {
         this.usersRepository.updateById(this.userId, {region: userRegionCode});
 
         phonesList[
-          _.indexOf(phonesList, phone)
+          index
         ] = this.phoneNumberService.replacePrefixZeroWithCountryCode(
           phone,
           userRegionCode,
