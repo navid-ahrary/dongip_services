@@ -139,6 +139,7 @@ export class AuthController {
               'region',
               'platform',
             ],
+            optional: ['smsSignature'],
           }),
           example: {
             phone: '+989176502184',
@@ -162,6 +163,7 @@ export class AuthController {
       randomStr = this.generateRandomString(3);
 
     const countRequstedVerifyCode = await this.verifyRepository.count({
+      phone: verifyReqBody.phone,
       loggedIn: false,
       loggedInAt: undefined,
       createdAt: {
@@ -190,7 +192,9 @@ export class AuthController {
       .create({
         phone: verifyReqBody.phone,
         password: randomStr + randomCode,
-        smsSignature: verifyReqBody.smsSignature,
+        smsSignature: verifyReqBody.smsSignature
+          ? verifyReqBody.smsSignature
+          : ' ',
         registered: user ? true : false,
         createdAt: nowUTC.toISOString(),
         region: this.phoneNumberService.getRegionCodeISO(verifyReqBody.phone),
@@ -222,6 +226,7 @@ export class AuthController {
           kavenegarDate: res.body.date,
           kavenegarSender: res.body.sender,
           kavenegarStatusText: res.body.statustext,
+          kavenegarCost: res.body.cost,
           kavenegarStatusCode: res.statusCode,
         });
       })
@@ -350,6 +355,8 @@ export class AuthController {
                 'userAgent',
                 'firebaseToken',
                 'avatar',
+                'region',
+                'platform',
               ],
             }),
             example: {
@@ -381,6 +388,8 @@ export class AuthController {
               'registeredAt',
               'usersRels',
               'virtualUsers',
+              'region',
+              'platform',
             ],
             optional: ['username'],
           }),
@@ -415,10 +424,9 @@ export class AuthController {
       verifyId,
       credentials.password,
     );
-    const userRegion = this.phoneNumberService.getRegionCodeISO(
-      foundVerify.phone,
-    );
-    newUser.region = userRegion;
+
+    newUser.region = foundVerify.region;
+    newUser.phone = foundVerify.phone;
 
     const countRegisteredUsers = await this.usersRepository.count();
     if (countRegisteredUsers.count < 1000) {
