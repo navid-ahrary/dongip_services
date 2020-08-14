@@ -20,7 +20,6 @@ import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {inject, service, intercept} from '@loopback/core';
 import _ from 'underscore';
-import {floor} from 'lodash';
 
 import {Dongs, PostNewDong, Notifications} from '../models';
 import {
@@ -259,7 +258,7 @@ export class DongsController {
                 const roundedDongAmount = _.find(billList, {
                   userRelId: relation.getId(),
                 })
-                  ? floor(
+                  ? Math.floor(
                       _.find(billList, {
                         userRelId: relation.getId(),
                       })!.dongAmount,
