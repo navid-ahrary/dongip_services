@@ -1,6 +1,6 @@
 import {Entity, model, property} from '@loopback/repository';
 
-@model({name: 'black_list'})
+@model({name: 'black_list', settings: {mysql: {engine: 'aria'}}})
 export class Blacklist extends Entity {
   @property({
     type: 'string',
@@ -8,7 +8,7 @@ export class Blacklist extends Entity {
     id: true,
     mysql: {
       dataType: 'varchar',
-      dataLength: 512,
+      dataLength: 250,
       nullable: 'N',
     },
   })
