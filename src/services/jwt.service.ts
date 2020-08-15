@@ -100,19 +100,10 @@ export class JWTService implements TokenService {
       expiresIn = +this.jwtRefreshExpiresIn;
     } else throw new HttpErrors.Unauthorized(nullAudience);
 
-    return this.generate(userProfile, expiresIn);
-  }
-
-  /**
-   *
-   * @param userProfile UserProfile
-   * @returns string
-   */
-  private generate(userProfile: UserProfile, expireIn: number): string {
     try {
       const generatedToken = sign(userProfile, this.jwtSecret, {
         algorithm: this.jwtAlgorithm,
-        expiresIn: expireIn,
+        expiresIn: expiresIn,
         subject: userProfile[securityId].toString(),
       });
 
