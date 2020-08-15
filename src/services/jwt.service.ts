@@ -90,25 +90,29 @@ export class JWTService implements TokenService {
       throw new HttpErrors.Unauthorized(nullUserProfle);
     }
 
+    let expiresIn: number;
+
     if (userProfile.aud === 'verify') {
-      return this.generateVerifyToken(userProfile);
+      expiresIn = +this.jwtVerifyExpiresIn;
     } else if (userProfile.aud === 'access') {
-      return this.generateAccessToken(userProfile);
+      expiresIn = +this.jwtAccessExpiresIn;
     } else if (userProfile.aud === 'refresh') {
-      return this.generateRefreshToken(userProfile);
+      expiresIn = +this.jwtRefreshExpiresIn;
     } else throw new HttpErrors.Unauthorized(nullAudience);
+
+    return this.generate(userProfile, expiresIn);
   }
 
   /**
    *
    * @param userProfile UserProfile
-   * @return string
+   * @returns string
    */
-  private generateVerifyToken(userProfile: UserProfile): string {
+  private generate(userProfile: UserProfile, expireIn: number): string {
     try {
       const generatedToken = sign(userProfile, this.jwtSecret, {
         algorithm: this.jwtAlgorithm,
-        expiresIn: +this.jwtVerifyExpiresIn,
+        expiresIn: expireIn,
         subject: userProfile[securityId].toString(),
       });
 
@@ -116,48 +120,6 @@ export class JWTService implements TokenService {
     } catch (err) {
       throw new HttpErrors.Unauthorized(
         `Error generating verify token: ${err.message}`,
-      );
-    }
-  }
-
-  /**
-   *
-   * @param userProfile UserProfile
-   * @return string
-   */
-  private generateAccessToken(userProfile: UserProfile): string {
-    try {
-      const generatedToken = sign(userProfile, this.jwtSecret, {
-        algorithm: this.jwtAlgorithm,
-        expiresIn: +this.jwtAccessExpiresIn,
-        subject: userProfile[securityId].toString(),
-      });
-
-      return generatedToken;
-    } catch (err) {
-      throw new HttpErrors.Unauthorized(
-        `Error generating access token: ${err.message}`,
-      );
-    }
-  }
-
-  /**
-   *
-   * @param userProfile UserProfile
-   * @return string
-   */
-  private generateRefreshToken(userProfile: UserProfile): string {
-    try {
-      const generatedToken = sign(userProfile, this.jwtSecret, {
-        algorithm: this.jwtAlgorithm,
-        expiresIn: +this.jwtRefreshExpiresIn,
-        subject: userProfile[securityId].toString(),
-      });
-
-      return generatedToken;
-    } catch (err) {
-      throw new HttpErrors.Unauthorized(
-        `Error generating refresh token: ${err.message}`,
       );
     }
   }
