@@ -73,7 +73,7 @@ export class PhoneNumberService {
    * @param phone string
    * @returns string
    */
-  replacePlusWithDoubleZero(phone: string): string {
+  formatForSendSMSFromIran(phone: string): string {
     const pn = new AwesomePhoneNumber(phone);
     return pn.getNumberFrom('IR').replace(/\s/g, '');
   }

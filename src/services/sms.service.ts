@@ -61,7 +61,7 @@ export class SmsService {
     receptor: string,
     token2?: string,
   ): Promise<KavenegarResponse> {
-    receptor = this.phoneNumService.replacePlusWithDoubleZero(receptor);
+    receptor = this.phoneNumService.formatForSendSMSFromIran(receptor);
 
     const sms: VerifyLookupSMS = {
       token: token1,
