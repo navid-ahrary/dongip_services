@@ -37,11 +37,11 @@ export class SmsService {
   private readonly LOOKUP_TYPE = 'sms';
 
   constructor(
+    @service(PhoneNumberService) private phoneNumService: PhoneNumberService,
     @repository(VerifyRepository) public verifyRepository: VerifyRepository,
     private smsApi = Kavenegar.KavenegarApi({
       apikey: process.env.KAVENEGAR_API,
     }),
-    @service(PhoneNumberService) private phoneNumService: PhoneNumberService,
   ) {
     this.validateEnvVars();
   }
