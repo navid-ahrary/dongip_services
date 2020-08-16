@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {bind, BindingScope} from '@loopback/core';
+import {bind, BindingScope, service} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {config} from 'dotenv';
 config();
@@ -7,6 +7,7 @@ config();
 const Kavenegar = require('kavenegar');
 
 import {VerifyRepository} from '../repositories';
+import {PhoneNumberService} from './phone-number.service';
 
 type VerifyLookupSMS = {
   token: string;
@@ -40,6 +41,7 @@ export class SmsService {
     private smsApi = Kavenegar.KavenegarApi({
       apikey: process.env.KAVENEGAR_API,
     }),
+    @service(PhoneNumberService) private phoneNumService: PhoneNumberService,
   ) {
     this.validateEnvVars();
   }
@@ -59,6 +61,8 @@ export class SmsService {
     receptor: string,
     token2?: string,
   ): Promise<KavenegarResponse> {
+    receptor = this.phoneNumService.replacePlusWithDoubleZero(receptor);
+
     const sms: VerifyLookupSMS = {
       token: token1,
       token2: token2 ? token2 : undefined,

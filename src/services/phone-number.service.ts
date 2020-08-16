@@ -14,7 +14,7 @@ export class PhoneNumberService {
   /**
    *
    * @param phone string
-   * @return boolean
+   * @returns boolean
    */
   isValid(phone: string): boolean {
     const pn = new AwesomePhoneNumber(phone);
@@ -24,7 +24,7 @@ export class PhoneNumberService {
   /**
    *
    * @param phone string | string[]
-   * @return string
+   * @returns string
    */
   convertToE164Format(phone: string): string {
     const pn = new AwesomePhoneNumber(phone);
@@ -35,7 +35,7 @@ export class PhoneNumberService {
    *
    * @param phone string
    * @param regionCode string
-   * @return string
+   * @returns string
    */
   normalizePhoneNumberWithZeroPrefix(
     phone: string,
@@ -57,7 +57,7 @@ export class PhoneNumberService {
   /**
    *
    * @param phone string
-   * @return string
+   * @returns string
    */
   getRegionCodeISO(phone: string): string {
     if (this.isValid(phone)) {
@@ -66,5 +66,15 @@ export class PhoneNumberService {
     } else {
       throw new Error('Phone number is not valid');
     }
+  }
+
+  /**
+   *
+   * @param phone string
+   * @returns string
+   */
+  replacePlusWithDoubleZero(phone: string): string {
+    const pn = new AwesomePhoneNumber(phone);
+    return pn.getNumberFrom('IR').replace(/\s/g, '');
   }
 }
