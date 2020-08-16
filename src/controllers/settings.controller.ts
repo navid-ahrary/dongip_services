@@ -73,8 +73,7 @@ export class SettingsController {
     patchSettings: Settings,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<Count> {
-    patchSettings.updatedAt = moment().toISOString();
-
+    patchSettings.updatedAt = moment.utc().toISOString();
     return this.usersRepository.settings(this.userId).patch(patchSettings);
   }
 }
