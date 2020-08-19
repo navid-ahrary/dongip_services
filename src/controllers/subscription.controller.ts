@@ -131,7 +131,7 @@ export class SubscriptionController {
     }
   }
 
-  @get('/subscription/verify-transaction/{gatewaySource}', {
+  @get('/subscription/verify-transaction/{provider}', {
     summary: 'Call by peyment gateway',
     description: 'Gateway calls this endpoint that known as a callback url',
     responses: {
