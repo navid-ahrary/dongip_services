@@ -29,6 +29,7 @@ import {
   Notifications,
   Budgets,
   Settings,
+  Checkouts,
 } from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
@@ -38,6 +39,7 @@ import {MessagesRepository} from './messages.repository';
 import {NotificationsRepository} from './notifications.repository';
 import {BudgetsRepository} from './budgets.repository';
 import {SettingsRepository} from './settings.repository';
+import {CheckoutsRepository} from './checkouts.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
@@ -103,6 +105,11 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
+  public readonly checkouts: HasManyRepositoryFactory<
+    Checkouts,
+    typeof Users.prototype.userId
+  >;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -131,13 +138,26 @@ export class UsersRepository extends DefaultCrudRepository<
     protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
     @repository.getter('SettingsRepository')
     protected settingsRepositoryGetter: Getter<SettingsRepository>,
+    @repository.getter('CheckoutsRepository')
+    protected checkoutsRepositoryGetter: Getter<CheckoutsRepository>,
   ) {
     super(Users, dataSource);
+
+    this.checkouts = this.createHasManyRepositoryFactoryFor(
+      'checkouts',
+      checkoutsRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'checkouts',
+      this.checkouts.inclusionResolver,
+    );
+
     this.settings = this.createHasOneRepositoryFactoryFor(
       'settings',
       settingsRepositoryGetter,
     );
     this.registerInclusionResolver('settings', this.settings.inclusionResolver);
+
     this.budgets = this.createHasManyRepositoryFactoryFor(
       'budgets',
       budgetsRepositoryGetter,

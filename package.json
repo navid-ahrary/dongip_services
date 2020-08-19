@@ -79,7 +79,8 @@
     "loopback-connector-mysql": "^5.4.3",
     "moment": "^2.27.0",
     "morgan": "^1.10.0",
-    "underscore": "^1.10.2"
+    "underscore": "^1.10.2",
+    "zarinpal-checkout": "^0.2.7"
   },
   "devDependencies": {
     "@loopback/build": "^6.2.0",

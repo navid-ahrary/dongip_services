@@ -44,13 +44,16 @@ export class ValidatePhoneNumInterceptor implements Provider<Interceptor> {
   ) {
     const invalidPhoneValueMessage = 'شماره موبایل وارد شده معتبر نیست!';
 
-    if (
-      invocationCtx.methodName === 'verify' ||
-      invocationCtx.methodName === 'login' ||
-      invocationCtx.methodName === 'singup' ||
-      invocationCtx.methodName === 'createUsersRels' ||
-      invocationCtx.methodName === 'patchUsersRels'
-    ) {
+    const funcNameList = [
+      'getGatewayUrl',
+      'verify',
+      'login',
+      'signup',
+      'createUsersRels',
+      'patchUsersRels',
+    ];
+
+    if (funcNameList.includes(invocationCtx.methodName)) {
       if (invocationCtx.args[0].phone) {
         let phoneValue = invocationCtx.args[0].phone;
         const isValid = this.phoneNumberService.isValid(phoneValue);
