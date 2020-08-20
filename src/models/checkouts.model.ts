@@ -116,7 +116,7 @@ export class Checkouts extends Entity {
     type: 'number',
     mysql: {
       columnName: 'verify_ref_id',
-      dataType: 'mediumint',
+      dataType: 'bigint',
       nullable: 'Y',
     },
   })
