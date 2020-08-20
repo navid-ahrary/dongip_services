@@ -7,3 +7,4 @@ export * from './verify.service';
 export * from './basic.authorizor';
 export * from './cronjob.service';
 export * from './phone-number.service';
+export * from './subscription.service';

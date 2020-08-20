@@ -19,6 +19,7 @@ import {Messages} from './messages.model';
 import {Notifications} from './notifications.model';
 import {Budgets} from './budgets.model';
 import {Settings} from './settings.model';
+import {Checkouts} from './checkouts.model';
 
 @model({name: 'users'})
 export class Users extends Entity {
@@ -306,6 +307,9 @@ export class Users extends Entity {
     targetsMany: false,
   })
   settings: Settings;
+
+  @hasMany(() => Checkouts, {keyTo: 'userId'})
+  checkouts: Checkouts[];
 
   constructor(data?: Partial<Users>) {
     super(data);

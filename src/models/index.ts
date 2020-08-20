@@ -17,4 +17,4 @@ export * from './notifications.model';
 export * from './budgets.model';
 export * from './settings.model';
 export * from './links.model';
-export * from './purchase-information.model';
+export * from './checkouts.model';

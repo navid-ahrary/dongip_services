@@ -1,0 +1,29 @@
+{
+  "providers": ["zarinpal", "idpay"],
+  "plans": {
+    "1MG": {
+      "description": {
+        "fa": "اشتراک طلایی یک‌ماهه دُنگیپ"
+      },
+      "price": 8000,
+      "sale": 1000,
+      "onSale": true
+    },
+    "6MG": {
+      "description": {
+        "fa": "اشتراک طلایی شش‌ماهه دُنگیپ"
+      },
+      "price": 45000,
+      "sale": 18000,
+      "onSale": true
+    },
+    "1YG": {
+      "description": {
+        "fa": "اشتراک طلایی یک‌ساله دُنگیپ"
+      },
+      "price": 80000,
+      "sale": 30000,
+      "onSale": true
+    }
+  }
+}
