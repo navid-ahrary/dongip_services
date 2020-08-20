@@ -1,5 +1,5 @@
 {
-  "providers": ["zarinpal", "idpay"],
+  "gatewayProviders": ["zarinpal", "idpay"],
   "plans": {
     "1MG": {
       "description": {
