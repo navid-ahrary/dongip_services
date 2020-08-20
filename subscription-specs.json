@@ -1,7 +1,7 @@
 {
   "gatewayProviders": ["zarinpal", "idpay"],
   "plans": {
-    "1MG": {
+    "G1M": {
       "description": {
         "fa": "اشتراک طلایی یک‌ماهه دُنگیپ"
       },
@@ -9,7 +9,7 @@
       "sale": 1000,
       "onSale": true
     },
-    "6MG": {
+    "G6M": {
       "description": {
         "fa": "اشتراک طلایی شش‌ماهه دُنگیپ"
       },
@@ -17,7 +17,7 @@
       "sale": 18000,
       "onSale": true
     },
-    "1YG": {
+    "G1Y": {
       "description": {
         "fa": "اشتراک طلایی یک‌ساله دُنگیپ"
       },
