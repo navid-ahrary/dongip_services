@@ -44,11 +44,6 @@ export class ValidateSubscriptionPlanstInterceptor
     next: () => ValueOrPromise<InvocationResult>,
   ) {
     try {
-      if (invocationCtx.methodName === 'getGatewayUrl') {
-        const plan = invocationCtx.args[0].plan;
-        this.subsService.validatePlan(plan);
-      }
-
       if (invocationCtx.methodName === 'verifyTransaction') {
         const provider = invocationCtx.args[0];
         this.subsService.validateProvider(provider);

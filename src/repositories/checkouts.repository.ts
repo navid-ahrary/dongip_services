@@ -10,12 +10,12 @@ import {UsersRepository} from './users.repository';
 
 export class CheckoutsRepository extends DefaultCrudRepository<
   Checkouts,
-  typeof Checkouts.prototype.authority,
+  typeof Checkouts.prototype.checkoutId,
   CheckoutsRelations
 > {
   public readonly user: BelongsToAccessor<
     Users,
-    typeof Checkouts.prototype.authority
+    typeof Checkouts.prototype.checkoutId
   >;
 
   constructor(

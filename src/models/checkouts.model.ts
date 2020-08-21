@@ -25,16 +25,18 @@ import {Users} from './users.model';
 })
 export class Checkouts extends Entity {
   @property({
-    type: 'number',
+    type: 'string',
     id: true,
     required: true,
     generated: false,
     mysql: {
-      dataType: 'bigint',
+      columnName: 'checkout_id',
+      dataType: 'varchar',
+      dataLength: 40,
       nullable: 'N',
     },
   })
-  authority: number;
+  checkoutId: string;
 
   @belongsTo(
     () => Users,
@@ -134,5 +136,4 @@ export type CheckoutsWithRelations = Checkouts & CheckoutsRelations;
 @model()
 export class CheckoutsRequest extends Model {
   @property({type: 'string', required: true}) phone: string;
-  @property({type: 'string', required: true}) plan: string;
 }

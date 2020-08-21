@@ -10,8 +10,7 @@ const ZarinpalCheckout = require('zarinpal-checkout');
 const merchantId = process.env.MERCHANT_ID;
 
 export interface Gateway {
-  status?: number;
-  authority: number;
+  authority: string;
   url: string;
 }
 
@@ -36,40 +35,33 @@ export class SubscriptionService {
    * @param phone string
    */
   async getGatewayUrl(plan: string, phone: string): Promise<Gateway> {
-    try {
-      this.validatePlan(plan);
+    return new Promise((resolve, reject) => {
+      const planAmount = +this.getCheckoutAmount(plan);
+      const callbackUrl =
+        process.env.BASE_URL + '/subscriptions/verify-transactions/zarinpal';
 
-      return await new Promise((resolve, reject) => {
-        const planAmount = +this.getCheckoutAmount(plan);
-        const callbackUrl =
-          process.env.BASE_URL + '/subscription/verify-transaction/zarinpal';
-
-        this.zarinpal
-          .PaymentRequest({
-            Amount: planAmount.toString(),
-            Description: this.getDescription(plan),
-            CallbackURL: callbackUrl,
-            Mobile: phone,
-          })
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .then((response: any) => {
-            if (response.status === 100) {
-              resolve({
-                authority: this.castString(response.authority),
-                url: response.url,
-              });
-            }
-          })
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .catch((err: any) => {
-            console.error(err);
-            reject(err);
-          });
-      });
-    } catch (error) {
-      console.error(error);
-      throw new Error(error.message);
-    }
+      this.zarinpal
+        .PaymentRequest({
+          Amount: planAmount.toString(),
+          Description: this.getDescription(plan),
+          CallbackURL: callbackUrl,
+          Mobile: phone,
+        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .then((response: any) => {
+          if (response.status === 100) {
+            resolve({
+              authority: response.authority,
+              url: response.url,
+            });
+          }
+        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .catch((err: any) => {
+          console.error(err);
+          reject(err);
+        });
+    });
   }
 
   /** Verfiy Zarinpal transaction
@@ -81,38 +73,27 @@ export class SubscriptionService {
     authority: string,
     amount: number,
   ): Promise<VerifyTransaction> {
-    try {
-      return await new Promise((resolve, reject) => {
-        this.zarinpal
-          .PaymentVerification({
-            Amount: amount.toString(),
-            Authority: authority,
-          })
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .then((response: any) => {
-            if (response.status !== 100) {
-              console.error(response);
-              reject({status: +response.status, RefID: +response.RefID});
-            } else {
-              resolve({status: +response.status, RefID: +response.RefID});
-            }
-          })
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .catch((err: any) => {
-            console.error(err);
-            reject(err);
-          });
-      });
-    } catch (error) {
-      console.error(error);
-      throw new Error(error.message);
-    }
+    return new Promise((resolve, reject) => {
+      this.zarinpal
+        .PaymentVerification({
+          Amount: amount.toString(),
+          Authority: authority,
+        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .then((response: any) => {
+          resolve({status: +response.status, RefID: +response.RefID});
+        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .catch((err: any) => {
+          reject(err);
+        });
+    });
   }
 
   /** Get checkout amount
    *
    * @param plan string
-   * @returns {price}
+   * @returns number
    */
   getCheckoutAmount(plan: string): number {
     try {
@@ -159,7 +140,7 @@ export class SubscriptionService {
   }
 
   validateProvider(provider: string): void {
-    const validProviderList = subscriptionFile.prividers;
+    const validProviderList = subscriptionFile.gatewayProviders;
 
     if (!validProviderList.includes(provider)) {
       const errMsg = 'Provider is not valid';

@@ -11,23 +11,17 @@ import {service, intercept} from '@loopback/core';
 import {Checkouts, CheckoutsRequest} from '../models';
 import {CheckoutsRepository, UsersRepository} from '../repositories';
 import {SubscriptionService} from '../services';
-import {
-  ValidatePhoneNumInterceptor,
-  ValidateSubscriptionPlanstInterceptor,
-} from '../interceptors';
+import {ValidatePhoneNumInterceptor} from '../interceptors';
 
-export class SubscriptionController {
+export class SubscriptionsController {
   constructor(
     @repository(CheckoutsRepository) public checkoutsRepo: CheckoutsRepository,
     @repository(UsersRepository) public usersRepo: UsersRepository,
     @service(SubscriptionService) public subsService: SubscriptionService,
   ) {}
 
-  @intercept(
-    ValidatePhoneNumInterceptor.BINDING_KEY,
-    ValidateSubscriptionPlanstInterceptor.BINDING_KEY,
-  )
-  @post('/subscription/request-checkout/', {
+  @intercept(ValidatePhoneNumInterceptor.BINDING_KEY)
+  @post('/subscriptions/{plan}/request-checkout/', {
     summary: "Get payment's gateway url",
     responses: {
       200: {
@@ -36,9 +30,8 @@ export class SubscriptionController {
           'application/json': {
             schema: getModelSchemaRef(Checkouts, {
               exclude: [
-                'authority',
+                'checkoutId',
                 'phone',
-                'name',
                 'userId',
                 'status',
                 'plan',
@@ -69,24 +62,13 @@ export class SubscriptionController {
     },
   })
   async getGatewayUrl(
+    @param.path.string('plan', {schema: {enum: ['G1M', 'G6M', 'G1Y']}})
+    plan: string,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(CheckoutsRequest),
-          examples: {
-            '1 month': {
-              summary: '1 month gold',
-              value: {phone: '+989173456789', plan: '1MG'},
-            },
-            '6 month': {
-              summary: '6 month gold',
-              value: {phone: '+989173456789', plan: '6MG'},
-            },
-            '1 year': {
-              summary: '1 year gold',
-              value: {phone: '+989173456789', plan: '1YG'},
-            },
-          },
+          example: {phone: '+989176502184'},
         },
       },
     })
@@ -102,21 +84,18 @@ export class SubscriptionController {
         throw new Error('شماره موبایل معتبر نیست');
       }
 
-      const gateway = await this.subsService.getGatewayUrl(
-        reqBody.plan,
-        reqBody.phone,
-      );
+      const gateway = await this.subsService.getGatewayUrl(plan, reqBody.phone);
 
-      const planAmount = this.subsService.getCheckoutAmount(reqBody.plan);
+      const planAmount = this.subsService.getCheckoutAmount(plan);
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.checkoutsRepo.create({
+        checkoutId: gateway.authority,
         userId: foundUser.userId,
         phone: reqBody.phone,
         name: foundUser.name,
-        authority: gateway.authority,
         gatewayUrl: gateway.url,
-        plan: reqBody.plan,
+        plan: plan,
         amount: planAmount,
         status: 'PENDING',
       });
@@ -131,8 +110,8 @@ export class SubscriptionController {
     }
   }
 
-  @get('/subscription/verify-transaction/{provider}', {
-    summary: 'Call by peyment gateway',
+  @get('/subscriptions/verify-transactions/{provider}', {
+    summary: 'Call by payment gateway',
     description: 'Gateway calls this endpoint that known as a callback url',
     responses: {
       204: {description: 'Verified'},
@@ -142,68 +121,74 @@ export class SubscriptionController {
   async verifyTransaction(
     @param.path.string('provider', {
       required: true,
+      schema: {enum: ['zarinpal', 'idpay']},
       examples: {
-        zarinpal: {
-          summary: 'Zarinpal gateway callback reference',
-          value: 'zarinpal',
-        },
-        idpay: {summary: 'IDPay gateway callback reference', value: 'idpay'},
+        zarinpal: {summary: 'Zarinpal callback', value: 'zarinpal'},
+        idpay: {summary: 'IDPay callback', value: 'idpay'},
       },
     })
     provider: string,
     @param.query.string('Status', {
-      required: true,
+      required: false,
+      schema: {enum: ['OK', 'NOK']},
       examples: {
         zarinpalSuccess: {summary: 'Zarinpal success', value: 'OK'},
-        zarinpalFailed: {summary: 'Zarinpal failure', value: 'NOK'},
+        zarinpalFailed: {
+          summary: 'Zarinpal failure',
+          description:
+            'Transaction failed beacuse either ' +
+            '1. User canceled the transaction; or ' +
+            '2. Gateway had an internal error',
+          value: 'NOK',
+        },
       },
     })
     txStatus: string,
     @param.query.string('Authority', {
-      required: true,
+      required: false,
       examples: {
         zarinpal: {
-          summary: 'Zarinpal',
+          summary: 'Zarinpal autority',
           value: 'A00000000000000000000000009876543210',
         },
         idpay: {
           summary: 'IDPay',
+          value: undefined,
         },
       },
     })
     authority: string,
   ) {
     try {
-      const castedAuthority = this.subsService.castString(authority);
-      const foundCheckout = await this.checkoutsRepo.findById(castedAuthority);
+      const foundCheckout = await this.checkoutsRepo.findById(authority);
 
       if (foundCheckout) {
-        if (provider === 'zarinpal') {
-          if (txStatus === 'OK') {
+        switch (provider) {
+          case 'zarinpal':
+            // eslint-disable-next-line no-case-declarations
             const vTx = await this.subsService.verifyZarinpalTransaction(
               authority,
               foundCheckout.amount,
             );
-
-            if (vTx.status === 100) {
-              // eslint-disable-next-line @typescript-eslint/no-floating-promises
-              this.checkoutsRepo.updateById(foundCheckout.getId(), {
-                status: txStatus,
-                verifyRefId: vTx.RefID,
-              });
-            }
-          } else {
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            this.checkoutsRepo.updateById(foundCheckout.getId(), {
+            this.checkoutsRepo.updateById(authority, {
               status: txStatus,
+              verifyRefId: vTx.RefID,
             });
-          }
+            break;
 
-          return;
+          case 'idpay':
+            break;
+
+          default:
+            break;
         }
       }
+
+      return;
     } catch (err) {
-      throw new HttpErrors.UnprocessableEntity(err.message);
+      console.error(JSON.stringify(err));
+      throw new HttpErrors.UnprocessableEntity(err);
     }
   }
 }
