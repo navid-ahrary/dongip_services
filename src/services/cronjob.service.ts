@@ -3,19 +3,14 @@ import {repository} from '@loopback/repository';
 import {service, BindingScope} from '@loopback/core';
 import moment from 'moment';
 import debug from 'debug';
-const log = debug('loopback:cronjob');
+const log = debug('api:cronjob');
 
 import {SettingsRepository, UsersRepository} from '../repositories';
 import {FirebaseService, BatchMessage} from '../services';
-import {Settings, Users} from '../models';
+import {Settings} from '../models';
 
 @cronJob({scope: BindingScope.TRANSIENT})
 export class CronJobService extends CronJob {
-  readonly countRunInsts = +(process.env.instances ? process.env.instances : 1);
-  readonly currentInst = +(process.env.NODE_APP_INSTANCE
-    ? process.env.NODE_APP_INSTANCE
-    : 0);
-
   constructor(
     @repository(SettingsRepository)
     public settingsRepository: SettingsRepository,
@@ -24,16 +19,23 @@ export class CronJobService extends CronJob {
   ) {
     super({
       name: 'reminderNotifyJob',
+      onTick: async () => {
+        // Run cronjob only on one instance in pm2
+        if (
+          process.env.NODE_APP_INSTANCE === undefined ||
+          process.env.NODE_APP_INSTANCE === '0'
+        ) {
+          await this.sendReminderNotify();
+        }
+      },
       cronTime: '0 */10 * * * *',
       start: true,
-      onTick: async () => {
-        await this.sendReminderNotify();
-      },
     });
   }
 
   private async sendReminderNotify() {
     const nowUTC = moment.utc();
+
     const foundSettings = await this.settingsRepository.find({
       fields: {userId: true},
       where: {
@@ -48,58 +50,45 @@ export class CronJobService extends CronJob {
     });
 
     if (foundSettings.length) {
-      // Split job to runnnig instances for load-balancing
-      const countMaxInstanceQuota = Math.ceil(
-        foundSettings.length / this.countRunInsts,
+      const firebaseMessages = await this.generateFirebaseBatchMessage(
+        foundSettings,
       );
 
-      const settingsQuota: Settings[] = [];
-      for (let i = 0; i < countMaxInstanceQuota; i++) {
-        if (foundSettings[this.currentInst + i * this.countRunInsts]) {
-          settingsQuota.push(
-            foundSettings[this.currentInst + i * this.countRunInsts],
-          );
-        } else break;
-      }
+      if (firebaseMessages.length) {
+        await this.firebaseService.sendAllMessage(firebaseMessages);
 
-      const userIds = foundSettings.map((s) => s.userId);
-      const batchMessage = await this.generateBatchMessage(userIds);
-      if (batchMessage.length) {
-        await this.firebaseService.sendAllMessage(batchMessage).finally(() => {
-          log(
-            `Cronjob started at ${nowUTC},` +
-              `${batchMessage.length} notifications sent.`,
-          );
-        });
+        log(
+          `Cronjob started at ${nowUTC}, ${firebaseMessages.length} notifications sent`,
+        );
       }
     }
   }
 
-  private async generateBatchMessage(userIds: typeof Users.prototype.userId[]) {
+  private async generateFirebaseBatchMessage(settings: Settings[]) {
     const notifyTitle = 'وقتشه حساب کتاب‌هاتو دُنگیپ کنی';
     const notifyBodyMessage = 'امروز چه هزینه‌هایی داشتی ؟';
-    const messages: BatchMessage = [];
+    const firebaseMessages: BatchMessage = [];
 
-    const foundUsers = await this.usersRepository.find({
-      fields: {firebaseToken: true},
-      where: {userId: {inq: userIds}},
-    });
+    for (const setting of settings) {
+      const foundUser = await this.usersRepository.findById(setting.userId, {
+        fields: {firebaseToken: true},
+      });
 
-    foundUsers.forEach((user) => {
-      if (user.firebaseToken && user.firebaseToken !== 'null') {
-        messages.push({
-          token: user.firebaseToken,
-          notification: {title: notifyTitle, body: notifyBodyMessage},
+      if (foundUser.firebaseToken && foundUser.firebaseToken !== 'null') {
+        firebaseMessages.push({
+          token: foundUser.firebaseToken,
           android: {
             notification: {
+              title: notifyTitle,
+              body: notifyBodyMessage,
               clickAction: 'FLUTTER_NOTIFICATION_CLICK',
               visibility: 'public',
             },
           },
-          apns: {},
         });
       }
-    });
-    return messages;
+    }
+
+    return firebaseMessages;
   }
 }
