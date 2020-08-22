@@ -39,9 +39,7 @@
     "url": "git+https://gitlab.com/navid_ahrary/dongip_services.git"
   },
   "author": "Dongip team",
-  "contributors": [
-    "Navid Ahrary"
-  ],
+  "contributors": ["Navid Ahrary"],
   "license": "ISC",
   "files": [
     "README.md",
@@ -79,6 +77,7 @@
     "kavenegar": "^1.1.4",
     "lodash": "^4.17.19",
     "loopback-connector-mysql": "^5.4.3",
+    "loopback-connector-rest": "^3.7.0",
     "moment": "^2.27.0",
     "morgan": "^1.10.0",
     "underscore": "^1.10.2",
