@@ -35,11 +35,11 @@ export class SubscriptionService {
    * @param phone string
    */
   async getGatewayUrl(plan: string, phone: string): Promise<Gateway> {
-    return new Promise((resolve, reject) => {
-      const planAmount = +this.getCheckoutAmount(plan);
-      const callbackUrl =
-        process.env.BASE_URL + '/subscriptions/verify-transactions/zarinpal';
+    const planAmount = +this.getCheckoutAmount(plan);
+    const callbackUrl =
+      process.env.BASE_URL + '/subscriptions/verify-transactions/zarinpal';
 
+    return new Promise((resolve, reject) => {
       this.zarinpal
         .PaymentRequest({
           Amount: planAmount.toString(),
