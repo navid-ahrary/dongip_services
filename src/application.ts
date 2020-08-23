@@ -21,6 +21,7 @@ import {
 import {MetricsComponent, MetricsBindings} from '@loopback/extension-metrics';
 import {HealthComponent, HealthBindings} from '@loopback/extension-health';
 import {CronComponent} from '@loopback/cron';
+import path from 'path';
 
 import {MyAuthenticationSequence} from './sequence';
 import {UserAuthenticationComponent} from './components/user.authentication';
@@ -132,10 +133,13 @@ export class MyApplication extends BootMixin(
     this.component(CronComponent);
     this.add(createBindingFromClass(CronJobService));
 
+    this.static('/', path.join(__dirname, '../public'));
+
     // Customize @loopback/rest-explorer configuration here
     this.bind(RestExplorerBindings.CONFIG).to({
-      path: '/openapi',
+      path: '/explorer',
     });
+
     this.component(RestExplorerComponent);
 
     this.projectRoot = __dirname;
