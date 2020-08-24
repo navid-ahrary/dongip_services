@@ -22,6 +22,11 @@ export async function migrate(args: string[]) {
       'dongs',
       'bill_list',
       'payer_list',
+      'blacklist',
+      'categories_source',
+      'verify',
+      'links',
+      'checkouts',
     ],
   });
 
