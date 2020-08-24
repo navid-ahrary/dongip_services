@@ -2,12 +2,12 @@ version: "3.6"
 
 services:
   backend-db:
-    image: mariadb:${MARIADB_VERSION:-latest}
+    image: mariadb
     container_name: backend-db
     env_file:
       - .env
     volumes:
-      - ./mysql:/var/lib/mysql
+      - ~/docker-data/mariadb:/var/lib/mysql
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     environment:
