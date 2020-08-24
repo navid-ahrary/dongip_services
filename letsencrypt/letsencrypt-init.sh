@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 
 # check to see where the script is being run from and set local variables
-if [ -f .env ]; then
+if [ -f .env.docker ]; then
   echo "INFO: running from top level of repository"
-  source .env
+  source .env.docker
   LE_DIR=$(pwd)/letsencrypt
 else
-  if [ ! -f ../.env ]; then
-    echo "ERROR: Could not find the .env file?"
+  if [ ! -f ../.env.docker ]; then
+    echo "ERROR: Could not find the .env.docker file?"
     exit 1;
   fi
   echo "INFO: running from the letsencrypt directory"
-  source ../.env
+  source ../.env.docker
   LE_DIR=$(pwd)
   cd ../
 fi
