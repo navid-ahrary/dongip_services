@@ -5,7 +5,7 @@ services:
     image: mariadb:latest
     container_name: backend-db
     env_file:
-      - .docker.env
+      - .env.docker
     volumes:
       - ~/docker-data/mariadb:/var/lib/mysql
     ports:
@@ -24,7 +24,7 @@ services:
       - ./config:/usr/local/etc/php/conf.d/
       - ~/wordpress:/var/www/html
     env_file:
-      - .docker.env
+      - .env.docker
     environment:
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
       - WORDPRESS_TABLE_PREFIX=${WORDPRESS_TABLE_PREFIX:-wp_}
@@ -48,7 +48,7 @@ services:
       - ${SSL_CERTS_DIR:-~/docker-data/certs}:/etc/letsencrypt
       - ${SSL_CERTS_DATA_DIR:-~/docker-data/certs-data}:/data/letsencrypt
     env_file:
-      - .docker.env
+      - .env.docker
     depends_on:
       - backend-db
 
