@@ -22,7 +22,7 @@ services:
     container_name: wordpress
     volumes:
       - ./config:/usr/local/etc/php/conf.d/
-      - ~/docker-data/wordpress:/var/www/html
+      - ${WORDPRESS_DATA_DIR:-~/docker-data/wordpress}:/var/www/html
     env_file:
       - .env.docker
     environment:
