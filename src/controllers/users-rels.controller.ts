@@ -358,11 +358,21 @@ export class UsersRelsController {
           'application/json': {
             schema: {
               type: 'array',
-              items: {
-                name: {type: 'string'},
-                avatar: {type: 'string'},
-                phone: {type: 'string'},
-              },
+              items: getModelSchemaRef(Users, {
+                exclude: [
+                  'cafebazaarPurchaseToken',
+                  'username',
+                  'userId',
+                  'firebaseToken',
+                  'platform',
+                  'refreshToken',
+                  'region',
+                  'registeredAt',
+                  'roles',
+                  'userAgent',
+                ],
+                includeRelations: false,
+              }),
             },
           },
         },
