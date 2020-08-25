@@ -387,7 +387,7 @@ export class UsersRelsController {
       },
     })
     phonesList: string[],
-  ): Promise<Partial<Users>[]> {
+  ): Promise<Users[]> {
     let referenceRegionCode = '';
     const foundUser = await this.usersRepository.findById(this.userId, {
       fields: {phone: true, region: true},
