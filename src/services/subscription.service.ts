@@ -38,7 +38,7 @@ export interface SubscriptionSpecsInterface {
   };
 }
 
-const subscriptionFile: SubscriptionSpecsInterface = require('./specs/subscription-specs.json');
+const subscriptionFile: SubscriptionSpecsInterface = require('../../subscription-specs.json');
 
 @bind({scope: BindingScope.SINGLETON})
 export class SubscriptionService {
@@ -119,8 +119,8 @@ export class SubscriptionService {
       this.validatePlan(plan);
 
       return subscriptionFile.plans[plan].onSale
-        ? subscriptionFile.plans[plan].sale
-        : subscriptionFile.plans[plan].price;
+        ? subscriptionFile.plans[plan].sale['tomans']
+        : subscriptionFile.plans[plan].price['tomans'];
     } catch (error) {
       throw new Error(error.message);
     }
