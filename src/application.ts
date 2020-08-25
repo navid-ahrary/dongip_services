@@ -56,26 +56,6 @@ export const PackageKey = BindingKey.create<PackageInfo>('application.package');
 
 const pkg: PackageInfo = require('../package.json');
 
-/**
- * Subscription specs from subscriotion-scpecs.json
- */
-export interface SubscriptionSpecsInterface {
-  gatewayProviders: string[];
-  baseCallbackUrl: string;
-  plans: {
-    [key: string]: {
-      description: {[key: string]: string};
-      price: number;
-      sale: number;
-      onSale: boolean;
-    };
-  };
-}
-
-export const subscriptionKey = BindingKey.create<SubscriptionSpecsInterface>(
-  'application.subscription-specs',
-);
-
 export class MyApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
 ) {

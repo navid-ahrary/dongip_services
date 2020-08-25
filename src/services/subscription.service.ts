@@ -2,7 +2,6 @@ import {bind, BindingScope, inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {UsersRepository, CheckoutsRepository} from '../repositories';
 import {config} from 'dotenv';
-import {SubscriptionSpecsInterface} from '../application';
 
 config();
 
@@ -19,7 +18,27 @@ export interface VerifyTransaction {
   RefID: number;
 }
 
-const subscriptionFile: SubscriptionSpecsInterface = require('../../subscription-specs.json');
+/**
+ * Subscription specs from subscriotion-scpecs.json
+ */
+export interface SubscriptionSpecsInterface {
+  gatewayProviders: string[];
+  baseCallbackUrl: string;
+  plans: {
+    [key: string]: {
+      description: {[key: string]: string};
+      id: string;
+      name: string;
+      grade: string;
+      durationSec: number;
+      price: {[key: string]: number};
+      sale: {[key: string]: number};
+      onSale: boolean;
+    };
+  };
+}
+
+const subscriptionFile: SubscriptionSpecsInterface = require('./specs/subscription-specs.json');
 
 @bind({scope: BindingScope.SINGLETON})
 export class SubscriptionService {
@@ -149,6 +168,10 @@ export class SubscriptionService {
     }
 
     return;
+  }
+
+  getPlansList(): string[] {
+    return Object.keys(subscriptionFile.plans);
   }
 
   /**
