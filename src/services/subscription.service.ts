@@ -99,9 +99,9 @@ export class SubscriptionService {
     try {
       this.validatePlan(plan);
 
-      if (subscriptionFile.plans[plan].onSale) {
-        return subscriptionFile.plans[plan].sale;
-      } else return subscriptionFile.plans[plan].price;
+      return subscriptionFile.plans[plan].onSale
+        ? subscriptionFile.plans[plan].sale
+        : subscriptionFile.plans[plan].price;
     } catch (error) {
       throw new Error(error.message);
     }
