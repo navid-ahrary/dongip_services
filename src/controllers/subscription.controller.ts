@@ -21,7 +21,7 @@ export class SubscriptionsController {
   ) {}
 
   @intercept(ValidatePhoneNumInterceptor.BINDING_KEY)
-  @post('/subscriptions/{plan}/request-checkout/', {
+  @post('/subscriptions/request-checkout/', {
     summary: "Get payment's gateway url",
     responses: {
       200: {
@@ -62,7 +62,9 @@ export class SubscriptionsController {
     },
   })
   async getGatewayUrl(
-    @param.path.string('plan', {schema: {enum: ['G1M', 'G6M', 'G1Y']}})
+    @param.query.string('plan', {
+      schema: {enum: ['plan-1', 'plan-2', 'plan-3']},
+    })
     plan: string,
     @requestBody({
       content: {
