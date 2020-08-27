@@ -22,7 +22,7 @@ export async function migrate(args: string[]) {
       'dongs',
       'bill_list',
       'payer_list',
-      'blacklist',
+      'black_list',
       'categories_source',
       'verify',
       'links',
