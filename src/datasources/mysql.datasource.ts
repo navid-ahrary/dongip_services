@@ -12,7 +12,8 @@ const config = {
   user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
-  collation: 'utf8_general_ci',
+  charset: 'utf8mb4',
+  collation: 'utf8mb4_unicode_ci',
   supportBigNumbers: true,
 };
 
