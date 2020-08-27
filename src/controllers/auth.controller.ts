@@ -149,7 +149,6 @@ export class AuthController {
       },
     })
     verifyReqBody: Verify,
-    @param.header.string('user-agent') userAgent: string,
   ): Promise<{
     status: boolean;
     name: string;
@@ -161,6 +160,8 @@ export class AuthController {
       durationLimit = 5,
       randomCode = Math.random().toFixed(7).slice(3),
       randomStr = this.generateRandomString(3);
+
+    console.log(this.ctx.request.headers);
 
     const countRequstedVerifyCode = await this.verifyRepository.count({
       phone: verifyReqBody.phone,
@@ -198,8 +199,12 @@ export class AuthController {
         registered: user ? true : false,
         createdAt: nowUTC.toISOString(),
         region: this.phoneNumberService.getRegionCodeISO(verifyReqBody.phone),
-        userAgent: userAgent,
-        platform: userAgent.includes('iPhone') ? 'ios' : 'and',
+        userAgent: this.ctx.request.headers['user-agent']
+          ? this.ctx.request.headers['user-agent'].toString().toLowerCase()
+          : 'unknown',
+        platform: this.ctx.request.headers['platform']
+          ? this.ctx.request.headers['platform'].toString().toLowerCase()
+          : 'unknown',
       })
       .catch((err) => {
         throw new HttpErrors.NotAcceptable(err.message);
@@ -282,7 +287,6 @@ export class AuthController {
     })
     credentials: Credentials,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.header.string('user-agent') userAgent: string,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<{
     userId: typeof Users.prototype.userId;
@@ -304,9 +308,13 @@ export class AuthController {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepository.updateById(user.getId(), {
         firebaseToken: String(firebaseToken),
-        userAgent: userAgent,
         region: this.phoneNumberService.getRegionCodeISO(foundVerify.phone),
-        platform: userAgent === 'iPhone' ? 'ios' : 'and',
+        userAgent: this.ctx.request.headers['user-agent']
+          ? this.ctx.request.headers['user-agent'].toString().toLowerCase()
+          : 'unknown',
+        platform: this.ctx.request.headers['platform']
+          ? this.ctx.request.headers['platform'].toString().toLowerCase()
+          : 'unknown',
       });
 
       // Get total user's scores
@@ -405,7 +413,6 @@ export class AuthController {
     })
     newUser: NewUser,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.header.string('user-agent') userAgent: string,
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<{
     userId: typeof Users.prototype.userId;
@@ -433,8 +440,13 @@ export class AuthController {
       newUser.roles = ['GOLD'];
     }
     newUser.firebaseToken = String(firebaseToken);
-    newUser.userAgent = userAgent;
-    newUser.platform = userAgent === 'iPhone' ? 'ios' : 'and';
+
+    newUser.userAgent = this.ctx.request.headers['user-agent']
+      ? this.ctx.request.headers['user-agent'].toString().toLowerCase()
+      : 'unknown';
+    newUser.platform = this.ctx.request.headers['platform']
+      ? this.ctx.request.headers['platform'].toString().toLowerCase()
+      : 'unknown';
 
     delete newUser.password;
 
