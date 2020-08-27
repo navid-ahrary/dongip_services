@@ -145,10 +145,10 @@ export class Users extends Entity {
     type: 'string',
     required: true,
     default: 'and',
-    jsonSchema: {minLength: 3, maxLength: 3},
+    jsonSchema: {minLength: 3, maxLength: 20},
     mysql: {
       dataType: 'varchar',
-      dataLength: 3,
+      dataLength: 20,
       nullable: 'N',
     },
   })
