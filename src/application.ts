@@ -73,9 +73,11 @@ export class MyApplication extends BootMixin(
       info: {
         title: pkg.name,
         version: pkg.version,
+        description: 'API Gateway',
         contact: {
           name: 'Dongip Team',
           email: 'tellus@dongip.ir',
+          url: 'https://www.dongip.ir/about-us',
         },
       },
       paths: {},
