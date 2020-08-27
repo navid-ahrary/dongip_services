@@ -199,7 +199,7 @@ export class AuthController {
         createdAt: nowUTC.toISOString(),
         region: this.phoneNumberService.getRegionCodeISO(verifyReqBody.phone),
         userAgent: userAgent,
-        platform: userAgent === 'iPhone' ? 'ios' : 'and',
+        platform: userAgent.includes('iPhone') ? 'ios' : 'and',
       })
       .catch((err) => {
         throw new HttpErrors.NotAcceptable(err.message);
