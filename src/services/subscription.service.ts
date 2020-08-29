@@ -38,7 +38,7 @@ export interface SubscriptionSpecsInterface {
   };
 }
 
-const subscriptionFile: SubscriptionSpecsInterface = require('../../subscription-specs.json');
+const subscriptionFile: SubscriptionSpecsInterface = require('../../assets/subscription-specs.json');
 
 @bind({scope: BindingScope.SINGLETON})
 export class SubscriptionService {
