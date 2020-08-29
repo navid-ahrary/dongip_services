@@ -1,6 +1,6 @@
 import {Entity, model, property} from '@loopback/repository';
 
-@model({name: 'categories_source'})
+@model({name: 'categories_source', settings: {mysql: {engine: 'aria'}}})
 export class CategoriesSource extends Entity {
   @property({type: 'string', required: true, id: true}) title: string;
   @property({
