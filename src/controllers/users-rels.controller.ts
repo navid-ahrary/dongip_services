@@ -187,11 +187,11 @@ export class UsersRelsController {
         if (foundBiUserRel) {
           notifyType = 'biUserRel';
           notifyTitle = `سینک حساب با ${foundBiUserRel.name}`;
-          notifyBody = `${foundBiUserRel.name} هم شما رو دوست دنگیپش میدونه. از این به بعد حساب های مشترک بین تون سینک میشن`;
+          notifyBody = `${foundBiUserRel.name} هم شما رو دوست دنگیپش میدونه. از این به بعد حساب های مشترک بین تون همگام سازی میشن`;
         } else {
           notifyType = 'userRel';
           notifyTitle = 'دوستی جدید';
-          notifyBody = `${user.name} شما رو دوست دنگیپش میدونه، اگه میخایی حساب های مشترک بین تون سینک باشه، این پیام رو لمس کن و به دوستهات اضافه ش کن`;
+          notifyBody = `${user.name} شما رو دوست دنگیپش میدونه، اگه میخایی حساب های مشترک بین تون همگام سازی شن، این پیام رو لمس کن و به دوستهات اضافه ش کن`;
         }
 
         const createdNotify: Notifications = await this.usersRepository
