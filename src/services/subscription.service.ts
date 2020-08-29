@@ -31,7 +31,7 @@ export interface SubscriptionSpecsInterface {
       name: string;
       grade: string;
       durationSec: number;
-      price: {[key: string]: number};
+      regular: {[key: string]: number};
       sale: {[key: string]: number};
       onSale: boolean;
     };
@@ -120,7 +120,7 @@ export class SubscriptionService {
 
       return subscriptionFile.plans[plan].onSale
         ? subscriptionFile.plans[plan].sale['tomans']
-        : subscriptionFile.plans[plan].price['tomans'];
+        : subscriptionFile.plans[plan].regular['tomans'];
     } catch (error) {
       throw new Error(error.message);
     }

@@ -9,7 +9,7 @@
       "name": "golden-1-month",
       "grade": "golden",
       "durationSec": 2592000,
-      "price": {
+      "regular": {
         "tomans": 8000
       },
       "sale": {
@@ -25,7 +25,7 @@
       "name": "golden-6-months",
       "grade": "golden",
       "durationSec": 15552000,
-      "price": {
+      "regular": {
         "tomans": 45000
       },
       "sale": {
@@ -41,7 +41,7 @@
       "name": "golden-1-year",
       "grade": "golden",
       "durationSec": 31556952,
-      "price": {
+      "regular": {
         "tomans": 80000
       },
       "sale": {
