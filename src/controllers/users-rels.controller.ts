@@ -177,21 +177,19 @@ export class UsersRelsController {
         let notifyBody: string;
         let notifyType: string;
 
-        const foundBiUserRel:
-          | (UsersRels & UsersRelsRelations)
-          | null = await this.usersRelsRepository.findOne({
+        const foundBiUserRel = await this.usersRelsRepository.findOne({
           where: {userId: foundTargetUser.getId(), phone: user.phone},
           fields: {name: true},
         });
 
-        if (foundBiUserRel) {
-          notifyType = 'biUserRel';
-          notifyTitle = `سینک حساب با ${foundBiUserRel.name}`;
-          notifyBody = `${foundBiUserRel.name} هم شما رو دوست دنگیپش میدونه. از این به بعد حساب های مشترک بین تون همگام سازی میشن`;
-        } else {
+        if (!foundBiUserRel) {
           notifyType = 'userRel';
           notifyTitle = 'دوستی جدید';
           notifyBody = `${user.name} شما رو دوست دنگیپش میدونه، اگه میخایی حساب های مشترک بین تون همگام سازی شن، این پیام رو لمس کن و به دوستهات اضافه ش کن`;
+        } else {
+          notifyType = 'biUserRel';
+          notifyTitle = `همگام سازی حساب با ${foundBiUserRel.name}`;
+          notifyBody = `${foundBiUserRel.name} هم شما رو دوست دنگیپش میدونه. از این به بعد حساب های مشترک بین تون همگام سازی میشن`;
         }
 
         const createdNotify: Notifications = await this.usersRepository
