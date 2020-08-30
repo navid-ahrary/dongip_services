@@ -301,7 +301,7 @@ export class Users extends Entity {
     keyTo: 'userId',
     type: RelationType.hasOne,
     keyFrom: 'userId',
-    name: 'messages',
+    name: 'settings',
     source: Users,
     target: () => Settings,
     targetsMany: false,
