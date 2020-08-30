@@ -156,7 +156,7 @@ export class UsersRepository extends DefaultCrudRepository<
       'setting',
       settingsRepositoryGetter,
     );
-    this.registerInclusionResolver('settings', this.setting.inclusionResolver);
+    this.registerInclusionResolver('setting', this.setting.inclusionResolver);
 
     this.budgets = this.createHasManyRepositoryFactoryFor(
       'budgets',

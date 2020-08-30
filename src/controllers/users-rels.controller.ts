@@ -19,13 +19,7 @@ import _ from 'lodash';
 import moment from 'moment';
 
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {
-  UsersRels,
-  Users,
-  Settings,
-  UsersRelations,
-  Notifications,
-} from '../models';
+import {UsersRels, Users, Settings, Notifications} from '../models';
 import {
   UsersRepository,
   VirtualUsersRepository,
@@ -158,16 +152,14 @@ export class UsersRelsController {
       .virtualUsers(this.userId)
       .create({phone: userRelReqBody.phone, userRelId: createdUserRel.getId()});
 
-    const foundTargetUser:
-      | (Users & UsersRelations)
-      | null = await this.usersRepository.findOne({
+    const foundTargetUser = await this.usersRepository.findOne({
       where: {phone: userRelReqBody.phone},
       fields: {userId: true, firebaseToken: true},
     });
 
     if (foundTargetUser) {
       const foundTargetUserSettings: Settings = await this.usersRepository
-        .settings(foundTargetUser.getId())
+        .setting(foundTargetUser.getId())
         .get({fields: {userRelNotify: true}});
 
       // Target user desired to receiving userRel suggestion notificication

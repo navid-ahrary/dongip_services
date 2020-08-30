@@ -47,7 +47,7 @@ export class SettingsController {
   async findSettings(
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<Settings> {
-    return this.usersRepository.settings(this.userId).get();
+    return this.usersRepository.setting(this.userId).get();
   }
 
   @patch('/settings', {
@@ -74,6 +74,6 @@ export class SettingsController {
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<Count> {
     patchSettings.updatedAt = moment.utc().toISOString();
-    return this.usersRepository.settings(this.userId).patch(patchSettings);
+    return this.usersRepository.setting(this.userId).patch(patchSettings);
   }
 }
