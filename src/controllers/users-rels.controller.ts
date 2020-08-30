@@ -22,7 +22,6 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {
   UsersRels,
   Users,
-  UsersRelsRelations,
   Settings,
   UsersRelations,
   Notifications,
