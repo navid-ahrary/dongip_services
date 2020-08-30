@@ -69,26 +69,24 @@ export class CronJobService extends CronJob {
     const notifyBodyMessage = 'امروز چه هزینه‌هایی داشتی ؟';
     const firebaseMessages: BatchMessage = [];
 
-    for (const setting of settings) {
-      const foundUser = await this.usersRepository.findById(setting.userId, {
-        fields: {firebaseToken: true},
-      });
+    const userIdsList = settings.map((u) => u.userId);
+    const foundUsers = await this.usersRepository.find({
+      fields: {firebaseToken: true},
+      where: {userId: {inq: userIdsList}, firebaseToken: {neq: undefined}},
+    });
 
-      if (foundUser.firebaseToken && foundUser.firebaseToken !== 'null') {
-        firebaseMessages.push({
-          token: foundUser.firebaseToken,
-          android: {
-            notification: {
-              title: notifyTitle,
-              body: notifyBodyMessage,
-              clickAction: 'FLUTTER_NOTIFICATION_CLICK',
-              visibility: 'public',
-            },
+    for (const user of foundUsers) {
+      firebaseMessages.push({
+        token: user.firebaseToken,
+        notification: {title: notifyTitle, body: notifyBodyMessage},
+        android: {
+          notification: {
+            clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+            visibility: 'public',
           },
-        });
-      }
+        },
+      });
     }
-
     return firebaseMessages;
   }
 }
