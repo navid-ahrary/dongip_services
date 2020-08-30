@@ -193,4 +193,12 @@ export class SubscriptionsController {
       throw new HttpErrors.UnprocessableEntity(err);
     }
   }
+
+  @post('/subscriptions', {responses: {204: {description: ''}}})
+  getReport(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    @requestBody({content: {'application/json': {schema: {}}}}) reqBody: any,
+  ) {
+    console.log(reqBody);
+  }
 }
