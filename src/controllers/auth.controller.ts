@@ -161,8 +161,6 @@ export class AuthController {
       randomCode = Math.random().toFixed(7).slice(3),
       randomStr = this.generateRandomString(3);
 
-    console.log(this.ctx.request.headers);
-
     const countRequstedVerifyCode = await this.verifyRepository.count({
       phone: verifyReqBody.phone,
       loggedIn: false,
@@ -563,16 +561,13 @@ export class AuthController {
     },
   })
   @authenticate('jwt.access')
-  async logout(
-    @param.header.string('firebase-token') firebaseToken?: string,
-  ): Promise<void> {
-    // Blacklist the access token
-    await this.blacklistRepository
-      .create({
-        token: this.ctx.request.headers['authorization']!.split(' ')[1],
-      })
-      .catch((err) => {
-        throw new HttpErrors.NotImplemented(`Error logout: ${err.message}`);
-      });
+  logout(@inject(SecurityBindings.USER) currentUserProfile: UserProfile): void {
+    const userId = +currentUserProfile[securityId];
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.blacklistRepository.create({
+      token: this.ctx.request.headers['authorization']!.split(' ')[1],
+    });
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.usersRepository.updateById(userId, {firebaseToken: undefined});
   }
 }
