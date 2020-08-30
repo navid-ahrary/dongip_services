@@ -18,7 +18,7 @@ import {Groups} from './groups.model';
 import {Messages} from './messages.model';
 import {Notifications} from './notifications.model';
 import {Budgets} from './budgets.model';
-import {Settings} from './settings.model';
+import {Settings, SettingsWithRelations} from './settings.model';
 import {Checkouts} from './checkouts.model';
 
 @model({name: 'users'})
@@ -301,12 +301,12 @@ export class Users extends Entity {
     keyTo: 'userId',
     type: RelationType.hasOne,
     keyFrom: 'userId',
-    name: 'settings',
+    name: 'setting',
     source: Users,
     target: () => Settings,
     targetsMany: false,
   })
-  settings: Settings;
+  setting: Settings;
 
   @hasMany(() => Checkouts, {keyTo: 'userId'})
   checkouts: Checkouts[];
@@ -316,6 +316,8 @@ export class Users extends Entity {
   }
 }
 
-export interface UsersRelations {}
+export interface UsersRelations {
+  setting: SettingsWithRelations;
+}
 
 export type UsersWithRelations = Users & UsersRelations;

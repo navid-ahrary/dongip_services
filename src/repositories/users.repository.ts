@@ -100,7 +100,7 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
-  public readonly settings: HasOneRepositoryFactory<
+  public readonly setting: HasOneRepositoryFactory<
     Settings,
     typeof Users.prototype.userId
   >;
@@ -152,11 +152,11 @@ export class UsersRepository extends DefaultCrudRepository<
       this.checkouts.inclusionResolver,
     );
 
-    this.settings = this.createHasOneRepositoryFactoryFor(
-      'settings',
+    this.setting = this.createHasOneRepositoryFactoryFor(
+      'setting',
       settingsRepositoryGetter,
     );
-    this.registerInclusionResolver('settings', this.settings.inclusionResolver);
+    this.registerInclusionResolver('settings', this.setting.inclusionResolver);
 
     this.budgets = this.createHasManyRepositoryFactoryFor(
       'budgets',

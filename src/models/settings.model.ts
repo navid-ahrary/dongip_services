@@ -5,7 +5,7 @@ import {
   belongsTo,
   RelationType,
 } from '@loopback/repository';
-import {Users} from './users.model';
+import {Users, UsersWithRelations} from './users.model';
 
 @model({
   name: 'settings',
@@ -174,7 +174,7 @@ export class Settings extends Entity {
 }
 
 export interface SettingsRelations {
-  // describe navigational properties here
+  user: UsersWithRelations;
 }
 
 export type SettingsWithRelations = Settings & SettingsRelations;

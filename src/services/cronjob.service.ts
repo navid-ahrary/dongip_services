@@ -7,7 +7,6 @@ const log = debug('api:cronjob');
 
 import {SettingsRepository, UsersRepository} from '../repositories';
 import {FirebaseService, BatchMessage} from '../services';
-import {Settings} from '../models';
 
 @cronJob({scope: BindingScope.TRANSIENT})
 export class CronJobService extends CronJob {
@@ -47,46 +46,42 @@ export class CronJobService extends CronJob {
           ],
         },
       },
+      include: [
+        {
+          relation: 'user',
+          scope: {
+            fields: {userId: true, firebaseToken: true},
+            where: {firebaseToken: {neq: null}},
+          },
+        },
+      ],
     });
 
-    if (foundSettings.length) {
-      const firebaseMessages = await this.generateFirebaseBatchMessage(
-        foundSettings,
-      );
-
-      if (firebaseMessages.length) {
-        await this.firebaseService.sendAllMessage(firebaseMessages);
-
-        log(
-          `Cronjob started at ${nowUTC}, ${firebaseMessages.length} notifications sent`,
-        );
-      }
-    }
-  }
-
-  private async generateFirebaseBatchMessage(settings: Settings[]) {
     const notifyTitle = 'وقتشه حساب کتاب‌هاتو دُنگیپ کنی';
     const notifyBodyMessage = 'امروز چه هزینه‌هایی داشتی ؟';
     const firebaseMessages: BatchMessage = [];
 
-    const userIdsList = settings.map((u) => u.userId);
-    const foundUsers = await this.usersRepository.find({
-      fields: {firebaseToken: true},
-      where: {userId: {inq: userIdsList}, firebaseToken: {neq: undefined}},
-    });
-
-    for (const user of foundUsers) {
-      firebaseMessages.push({
-        token: user.firebaseToken,
-        notification: {title: notifyTitle, body: notifyBodyMessage},
-        android: {
-          notification: {
-            clickAction: 'FLUTTER_NOTIFICATION_CLICK',
-            visibility: 'public',
+    for (const setting of foundSettings) {
+      if (setting.user) {
+        firebaseMessages.push({
+          token: setting.user.firebaseToken,
+          notification: {title: notifyTitle, body: notifyBodyMessage},
+          android: {
+            notification: {
+              clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+              visibility: 'public',
+            },
           },
-        },
-      });
+        });
+      }
     }
-    return firebaseMessages;
+
+    if (firebaseMessages.length) {
+      await this.firebaseService.sendAllMessage(firebaseMessages);
+
+      log(
+        `Cronjob started at ${nowUTC}, ${firebaseMessages.length} notifications sent`,
+      );
+    }
   }
 }
