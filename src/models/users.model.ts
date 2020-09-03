@@ -19,7 +19,7 @@ import {Messages} from './messages.model';
 import {Notifications} from './notifications.model';
 import {Budgets} from './budgets.model';
 import {Settings, SettingsWithRelations} from './settings.model';
-import {Checkouts} from './checkouts.model';
+import {SubscriptionTransactions} from './subscription-tranasctions.model';
 
 @model({name: 'users'})
 export class Users extends Entity {
@@ -58,6 +58,19 @@ export class Users extends Entity {
     },
   })
   phone: string;
+
+  @property({
+    type: 'string',
+    required: false,
+    index: {unique: true},
+    jsonSchema: {maxLength: 100},
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 100,
+      nullable: 'Y',
+    },
+  })
+  email?: string;
 
   @property({
     type: 'string',
@@ -118,6 +131,26 @@ export class Users extends Entity {
   roles: string[];
 
   @property({
+    type: 'date',
+    mysql: {
+      columnName: 'start_of_life',
+      dataType: 'datetime',
+      nullable: 'Y',
+    },
+  })
+  startOfLife: string;
+
+  @property({
+    type: 'date',
+    mysql: {
+      columnName: 'end_of_life',
+      dataType: 'datetime',
+      nullable: 'Y',
+    },
+  })
+  endOfLife: string;
+
+  @property({
     type: 'string',
     default: 'null',
     mysql: {
@@ -145,10 +178,10 @@ export class Users extends Entity {
     type: 'string',
     required: true,
     default: 'and',
-    jsonSchema: {minLength: 3, maxLength: 20},
+    jsonSchema: {minLength: 3, maxLength: 10},
     mysql: {
       dataType: 'varchar',
-      dataLength: 20,
+      dataLength: 10,
       nullable: 'N',
     },
   })
@@ -164,17 +197,6 @@ export class Users extends Entity {
     },
   })
   region: string;
-
-  @property({
-    type: 'string',
-    mysql: {
-      columnName: 'cafebazaar_purchase_token',
-      dataType: 'varchar',
-      dataLength: 512,
-      nullable: 'Y',
-    },
-  })
-  cafebazaarPurchaseToken?: string;
 
   @hasMany(() => VirtualUsers, {
     name: 'virtualUsers',
@@ -308,8 +330,8 @@ export class Users extends Entity {
   })
   setting: Settings;
 
-  @hasMany(() => Checkouts, {keyTo: 'userId'})
-  checkouts: Checkouts[];
+  @hasMany(() => SubscriptionTransactions, {keyTo: 'userId', name: 'subscTx'})
+  subscriptionTransactions: SubscriptionTransactions[];
 
   constructor(data?: Partial<Users>) {
     super(data);

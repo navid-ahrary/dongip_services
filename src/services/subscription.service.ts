@@ -1,7 +1,11 @@
 import {bind, BindingScope, inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {UsersRepository, CheckoutsRepository} from '../repositories';
+import {UsersRepository} from '../repositories';
+
 import {config} from 'dotenv';
+import moment from 'moment';
+
+import {Users} from '../models';
 
 config();
 
@@ -26,27 +30,62 @@ export interface SubscriptionSpecsInterface {
   baseCallbackUrl: string;
   plans: {
     [key: string]: {
-      description: {[key: string]: string};
       id: string;
       name: string;
       grade: string;
-      durationSec: number;
+      duration: {
+        unit: string;
+        amount: number;
+      };
       regular: {[key: string]: number};
       sale: {[key: string]: number};
       onSale: boolean;
+      description: {[key: string]: string};
     };
   };
 }
 
-const subscriptionFile: SubscriptionSpecsInterface = require('../../assets/subscription-specs.json');
+const subscriptionFile: SubscriptionSpecsInterface = require('../../subscription-specs.json');
 
 @bind({scope: BindingScope.SINGLETON})
 export class SubscriptionService {
   constructor(
     @repository(UsersRepository) public usersRepo: UsersRepository,
-    @repository(CheckoutsRepository) public checksRepo: CheckoutsRepository,
     private zarinpal = ZarinpalCheckout.create(merchantId, false),
   ) {}
+
+  async getSubscriptionStatus(userId: typeof Users.prototype.userId) {}
+
+  /** Perform subsciption on user
+   *
+   * @param userId number
+   * @param planId string
+   *
+   * @returns {Promise} string
+   */
+  async performSubscription(
+    userId: typeof Users.prototype.userId,
+    planId: string,
+  ) {
+    try {
+      const planDuration = this.getPlanDuration(planId);
+
+      const solTimeUTCISO = moment.utc().toISOString();
+      const eolTimeUTCISO = moment.utc().add(planDuration, 's').toISOString();
+
+      await this.usersRepo
+        .updateById(userId, {
+          roles: ['GOLD'],
+          startOfLife: solTimeUTCISO,
+          endOfLife: eolTimeUTCISO,
+        })
+        .then(() => {
+          return {endOfLife: eolTimeUTCISO};
+        });
+    } catch (error) {
+      throw new Error(`Perform subscription error: ${error}`);
+    }
+  }
 
   /** Get checkout's gateway url
    *
@@ -54,7 +93,8 @@ export class SubscriptionService {
    * @param phone string
    */
   async getGatewayUrl(plan: string, phone: string): Promise<Gateway> {
-    const planAmount = +this.getCheckoutAmount(plan);
+    const planAmount = +this.getCheckoutAmountTomans(plan);
+
     const callbackUrl =
       process.env.BASE_URL + '/subscriptions/verify-transactions/zarinpal';
 
@@ -114,7 +154,7 @@ export class SubscriptionService {
    * @param plan string
    * @returns number
    */
-  getCheckoutAmount(plan: string): number {
+  getCheckoutAmountTomans(plan: string): number {
     try {
       this.validatePlan(plan);
 
@@ -172,6 +212,20 @@ export class SubscriptionService {
 
   getPlansList(): string[] {
     return Object.keys(subscriptionFile.plans);
+  }
+
+  /**
+   *
+   * @param planId string
+   * @returns number
+   */
+  getPlanDuration(planId: string) {
+    const plans = subscriptionFile.plans;
+
+    for (const p in plans) {
+      if (plans[p].id === planId) return +plans[p].duration.amount;
+      else continue;
+    }
   }
 
   /**

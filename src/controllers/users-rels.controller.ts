@@ -349,7 +349,6 @@ export class UsersRelsController {
               type: 'array',
               items: getModelSchemaRef(Users, {
                 exclude: [
-                  'cafebazaarPurchaseToken',
                   'username',
                   'userId',
                   'firebaseToken',

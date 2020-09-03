@@ -29,7 +29,7 @@ import {
   Notifications,
   Budgets,
   Settings,
-  Checkouts,
+  SubscriptionTransactions,
 } from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
@@ -39,7 +39,7 @@ import {MessagesRepository} from './messages.repository';
 import {NotificationsRepository} from './notifications.repository';
 import {BudgetsRepository} from './budgets.repository';
 import {SettingsRepository} from './settings.repository';
-import {CheckoutsRepository} from './checkouts.repository';
+import {SubscriptionTransactionsRepository} from './subscription-transactions.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
@@ -105,8 +105,8 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
-  public readonly checkouts: HasManyRepositoryFactory<
-    Checkouts,
+  public readonly subscTx: HasManyRepositoryFactory<
+    SubscriptionTransactions,
     typeof Users.prototype.userId
   >;
 
@@ -138,19 +138,18 @@ export class UsersRepository extends DefaultCrudRepository<
     protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
     @repository.getter('SettingsRepository')
     protected settingsRepositoryGetter: Getter<SettingsRepository>,
-    @repository.getter('CheckoutsRepository')
-    protected checkoutsRepositoryGetter: Getter<CheckoutsRepository>,
+    @repository.getter('SubscriptionTransactionsRepository')
+    protected subscTxRepositoryGetter: Getter<
+      SubscriptionTransactionsRepository
+    >,
   ) {
     super(Users, dataSource);
 
-    this.checkouts = this.createHasManyRepositoryFactoryFor(
-      'checkouts',
-      checkoutsRepositoryGetter,
+    this.subscTx = this.createHasManyRepositoryFactoryFor(
+      'subscTx',
+      subscTxRepositoryGetter,
     );
-    this.registerInclusionResolver(
-      'checkouts',
-      this.checkouts.inclusionResolver,
-    );
+    this.registerInclusionResolver('subscTx', this.subscTx.inclusionResolver);
 
     this.setting = this.createHasOneRepositoryFactoryFor(
       'setting',

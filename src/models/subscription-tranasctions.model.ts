@@ -9,34 +9,34 @@ import {
 import {Users} from './users.model';
 
 @model({
-  name: 'checkouts',
+  name: 'subscription_transactions',
   settings: {
     foreignKeys: {
       fkCheckoutsUserId: {
-        name: 'fk_checkouts_user_id',
+        name: 'fk_subscription_transactions_user_id',
         entity: 'users',
         entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
-        onDelete: 'no action',
+        onDelete: 'cascade',
       },
     },
   },
 })
-export class Checkouts extends Entity {
+export class SubscriptionTransactions extends Entity {
   @property({
     type: 'string',
     id: true,
     required: true,
     generated: false,
     mysql: {
-      columnName: 'checkout_id',
+      columnName: 'wc_transaction_key',
       dataType: 'varchar',
-      dataLength: 40,
+      dataLength: 50,
       nullable: 'N',
     },
   })
-  checkoutId: string;
+  wcTransactionKey: string;
 
   @belongsTo(
     () => Users,
@@ -57,29 +57,8 @@ export class Checkouts extends Entity {
   @property({
     type: 'string',
     required: true,
-    index: {normal: true},
-    jsonSchema: {minLength: 10, maxLength: 20},
-    mysql: {dataLength: 20, nullable: 'N'},
-  })
-  phone: string;
-
-  @property({
-    type: 'string',
-    required: true,
-    jsonSchema: {minLength: 3, maxLength: 30},
-    mysql: {
-      dataType: 'varchar',
-      dataLength: 30,
-      nullable: 'N',
-    },
-  })
-  name: string;
-
-  @property({
-    type: 'string',
-    required: true,
     jsonSchema: {minLength: 3, maxLength: 3},
-    mysql: {dateaLength: 3, nullable: 'N'},
+    mysql: {dataType: 'varchar', dataLength: 3, nullable: 'N'},
   })
   plan: string;
 
@@ -88,19 +67,7 @@ export class Checkouts extends Entity {
     required: true,
     mysql: {dataType: 'int', nullable: 'N'},
   })
-  amount: number;
-
-  @property({
-    type: 'string',
-    required: true,
-    mysql: {
-      columnName: 'gateway_url',
-      dataType: 'varchar',
-      dataLength: 200,
-      nullable: 'N',
-    },
-  })
-  gatewayUrl: string;
+  price: number;
 
   @property({
     type: 'string',
@@ -116,24 +83,42 @@ export class Checkouts extends Entity {
 
   @property({
     type: 'number',
+    required: true,
     mysql: {
       columnName: 'verify_ref_id',
       dataType: 'bigint',
-      nullable: 'Y',
+      nullable: 'N',
     },
   })
   verifyRefId: number;
 
-  constructor(data?: Partial<Checkouts>) {
+  @property({
+    type: 'date',
+    default: 'now',
+    required: true,
+    mysql: {
+      columnName: 'created_at',
+      dataType: 'datetime',
+      nullable: 'N',
+    },
+  })
+  createdAt: string;
+
+  constructor(data?: Partial<SubscriptionTransactions>) {
     super(data);
   }
 }
 
-export interface CheckoutsRelations {}
+export interface SubscriptionTransactionsRelations {}
 
-export type CheckoutsWithRelations = Checkouts & CheckoutsRelations;
+export type SubscriptionTransactionsWithRelations = SubscriptionTransactions &
+  SubscriptionTransactionsRelations;
 
 @model()
-export class CheckoutsRequest extends Model {
-  @property({type: 'string', required: true}) phone: string;
+export class SubscTxReport extends Model {
+  @property({type: 'string', required: false}) phone?: string;
+  @property({type: 'string', required: false}) email?: string;
+  @property({type: 'string', required: true}) transactionKey: string;
+  @property({type: 'string', required: true}) sku: string;
+  @property({type: 'string', required: true}) price: string;
 }
