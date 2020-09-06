@@ -13,3 +13,4 @@ export * from './groups-budgets.controller';
 export * from './budgets.controller';
 export * from './settings.controller';
 export * from './subscription.controller';
+export * from './purchases.controller';

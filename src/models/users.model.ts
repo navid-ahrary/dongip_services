@@ -19,7 +19,7 @@ import {Messages} from './messages.model';
 import {Notifications} from './notifications.model';
 import {Budgets} from './budgets.model';
 import {Settings, SettingsWithRelations} from './settings.model';
-import {SubscriptionTransactions} from './subscription-tranasctions.model';
+import {Purchases} from './purchases.model';
 
 @model({name: 'users'})
 export class Users extends Entity {
@@ -330,8 +330,8 @@ export class Users extends Entity {
   })
   setting: Settings;
 
-  @hasMany(() => SubscriptionTransactions, {keyTo: 'userId', name: 'subscTx'})
-  subscriptionTransactions: SubscriptionTransactions[];
+  @hasMany(() => Purchases, {keyTo: 'userId'})
+  purchases: Purchases[];
 
   constructor(data?: Partial<Users>) {
     super(data);

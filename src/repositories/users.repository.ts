@@ -29,7 +29,8 @@ import {
   Notifications,
   Budgets,
   Settings,
-  SubscriptionTransactions,
+  Checkouts,
+  Purchases,
 } from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
@@ -39,7 +40,8 @@ import {MessagesRepository} from './messages.repository';
 import {NotificationsRepository} from './notifications.repository';
 import {BudgetsRepository} from './budgets.repository';
 import {SettingsRepository} from './settings.repository';
-import {SubscriptionTransactionsRepository} from './subscription-transactions.repository';
+import {CheckoutsRepository} from './checkouts.repository';
+import {PurchasesRepository} from './purchases.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
@@ -110,6 +112,11 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
+  public readonly purchases: HasManyRepositoryFactory<
+    Purchases,
+    typeof Users.prototype.userId
+  >;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -138,12 +145,20 @@ export class UsersRepository extends DefaultCrudRepository<
     protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
     @repository.getter('SettingsRepository')
     protected settingsRepositoryGetter: Getter<SettingsRepository>,
-    @repository.getter('SubscriptionTransactionsRepository')
-    protected subscTxRepositoryGetter: Getter<
-      SubscriptionTransactionsRepository
-    >,
+    @repository.getter('CheckoutsRepository')
+    protected checkoutsRepositoryGetter: Getter<CheckoutsRepository>,
+    @repository.getter('PurchasesRepository')
+    protected purchasesRepositoryGetter: Getter<PurchasesRepository>,
   ) {
     super(Users, dataSource);
+    this.purchases = this.createHasManyRepositoryFactoryFor(
+      'purchases',
+      purchasesRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'purchases',
+      this.purchases.inclusionResolver,
+    );
 
     this.subscTx = this.createHasManyRepositoryFactoryFor(
       'subscTx',

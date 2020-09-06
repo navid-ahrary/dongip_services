@@ -3,23 +3,19 @@ import {
   repository,
   BelongsToAccessor,
 } from '@loopback/repository';
-import {
-  SubscriptionTransactions,
-  SubscriptionTransactionsRelations,
-  Users,
-} from '../models';
+import {Purchases, PurchasesRelations, Users} from '../models';
 import {MysqlDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
 import {UsersRepository} from './users.repository';
 
-export class SubscriptionTransactionsRepository extends DefaultCrudRepository<
-  SubscriptionTransactions,
-  typeof SubscriptionTransactions.prototype.wcTransactionKey,
-  SubscriptionTransactionsRelations
+export class PurchasesRepository extends DefaultCrudRepository<
+  Purchases,
+  typeof Purchases.prototype.purchaseId,
+  PurchasesRelations
 > {
   public readonly user: BelongsToAccessor<
     Users,
-    typeof SubscriptionTransactions.prototype.wcTransactionKey
+    typeof Purchases.prototype.purchaseId
   >;
 
   constructor(
@@ -27,7 +23,7 @@ export class SubscriptionTransactionsRepository extends DefaultCrudRepository<
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
-    super(SubscriptionTransactions, dataSource);
+    super(Purchases, dataSource);
 
     this.user = this.createBelongsToAccessorFor('user', usersRepositoryGetter);
     this.registerInclusionResolver('user', this.user.inclusionResolver);

@@ -56,6 +56,30 @@ export const PackageKey = BindingKey.create<PackageInfo>('application.package');
 
 const pkg: PackageInfo = require('../package.json');
 
+/**
+ * Subscription specs from subscriotion-scpecs.json
+ */
+export interface SubscriptionSpec {
+  gatewayProviders: string[];
+  baseCallbackUrl: string;
+  plans: {
+    [key: string]: {
+      description: {[key: string]: string};
+      id: string;
+      name: string;
+      grade: string;
+      durationSec: number;
+      regular: {[key: string]: number};
+      sale: {[key: string]: number};
+      onSale: boolean;
+    };
+  };
+}
+export const SubscriptionSpec = BindingKey.create<SubscriptionSpec>(
+  'application.subscriptionSpec',
+);
+const subsSpec: SubscriptionSpec = require('../subscription-specs.json');
+
 export class MyApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
 ) {
@@ -87,7 +111,7 @@ export class MyApplication extends BootMixin(
       servers: [{url: '/', description: 'API Gateway'}],
     });
 
-    this.hashRound = Number(process.env.HASH_ROUND);
+    this.hashRound = +process.env.HASH_ROUND!;
 
     this.setupBinding();
 
@@ -153,6 +177,9 @@ export class MyApplication extends BootMixin(
 
     // Bind package.json to the application context
     this.bind(PackageKey).to(pkg);
+
+    // Bind subscription specs to the context
+    this.bind(SubscriptionSpec).to(subsSpec);
 
     this.bind(TokenServiceBindings.TOKEN_SECRET).to(
       TokenServiceConstants.TOKEN_SECRET_VALUE!,
