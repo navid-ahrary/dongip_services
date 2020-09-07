@@ -29,7 +29,6 @@ import {
   Notifications,
   Budgets,
   Settings,
-  Checkouts,
   Purchases,
 } from '../models';
 import {BillListRepository} from './bill-list.repository';
@@ -40,7 +39,6 @@ import {MessagesRepository} from './messages.repository';
 import {NotificationsRepository} from './notifications.repository';
 import {BudgetsRepository} from './budgets.repository';
 import {SettingsRepository} from './settings.repository';
-import {CheckoutsRepository} from './checkouts.repository';
 import {PurchasesRepository} from './purchases.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
@@ -107,11 +105,6 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
-  public readonly subscTx: HasManyRepositoryFactory<
-    SubscriptionTransactions,
-    typeof Users.prototype.userId
-  >;
-
   public readonly purchases: HasManyRepositoryFactory<
     Purchases,
     typeof Users.prototype.userId
@@ -145,8 +138,6 @@ export class UsersRepository extends DefaultCrudRepository<
     protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
     @repository.getter('SettingsRepository')
     protected settingsRepositoryGetter: Getter<SettingsRepository>,
-    @repository.getter('CheckoutsRepository')
-    protected checkoutsRepositoryGetter: Getter<CheckoutsRepository>,
     @repository.getter('PurchasesRepository')
     protected purchasesRepositoryGetter: Getter<PurchasesRepository>,
   ) {
@@ -159,12 +150,6 @@ export class UsersRepository extends DefaultCrudRepository<
       'purchases',
       this.purchases.inclusionResolver,
     );
-
-    this.subscTx = this.createHasManyRepositoryFactoryFor(
-      'subscTx',
-      subscTxRepositoryGetter,
-    );
-    this.registerInclusionResolver('subscTx', this.subscTx.inclusionResolver);
 
     this.setting = this.createHasOneRepositoryFactoryFor(
       'setting',

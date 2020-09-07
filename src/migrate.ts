@@ -26,7 +26,8 @@ export async function migrate(args: string[]) {
       'categories_source',
       'verify',
       'links',
-      'subscription_transactions',
+      'purchases',
+      'subscriptions',
     ],
   });
 

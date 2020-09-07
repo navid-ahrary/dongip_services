@@ -18,3 +18,4 @@ export * from './budgets.model';
 export * from './settings.model';
 export * from './links.model';
 export * from './purchases.model';
+export * from './subscriptions.model';

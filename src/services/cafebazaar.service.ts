@@ -34,7 +34,7 @@ export class CafebazaarService {
   private readonly refreshToken = process.env.CAFEBAZAAR_REFRESH_TOKEN;
   private readonly clientId = process.env.CAFEBAZAAR_CLIENT_ID;
   private readonly clientSecret = process.env.CAFEBAZAAR_CLIENT_SECRET;
-  private readonly baseUrl = process.env.CAFEBAZAAR_API_BASEURL;
+  private readonly baseURL = process.env.CAFEBAZAAR_API_BASEURL;
 
   constructor() {}
 
@@ -47,9 +47,10 @@ export class CafebazaarService {
     });
 
     try {
+      const apiPath = '/auth/token/';
       const result = await axios({
         method: 'POST',
-        url: this.baseUrl + '/auth/token/',
+        url: this.baseURL + apiPath,
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -69,18 +70,19 @@ export class CafebazaarService {
     try {
       const data = await this.getAccessToken();
 
-      const apiEndpoint =
-        `${this.baseUrl}/api/validate/${this.packageName}` +
+      const apiPath =
+        `/api/validate/${this.packageName}` +
         `/inapp/${args.productId}/purchases/${args.purchaseToken}/`;
 
       const result = await axios({
         method: 'GET',
         headers: {Authorization: data.access_token},
-        url: apiEndpoint,
+        url: this.baseURL + apiPath,
       });
 
       return result.data;
     } catch (err) {
+      console.log(err);
       if (err.response.status === 404) {
         return err.response.data;
       } else {
