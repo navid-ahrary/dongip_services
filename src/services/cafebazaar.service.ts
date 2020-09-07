@@ -69,10 +69,14 @@ export class CafebazaarService {
     try {
       const data = await this.getAccessToken();
 
+      const apiEndpoint =
+        `${this.baseUrl}/api/validate/${this.packageName}` +
+        `/inapp/${args.productId}/purchases/${args.purchaseToken}/`;
+
       const result = await axios({
         method: 'GET',
         headers: {Authorization: data.access_token},
-        url: `${this.baseUrl}/api/validate/${this.packageName}/inapp/${args.productId}/purchases/${args.purchaseToken}/`,
+        url: apiEndpoint,
       });
 
       return result.data;
