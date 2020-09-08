@@ -123,23 +123,27 @@ export class PurchasesController {
       });
 
       if (
-        purchaseStatus.error === 'not_found' &&
-        purchaseStatus.error_description ===
-          'The requested purchase is not found!'
+        (purchaseStatus.error === 'not_found' &&
+          purchaseStatus.error_description ===
+            'The requested purchase is not found!') ||
+        (purchaseStatus.error === 'invalid_value' &&
+          purchaseStatus.error_description === 'Product is not found.')
       ) {
         const errMsg =
-          'متاسفانه توکن خرید به تایید کافه‌بازار نرسید. ' +
+          'متاسفانه خرید انجام شده به تایید کافه‌بازار نرسید. ' +
           'جهت رفع هرگونه ابهام یا مغایرت، با پشتیبانی دُنگیپ تماس بگیرید';
 
-        console.error(`userId ${this.userId} ${errMsg}: ${purchaseStatus}`);
+        console.error(
+          `userId ${this.userId} ${errMsg}: ${JSON.stringify(purchaseStatus)}`,
+        );
 
         throw new HttpErrors.UnprocessableEntity(errMsg);
       } else if (purchaseStatus.purchaseState === 0) {
-        purchaseTime = moment(purchaseStatus.purchaseTime).toISOString();
+        purchaseTime = moment(purchaseStatus.purchaseTime).utc().toISOString();
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.subsService
-          .performSubscription(this.userId, planId)
+          .performSubscription(this.userId, planId, purchaseTime)
           .then(async (subs) => {
             await this.sendNotification(this.userId, subs);
           });
@@ -158,7 +162,9 @@ export class PurchasesController {
           'هزینه پرداخت شده حداکثر تا ۲۴ ساعت آینده به حسابتان واریز می‌شود' +
           'جهت رفع هرگونه ابهام یا مغایرت، با پشتیبانی دُنگیپ تماس بگیرید';
 
-        console.error(`userId ${this.userId} ${errMsg}: ${purchaseStatus}`);
+        console.error(
+          `userId ${this.userId} ${errMsg}: ${JSON.stringify(purchaseStatus)}`,
+        );
 
         throw new HttpErrors.UnprocessableEntity(errMsg);
       }

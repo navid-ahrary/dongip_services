@@ -39,6 +39,7 @@ export class SubscriptionService {
   async performSubscription(
     userId: typeof Users.prototype.userId,
     planId: string,
+    purchaseTime: string,
   ) {
     const durationAmount = this.subsSpec.plans[planId].duration.amount;
     const durationUnit = this.subsSpec.plans[planId].duration.unit;
@@ -53,8 +54,10 @@ export class SubscriptionService {
       sol = currentEOL;
       eol = moment(currentEOL).add(durationAmount, durationUnit).toISOString();
     } else {
-      sol = moment.utc().toISOString();
-      eol = moment.utc().add(durationAmount, durationUnit).toISOString();
+      sol = moment(purchaseTime).toISOString();
+      eol = moment(purchaseTime)
+        .add(durationAmount, durationUnit)
+        .toISOString();
     }
 
     const subs = await this.usersRepo

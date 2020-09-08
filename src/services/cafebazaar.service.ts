@@ -19,8 +19,10 @@ export interface ValidPurchaseResponse {
   kind?: string;
   developerPayload?: string;
   purchaseTime?: number;
-  error?: 'not_found';
-  error_description?: 'The requested purchase is not found!';
+  error?: 'not_found' | 'invalid_value';
+  error_description?:
+    | 'The requested purchase is not found!'
+    | 'Product is not found.';
 }
 
 export interface Purchase {
@@ -82,7 +84,6 @@ export class CafebazaarService {
 
       return result.data;
     } catch (err) {
-      console.log(err);
       if (err.response.status === 404) {
         return err.response.data;
       } else {
