@@ -116,6 +116,7 @@ export class AuthController {
                 name: {type: 'string'},
                 avatar: {type: 'string'},
                 prefix: {type: 'string'},
+                verifyToken: {type: 'string'},
               },
             },
           },
