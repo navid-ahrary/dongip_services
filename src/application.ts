@@ -63,14 +63,14 @@ export interface SubscriptionSpec {
   gatewayProviders: string[];
   baseCallbackUrl: string;
   plans: {
-    [key: string]: {
-      description: {[key: string]: string};
+    [planId: string]: {
+      description: {[language: string]: string};
       id: string;
       name: string;
       grade: string;
-      durationSec: number;
-      regular: {[key: string]: number};
-      sale: {[key: string]: number};
+      duration: {unit: 'month' | 'months' | 'year'; amount: number};
+      regular: {[currency: string]: number};
+      sale: {[currency: string]: number};
       onSale: boolean;
     };
   };

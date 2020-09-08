@@ -19,8 +19,8 @@ import {Messages} from './messages.model';
 import {Notifications} from './notifications.model';
 import {Budgets} from './budgets.model';
 import {Settings, SettingsWithRelations} from './settings.model';
-import {Checkouts} from './checkouts.model';
 import {Purchases} from './purchases.model';
+import {Subscriptions} from './subscriptions.model';
 
 @model({name: 'users'})
 export class Users extends Entity {
@@ -130,26 +130,6 @@ export class Users extends Entity {
     },
   })
   roles: string[];
-
-  @property({
-    type: 'date',
-    mysql: {
-      columnName: 'start_of_life',
-      dataType: 'datetime',
-      nullable: 'Y',
-    },
-  })
-  startOfLife: string;
-
-  @property({
-    type: 'date',
-    mysql: {
-      columnName: 'end_of_life',
-      dataType: 'datetime',
-      nullable: 'Y',
-    },
-  })
-  endOfLife: string;
 
   @property({
     type: 'string',
@@ -331,11 +311,27 @@ export class Users extends Entity {
   })
   setting: Settings;
 
-  @hasMany(() => Purchases, {keyTo: 'userId'})
+  @hasMany(() => Purchases, {
+    keyTo: 'userId',
+    type: RelationType.hasMany,
+    keyFrom: 'userId',
+    name: 'purchases',
+    source: Users,
+    target: () => Purchases,
+    targetsMany: true,
+  })
   purchases: Purchases[];
 
-  @hasMany(() => Purchases, {keyTo: 'userId'})
-  purchases: Purchases[];
+  @hasMany(() => Subscriptions, {
+    keyTo: 'userId',
+    type: RelationType.hasMany,
+    keyFrom: 'userId',
+    name: 'subscriptions',
+    source: Users,
+    target: () => Subscriptions,
+    targetsMany: true,
+  })
+  subscriptions: Subscriptions[];
 
   constructor(data?: Partial<Users>) {
     super(data);

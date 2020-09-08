@@ -7,7 +7,21 @@ import {
 } from '@loopback/repository';
 import {Users} from './users.model';
 
-@model({name: 'purchases'})
+@model({
+  name: 'purchases',
+  settings: {
+    foreignKeys: {
+      fkPayerListUserId: {
+        name: 'fk_purchases_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'no action',
+        onDelete: 'no action',
+      },
+    },
+  },
+})
 export class Purchases extends Entity {
   @property({
     type: 'number',
@@ -43,6 +57,18 @@ export class Purchases extends Entity {
     },
   })
   purchasedAt: string;
+
+  @property({
+    type: 'date',
+    required: false,
+    default: 'now',
+    mysql: {
+      columnName: 'created_at',
+      dataType: 'bigint',
+      nullable: 'N',
+    },
+  })
+  createdAt: string;
 
   @property({
     type: 'string',

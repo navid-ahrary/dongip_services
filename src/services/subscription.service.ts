@@ -1,14 +1,5 @@
 import {bind, BindingScope, inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
-<<<<<<< Updated upstream
-import {UsersRepository} from '../repositories';
-
-import {config} from 'dotenv';
-import moment from 'moment';
-
-import {Users} from '../models';
-=======
->>>>>>> Stashed changes
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -16,8 +7,9 @@ dotenv.config();
 const ZarinpalCheckout = require('zarinpal-checkout');
 const merchantId = process.env.MERCHANT_ID;
 
-import {UsersRepository, CheckoutsRepository} from '../repositories';
+import {UsersRepository} from '../repositories';
 import {SubscriptionSpec} from '../application';
+import {Users} from '../models';
 
 export interface Gateway {
   authority: string;
@@ -29,36 +21,10 @@ export interface VerifyTransaction {
   RefID: number;
 }
 
-/**
- * Subscription specs from subscriotion-scpecs.json
- */
-export interface SubscriptionSpecsInterface {
-  gatewayProviders: string[];
-  baseCallbackUrl: string;
-  plans: {
-    [key: string]: {
-      id: string;
-      name: string;
-      grade: string;
-      duration: {
-        unit: string;
-        amount: number;
-      };
-      regular: {[key: string]: number};
-      sale: {[key: string]: number};
-      onSale: boolean;
-      description: {[key: string]: string};
-    };
-  };
-}
-
-const subscriptionFile: SubscriptionSpecsInterface = require('../../subscription-specs.json');
-
 @bind({scope: BindingScope.SINGLETON})
 export class SubscriptionService {
   constructor(
     @repository(UsersRepository) public usersRepo: UsersRepository,
-    @repository(CheckoutsRepository) public checksRepo: CheckoutsRepository,
     @inject('application.subscriptionSpec') private subsSpec: SubscriptionSpec,
     private zarinpal = ZarinpalCheckout.create(merchantId, false),
   ) {}
