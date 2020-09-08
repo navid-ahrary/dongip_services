@@ -10,6 +10,8 @@ import {HttpErrors} from '@loopback/rest';
 import {service} from '@loopback/core';
 
 import isemail from 'isemail';
+import dotenv from 'dotenv';
+dotenv.config();
 
 import {PhoneNumberService} from '../services';
 
@@ -68,9 +70,10 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
         invocationCtx.args[0].phone = phoneValue;
       } else if (invocationCtx.args[0].email) {
         const emailValue = invocationCtx.args[0].email;
+        const dongipMailAdd = process.env.GMAIL_USER;
 
         const isValid = isemail.validate(emailValue);
-        if (!isValid) {
+        if (!isValid || emailValue === dongipMailAdd) {
           throw new HttpErrors.UnprocessableEntity(invalidEmailValueMessage);
         }
       }
