@@ -20,26 +20,39 @@ export class Subscriptions extends Entity {
     type: 'date',
     required: true,
     mysql: {
-      columnName: 'sol',
+      columnName: 'sol_time',
       dataType: 'datetime',
       dataLength: null,
       nullable: 'N',
     },
   })
-  sol: string;
+  solTime: string;
 
   @property({
     type: 'date',
     required: true,
     default: 'now',
     mysql: {
-      columnName: 'eol',
+      columnName: 'eol_time',
       dataType: 'datetime',
       dataLength: null,
       nullable: 'N',
     },
   })
-  eol: string;
+  eolTime: string;
+
+  @property({
+    type: 'string',
+    required: true,
+    jsonSchema: {maxLength: 10},
+    mysql: {
+      columnName: 'plan_id',
+      dataType: 'varchar',
+      dataLength: 10,
+      nullable: 'N',
+    },
+  })
+  planId: string;
 
   @belongsTo(
     () => Users,

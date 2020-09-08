@@ -30,6 +30,7 @@ import {
   Budgets,
   Settings,
   Purchases,
+  Subscriptions,
 } from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
@@ -40,6 +41,7 @@ import {NotificationsRepository} from './notifications.repository';
 import {BudgetsRepository} from './budgets.repository';
 import {SettingsRepository} from './settings.repository';
 import {PurchasesRepository} from './purchases.repository';
+import {SubscriptionsRepository} from './subscriptions.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
@@ -110,6 +112,11 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
+  public readonly subscriptions: HasManyRepositoryFactory<
+    Subscriptions,
+    typeof Users.prototype.userId
+  >;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -140,8 +147,11 @@ export class UsersRepository extends DefaultCrudRepository<
     protected settingsRepositoryGetter: Getter<SettingsRepository>,
     @repository.getter('PurchasesRepository')
     protected purchasesRepositoryGetter: Getter<PurchasesRepository>,
+    @repository.getter('SubscriptionsRepository')
+    protected subscriptionsRepositoryGetter: Getter<SubscriptionsRepository>,
   ) {
     super(Users, dataSource);
+
     this.purchases = this.createHasManyRepositoryFactoryFor(
       'purchases',
       purchasesRepositoryGetter,
@@ -149,6 +159,15 @@ export class UsersRepository extends DefaultCrudRepository<
     this.registerInclusionResolver(
       'purchases',
       this.purchases.inclusionResolver,
+    );
+
+    this.subscriptions = this.createHasManyRepositoryFactoryFor(
+      'subscriptions',
+      subscriptionsRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'subscriptions',
+      this.subscriptions.inclusionResolver,
     );
 
     this.setting = this.createHasOneRepositoryFactoryFor(

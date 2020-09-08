@@ -26,7 +26,7 @@
       "id": "plan_gm6",
       "grade": "golden",
       "duration": {
-        "unit": "month",
+        "unit": "months",
         "amount": 6
       },
       "regular": {
