@@ -9,3 +9,4 @@ export * from './cronjob.service';
 export * from './phone-number.service';
 export * from './subscription.service';
 export * from './cafebazaar.service';
+export * from './mailer.service';

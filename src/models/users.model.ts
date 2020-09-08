@@ -145,39 +145,35 @@ export class Users extends Entity {
 
   @property({
     type: 'string',
-    required: true,
     mysql: {
       columnName: 'user_agent',
       dataType: 'varchar',
       dataLength: 512,
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
-  userAgent: string;
+  userAgent?: string;
 
   @property({
     type: 'string',
-    required: true,
-    default: 'and',
     jsonSchema: {minLength: 3, maxLength: 10},
     mysql: {
       dataType: 'varchar',
       dataLength: 10,
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
-  platform: string;
+  platform?: string;
 
   @property({
     type: 'string',
-    required: true,
     mysql: {
       dataType: 'varchar',
       dataLength: 2,
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
-  region: string;
+  region?: string;
 
   @hasMany(() => VirtualUsers, {
     name: 'virtualUsers',

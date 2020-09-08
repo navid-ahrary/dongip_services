@@ -40,15 +40,25 @@ export class Verify extends Entity {
 
   @property({
     type: 'string',
-    required: true,
     jsonSchema: {maxLength: 20},
     mysql: {
       dataType: 'varchar',
       dataLength: 20,
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
-  phone: string;
+  phone?: string;
+
+  @property({
+    type: 'string',
+    jsonSchema: {maxLength: 100},
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 100,
+      nullable: 'Y',
+    },
+  })
+  email?: string;
 
   @property({
     type: 'string',
@@ -77,14 +87,13 @@ export class Verify extends Entity {
 
   @property({
     type: 'string',
-    required: true,
     mysql: {
       dataType: 'varchar',
       dataLength: 5,
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
-  region: string;
+  region?: string;
 
   @property({
     type: 'string',
@@ -196,6 +205,28 @@ export class Verify extends Entity {
     },
   })
   kavenegarCost?: number;
+
+  @property({
+    type: 'string',
+    mysql: {
+      columnName: 'email_message_id',
+      dataType: 'varchar',
+      dataLength: 100,
+      nullable: 'Y',
+    },
+  })
+  emailMessageId?: string;
+
+  @property({
+    type: 'string',
+    mysql: {
+      columnName: 'email_status_text',
+      dataType: 'varchar',
+      dataLength: 100,
+      nullable: 'Y',
+    },
+  })
+  emailStatusText?: string;
 
   constructor(data?: Partial<Verify>) {
     super(data);

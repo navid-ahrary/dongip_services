@@ -30,14 +30,14 @@ import {
 } from '../repositories';
 import {FirebaseService, PhoneNumberService} from '../services';
 import {
-  ValidatePhoneNumInterceptor,
+  ValidatePhoneEmailInterceptor,
   FirebasetokenInterceptor,
   ValidateUsersRelsInterceptor,
 } from '../interceptors';
 
 @api({basePath: '/', paths: {}})
 @intercept(
-  ValidatePhoneNumInterceptor.BINDING_KEY,
+  ValidatePhoneEmailInterceptor.BINDING_KEY,
   FirebasetokenInterceptor.BINDING_KEY,
 )
 @authenticate('jwt.access')

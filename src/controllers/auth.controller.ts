@@ -18,6 +18,7 @@ import {
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 
 import moment from 'moment';
+import _ from 'lodash';
 
 import {
   PasswordHasherBindings,
@@ -42,9 +43,10 @@ import {
   PhoneNumberService,
 } from '../services';
 import {
-  ValidatePhoneNumInterceptor,
   ValidatePasswordInterceptor,
+  ValidatePhoneEmailInterceptor,
 } from '../interceptors';
+import {MailerService} from '../services/mailer.service';
 
 @model()
 export class NewUser extends Users {
@@ -52,7 +54,7 @@ export class NewUser extends Users {
 }
 @api({basePath: '/auth', paths: {}})
 @intercept(
-  ValidatePhoneNumInterceptor.BINDING_KEY,
+  ValidatePhoneEmailInterceptor.BINDING_KEY,
   ValidatePasswordInterceptor.BINDING_KEY,
 )
 export class AuthController {
@@ -78,6 +80,7 @@ export class AuthController {
     @service(VerifyService) public verifySerivce: VerifyService,
     @service(SmsService) public smsService: SmsService,
     @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
+    @service(MailerService) protected mailerService: MailerService,
   ) {}
 
   generateRandomString(length: number) {
@@ -123,7 +126,7 @@ export class AuthController {
   @authenticate.skip()
   async verify(
     @requestBody({
-      description: 'Verify phone number',
+      description: 'Verify phone number or email address',
       required: true,
       content: {
         'application/json': {
@@ -139,11 +142,20 @@ export class AuthController {
               'region',
               'platform',
             ],
-            optional: ['smsSignature'],
+            optional: ['smsSignature', 'phone', 'email'],
           }),
-          example: {
-            phone: '+989176502184',
-            smsSignature: 'a2V5dG9vbCB',
+          examples: {
+            'verify phone number': {
+              value: {
+                phone: '+989176502184',
+                smsSignature: 'a2V5dG9vbCB',
+              },
+            },
+            'verify email address': {
+              value: {
+                email: 'dongip.supp@gmail.com',
+              },
+            },
           },
         },
       },
@@ -156,13 +168,19 @@ export class AuthController {
     prefix: string;
     verifyToken: string;
   }> {
+    if (!_.has(verifyReqBody, 'phone') && !_.has(verifyReqBody, 'email')) {
+      throw new HttpErrors.UnprocessableEntity(
+        'Phone or email value must provided',
+      );
+    }
+
     const nowUTC = moment.utc(),
       durationLimit = 5,
       randomCode = Math.random().toFixed(7).slice(3),
       randomStr = this.generateRandomString(3);
 
     const countRequstedVerifyCode = await this.verifyRepository.count({
-      phone: verifyReqBody.phone,
+      or: [{phone: verifyReqBody.phone}, {email: verifyReqBody.email}],
       loggedIn: false,
       loggedInAt: undefined,
       createdAt: {
@@ -180,7 +198,7 @@ export class AuthController {
     }
 
     const user = await this.usersRepository.findOne({
-      where: {phone: verifyReqBody.phone},
+      where: {or: [{phone: verifyReqBody.phone}, {email: verifyReqBody.email}]},
       fields: {
         name: true,
         avatar: true,
@@ -189,20 +207,23 @@ export class AuthController {
 
     const createdVerify = await this.verifyRepository
       .create({
-        phone: verifyReqBody.phone,
+        phone: verifyReqBody.phone ? verifyReqBody.phone : undefined,
+        email: verifyReqBody.email ? verifyReqBody.email : undefined,
         password: randomStr + randomCode,
         smsSignature: verifyReqBody.smsSignature
           ? verifyReqBody.smsSignature
           : ' ',
         registered: user ? true : false,
         createdAt: nowUTC.toISOString(),
-        region: this.phoneNumberService.getRegionCodeISO(verifyReqBody.phone),
+        region: verifyReqBody.phone
+          ? this.phoneNumberService.getRegionCodeISO(verifyReqBody.phone)
+          : undefined,
         userAgent: this.ctx.request.headers['user-agent']
           ? this.ctx.request.headers['user-agent'].toString().toLowerCase()
-          : 'unknown',
+          : undefined,
         platform: this.ctx.request.headers['platform']
           ? this.ctx.request.headers['platform'].toString().toLowerCase()
-          : 'unknown',
+          : undefined,
       })
       .catch((err) => {
         throw new HttpErrors.NotAcceptable(err.message);
@@ -219,27 +240,41 @@ export class AuthController {
       userProfile,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.smsService
-      .sendSms(randomCode, verifyReqBody.phone, verifyReqBody.smsSignature)
-      .then((res) => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.verifyRepository.updateById(createdVerify.getId(), {
-          kavenegarMessageId: res.body.messageid,
-          kavenegarDate: res.body.date,
-          kavenegarSender: res.body.sender,
-          kavenegarStatusText: res.body.statustext,
-          kavenegarCost: res.body.cost,
-          kavenegarStatusCode: res.statusCode,
+    if (verifyReqBody.phone) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.smsService
+        .sendSms(randomCode, verifyReqBody.phone, verifyReqBody.smsSignature)
+        .then(async (res) => {
+          await this.verifyRepository.updateById(createdVerify.getId(), {
+            kavenegarMessageId: res.body.messageid,
+            kavenegarDate: res.body.date,
+            kavenegarSender: res.body.sender,
+            kavenegarStatusText: res.body.statustext,
+            kavenegarCost: res.body.cost,
+            kavenegarStatusCode: res.statusCode,
+          });
+        })
+        .catch(async (err) => {
+          await this.verifyRepository.updateById(createdVerify.getId(), {
+            kavenegarStatusCode: err.statusCode,
+          });
+          console.error(err.message);
         });
-      })
-      .catch((err) => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.verifyRepository.updateById(createdVerify.getId(), {
-          kavenegarStatusCode: err.statusCode,
+    } else if (verifyReqBody.email) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.mailerService
+        .sendMail({
+          subject: 'کد ورود به اپلیکیشن دُنگیپ',
+          to: verifyReqBody.email,
+          text: `کد ورود به اپلیکیشن دُنگیپ ${randomCode}`,
+        })
+        .then(async (res) => {
+          await this.verifyRepository.updateById(createdVerify.getId(), {
+            emailMessageId: res['messageId'],
+            emailStatusText: res['response'],
+          });
         });
-        console.error(err.message);
-      });
+    }
 
     return {
       status: user ? true : false,
@@ -305,14 +340,16 @@ export class AuthController {
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepository.updateById(user.getId(), {
-        firebaseToken: String(firebaseToken),
-        region: this.phoneNumberService.getRegionCodeISO(foundVerify.phone),
+        firebaseToken: firebaseToken,
+        region: foundVerify.phone
+          ? this.phoneNumberService.getRegionCodeISO(foundVerify.phone)
+          : undefined,
         userAgent: this.ctx.request.headers['user-agent']
           ? this.ctx.request.headers['user-agent'].toString().toLowerCase()
-          : 'unknown',
+          : undefined,
         platform: this.ctx.request.headers['platform']
           ? this.ctx.request.headers['platform'].toString().toLowerCase()
-          : 'unknown',
+          : undefined,
       });
 
       // Get total user's scores
@@ -430,8 +467,8 @@ export class AuthController {
       credentials.password,
     );
 
-    newUser.region = foundVerify.region;
-    newUser.phone = foundVerify.phone;
+    newUser.region = foundVerify.region ? foundVerify.region : undefined;
+    newUser.email = foundVerify.email ? foundVerify.email : undefined;
 
     const countRegisteredUsers = await this.usersRepository.count();
     if (countRegisteredUsers.count < 1000) {
@@ -441,10 +478,10 @@ export class AuthController {
 
     newUser.userAgent = this.ctx.request.headers['user-agent']
       ? this.ctx.request.headers['user-agent'].toString().toLowerCase()
-      : 'unknown';
+      : undefined;
     newUser.platform = this.ctx.request.headers['platform']
       ? this.ctx.request.headers['platform'].toString().toLowerCase()
-      : 'unknown';
+      : undefined;
 
     delete newUser.password;
 
