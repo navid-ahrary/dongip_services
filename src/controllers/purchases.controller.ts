@@ -3,9 +3,8 @@ import {api, param, get, HttpErrors, getModelSchemaRef} from '@loopback/rest';
 import {service, inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
+
 import moment from 'moment';
-import dotnev from 'dotenv';
-dotnev.config();
 
 import {PurchasesRepository, UsersRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
@@ -13,8 +12,10 @@ import {
   CafebazaarService,
   SubscriptionService,
   FirebaseService,
+  MessagePayload,
 } from '../services';
-import {Purchases} from '../models';
+import {Purchases, Subscriptions, Users} from '../models';
+import {SubscriptionSpec} from '../application';
 
 @api({basePath: '/purchases'})
 @authenticate('jwt.access')
@@ -24,26 +25,52 @@ export class PurchasesController {
   constructor(
     @repository(PurchasesRepository) public purchasesRepo: PurchasesRepository,
     @repository(UsersRepository) public usersRepo: UsersRepository,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
     @service(SubscriptionService) protected subsService: SubscriptionService,
     @service(CafebazaarService) protected cafebazaarService: CafebazaarService,
     @service(FirebaseService) protected firebaseService: FirebaseService,
+    @inject('application.subscriptionSpec') public subsSpec: SubscriptionSpec,
+    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {
     this.userId = +this.currentUserProfile[securityId];
   }
 
-  private async sendNotify() {
-    const fountUser = await this.usersRepo.findById(this.userId, {
+  async sendNotification(
+    userId: typeof Users.prototype.userId,
+    subscription: Subscriptions,
+  ) {
+    const createdNotify = await this.usersRepo.notifications(userId).create({
+      userId: userId,
+      type: 'subscription',
+      title: this.subsSpec.plans[subscription.planId].description['fa'],
+      body:
+        'شما مشترک طلایی دُنگیپ هستید. تمام امکانات اپلیکیشن در اختیار شماست',
+    });
+
+    const user = await this.usersRepo.findById(userId, {
       fields: {firebaseToken: true},
     });
 
-    const savedNotify = await this.usersRepo
-      .notifications(this.userId)
-      .create({});
+    const notifyPayload: MessagePayload = {
+      notification: {
+        title: createdNotify.title,
+        body: createdNotify.body,
+        clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+      },
+      data: {
+        notifyId: createdNotify.getId().toString(),
+        type: createdNotify.type,
+        title: createdNotify.title,
+        body: createdNotify.body,
+        subscriptionId: subscription.getId().toString(),
+        solTime: subscription.solTime,
+        eolTime: subscription.eolTime,
+      },
+    };
 
-    await this.firebaseService.sendToDeviceMessage(fountUser.firebaseToken, {
-      notification: {},
-    });
+    await this.firebaseService.sendToDeviceMessage(
+      user.firebaseToken,
+      notifyPayload,
+    );
   }
 
   @get('/validate', {
@@ -111,7 +138,11 @@ export class PurchasesController {
         purchaseTime = moment(purchaseStatus.purchaseTime).toISOString();
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.sendNotify();
+        this.subsService
+          .performSubscription(this.userId, planId)
+          .then(async (subs) => {
+            await this.sendNotification(this.userId, subs);
+          });
 
         const purchaseEnt: DataObject<Purchases> = {
           userId: this.userId,

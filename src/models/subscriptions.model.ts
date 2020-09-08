@@ -14,7 +14,7 @@ export class Subscriptions extends Entity {
       nullable: 'N',
     },
   })
-  subscriptionId?: number;
+  subscriptionId: number;
 
   @property({
     type: 'date',

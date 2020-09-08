@@ -174,6 +174,52 @@ export class Notifications extends Entity {
   })
   avatar?: string;
 
+  @property({
+    type: 'number',
+    mysql: {
+      columnName: 'id',
+      dataType: 'mediumint',
+      dataLength: null,
+      nullable: 'Y',
+    },
+  })
+  subscriptionId?: number;
+
+  @property({
+    type: 'date',
+    mysql: {
+      columnName: 'sol_time',
+      dataType: 'datetime',
+      dataLength: null,
+      nullable: 'Y',
+    },
+  })
+  solTime?: string;
+
+  @property({
+    type: 'date',
+    mysql: {
+      columnName: 'eol_time',
+      dataType: 'datetime',
+      dataLength: null,
+      nullable: 'Y',
+    },
+  })
+  eolTime?: string;
+
+  @property({
+    type: 'string',
+    required: true,
+    jsonSchema: {maxLength: 10},
+    mysql: {
+      columnName: 'plan_id',
+      dataType: 'varchar',
+      dataLength: 10,
+      nullable: 'N',
+    },
+  })
+  planId: string;
+
   @belongsTo(
     () => Users,
     {
