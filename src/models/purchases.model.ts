@@ -48,18 +48,6 @@ export class Purchases extends Entity {
     type: 'string',
     required: true,
     mysql: {
-      columnName: 'purchase_origin',
-      dataType: 'varchar',
-      dataLength: 15,
-      nullable: 'N',
-    },
-  })
-  purchaseOrigin: string;
-
-  @property({
-    type: 'string',
-    required: true,
-    mysql: {
       columnName: 'plan_id',
       dataType: 'varchar',
       dataLength: 20,

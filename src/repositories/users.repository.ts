@@ -29,9 +29,13 @@ import {
   Notifications,
   Budgets,
   Settings,
+<<<<<<< Updated upstream
   Checkouts,
   Purchases,
 } from '../models';
+=======
+  Checkouts, Purchases} from '../models';
+>>>>>>> Stashed changes
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 import {ScoresRepository} from './scores.repository';
@@ -117,6 +121,8 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
+  public readonly purchases: HasManyRepositoryFactory<Purchases, typeof Users.prototype.userId>;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -154,6 +160,15 @@ export class UsersRepository extends DefaultCrudRepository<
     this.purchases = this.createHasManyRepositoryFactoryFor(
       'purchases',
       purchasesRepositoryGetter,
+    protected checkoutsRepositoryGetter: Getter<CheckoutsRepository>, @repository.getter('PurchasesRepository') protected purchasesRepositoryGetter: Getter<PurchasesRepository>,
+  ) {
+    super(Users, dataSource);
+    this.purchases = this.createHasManyRepositoryFactoryFor('purchases', purchasesRepositoryGetter,);
+    this.registerInclusionResolver('purchases', this.purchases.inclusionResolver);
+
+    this.checkouts = this.createHasManyRepositoryFactoryFor(
+      'checkouts',
+      checkoutsRepositoryGetter,
     );
     this.registerInclusionResolver(
       'purchases',

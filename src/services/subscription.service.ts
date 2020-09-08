@@ -1,16 +1,23 @@
 import {bind, BindingScope, inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
+<<<<<<< Updated upstream
 import {UsersRepository} from '../repositories';
 
 import {config} from 'dotenv';
 import moment from 'moment';
 
 import {Users} from '../models';
+=======
+>>>>>>> Stashed changes
 
-config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 const ZarinpalCheckout = require('zarinpal-checkout');
 const merchantId = process.env.MERCHANT_ID;
+
+import {UsersRepository, CheckoutsRepository} from '../repositories';
+import {SubscriptionSpec} from '../application';
 
 export interface Gateway {
   authority: string;
@@ -51,6 +58,8 @@ const subscriptionFile: SubscriptionSpecsInterface = require('../../subscription
 export class SubscriptionService {
   constructor(
     @repository(UsersRepository) public usersRepo: UsersRepository,
+    @repository(CheckoutsRepository) public checksRepo: CheckoutsRepository,
+    @inject('application.subscriptionSpec') private subsSpec: SubscriptionSpec,
     private zarinpal = ZarinpalCheckout.create(merchantId, false),
   ) {}
 
@@ -158,9 +167,9 @@ export class SubscriptionService {
     try {
       this.validatePlan(plan);
 
-      return subscriptionFile.plans[plan].onSale
-        ? subscriptionFile.plans[plan].sale['tomans']
-        : subscriptionFile.plans[plan].regular['tomans'];
+      return this.subsSpec.plans[plan].onSale
+        ? this.subsSpec.plans[plan].sale['tomans']
+        : this.subsSpec.plans[plan].regular['tomans'];
     } catch (error) {
       throw new Error(error.message);
     }
@@ -175,7 +184,7 @@ export class SubscriptionService {
     try {
       this.validatePlan(plan);
 
-      return subscriptionFile.plans[plan].description['fa'];
+      return this.subsSpec.plans[plan].description['fa'];
     } catch (error) {
       throw new Error(error.message);
     }
@@ -187,7 +196,7 @@ export class SubscriptionService {
    * @void
    */
   validatePlan(plan: string): void {
-    const plansTitle = Object.keys(subscriptionFile.plans);
+    const plansTitle = Object.keys(this.subsSpec.plans);
 
     if (!plansTitle.includes(plan)) {
       const errMsg = 'Plan is not valid!';
@@ -199,7 +208,7 @@ export class SubscriptionService {
   }
 
   validateProvider(provider: string): void {
-    const validProviderList = subscriptionFile.gatewayProviders;
+    const validProviderList = this.subsSpec.gatewayProviders;
 
     if (!validProviderList.includes(provider)) {
       const errMsg = 'Provider is not valid';
@@ -210,8 +219,8 @@ export class SubscriptionService {
     return;
   }
 
-  getPlansList(): string[] {
-    return Object.keys(subscriptionFile.plans);
+  getPlanIdsList(): string[] {
+    return Object.keys(this.subsSpec.plans);
   }
 
   /**

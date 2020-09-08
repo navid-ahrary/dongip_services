@@ -19,6 +19,7 @@ import {Messages} from './messages.model';
 import {Notifications} from './notifications.model';
 import {Budgets} from './budgets.model';
 import {Settings, SettingsWithRelations} from './settings.model';
+import {Checkouts} from './checkouts.model';
 import {Purchases} from './purchases.model';
 
 @model({name: 'users'})
@@ -329,6 +330,9 @@ export class Users extends Entity {
     targetsMany: false,
   })
   setting: Settings;
+
+  @hasMany(() => Purchases, {keyTo: 'userId'})
+  purchases: Purchases[];
 
   @hasMany(() => Purchases, {keyTo: 'userId'})
   purchases: Purchases[];
