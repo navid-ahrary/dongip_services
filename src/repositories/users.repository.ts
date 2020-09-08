@@ -29,7 +29,8 @@ import {
   Notifications,
   Budgets,
   Settings,
-  Checkouts,
+  Purchases,
+  Subscriptions,
 } from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
@@ -39,7 +40,8 @@ import {MessagesRepository} from './messages.repository';
 import {NotificationsRepository} from './notifications.repository';
 import {BudgetsRepository} from './budgets.repository';
 import {SettingsRepository} from './settings.repository';
-import {CheckoutsRepository} from './checkouts.repository';
+import {PurchasesRepository} from './purchases.repository';
+import {SubscriptionsRepository} from './subscriptions.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
@@ -105,8 +107,13 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
-  public readonly checkouts: HasManyRepositoryFactory<
-    Checkouts,
+  public readonly purchases: HasManyRepositoryFactory<
+    Purchases,
+    typeof Users.prototype.userId
+  >;
+
+  public readonly subscriptions: HasManyRepositoryFactory<
+    Subscriptions,
     typeof Users.prototype.userId
   >;
 
@@ -138,18 +145,29 @@ export class UsersRepository extends DefaultCrudRepository<
     protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
     @repository.getter('SettingsRepository')
     protected settingsRepositoryGetter: Getter<SettingsRepository>,
-    @repository.getter('CheckoutsRepository')
-    protected checkoutsRepositoryGetter: Getter<CheckoutsRepository>,
+    @repository.getter('PurchasesRepository')
+    protected purchasesRepositoryGetter: Getter<PurchasesRepository>,
+    @repository.getter('SubscriptionsRepository')
+    protected subscriptionsRepositoryGetter: Getter<SubscriptionsRepository>,
   ) {
     super(Users, dataSource);
 
-    this.checkouts = this.createHasManyRepositoryFactoryFor(
-      'checkouts',
-      checkoutsRepositoryGetter,
+    this.subscriptions = this.createHasManyRepositoryFactoryFor(
+      'subscriptions',
+      subscriptionsRepositoryGetter,
     );
     this.registerInclusionResolver(
-      'checkouts',
-      this.checkouts.inclusionResolver,
+      'subscriptions',
+      this.subscriptions.inclusionResolver,
+    );
+
+    this.purchases = this.createHasManyRepositoryFactoryFor(
+      'purchases',
+      purchasesRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'purchases',
+      this.purchases.inclusionResolver,
     );
 
     this.setting = this.createHasOneRepositoryFactoryFor(

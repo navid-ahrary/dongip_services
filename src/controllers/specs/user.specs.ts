@@ -19,6 +19,7 @@ export const UserPatchRequestBody = {
           'refreshToken',
           'usersRels',
           'userAgent',
+          'email',
         ],
       }),
       examples: {

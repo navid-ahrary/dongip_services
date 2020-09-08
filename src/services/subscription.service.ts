@@ -1,203 +1,69 @@
 import {bind, BindingScope, inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {UsersRepository, CheckoutsRepository} from '../repositories';
-import {config} from 'dotenv';
 
-config();
+import moment from 'moment';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const ZarinpalCheckout = require('zarinpal-checkout');
-const merchantId = process.env.MERCHANT_ID;
-
-export interface Gateway {
-  authority: string;
-  url: string;
-}
-
-export interface VerifyTransaction {
-  status: number;
-  RefID: number;
-}
-
-/**
- * Subscription specs from subscriotion-scpecs.json
- */
-export interface SubscriptionSpecsInterface {
-  gatewayProviders: string[];
-  baseCallbackUrl: string;
-  plans: {
-    [key: string]: {
-      description: {[key: string]: string};
-      id: string;
-      name: string;
-      grade: string;
-      durationSec: number;
-      regular: {[key: string]: number};
-      sale: {[key: string]: number};
-      onSale: boolean;
-    };
-  };
-}
-
-const subscriptionFile: SubscriptionSpecsInterface = require('../../assets/subscription-specs.json');
+import {UsersRepository, SubscriptionsRepository} from '../repositories';
+import {SubscriptionSpec} from '../application';
+import {Users} from '../models';
 
 @bind({scope: BindingScope.SINGLETON})
 export class SubscriptionService {
   constructor(
-    @repository(UsersRepository) public usersRepo: UsersRepository,
-    @repository(CheckoutsRepository) public checksRepo: CheckoutsRepository,
-    private zarinpal = ZarinpalCheckout.create(merchantId, false),
+    @repository(UsersRepository) protected usersRepo: UsersRepository,
+    @repository(SubscriptionsRepository)
+    protected subsRepo: SubscriptionsRepository,
+    @inject('application.subscriptionSpec')
+    protected subsSpec: SubscriptionSpec,
   ) {}
 
-  /** Get checkout's gateway url
-   *
-   * @param plan string
-   * @param phone string
-   */
-  async getGatewayUrl(plan: string, phone: string): Promise<Gateway> {
-    const planAmount = +this.getCheckoutAmount(plan);
-    const callbackUrl =
-      process.env.BASE_URL + '/subscriptions/verify-transactions/zarinpal';
-
-    return new Promise((resolve, reject) => {
-      this.zarinpal
-        .PaymentRequest({
-          Amount: planAmount.toString(),
-          Description: this.getDescription(plan),
-          CallbackURL: callbackUrl,
-          Mobile: phone,
-        })
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .then((response: any) => {
-          if (response.status === 100) {
-            resolve({
-              authority: response.authority,
-              url: response.url,
-            });
-          }
-        })
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .catch((err: any) => {
-          console.error(err);
-          reject(err);
-        });
+  async getCurrentState(userId: typeof Users.prototype.userId) {
+    return this.subsRepo.findOne({
+      where: {
+        userId: userId,
+        solTime: {lte: moment.utc().toISOString()},
+        eolTime: {gte: moment.utc().toISOString()},
+      },
     });
   }
 
-  /** Verfiy Zarinpal transaction
+  /** Perform subsciption on user
    *
-   * @param status string
-   * @param autrhority string
-   */
-  async verifyZarinpalTransaction(
-    authority: string,
-    amount: number,
-  ): Promise<VerifyTransaction> {
-    return new Promise((resolve, reject) => {
-      this.zarinpal
-        .PaymentVerification({
-          Amount: amount.toString(),
-          Authority: authority,
-        })
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .then((response: any) => {
-          resolve({status: +response.status, RefID: +response.RefID});
-        })
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .catch((err: any) => {
-          reject(err);
-        });
-    });
-  }
-
-  /** Get checkout amount
+   * @param userId number
+   * @param planId string
    *
-   * @param plan string
-   * @returns number
+   * @returns {Promise} string
    */
-  getCheckoutAmount(plan: string): number {
-    try {
-      this.validatePlan(plan);
+  async performSubscription(
+    userId: typeof Users.prototype.userId,
+    planId: string,
+  ) {
+    const durationAmount = this.subsSpec.plans[planId].duration.amount;
+    const durationUnit = this.subsSpec.plans[planId].duration.unit;
 
-      return subscriptionFile.plans[plan].onSale
-        ? subscriptionFile.plans[plan].sale['tomans']
-        : subscriptionFile.plans[plan].regular['tomans'];
-    } catch (error) {
-      throw new Error(error.message);
-    }
-  }
+    let sol: string, eol: string;
 
-  /** Get checkout description
-   *
-   * @param plan string
-   * @returns string
-   */
-  getDescription(plan: string): string {
-    try {
-      this.validatePlan(plan);
+    const currentSubs = await this.getCurrentState(userId);
+    // If user has a subscription, new plan'll start from subscriptino's eol
+    if (currentSubs) {
+      const currentEOL = currentSubs.eolTime;
 
-      return subscriptionFile.plans[plan].description['fa'];
-    } catch (error) {
-      throw new Error(error.message);
-    }
-  }
-
-  /** Validate plan
-   *
-   * @param plan string
-   * @void
-   */
-  validatePlan(plan: string): void {
-    const plansTitle = Object.keys(subscriptionFile.plans);
-
-    if (!plansTitle.includes(plan)) {
-      const errMsg = 'Plan is not valid!';
-      console.error(errMsg);
-      throw new Error(errMsg);
+      sol = currentEOL;
+      eol = moment(currentEOL).add(durationAmount, durationUnit).toISOString();
+    } else {
+      sol = moment.utc().toISOString();
+      eol = moment.utc().add(durationAmount, durationUnit).toISOString();
     }
 
-    return;
-  }
+    const subs = await this.usersRepo
+      .subscriptions(userId)
+      .create({planId: planId, solTime: sol, eolTime: eol});
 
-  validateProvider(provider: string): void {
-    const validProviderList = subscriptionFile.gatewayProviders;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.usersRepo.updateById(userId, {roles: ['GOLD']});
 
-    if (!validProviderList.includes(provider)) {
-      const errMsg = 'Provider is not valid';
-      console.error(errMsg);
-      throw new Error(errMsg);
-    }
-
-    return;
-  }
-
-  getPlansList(): string[] {
-    return Object.keys(subscriptionFile.plans);
-  }
-
-  /**
-   *
-   * @param value string
-   * @returns number
-   */
-  castString(authority: string): number {
-    return parseInt(String(authority.match(/\d+$/)), 10);
-  }
-
-  /** Convert Tomans to Rials
-   *
-   * @param value number
-   * @returns number
-   */
-  convertTomansToRials(value: number): number {
-    return +(String(value) + '0');
-  }
-
-  /** Convert Rials to Tomans
-   *
-   * @param value number
-   * @returns number
-   */
-  convertRialsToTomans(value: number): number {
-    return +String(value).slice(0, -1);
+    return subs;
   }
 }

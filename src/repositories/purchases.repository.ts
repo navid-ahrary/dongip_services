@@ -3,19 +3,19 @@ import {
   repository,
   BelongsToAccessor,
 } from '@loopback/repository';
-import {Checkouts, CheckoutsRelations, Users} from '../models';
+import {Purchases, PurchasesRelations, Users} from '../models';
 import {MysqlDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
 import {UsersRepository} from './users.repository';
 
-export class CheckoutsRepository extends DefaultCrudRepository<
-  Checkouts,
-  typeof Checkouts.prototype.checkoutId,
-  CheckoutsRelations
+export class PurchasesRepository extends DefaultCrudRepository<
+  Purchases,
+  typeof Purchases.prototype.purchaseId,
+  PurchasesRelations
 > {
   public readonly user: BelongsToAccessor<
     Users,
-    typeof Checkouts.prototype.checkoutId
+    typeof Purchases.prototype.purchaseId
   >;
 
   constructor(
@@ -23,7 +23,8 @@ export class CheckoutsRepository extends DefaultCrudRepository<
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
-    super(Checkouts, dataSource);
+    super(Purchases, dataSource);
+
     this.user = this.createBelongsToAccessorFor('user', usersRepositoryGetter);
     this.registerInclusionResolver('user', this.user.inclusionResolver);
   }

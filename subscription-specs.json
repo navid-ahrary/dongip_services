@@ -1,14 +1,16 @@
 {
   "gatewayProviders": ["zarinpal", "idpay"],
   "plans": {
-    "plan-1": {
+    "plan_gm1": {
       "description": {
         "fa": "اشتراک طلایی یک‌ماهه دُنگیپ"
       },
-      "id": "g-1-m",
-      "name": "golden-1-month",
+      "id": "plan_gm1",
       "grade": "golden",
-      "durationSec": 2592000,
+      "duration": {
+        "unit": "month",
+        "amount": 1
+      },
       "regular": {
         "tomans": 8000
       },
@@ -17,14 +19,16 @@
       },
       "onSale": true
     },
-    "plan-2": {
+    "plan_gm6": {
       "description": {
         "fa": "اشتراک طلایی شش‌ماهه دُنگیپ"
       },
-      "id": "g-6-m",
-      "name": "golden-6-months",
+      "id": "plan_gm6",
       "grade": "golden",
-      "durationSec": 15552000,
+      "duration": {
+        "unit": "months",
+        "amount": 6
+      },
       "regular": {
         "tomans": 45000
       },
@@ -33,14 +37,16 @@
       },
       "onSale": true
     },
-    "plan-3": {
+    "plan_gy1": {
       "description": {
         "fa": "اشتراک طلایی یک‌ساله دُنگیپ"
       },
-      "id": "g-1-y",
-      "name": "golden-1-year",
+      "id": "plan_gy1",
       "grade": "golden",
-      "durationSec": 31556952,
+      "duration": {
+        "unit": "year",
+        "amount": 1
+      },
       "regular": {
         "tomans": 80000
       },

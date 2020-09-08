@@ -16,3 +16,5 @@ export * from './budgets.repository';
 export * from './settings.repository';
 export * from './links.repository';
 export * from './checkouts.repository';
+export * from './purchases.repository';
+export * from './subscriptions.repository';
