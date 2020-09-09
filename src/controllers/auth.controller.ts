@@ -103,7 +103,7 @@ export class AuthController {
   }
 
   @post('/verify', {
-    summary: 'Verify mobile number for login/signup',
+    summary: 'Verify phone/email for login/signup',
     responses: {
       '200': {
         description: 'Registeration properties',
