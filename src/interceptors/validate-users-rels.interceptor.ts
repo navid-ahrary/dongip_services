@@ -52,6 +52,13 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
   ) {
     let errMessg: string;
 
+    const methodsList = [
+      'findUsersRelsBudgets',
+      'createUsersRelsBudgets',
+      'patchUsersRelsById',
+      'deleteUsersRelsById',
+    ];
+
     try {
       if (invocationCtx.methodName === 'createGroups') {
         const userRelIds = invocationCtx.args[0].userRelIds;
@@ -79,12 +86,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
             throw new Error(errMessg);
           }
         }
-      } else if (
-        invocationCtx.methodName === 'findUsersRelsBudgets' ||
-        invocationCtx.methodName === 'createUsersRelsBudgets' ||
-        invocationCtx.methodName === 'patchUsersRelsById' ||
-        invocationCtx.methodName === 'deleteUsersRelsById'
-      ) {
+      } else if (methodsList.includes(invocationCtx.methodName)) {
         const userRelId = invocationCtx.args[0];
 
         const foundUserRel = await this.usersRelsRepository.findOne({

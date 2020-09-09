@@ -68,7 +68,7 @@ export class PurchasesController {
     };
 
     await this.firebaseService.sendToDeviceMessage(
-      user.firebaseToken,
+      user.firebaseToken!,
       notifyPayload,
     );
   }
@@ -94,9 +94,9 @@ export class PurchasesController {
         enum: ['plan_gm1', 'plan_gm6', 'plan_gy1'],
       },
       examples: {
-        'Golden plan monthly, 1 month': {value: 'plan_gm1'},
-        'Golden plan monthly, 6 months': {value: 'plan_gm6'},
-        'Golden plan yearly, 1 year': {value: 'plan_gy1'},
+        oneMonth: {value: 'plan_gm1'},
+        sixMonths: {value: 'plan_gm6'},
+        oneYear: {value: 'plan_gy1'},
       },
     })
     planId: string,

@@ -47,13 +47,14 @@ export class FirebasetokenInterceptor implements Provider<Interceptor> {
     const httpReq = await invocationCtx.get(RestBindings.Http.REQUEST, {
         optional: true,
       }),
-      userId = Number(this.currentUserProfile[securityId]);
+      userId = +this.currentUserProfile[securityId];
 
     if (httpReq && httpReq!.headers['firebase-token']) {
       const firebaseToken = httpReq.headers['firebase-token'];
 
       if (typeof firebaseToken === 'string') {
-        await this.usersRepo.updateById(userId, {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepo.updateById(userId, {
           firebaseToken: firebaseToken,
         });
       } else {

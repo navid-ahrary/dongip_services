@@ -18,7 +18,6 @@ import {
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 
 import moment from 'moment';
-import _ from 'lodash';
 
 import {
   PasswordHasherBindings,
@@ -45,6 +44,7 @@ import {
 import {
   ValidatePasswordInterceptor,
   ValidatePhoneEmailInterceptor,
+  PhoneOrEmailInterceptor,
 } from '../interceptors';
 import {MailerService} from '../services/mailer.service';
 
@@ -102,6 +102,7 @@ export class AuthController {
     return totalScores;
   }
 
+  @intercept(PhoneOrEmailInterceptor.BINDING_KEY)
   @post('/verify', {
     summary: 'Verify phone/email for login/signup',
     responses: {
@@ -156,13 +157,13 @@ export class AuthController {
             optional: ['smsSignature', 'phone', 'email'],
           }),
           examples: {
-            'verify phone number': {
+            phone: {
               value: {
                 phone: '+989176502184',
                 smsSignature: 'a2V5dG9vbCB',
               },
             },
-            'verify email address': {
+            email: {
               value: {
                 email: 'dongip.supp@gmail.com',
               },
@@ -179,12 +180,6 @@ export class AuthController {
     prefix: string;
     verifyToken: string;
   }> {
-    if (!_.has(verifyReqBody, 'phone') && !_.has(verifyReqBody, 'email')) {
-      throw new HttpErrors.UnprocessableEntity(
-        'Phone or email value must provided',
-      );
-    }
-
     const nowUTC = moment.utc(),
       durationLimit = 5,
       randomCode = Math.random().toFixed(7).slice(3),
@@ -448,9 +443,9 @@ export class AuthController {
             optional: ['username'],
           }),
           example: {
-            phone: '+989176502184',
-            name: 'Navid',
-            username: 'navid71',
+            phone: '+989171234567',
+            name: 'Dongip',
+            username: 'dongipapp',
             avatar: '/assets/avatar/avatar_1.png',
             password: 'DNG123456',
           },
@@ -477,6 +472,7 @@ export class AuthController {
       verifyId,
       credentials.password,
     );
+    delete newUser.password;
 
     newUser.region = foundVerify.region ? foundVerify.region : undefined;
     newUser.email = foundVerify.email ? foundVerify.email : undefined;
@@ -485,8 +481,8 @@ export class AuthController {
     if (countRegisteredUsers.count < 1000) {
       newUser.roles = ['GOLD'];
     }
-    newUser.firebaseToken = String(firebaseToken);
 
+    newUser.firebaseToken = firebaseToken ? firebaseToken : undefined;
     newUser.userAgent = this.ctx.request.headers['user-agent']
       ? this.ctx.request.headers['user-agent'].toString().toLowerCase()
       : undefined;
@@ -494,11 +490,9 @@ export class AuthController {
       ? this.ctx.request.headers['platform'].toString().toLowerCase()
       : undefined;
 
-    delete newUser.password;
-
     try {
       // Create a new user
-      const savedUser: Users = await this.usersRepository.create(newUser);
+      const savedUser = await this.usersRepository.create(newUser);
 
       const savedScore = await this.usersRepository
         .scores(savedUser.getId())
@@ -509,30 +503,30 @@ export class AuthController {
         });
 
       // Convert user object to a UserProfile object (reduced set of properties)
-      const userProfile: UserProfile = this.userService.convertToUserProfile(
-        savedUser,
-      );
+      const userProfile = this.userService.convertToUserProfile(savedUser);
       userProfile['aud'] = 'access';
 
       const accessToken: string = await this.jwtService.generateToken(
         userProfile,
       );
 
-      await this.usersRepository.usersRels(savedUser.getId()).create({
-        avatar: savedUser.avatar,
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepository.usersRels(savedUser.getId()).create({
         type: 'self',
+        avatar: savedUser.avatar,
+        phone: newUser.phone,
+        email: foundVerify.email ? foundVerify.email : undefined,
       });
-
-      const initCatList = await this.categoriesSourceRepository.find();
-      initCatList.forEach((cat) => {
-        Object.assign(cat, {userId: savedUser.userId});
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.categoriesSourceRepository.find().then((initCatList) => {
+        initCatList.forEach((cat) => {
+          Object.assign(cat, {userId: savedUser.userId});
+        });
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.categoriesRepository.createAll(initCatList);
       });
-
-      await Promise.all([
-        this.categoriesRepository.createAll(initCatList),
-        this.settingsRepository.create({userId: savedUser.userId}),
-      ]);
-
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.settingsRepository.create({userId: savedUser.userId});
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.verifyRepository.updateById(verifyId, {
         loggedIn: true,
@@ -546,13 +540,14 @@ export class AuthController {
         totalScores: savedScore.score,
       };
     } catch (err) {
-      // Duplicate phone number error handling
-      // base on search in stackoverflow, throw a conflict[409] error code
-      // see https://stackoverflow.com/questions/12658574/rest-api-design-post-to-create-with-duplicate-data-would-be-integrityerror-500
-      if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-        throw new HttpErrors.Conflict(err.message);
-
-        // Properties length are too long error handling
+      if (
+        err.errno === 1062 &&
+        err.code === 'ER_DUP_ENTRY' &&
+        err.sqlMessage.endsWith("'phone'")
+      ) {
+        throw new HttpErrors.Conflict(
+          'این شماره موبایل قبلن ثبت نام شده است. اگر متعلق به شماست، از طریق گزینه «ورود با موبایل» به اپ وارد شوید',
+        );
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
         throw new HttpErrors.NotAcceptable(err.message);
       } else {
@@ -576,11 +571,11 @@ export class AuthController {
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.header.string('Authorization') token: string,
   ) {
-    const userId = Number(currentUserProfile[securityId]);
+    const userId = +currentUserProfile[securityId];
 
-    const user: Users = await this.usersRepository.findById(userId);
+    const user = await this.usersRepository.findById(userId);
 
-    const isMatched: Boolean = await this.passwordHasher.comparePassword(
+    const isMatched = await this.passwordHasher.comparePassword(
       token.split(' ')[1],
       user.refreshToken,
     );
@@ -589,18 +584,17 @@ export class AuthController {
       throw new HttpErrors.Unauthorized('Refresh tokens are not matched');
     }
 
-    // Convert user to user profile
     const userProfile = this.userService.convertToUserProfile(user);
     userProfile.aud = 'refresh';
-    // Generate access token
     const accessToken = await this.jwtService.generateToken(userProfile);
 
-    return {accessToken: accessToken};
+    return {accessToken};
   }
 
   @get('/logout', {
     summary: 'Logout from app',
-    description: 'Logout from app and blacklist the current access token',
+    description:
+      "Blacklist access token and remove user's firebase token property",
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {

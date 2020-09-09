@@ -28,7 +28,7 @@ export class BudgetsController {
     @repository(BudgetsRepository) public budgetsRepository: BudgetsRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
   }
 
   @get('/budgets', {
@@ -50,9 +50,7 @@ export class BudgetsController {
       },
     },
   })
-  async findBudgets(
-    @param.header.string('firebase-token') firebaseToken: string,
-  ): Promise<Budgets[]> {
+  async findBudgets(): Promise<Budgets[]> {
     return this.budgetsRepository.find({where: {userId: this.userId}});
   }
 
@@ -115,7 +113,6 @@ export class BudgetsController {
       },
     })
     newBudget: Omit<Budgets, 'budgetId'>,
-    @param.header.string('firebase-token') firebaseToken: string,
   ): Promise<Budgets> {
     newBudget.userId = this.userId;
 
@@ -182,7 +179,6 @@ export class BudgetsController {
       },
     })
     patchBudget: Budgets,
-    @param.header.string('firebase-token') firebaseToken: string,
   ): Promise<void> {
     patchBudget.updatedAt = new Date().toISOString();
     await this.budgetsRepository.updateById(budgetId, patchBudget);
@@ -224,9 +220,7 @@ export class BudgetsController {
       },
     },
   })
-  async deleteAllBudgets(
-    @param.header.string('firebase-token') firebaseToken: string,
-  ): Promise<Count> {
+  async deleteAllBudgets(): Promise<Count> {
     return this.budgetsRepository.deleteAll({userId: this.userId});
   }
 }

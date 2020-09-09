@@ -64,7 +64,7 @@ export class CronJobService extends CronJob {
     for (const setting of foundSettings) {
       if (setting.user) {
         firebaseMessages.push({
-          token: setting.user.firebaseToken,
+          token: setting.user.firebaseToken!,
           notification: {title: notifyTitle, body: notifyBodyMessage},
           android: {
             notification: {

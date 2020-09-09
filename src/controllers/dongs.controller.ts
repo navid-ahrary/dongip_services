@@ -288,7 +288,7 @@ export class DongsController {
                   .create(notifyData);
                 // Generate notification messages
                 firebaseMessagesList.push({
-                  token: user.firebaseToken,
+                  token: user.firebaseToken!,
                   notification: {
                     title: notifyData.title,
                     body: notifyData.body,

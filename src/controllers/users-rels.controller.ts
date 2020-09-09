@@ -33,16 +33,18 @@ import {
   ValidatePhoneEmailInterceptor,
   FirebasetokenInterceptor,
   ValidateUsersRelsInterceptor,
+  PhoneOrEmailInterceptor,
 } from '../interceptors';
 
 @api({basePath: '/', paths: {}})
 @intercept(
   ValidatePhoneEmailInterceptor.BINDING_KEY,
   FirebasetokenInterceptor.BINDING_KEY,
+  PhoneOrEmailInterceptor.BINDING_KEY,
 )
 @authenticate('jwt.access')
 export class UsersRelsController {
-  userId: number;
+  readonly userId: number;
 
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -58,7 +60,7 @@ export class UsersRelsController {
     @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
   }
 
   @get('/users-rels', {
@@ -101,23 +103,35 @@ export class UsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             exclude: ['userRelId', 'userId', 'type', 'createdAt', 'updatedAt'],
+            optional: ['phone', 'email'],
           }),
-          example: {
-            phone: '+989122222222',
-            avatar: '/assets/avatar/avatar_12.png',
-            name: 'Samood',
+          examples: {
+            'With phone': {
+              value: {
+                phone: '+989171234567',
+                avatar: '/assets/avatar/avatar_12.png',
+                name: 'Dongip',
+              },
+            },
+            'With email': {
+              value: {
+                phone: 'dongip.supp@gmail.com',
+                avatar: '/assets/avatar/avatar_12.png',
+                name: 'Dongip',
+              },
+            },
           },
         },
       },
     })
     userRelReqBody: Omit<UsersRels, 'id'>,
-    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<UsersRels> {
-    const userRelObject: UsersRels = new UsersRels({
+    const userRelObject = new UsersRels({
       name: userRelReqBody.name,
       avatar: userRelReqBody.avatar,
       type: 'virtual',
-      phone: userRelReqBody.phone,
+      phone: userRelReqBody.phone ? userRelReqBody.phone : undefined,
+      email: userRelReqBody.email ? userRelReqBody.email : undefined,
     });
 
     // Check phone number is not user's
@@ -128,7 +142,7 @@ export class UsersRelsController {
       throw new HttpErrors.UnprocessableEntity(':) تو بهترین دوست خودتی');
     }
     // Create a UserRel belongs to current user
-    const createdUserRel: UsersRels = await this.usersRepository
+    const createdUserRel = await this.usersRepository
       .usersRels(this.userId)
       .create(userRelObject)
       .catch((err) => {
@@ -139,6 +153,8 @@ export class UsersRelsController {
           // Duplicate phone error handling
           if (err.sqlMessage.endsWith("'user_id&phone'")) {
             errorMessage = 'این شماره تو لیست دوستهات وجود داره';
+          } else if (err.sqlMessage.endsWith("'user_id&email'")) {
+            errorMessage = 'این ایمیل تو لیست دوستهات وجود داره';
           } else errorMessage = 'خطای مدیریت نشده ' + err.message; // Otherwise
 
           throw new HttpErrors.Conflict(errorMessage);
@@ -176,7 +192,7 @@ export class UsersRelsController {
         if (!foundBiUserRel) {
           notifyType = 'userRel';
           notifyTitle = 'دوستی جدید';
-          notifyBody = `${user.name} شما رو دوست دنگیپش میدونه، اگه میخایی حساب های مشترک بین تون همگام سازی شن، این پیام رو لمس کن و به دوستهات اضافه ش کن`;
+          notifyBody = `${user.name} شما رو دوست دنگیپش میدونه، اگه میخایی حساب های مشترک بین تون همگام سازی شن، با لمس این پیام به دوستهات اضافه ش کن`;
         } else {
           notifyType = 'biUserRel';
           notifyTitle = `همگام سازی حساب با ${foundBiUserRel.name}`;
@@ -198,7 +214,7 @@ export class UsersRelsController {
           });
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.firebaseService.sendToDeviceMessage(
-          foundTargetUser.firebaseToken,
+          foundTargetUser.firebaseToken!,
           {
             notification: {
               title: notifyTitle,
@@ -225,7 +241,7 @@ export class UsersRelsController {
   @intercept(ValidateUsersRelsInterceptor.BINDING_KEY)
   @patch('/users-rels/{userRelId}', {
     summary: 'Update a UsersRels by id',
-    description: 'Send just desired properties to update',
+    description: 'Send just desired properties to update.',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -247,14 +263,19 @@ export class UsersRelsController {
           examples: {
             someProps: {
               value: {
-                name: 'Samood',
+                name: 'Dongip',
                 avatar: 'assets/avatar/avatar_1.png',
-                phone: '+989108522580',
+                phone: '+9891712345678',
               },
             },
             singleProp: {
               value: {
-                name: 'Samood',
+                name: 'Dongip',
+              },
+            },
+            pathEmail: {
+              value: {
+                email: 'dongip.supp@gmail.com',
               },
             },
           },
@@ -265,6 +286,7 @@ export class UsersRelsController {
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
     let errorMessage: string;
+
     userRelReqBody.updatedAt = moment.utc().toISOString();
 
     try {
@@ -274,18 +296,18 @@ export class UsersRelsController {
       });
 
       // Patch related VirtualUser entity
-      const vu = _.pick(userRelReqBody, ['phone']);
-      if (vu.phone) {
+      const vu = _.pick(userRelReqBody, ['phone', 'email']);
+      if (vu.phone || vu.email) {
         await this.usersRelsRepository
           .hasOneVirtualUser(userRelId)
           .patch(vu, {userId: this.userId});
       }
     } catch (err) {
-      // Duplicate error handling
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-        // Duplicate phone error handling
         if (err.sqlMessage.endsWith("'user_id&phone'")) {
           errorMessage = 'این شماره تو لیست دوستهات وجود داره';
+        } else if (err.sqlMessage.endsWith("'user_id&email'")) {
+          errorMessage = 'این ایمیل تو لیست دوستهات وجود داره';
         } else errorMessage = 'خطای مدیریت نشده ' + err.message;
 
         throw new HttpErrors.Conflict(errorMessage);
