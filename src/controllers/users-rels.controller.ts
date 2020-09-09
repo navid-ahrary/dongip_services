@@ -106,14 +106,14 @@ export class UsersRelsController {
             optional: ['phone', 'email'],
           }),
           examples: {
-            'With phone': {
+            phone: {
               value: {
                 phone: '+989171234567',
                 avatar: '/assets/avatar/avatar_12.png',
                 name: 'Dongip',
               },
             },
-            'With email': {
+            email: {
               value: {
                 phone: 'dongip.supp@gmail.com',
                 avatar: '/assets/avatar/avatar_12.png',
