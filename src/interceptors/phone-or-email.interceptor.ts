@@ -46,15 +46,21 @@ export class PhoneOrEmailInterceptor implements Provider<Interceptor> {
         invocationCtx.methodName === 'createUsersRels'
       ) {
         reqBody = invocationCtx.args[0];
-      } else if (invocationCtx.methodName === 'patchUsersRelsById') {
-        reqBody = invocationCtx.args[1];
-      }
 
-      if (
-        (!_.has(reqBody, 'phone') && !_.has(reqBody, 'email')) ||
-        (_.has(reqBody, 'phone') && _.has(reqBody, 'email'))
-      ) {
-        throw new Error('Either Phone or email must be provided');
+        if (
+          (!_.has(reqBody, 'phone') && !_.has(reqBody, 'email')) ||
+          (_.has(reqBody, 'phone') && _.has(reqBody, 'email'))
+        ) {
+          throw new Error('Either Phone or email must be provided');
+        }
+      } else if (invocationCtx.methodName === 'patchUsersRelsById') {
+        if (
+          (!_.has(reqBody, 'phone') && !_.has(reqBody, 'email')) ||
+          (_.has(reqBody, 'phone') && _.has(reqBody, 'email'))
+        ) {
+          throw new Error('Either Phone or email must be provided');
+        }
+        reqBody = invocationCtx.args[1];
       }
 
       // Add pre-invocation logic here
