@@ -178,7 +178,7 @@ export class Notifications extends Entity {
   @property({
     type: 'number',
     mysql: {
-      columnName: 'id',
+      columnName: 'subscription_id',
       dataType: 'mediumint',
       dataLength: null,
       nullable: 'Y',
