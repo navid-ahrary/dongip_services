@@ -29,7 +29,7 @@ export class Notifications extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'int',
+      dataType: 'bigint',
       dataLength: null,
       nullable: 'N',
     },
