@@ -26,6 +26,7 @@ export class Notifications extends Entity {
   @property({
     type: 'number',
     id: true,
+    required: false,
     generated: true,
     mysql: {
       columnName: 'id',
