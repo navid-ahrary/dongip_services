@@ -81,7 +81,7 @@ export class PurchasesController {
         description: 'Purchase model instance',
         content: {'application/json': {schema: getModelSchemaRef(Purchases)}},
       },
-      409: {
+      422: {
         description: 'Purchase is not valid',
       },
     },
