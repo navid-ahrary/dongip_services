@@ -209,13 +209,12 @@ export class Notifications extends Entity {
 
   @property({
     type: 'string',
-    required: true,
     jsonSchema: {maxLength: 10},
     mysql: {
       columnName: 'plan_id',
       dataType: 'varchar',
       dataLength: 10,
-      nullable: 'N',
+      nullable: 'ِY',
     },
   })
   planId: string;
