@@ -1,5 +1,5 @@
 import {repository, DataObject} from '@loopback/repository';
-import {api, param, get, HttpErrors, getModelSchemaRef} from '@loopback/rest';
+import {api, param, HttpErrors, getModelSchemaRef, post} from '@loopback/rest';
 import {service, inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
@@ -73,7 +73,7 @@ export class PurchasesController {
     );
   }
 
-  @get('/validate', {
+  @post('/validate', {
     summary: 'Validate subscription purchase',
     security: OPERATION_SECURITY_SPEC,
     responses: {
