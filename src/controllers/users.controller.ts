@@ -83,7 +83,7 @@ export class UsersController {
     totalScores: number;
     externalLinks: object;
   }> {
-    const scores = await this.getUserScores(this.userId);+
+    const scores = await this.getUserScores(this.userId);
 
     const foundUser = await this.usersRepository.findById(this.userId, {
       fields: {
