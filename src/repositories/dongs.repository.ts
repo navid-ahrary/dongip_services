@@ -15,12 +15,14 @@ import {
   PayerList,
   Categories,
   Groups,
+  Scores,
 } from '../models';
 import {UsersRepository} from './users.repository';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 import {CategoriesRepository} from './categories.repository';
 import {GroupsRepository} from './groups.repository';
+import {ScoresRepository} from './scores.repository';
 
 export class DongsRepository extends DefaultCrudRepository<
   Dongs,
@@ -52,6 +54,11 @@ export class DongsRepository extends DefaultCrudRepository<
     typeof Dongs.prototype.dongId
   >;
 
+  public readonly scores: HasManyRepositoryFactory<
+    Scores,
+    typeof Dongs.prototype.dongId
+  >;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
@@ -64,8 +71,15 @@ export class DongsRepository extends DefaultCrudRepository<
     protected payerListRepositoryGetter: Getter<PayerListRepository>,
     @repository.getter('GroupsRepository')
     protected groupsRepositoryGetter: Getter<GroupsRepository>,
+    @repository.getter('ScoresRepository')
+    protected scoresRepositoryGetter: Getter<ScoresRepository>,
   ) {
     super(Dongs, dataSource);
+    this.scores = this.createHasManyRepositoryFactoryFor(
+      'scores',
+      scoresRepositoryGetter,
+    );
+    this.registerInclusionResolver('scores', this.scores.inclusionResolver);
     this.group = this.createBelongsToAccessorFor(
       'group',
       groupsRepositoryGetter,

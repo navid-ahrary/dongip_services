@@ -13,3 +13,5 @@ export * from './groups-budgets.controller';
 export * from './budgets.controller';
 export * from './settings.controller';
 export * from './purchases.controller';
+export * from './scores-dongs.controller';
+export * from './dongs-scores.controller';

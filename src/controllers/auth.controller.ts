@@ -508,36 +508,29 @@ export class AuthController {
       credentials.password,
     );
 
-    delete newUser.password;
-    delete newUser.language;
-    delete newUser.currency;
-
-    newUser.region = foundVerify.region ? foundVerify.region : undefined;
-    newUser.email = foundVerify.email ? foundVerify.email : undefined;
-
     const countRegisteredUsers = await this.usersRepository.count();
-    if (countRegisteredUsers.count < 1000) {
-      newUser.roles = ['GOLD'];
-    }
-
-    newUser.firebaseToken = firebaseToken ? firebaseToken : undefined;
-    newUser.userAgent = this.ctx.request.headers['user-agent']
-      ? this.ctx.request.headers['user-agent'].toString().toLowerCase()
-      : undefined;
-    newUser.platform = this.ctx.request.headers['platform']
-      ? this.ctx.request.headers['platform'].toString().toLowerCase()
-      : undefined;
 
     try {
-      // Create a new user
-      const savedUser = await this.usersRepository.create(newUser);
+      const userObject = new Users({
+        avatar: newUser.avatar,
+        phone: newUser.phone,
+        name: newUser.name,
+        region: foundVerify.region ? foundVerify.region : undefined,
+        email: foundVerify.email ? foundVerify.email : undefined,
+        roles: countRegisteredUsers.count < 1000 ? ['GOLD'] : ['BRONZE'],
+        firebaseToken: firebaseToken ? firebaseToken : undefined,
+        userAgent: this.ctx.request.headers['user-agent'],
+        platform: this.ctx.request.headers['platform']
+          ? this.ctx.request.headers['platform'].toString().toLowerCase()
+          : undefined,
+      });
+      const savedUser = await this.usersRepository.create(userObject);
 
       const savedScore = await this.usersRepository
         .scores(savedUser.getId())
         .create({
           score: 50,
           createdAt: nowUTC.toISOString(),
-          origin: `signup-${savedUser.getId()}`,
         });
 
       // Convert user object to a UserProfile object (reduced set of properties)

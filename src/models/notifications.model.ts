@@ -17,7 +17,7 @@ import {Users} from './users.model';
         entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'restrict',
-        onDelete: 'restrict',
+        onDelete: 'set null',
       },
     },
   },
@@ -231,7 +231,7 @@ export class Notifications extends Entity {
       columnName: 'plan_id',
       dataType: 'varchar',
       dataLength: 10,
-      nullable: 'ِY',
+      nullable: 'Y',
     },
   })
   planId: string;
@@ -247,14 +247,12 @@ export class Notifications extends Entity {
       type: RelationType.belongsTo,
     },
     {
-      type: 'Number',
-      required: true,
+      type: 'number',
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint',
-        dataLength: null,
-        nullable: 'N',
+        nullable: 'Y',
       },
     },
   )

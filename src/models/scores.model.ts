@@ -6,6 +6,7 @@ import {
   RelationType,
 } from '@loopback/repository';
 import {Users} from './users.model';
+import {Dongs} from './dongs.model';
 
 @model({
   name: 'scores',
@@ -16,6 +17,14 @@ import {Users} from './users.model';
         entity: 'users',
         entityKey: 'id',
         foreignKey: 'userId',
+        onUpdate: 'restrict',
+        onDelete: 'cascade',
+      },
+      fkScoresDongId: {
+        name: 'fk_scores_dong_id',
+        entity: 'dongs',
+        entityKey: 'id',
+        foreignKey: 'dongId',
         onUpdate: 'restrict',
         onDelete: 'cascade',
       },
@@ -36,17 +45,6 @@ export class Scores extends Entity {
     },
   })
   scoreId?: number;
-
-  @property({
-    type: 'string',
-    required: true,
-    mysql: {
-      dataType: 'varchar',
-      dataLength: 50,
-      nullable: 'N',
-    },
-  })
-  origin: string;
 
   @property({
     type: 'Number',
@@ -83,7 +81,7 @@ export class Scores extends Entity {
       target: () => Scores,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
@@ -95,6 +93,28 @@ export class Scores extends Entity {
     },
   )
   userId: number;
+
+  @belongsTo(
+    () => Dongs,
+    {
+      type: RelationType.belongsTo,
+      keyFrom: 'dongId',
+      keyTo: 'dongId',
+      name: 'dong',
+      source: Dongs,
+      target: () => Scores,
+    },
+    {
+      type: 'number',
+      index: {normal: true},
+      mysql: {
+        columnName: 'dong_id',
+        dataType: 'int',
+        nullable: 'Y',
+      },
+    },
+  )
+  dongId: number;
 
   constructor(data?: Partial<Scores>) {
     super(data);

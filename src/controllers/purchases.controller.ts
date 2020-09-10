@@ -1,4 +1,4 @@
-import {repository, DataObject} from '@loopback/repository';
+import {repository} from '@loopback/repository';
 import {api, param, HttpErrors, getModelSchemaRef, post} from '@loopback/rest';
 import {service, inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
@@ -103,7 +103,7 @@ export class PurchasesController {
     @param.query.string('purchaseOrigin', {
       description: 'Purchase origin',
       required: true,
-      schema: {enum: ['cafebazaar']},
+      schema: {enum: ['cafebazaar', 'zarinpal']},
       examples: {cafebazaar: {value: 'cafebazaar'}},
     })
     purchaseOrigin: string,
@@ -148,12 +148,12 @@ export class PurchasesController {
             await this.sendNotification(this.userId, subs);
           });
 
-        const purchaseEnt: DataObject<Purchases> = {
+        const purchaseEnt = new Purchases({
           userId: this.userId,
           planId: planId,
           purchasedAt: purchaseTime,
           purchaseToken: purchaseToken,
-        };
+        });
 
         return this.purchasesRepo.create(purchaseEnt);
       } else {
@@ -168,8 +168,19 @@ export class PurchasesController {
 
         throw new HttpErrors.UnprocessableEntity(errMsg);
       }
+    } else if (purchaseOrigin === 'zarinpal') {
+      purchaseTime = new Date().toISOString();
+
+      const purchaseEnt = new Purchases({
+        userId: this.userId,
+        planId: planId,
+        purchasedAt: purchaseTime,
+        purchaseToken: purchaseToken,
+      });
+
+      return this.purchasesRepo.create(purchaseEnt);
     } else {
-      const errMsg = 'Purchase origin not supported';
+      const errMsg = 'Purchase origin is not supported';
 
       console.error(`userId ${this.userId}: ${errMsg}`);
 

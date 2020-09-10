@@ -14,6 +14,7 @@ import {Categories} from './categories.model';
 import {PayerList} from './payer-list.model';
 import {BillList} from './bill-list.model';
 import {Groups} from './groups.model';
+import {Scores} from './scores.model';
 
 @model({
   name: 'dongs',
@@ -35,14 +36,14 @@ import {Groups} from './groups.model';
         onUpdate: 'restrict',
         onDelete: 'cascade',
       },
-      // fkDongsGroupId: {
-      //   name: 'fk_dongs_group_id',
-      //   entity: 'groups',
-      //   entityKey: 'id',
-      //   foreignKey: 'groupId',
-      //   onUpdate: 'no action',
-      //   onDelete: 'no action',
-      // },
+      fkDongsGroupId: {
+        name: 'fk_dongs_group_id',
+        entity: 'groups',
+        entityKey: 'id',
+        foreignKey: 'groupId',
+        onUpdate: 'no action',
+        onDelete: 'no action',
+      },
     },
   },
 })
@@ -217,6 +218,17 @@ export class Dongs extends Entity {
     targetsMany: true,
   })
   payerList: PayerList[];
+
+  @hasMany(() => Scores, {
+    name: 'scores',
+    keyTo: 'dongId',
+    keyFrom: 'dongId',
+    source: Dongs,
+    target: () => Scores,
+    type: RelationType.hasMany,
+    targetsMany: true,
+  })
+  scores: Scores[];
 
   constructor(data?: Partial<Dongs>) {
     super(data);

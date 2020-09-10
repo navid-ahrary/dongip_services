@@ -5,6 +5,7 @@ import {
   property,
   model,
   CountSchema,
+  DataObject,
 } from '@loopback/repository';
 import {
   get,
@@ -40,7 +41,7 @@ import {ValidateGroupIdInterceptor} from '../interceptors/validate-group-id.inte
 
 @model()
 class ResponseNewDong extends Dongs {
-  @property({type: 'number', required: true})
+  @property({type: 'number'})
   score: number;
 }
 @intercept(
@@ -149,7 +150,7 @@ export class DongsController {
     })
     newDong: Omit<PostNewDong, 'id'>,
     @param.header.string('firebase-token') firebaseToken?: string,
-  ): Promise<ResponseNewDong> {
+  ): Promise<DataObject<ResponseNewDong>> {
     const newDongScore = 50;
     const mutualFriendScore = 20;
     let mutualFactor = 0;
@@ -350,23 +351,21 @@ export class DongsController {
         }
       }
 
-      const createdScore = await this.usersRepository
-        .scores(this.userId)
-        .create({
-          createdAt: newDong.createdAt,
-          score: newDongScore + mutualFactor * mutualFriendScore,
-          origin: `dongId-${createdDong.getId()}`,
-        });
+      const calculatedScore = newDongScore + mutualFactor * mutualFriendScore;
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepository.scores(this.userId).create({
+        dongId: createdDong.getId(),
+        createdAt: newDong.createdAt,
+        score: calculatedScore,
+      });
 
       createdDong.billList = createdBillList;
       createdDong.payerList = createdPayerList;
 
-      const response: ResponseNewDong = Object({
+      return {
         ...createdDong,
-        score: createdScore.score,
-      });
-
-      return response;
+        score: calculatedScore,
+      };
     } catch (err) {
       throw new HttpErrors.UnprocessableEntity(err);
     }
