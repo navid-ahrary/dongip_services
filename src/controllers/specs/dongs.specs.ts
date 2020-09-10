@@ -1,7 +1,7 @@
 export const PostNewDongExample = {
   title: 'عروسی عارف',
   desc: 'مهمونی عروسی عارف جمعه',
-  createdAt: '2020-06-06T06:14:35.977Z',
+  createdAt: new Date().toISOString(),
   categoryId: 1,
   groupId: 12,
   pong: 80000,

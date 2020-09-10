@@ -126,9 +126,25 @@ export class DongsController {
         'application/json': {
           schema: getModelSchemaRef(PostNewDong, {
             title: 'NewDongs',
-            optional: ['title', 'desc', 'groupId'],
+            optional: ['title', 'desc', 'groupId', 'currency'],
           }),
-          example: PostNewDongExample,
+          example: {
+            title: 'New dong',
+            desc: 'Dongip it',
+            createdAt: new Date().toISOString(),
+            categoryId: 1,
+            groupId: 12,
+            pong: 80000,
+            curreny: 'IRR',
+            sendNotify: true,
+            payerList: [{userRelId: 1, paidAmount: 80000}],
+            billList: [
+              {userRelId: 1, dongAmount: 20000},
+              {userRelId: 2, dongAmount: 20000},
+              {userRelId: 3, dongAmount: 20000},
+              {userRelId: 4, dongAmount: 20000},
+            ],
+          },
         },
       },
     })
@@ -183,17 +199,16 @@ export class DongsController {
     });
     if (userRel.length === 1) currentUserIsPayer = true;
 
-    // Create a Dongs entity
-    const dong: Dongs = new Dongs(
-      _.pick(newDong, [
-        'title',
-        'createdAt',
-        'categoryId',
-        'desc',
-        'pong',
-        'groupId',
-      ]),
-    );
+    // Create a Dongs objcet
+    const dong = new Dongs({
+      title: newDong.title,
+      createdAt: newDong.createdAt,
+      categoryId: newDong.categoryId,
+      desc: newDong.desc,
+      pong: newDong.pong,
+      currency: newDong.currency,
+      groupId: newDong.groupId,
+    });
 
     try {
       const createdDong = await this.usersRepository
@@ -206,6 +221,7 @@ export class DongsController {
           dongId: createdDong.getId(),
           createdAt: createdDong.createdAt,
           categoryId: createdDong.categoryId,
+          currency: createdDong.currency,
         });
       });
 
@@ -215,6 +231,7 @@ export class DongsController {
           dongId: createdDong.getId(),
           createdAt: createdDong.createdAt,
           categoryId: createdDong.categoryId,
+          currency: createdDong.currency,
         });
       });
 
@@ -252,7 +269,7 @@ export class DongsController {
               );
 
               if (foundMutualUsersRels) {
-                // Increament scoreFactor for every mutual friend dong contribution
+                // Increament scoreFactor for every mutual friend contribute in dong
                 mutualFactor++;
                 // Get rounded dong amount
                 const roundedDongAmount = _.find(billList, {
@@ -270,7 +287,7 @@ export class DongsController {
                   roundedDongAmount,
                 );
                 // Notification data payload
-                const notifyData: Partial<Notifications> = {
+                const notifyData = new Notifications({
                   title: 'دنگیپ شدی',
                   body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
                   desc: createdDong.desc ? createdDong.desc : '',
@@ -280,8 +297,9 @@ export class DongsController {
                   createdAt: newDong.createdAt,
                   userRelId: foundMutualUsersRels.getId(),
                   dongAmount: roundedDongAmount,
+                  currency: newDong.currency,
                   dongId: createdDong.getId(),
-                };
+                });
 
                 const createdNotify = await this.usersRepository
                   .notifications(user.getId())
@@ -304,6 +322,7 @@ export class DongsController {
                     createdAt: notifyData.createdAt!,
                     userRelId: notifyData.userRelId!.toString(),
                     dongAmount: notifyData.dongAmount!.toString(),
+                    currency: createdNotify.currency!,
                     dongId: notifyData.dongId!.toString(),
                   },
                   // Android options
@@ -330,7 +349,6 @@ export class DongsController {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           this.firebaseSerice.sendAllMessage(firebaseMessagesList);
         }
-        // console.log(JSON.stringify(firebaseMessagesList));
       }
 
       const createdScore = await this.usersRepository
@@ -338,7 +356,7 @@ export class DongsController {
         .create({
           createdAt: newDong.createdAt,
           score: newDongScore + mutualFactor * mutualFriendScore,
-          desc: `dong-${createdDong.getId()}`,
+          origin: `dongId-${createdDong.getId()}`,
         });
 
       createdDong.billList = createdBillList;

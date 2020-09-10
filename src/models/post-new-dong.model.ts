@@ -1,4 +1,5 @@
 import {model, property, Model} from '@loopback/repository';
+
 import {Categories} from './categories.model';
 import {UsersRels} from './users-rels.model';
 
@@ -21,7 +22,18 @@ export class PostNewDong extends Model {
   @property({type: 'number'})
   categoryId: typeof Categories.prototype.categoryId;
 
-  @property({type: 'Number'}) groupId: number;
+  @property({type: 'number'}) groupId: number;
+
+  @property({
+    type: 'string',
+    default: 'IRR',
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 3,
+      description: 'ISO 4217',
+    },
+  })
+  currency?: string;
 
   @property({type: 'array', itemType: 'object'})
   payerList: {

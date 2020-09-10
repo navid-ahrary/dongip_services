@@ -109,6 +109,22 @@ export class Dongs extends Entity {
   })
   pong: number;
 
+  @property({
+    type: 'string',
+    default: 'IRR',
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 3,
+      description: 'ISO 4217',
+    },
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 3,
+      nullable: 'N',
+    },
+  })
+  currency: string;
+
   @belongsTo(
     () => Users,
     {

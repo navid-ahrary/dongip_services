@@ -41,13 +41,12 @@ export class Scores extends Entity {
     type: 'string',
     required: true,
     mysql: {
-      columnName: 'desc',
       dataType: 'varchar',
-      dataLength: 30,
+      dataLength: 10,
       nullable: 'N',
     },
   })
-  desc: string;
+  origin: string;
 
   @property({
     type: 'Number',

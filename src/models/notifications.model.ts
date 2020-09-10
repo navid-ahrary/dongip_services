@@ -140,6 +140,22 @@ export class Notifications extends Entity {
 
   @property({
     type: 'string',
+    default: 'IRR',
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 3,
+      description: 'ISO 4217',
+    },
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 3,
+      nullable: 'Y',
+    },
+  })
+  currency?: string;
+
+  @property({
+    type: 'string',
     required: true,
   })
   body: string;

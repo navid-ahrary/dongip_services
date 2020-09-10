@@ -1,5 +1,5 @@
 import {inject, service, intercept} from '@loopback/core';
-import {repository, property, model, NULL, Null} from '@loopback/repository';
+import {repository, property, model} from '@loopback/repository';
 import {
   post,
   requestBody,
@@ -537,7 +537,7 @@ export class AuthController {
         .create({
           score: 50,
           createdAt: nowUTC.toISOString(),
-          desc: 'signup',
+          origin: `signup-${savedUser.getId()}`,
         });
 
       // Convert user object to a UserProfile object (reduced set of properties)
