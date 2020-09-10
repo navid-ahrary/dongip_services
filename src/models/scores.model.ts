@@ -42,7 +42,7 @@ export class Scores extends Entity {
     required: true,
     mysql: {
       dataType: 'varchar',
-      dataLength: 10,
+      dataLength: 50,
       nullable: 'N',
     },
   })
