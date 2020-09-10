@@ -70,10 +70,10 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
         invocationCtx.args[0].phone = phoneValue;
       } else if (invocationCtx.args[0].email) {
         const emailValue = invocationCtx.args[0].email;
-        const dongipMailAdd = process.env.GMAIL_USER;
+        const dongipMailAddress = process.env.GMAIL_USER;
 
         const isValid = isemail.validate(emailValue);
-        if (!isValid || emailValue === dongipMailAdd) {
+        if (!isValid || emailValue === dongipMailAddress) {
           throw new HttpErrors.UnprocessableEntity(invalidEmailValueMessage);
         }
       }
