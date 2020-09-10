@@ -74,29 +74,46 @@ export class UsersController {
       },
     },
   })
-  async findUserRrops(
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-  ): Promise<{
+  async findUserRrops(): Promise<{
     name: string;
     roles: string[];
+    language: string;
+    currency: string;
     registeredAt: string;
     totalScores: number;
     externalLinks: object;
   }> {
-    const scores = await this.getUserScores(this.userId);
+    const scores = await this.getUserScores(this.userId);+
+
     const foundUser = await this.usersRepository.findById(this.userId, {
-      fields: {name: true, roles: true, registeredAt: true, userAgent: true},
+      fields: {
+        userId: true,
+        name: true,
+        roles: true,
+        registeredAt: true,
+        userAgent: true,
+        setting: true,
+      },
+      include: [
+        {
+          relation: 'setting',
+          scope: {fields: {userId: true, language: true, currency: true}},
+        },
+      ],
     });
 
     const foundLinks = await this.linkRepository.find();
+
     const externalLinks: {[key: string]: string} = {};
     foundLinks.forEach((link) => {
       externalLinks[link.name] = link.url;
     });
 
     return {
-      name: foundUser.name,
-      roles: foundUser.roles,
+      name: foundUser!.name,
+      roles: foundUser!.roles,
+      language: foundUser.setting.language,
+      currency: foundUser.setting.currency,
       registeredAt: foundUser.registeredAt,
       totalScores: scores,
       externalLinks: externalLinks,
