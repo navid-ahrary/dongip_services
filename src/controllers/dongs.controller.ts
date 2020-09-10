@@ -135,7 +135,7 @@ export class DongsController {
             categoryId: 1,
             groupId: 12,
             pong: 80000,
-            curreny: 'IRR',
+            currency: 'IRR',
             sendNotify: true,
             payerList: [{userRelId: 1, paidAmount: 80000}],
             billList: [
