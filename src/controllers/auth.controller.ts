@@ -1,5 +1,5 @@
 import {inject, service, intercept} from '@loopback/core';
-import {repository, property, model} from '@loopback/repository';
+import {repository, property, model, NULL, Null} from '@loopback/repository';
 import {
   post,
   requestBody,
@@ -18,6 +18,7 @@ import {
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 
 import moment from 'moment';
+import _ from 'lodash';
 
 import {
   PasswordHasherBindings,
@@ -44,7 +45,6 @@ import {
 import {
   ValidatePasswordInterceptor,
   ValidatePhoneEmailInterceptor,
-  PhoneOrEmailInterceptor,
 } from '../interceptors';
 import {MailerService} from '../services/mailer.service';
 
@@ -102,7 +102,6 @@ export class AuthController {
     return totalScores;
   }
 
-  @intercept(PhoneOrEmailInterceptor.BINDING_KEY)
   @post('/verify', {
     summary: 'Verify phone/email for login/signup',
     responses: {
@@ -184,6 +183,15 @@ export class AuthController {
       durationLimit = 5,
       randomCode = Math.random().toFixed(7).slice(3),
       randomStr = this.generateRandomString(3);
+
+    if (
+      (!_.has(verifyReqBody, 'phone') && !_.has(verifyReqBody, 'email')) ||
+      (_.has(verifyReqBody, 'phone') && _.has(verifyReqBody, 'email'))
+    ) {
+      throw new HttpErrors.UnprocessableEntity(
+        'Either Phone or email must be provided',
+      );
+    }
 
     const countRequstedVerifyCode = await this.verifyRepository.count({
       or: [{phone: verifyReqBody.phone}, {email: verifyReqBody.email}],
@@ -439,6 +447,7 @@ export class AuthController {
               'virtualUsers',
               'region',
               'platform',
+              'email',
             ],
             optional: ['username'],
           }),

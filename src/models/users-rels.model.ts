@@ -22,11 +22,6 @@ import {Budgets} from './budgets.model';
         columns: 'user_id, phone',
         options: {unique: true},
       },
-      'user_id&email': {
-        name: 'user_id&email',
-        columns: 'user_id, email',
-        options: {unique: true},
-      },
     },
     foreignKeys: {
       fkUsersRelsUserId: {
@@ -94,6 +89,7 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'string',
+    required: true,
     index: {normal: true},
     jsonSchema: {maxLength: 20},
     mysql: {
@@ -103,12 +99,12 @@ export class UsersRels extends Entity {
       nullable: 'Y',
     },
   })
-  phone?: string;
+  phone: string;
 
   @property({
     type: 'string',
     index: {normal: true},
-    jsonSchema: {maxLength: 20},
+    jsonSchema: {maxLength: 100},
     mysql: {
       columnName: 'email',
       dataType: 'varchar',

@@ -33,14 +33,12 @@ import {
   ValidatePhoneEmailInterceptor,
   FirebasetokenInterceptor,
   ValidateUsersRelsInterceptor,
-  PhoneOrEmailInterceptor,
 } from '../interceptors';
 
 @api({basePath: '/', paths: {}})
 @intercept(
   ValidatePhoneEmailInterceptor.BINDING_KEY,
   FirebasetokenInterceptor.BINDING_KEY,
-  PhoneOrEmailInterceptor.BINDING_KEY,
 )
 @authenticate('jwt.access')
 export class UsersRelsController {
@@ -63,7 +61,22 @@ export class UsersRelsController {
     this.userId = +this.currentUserProfile[securityId];
   }
 
-  @get('/users-rels', {
+  private normalizePhonesList(
+    phonesList: string[],
+    refrenceRegionCode: string,
+  ): string[] {
+    phonesList.forEach((phone, index) => {
+      phonesList[
+        index
+      ] = this.phoneNumberService.normalizePhoneNumberWithZeroPrefix(
+        phone,
+        refrenceRegionCode,
+      );
+    });
+    return phonesList;
+  }
+
+  @get('/', {
     summary: 'Get array of all UsersRels',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -77,9 +90,7 @@ export class UsersRelsController {
       },
     },
   })
-  async find(
-    @param.header.string('firebase-token') firebaseToken?: string,
-  ): Promise<UsersRels[]> {
+  async find(): Promise<UsersRels[]> {
     return this.usersRepository.usersRels(this.userId).find();
   }
 
@@ -105,21 +116,10 @@ export class UsersRelsController {
             exclude: ['userRelId', 'userId', 'type', 'createdAt', 'updatedAt'],
             optional: ['phone', 'email'],
           }),
-          examples: {
-            phone: {
-              value: {
-                phone: '+989171234567',
-                avatar: '/assets/avatar/avatar_12.png',
-                name: 'Dongip',
-              },
-            },
-            email: {
-              value: {
-                phone: 'dongip.supp@gmail.com',
-                avatar: '/assets/avatar/avatar_12.png',
-                name: 'Dongip',
-              },
-            },
+          example: {
+            phone: '+989171234567',
+            avatar: '/assets/avatar/avatar_12.png',
+            name: 'Dongip',
           },
         },
       },
@@ -130,8 +130,7 @@ export class UsersRelsController {
       name: userRelReqBody.name,
       avatar: userRelReqBody.avatar,
       type: 'virtual',
-      phone: userRelReqBody.phone ? userRelReqBody.phone : undefined,
-      email: userRelReqBody.email ? userRelReqBody.email : undefined,
+      phone: userRelReqBody.phone,
     });
 
     // Check phone number is not user's
@@ -153,8 +152,6 @@ export class UsersRelsController {
           // Duplicate phone error handling
           if (err.sqlMessage.endsWith("'user_id&phone'")) {
             errorMessage = 'این شماره تو لیست دوستهات وجود داره';
-          } else if (err.sqlMessage.endsWith("'user_id&email'")) {
-            errorMessage = 'این ایمیل تو لیست دوستهات وجود داره';
           } else errorMessage = 'خطای مدیریت نشده ' + err.message; // Otherwise
 
           throw new HttpErrors.Conflict(errorMessage);
@@ -258,7 +255,7 @@ export class UsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             partial: true,
-            exclude: ['userId', 'type', 'createdAt', 'updatedAt'],
+            exclude: ['userId', 'type', 'createdAt', 'updatedAt', 'email'],
           }),
           examples: {
             someProps: {
@@ -273,17 +270,11 @@ export class UsersRelsController {
                 name: 'Dongip',
               },
             },
-            pathEmail: {
-              value: {
-                email: 'dongip.supp@gmail.com',
-              },
-            },
           },
         },
       },
     })
     userRelReqBody: Partial<UsersRels>,
-    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
     let errorMessage: string;
 
@@ -296,8 +287,8 @@ export class UsersRelsController {
       });
 
       // Patch related VirtualUser entity
-      const vu = _.pick(userRelReqBody, ['phone', 'email']);
-      if (vu.phone || vu.email) {
+      const vu = _.pick(userRelReqBody, ['phone']);
+      if (vu.phone) {
         await this.usersRelsRepository
           .hasOneVirtualUser(userRelId)
           .patch(vu, {userId: this.userId});
@@ -306,8 +297,6 @@ export class UsersRelsController {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         if (err.sqlMessage.endsWith("'user_id&phone'")) {
           errorMessage = 'این شماره تو لیست دوستهات وجود داره';
-        } else if (err.sqlMessage.endsWith("'user_id&email'")) {
-          errorMessage = 'این ایمیل تو لیست دوستهات وجود داره';
         } else errorMessage = 'خطای مدیریت نشده ' + err.message;
 
         throw new HttpErrors.Conflict(errorMessage);
@@ -360,7 +349,7 @@ export class UsersRelsController {
   @post('/users-rels/find-friends', {
     summary: 'Find friends with phone numbers',
     description:
-      'Post array of phone numbers to know whom registered at dongip',
+      'Post array of phone numbers to know whom registered in dongip',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -465,26 +454,5 @@ export class UsersRelsController {
     } catch (err) {
       throw new HttpErrors.NotImplemented(err.message);
     }
-  }
-
-  /**
-   *
-   * @param phoneList string[]
-   * @param refrenceRegionCode string
-   * @return string[]
-   */
-  normalizePhonesList(
-    phonesList: string[],
-    refrenceRegionCode: string,
-  ): string[] {
-    phonesList.forEach((phone, index) => {
-      phonesList[
-        index
-      ] = this.phoneNumberService.normalizePhoneNumberWithZeroPrefix(
-        phone,
-        refrenceRegionCode,
-      );
-    });
-    return phonesList;
   }
 }

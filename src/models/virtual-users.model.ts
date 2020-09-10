@@ -18,11 +18,6 @@ import {UsersRels} from './users-rels.model';
         columns: 'user_id, phone',
         options: {unique: true},
       },
-      'user_id&email': {
-        name: 'user_id&email',
-        columns: 'user_id, email',
-        options: {unique: true},
-      },
       'user_id&user_rel_id': {
         name: 'user_id&user_rel_id',
         columns: 'user_id, user_rel_id',
@@ -58,10 +53,11 @@ export class VirtualUsers extends Entity {
 
   @property({
     type: 'string',
+    required: true,
     jsonSchema: {maxLength: 20},
-    mysql: {dataType: 'varchar', dataLength: 20, nullable: 'Y'},
+    mysql: {dataType: 'varchar', dataLength: 20, nullable: 'N'},
   })
-  phone?: string;
+  phone: string;
 
   @property({
     type: 'string',
@@ -73,13 +69,14 @@ export class VirtualUsers extends Entity {
   @property({
     type: 'date',
     required: true,
+    default: 'now',
     mysql: {
       columnName: 'created_at',
       dataType: 'datetime',
       nullable: 'N',
     },
   })
-  createdAt: string = new Date().toISOString();
+  createdAt: string;
 
   @belongsTo(
     () => Users,
