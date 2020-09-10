@@ -76,7 +76,7 @@ export class UsersRelsController {
     return phonesList;
   }
 
-  @get('/', {
+  @get('/users-rels', {
     summary: 'Get array of all UsersRels',
     security: OPERATION_SECURITY_SPEC,
     responses: {
