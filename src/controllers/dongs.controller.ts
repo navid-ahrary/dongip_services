@@ -31,7 +31,6 @@ import {
   UsersRelsRepository,
 } from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {PostNewDongExample} from './specs';
 import {FirebaseService, BatchMessage} from '../services';
 import {
   ValidateCategoryIdInterceptor,
