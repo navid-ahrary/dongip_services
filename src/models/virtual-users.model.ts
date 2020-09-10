@@ -69,7 +69,7 @@ export class VirtualUsers extends Entity {
   @property({
     type: 'date',
     required: true,
-    default: 'now',
+    defaultFn: 'now',
     mysql: {
       columnName: 'created_at',
       dataType: 'datetime',
