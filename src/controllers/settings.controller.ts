@@ -27,7 +27,7 @@ export class SettingsController {
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
   }
 
   @get('/settings', {
@@ -44,9 +44,7 @@ export class SettingsController {
       },
     },
   })
-  async findSettings(
-    @param.header.string('firebase-token') firebaseToken?: string,
-  ): Promise<Settings> {
+  async findSettings(): Promise<Settings> {
     return this.usersRepository.setting(this.userId).get();
   }
 
@@ -65,15 +63,15 @@ export class SettingsController {
         'application/json': {
           schema: getModelSchemaRef(Settings, {
             partial: true,
-            exclude: ['updatedAt', 'createdAt'],
+            exclude: ['userId', 'updatedAt', 'createdAt'],
           }),
         },
       },
     })
     patchSettings: Settings,
-    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<Count> {
-    patchSettings.updatedAt = moment.utc().toISOString();
-    return this.usersRepository.setting(this.userId).patch(patchSettings);
+    return this.usersRepository
+      .setting(this.userId)
+      .patch({...patchSettings, updatedAt: moment.utc().toISOString()});
   }
 }

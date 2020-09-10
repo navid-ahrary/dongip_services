@@ -5,6 +5,7 @@ import {
   belongsTo,
   RelationType,
 } from '@loopback/repository';
+
 import {Users, UsersWithRelations} from './users.model';
 
 @model({
@@ -29,8 +30,7 @@ export class Settings extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'mediumint',
-      dataLength: null,
+      dataType: 'mediumint unsigned',
       nullable: 'N',
     },
   })
@@ -129,6 +129,41 @@ export class Settings extends Entity {
   scheduleTime: string;
 
   @property({
+    type: 'string',
+    required: true,
+    default: 'fa',
+    jsonSchema: {
+      minLength: 2,
+      maxLength: 2,
+      description: 'ISO 639-1',
+    },
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 2,
+      nullable: 'N',
+    },
+  })
+  language: string;
+
+  @property({
+    type: 'string',
+    format: 'ISO 4217',
+    default: 'IRR',
+    required: true,
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 3,
+      description: 'ISO 4217',
+    },
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 3,
+      nullable: 'N',
+    },
+  })
+  currency: string;
+
+  @property({
     type: 'date',
     required: true,
     defaultFn: 'now',
@@ -155,14 +190,13 @@ export class Settings extends Entity {
       target: () => Settings,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {unique: true},
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint',
-        dataLength: null,
-        nullable: 'N',
+        nullable: 'Y',
       },
     },
   )

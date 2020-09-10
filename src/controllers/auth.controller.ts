@@ -535,7 +535,13 @@ export class AuthController {
         this.categoriesRepository.createAll(initCatList);
       });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.settingsRepository.create({userId: savedUser.userId});
+      this.settingsRepository.create({
+        userId: savedUser.userId,
+        language: this.ctx.request.headers['']
+          ? this.ctx.request.headers['accept-language']
+          : 'fa',
+      });
+
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.verifyRepository.updateById(verifyId, {
         loggedIn: true,
