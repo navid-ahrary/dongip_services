@@ -51,6 +51,28 @@ import {MailerService} from '../services/mailer.service';
 @model()
 export class NewUser extends Users {
   @property({type: 'string', required: true, length: 9}) password: string;
+
+  @property({
+    type: 'string',
+    default: 'fa',
+    jsonSchema: {
+      minLength: 2,
+      maxLength: 2,
+      description: 'ISO 639-1',
+    },
+  })
+  language?: string;
+
+  @property({
+    type: 'string',
+    default: 'IRR',
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 3,
+      description: 'ISO 4217',
+    },
+  })
+  currency?: string;
 }
 @api({basePath: '/auth', paths: {}})
 @intercept(
@@ -449,12 +471,14 @@ export class AuthController {
               'platform',
               'email',
             ],
-            optional: ['username'],
+            optional: ['username', 'currency', 'language'],
           }),
           example: {
             phone: '+989171234567',
             name: 'Dongip',
             username: 'dongipapp',
+            language: 'fa',
+            currency: 'IRR',
             avatar: '/assets/avatar/avatar_1.png',
             password: 'DNG123456',
           },
@@ -475,13 +499,18 @@ export class AuthController {
         phone: newUser.phone,
         password: newUser.password,
       }),
-      nowUTC = moment.utc();
+      nowUTC = moment.utc(),
+      userLanguage = newUser.language,
+      userCurrency = newUser.currency;
 
     const foundVerify = await this.verifySerivce.verifyCredentials(
       verifyId,
       credentials.password,
     );
+
     delete newUser.password;
+    delete newUser.language;
+    delete newUser.currency;
 
     newUser.region = foundVerify.region ? foundVerify.region : undefined;
     newUser.email = foundVerify.email ? foundVerify.email : undefined;
@@ -537,9 +566,8 @@ export class AuthController {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.settingsRepository.create({
         userId: savedUser.userId,
-        language: this.ctx.request.headers['']
-          ? this.ctx.request.headers['accept-language']
-          : 'fa',
+        language: userLanguage,
+        currency: userCurrency,
       });
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises

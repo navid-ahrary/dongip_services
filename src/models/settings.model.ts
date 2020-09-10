@@ -147,7 +147,6 @@ export class Settings extends Entity {
 
   @property({
     type: 'string',
-    format: 'ISO 4217',
     default: 'IRR',
     required: true,
     jsonSchema: {
