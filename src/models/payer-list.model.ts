@@ -78,7 +78,7 @@ export class PayerList extends Entity {
 
   @property({
     type: 'string',
-    default: 'IRR',
+    default: 'IRT',
     jsonSchema: {
       minLength: 3,
       maxLength: 3,
