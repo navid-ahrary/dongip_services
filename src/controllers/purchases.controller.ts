@@ -227,5 +227,9 @@ export class PurchasesController {
     console.log('Purchase origin: ', purchaseOrigin);
     console.log('transactionId: ', transactionId);
     console.log('Request Body: ', reqBody);
+
+    const order = await this.wcService.getOrder(reqBody.wcOrderKey);
+
+    console.log(order);
   }
 }
