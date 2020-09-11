@@ -72,11 +72,11 @@ export class Purchases extends Entity {
 
   @property({
     type: 'date',
-    required: false,
+    required: true,
     default: 'now',
     mysql: {
       columnName: 'created_at',
-      dataType: 'bigint',
+      dataType: 'datetime',
       nullable: 'N',
     },
   })
