@@ -5,6 +5,7 @@ import {
   getModelSchemaRef,
   post,
   requestBody,
+  api,
 } from '@loopback/rest';
 import {service, inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
@@ -23,6 +24,7 @@ import {
 import {Purchases, Subscriptions, Users, InsitePurchase} from '../models';
 import {SubscriptionSpec} from '../application';
 
+@api({basePath: '/purchases/'})
 export class PurchasesController {
   constructor(
     @repository(PurchasesRepository) public purchasesRepo: PurchasesRepository,
@@ -73,7 +75,7 @@ export class PurchasesController {
   }
 
   @authenticate('jwt.access')
-  @post('/purchases/validate/in-app', {
+  @post('/in-app/validate/', {
     summary: 'Validate in-app subscription purchase',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -153,6 +155,7 @@ export class PurchasesController {
           planId: planId,
           purchasedAt: purchaseTime,
           purchaseToken: purchaseToken,
+          purchaseOrigin: purchaseOrigin,
         });
 
         return this.purchasesRepo.create(purchaseEnt);
@@ -174,7 +177,7 @@ export class PurchasesController {
   }
 
   @authenticate.skip()
-  @post('/purchases/validate/in-site', {
+  @post('/in-site/validate/', {
     summary: 'Validate in-site subscription purchase',
     responses: {
       200: {},
@@ -195,6 +198,13 @@ export class PurchasesController {
       },
     })
     planId: string,
+    @param.query.string('purchaseOrigin', {
+      description: 'Purchase origin',
+      required: true,
+      schema: {enum: ['zarinpal']},
+      examples: {zarinpal: {value: 'zarinpal'}},
+    })
+    purchaseOrigin: string,
     @param.query.string('purchaseToken', {
       description: 'Purchase token',
       required: true,
@@ -212,6 +222,7 @@ export class PurchasesController {
     reqBody: InsitePurchase,
   ) {
     console.log('PlanId:', planId);
+    console.log('Purchase origin', purchaseOrigin);
     console.log('PurchaseToken', purchaseToken);
     console.log('Request Body', reqBody);
   }

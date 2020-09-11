@@ -16,7 +16,7 @@ import {Users} from './users.model';
         entity: 'users',
         entityKey: 'id',
         foreignKey: 'userId',
-        onUpdate: 'no action',
+        onUpdate: 'cascade',
         onDelete: 'no action',
       },
     },
@@ -41,7 +41,7 @@ export class Purchases extends Entity {
     mysql: {
       columnName: 'purchase_token',
       dataType: 'varchar',
-      dataLength: 40,
+      dataLength: 50,
       nullable: 'N',
     },
   })
@@ -57,6 +57,18 @@ export class Purchases extends Entity {
     },
   })
   purchasedAt: string;
+
+  @property({
+    type: 'string',
+    required: true,
+    mysql: {
+      columnName: 'purchase_origin',
+      dataType: 'varchar',
+      dataLength: 20,
+      nullable: 'N',
+    },
+  })
+  purchaseOrigin: string;
 
   @property({
     type: 'date',
