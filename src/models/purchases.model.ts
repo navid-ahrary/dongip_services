@@ -52,7 +52,7 @@ export class Purchases extends Entity {
     required: true,
     mysql: {
       columnName: 'purchased_at',
-      dataType: 'bigint',
+      dataType: 'datetime',
       nullable: 'N',
     },
   })
