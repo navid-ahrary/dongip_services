@@ -347,9 +347,19 @@ export class AuthController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(Credentials),
-          example: {
-            phone: '+989176502184',
-            password: 'DNG123456',
+          examples: {
+            phone: {
+              value: {
+                phone: '+989176502184',
+                password: 'DNG123456',
+              },
+            },
+            email: {
+              value: {
+                phone: 'dongip.supp@gmail.com',
+                password: 'DNG123456',
+              },
+            },
           },
         },
       },
@@ -363,7 +373,16 @@ export class AuthController {
     refreshToken: string;
     totalScores: number;
   }> {
-    const verifyId = Number(currentUserProfile[securityId]);
+    if (
+      (!_.has(credentials, 'phone') && !_.has(credentials, 'email')) ||
+      (_.has(credentials, 'phone') && _.has(credentials, 'email'))
+    ) {
+      throw new HttpErrors.UnprocessableEntity(
+        'Either Phone or email must be provided',
+      );
+    }
+
+    const verifyId = +currentUserProfile[securityId];
 
     try {
       const foundVerify = await this.verifySerivce.verifyCredentials(

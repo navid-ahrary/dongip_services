@@ -4,10 +4,15 @@ import {Model, model, property} from '@loopback/repository';
 export class Credentials extends Model {
   @property({
     type: 'string',
-    required: true,
     jsonSchema: {minLength: 10, maxLength: 20},
   })
-  phone: string;
+  phone?: string;
+
+  @property({
+    type: 'string',
+    jsonSchema: {maxLength: 100},
+  })
+  email?: string;
 
   @property({
     type: 'string',
