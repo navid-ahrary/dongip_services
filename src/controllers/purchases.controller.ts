@@ -207,7 +207,7 @@ export class PurchasesController {
       examples: {zarinpal: {value: 'zarinpal'}},
     })
     purchaseOrigin: string,
-    @param.query.string('orderId', {
+    @param.query.string('transactionId', {
       description: 'Woocommerce order id',
       required: true,
       example: '450',
