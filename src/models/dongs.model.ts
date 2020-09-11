@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/camelcase */
 import {
   Entity,
   model,
@@ -112,7 +111,7 @@ export class Dongs extends Entity {
 
   @property({
     type: 'string',
-    default: 'IRR',
+    default: 'IRT',
     jsonSchema: {
       minLength: 3,
       maxLength: 3,

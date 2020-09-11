@@ -147,8 +147,7 @@ export class Settings extends Entity {
 
   @property({
     type: 'string',
-    default: 'IRR',
-    required: true,
+    default: 'IRT',
     jsonSchema: {
       minLength: 3,
       maxLength: 3,
