@@ -20,7 +20,8 @@ import {
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {inject, service, intercept} from '@loopback/core';
-import _ from 'underscore';
+
+import _ from 'lodash';
 
 import {Dongs, PostNewDong, Notifications} from '../models';
 import {
@@ -149,10 +150,10 @@ export class DongsController {
       },
     })
     newDong: Omit<PostNewDong, 'id'>,
-    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<DataObject<ResponseNewDong>> {
     const newDongScore = 50;
     const mutualFriendScore = 20;
+
     let mutualFactor = 0;
 
     if (newDong.userId) delete newDong.userId;
@@ -160,10 +161,10 @@ export class DongsController {
 
     // Current user
     const currentUser = await this.usersRepository.findOne({
-        where: {userId: this.userId},
-        fields: {userId: true, phone: true, name: true},
-      }),
-      currentUserPhone = currentUser!.phone;
+      where: {userId: this.userId},
+      fields: {userId: true, phone: true, name: true},
+    });
+    const currentUserPhone = currentUser!.phone;
 
     let billList = newDong.billList,
       payerList = newDong.payerList,
