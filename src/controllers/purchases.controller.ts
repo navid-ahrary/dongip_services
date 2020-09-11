@@ -1,5 +1,11 @@
 import {repository} from '@loopback/repository';
-import {api, param, HttpErrors, getModelSchemaRef, post} from '@loopback/rest';
+import {
+  param,
+  HttpErrors,
+  getModelSchemaRef,
+  post,
+  requestBody,
+} from '@loopback/rest';
 import {service, inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
@@ -14,10 +20,9 @@ import {
   FirebaseService,
   MessagePayload,
 } from '../services';
-import {Purchases, Subscriptions, Users} from '../models';
+import {Purchases, Subscriptions, Users, InsitePurchase} from '../models';
 import {SubscriptionSpec} from '../application';
 
-@api({basePath: '/purchases'})
 @authenticate('jwt.access')
 export class PurchasesController {
   readonly userId: number;
@@ -73,8 +78,8 @@ export class PurchasesController {
     );
   }
 
-  @post('/validate', {
-    summary: 'Validate subscription purchase',
+  @post('/purchases/validate/in-app', {
+    summary: 'Validate in-app subscription purchase',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       200: {
@@ -86,7 +91,7 @@ export class PurchasesController {
       },
     },
   })
-  async validatePurchases(
+  async validateInappPurchases(
     @param.query.string('planId', {
       description: 'planId/productId/sku',
       required: true,
@@ -103,14 +108,14 @@ export class PurchasesController {
     @param.query.string('purchaseOrigin', {
       description: 'Purchase origin',
       required: true,
-      schema: {enum: ['cafebazaar', 'zarinpal']},
+      schema: {enum: ['cafebazaar']},
       examples: {cafebazaar: {value: 'cafebazaar'}},
     })
     purchaseOrigin: string,
     @param.query.string('purchaseToken', {
       description: 'Purchase token',
       required: true,
-      example: 'VRFS0nyW_ZLP_7SU',
+      example: 'AbCd_eFgHiJ',
     })
     purchaseToken: string,
   ): Promise<Purchases> {
@@ -133,10 +138,7 @@ export class PurchasesController {
           'متاسفانه خرید انجام شده به تایید کافه‌بازار نرسید. ' +
           'جهت رفع هرگونه ابهام یا مغایرت، با پشتیبانی دُنگیپ تماس بگیرید';
 
-        console.error(
-          `userId ${this.userId} ${errMsg}: ${JSON.stringify(purchaseStatus)}`,
-        );
-
+        console.error(`userId ${this.userId} ${errMsg}`);
         throw new HttpErrors.UnprocessableEntity(errMsg);
       } else if (purchaseStatus.purchaseState === 0) {
         purchaseTime = moment(purchaseStatus.purchaseTime).utc().toISOString();
@@ -162,29 +164,57 @@ export class PurchasesController {
           'هزینه پرداخت شده حداکثر تا ۲۴ ساعت آینده به حسابتان واریز می‌شود' +
           'جهت رفع هرگونه ابهام یا مغایرت، با پشتیبانی دُنگیپ تماس بگیرید';
 
-        console.error(
-          `userId ${this.userId} ${errMsg}: ${JSON.stringify(purchaseStatus)}`,
-        );
-
+        console.error(`userId ${this.userId} ${errMsg}`);
         throw new HttpErrors.UnprocessableEntity(errMsg);
       }
-    } else if (purchaseOrigin === 'zarinpal') {
-      purchaseTime = new Date().toISOString();
-
-      const purchaseEnt = new Purchases({
-        userId: this.userId,
-        planId: planId,
-        purchasedAt: purchaseTime,
-        purchaseToken: purchaseToken,
-      });
-
-      return this.purchasesRepo.create(purchaseEnt);
     } else {
       const errMsg = 'Purchase origin is not supported';
 
       console.error(`userId ${this.userId}: ${errMsg}`);
-
       throw new HttpErrors.NotImplemented(errMsg);
     }
+  }
+
+  @authenticate.skip()
+  @post('/purchases/validate/in-site', {
+    summary: 'Validate in-site subscription purchase',
+    responses: {
+      200: {},
+      422: {description: 'Purchase is not valid'},
+    },
+  })
+  async vaildateInsitePurchase(
+    @param.query.string('planId', {
+      description: 'planId/productId/sku',
+      required: true,
+      schema: {
+        enum: ['plan_gm1', 'plan_gm6', 'plan_gy1'],
+      },
+      examples: {
+        oneMonth: {value: 'plan_gm1'},
+        sixMonths: {value: 'plan_gm6'},
+        oneYear: {value: 'plan_gy1'},
+      },
+    })
+    planId: string,
+    @param.query.string('purchaseToken', {
+      description: 'Purchase token',
+      required: true,
+      example: 'AbCd_eFgHiJ',
+    })
+    purchaseToken: string,
+    @requestBody({
+      required: true,
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(InsitePurchase),
+        },
+      },
+    })
+    reqBody: InsitePurchase,
+  ) {
+    console.log('PlanId:', planId);
+    console.log('PurchaseToken', purchaseToken);
+    console.log('Request Body', reqBody);
   }
 }
