@@ -23,10 +23,7 @@ import {
 import {Purchases, Subscriptions, Users, InsitePurchase} from '../models';
 import {SubscriptionSpec} from '../application';
 
-@authenticate('jwt.access')
 export class PurchasesController {
-  readonly userId: number;
-
   constructor(
     @repository(PurchasesRepository) public purchasesRepo: PurchasesRepository,
     @repository(UsersRepository) public usersRepo: UsersRepository,
@@ -34,10 +31,7 @@ export class PurchasesController {
     @service(CafebazaarService) protected cafebazaarService: CafebazaarService,
     @service(FirebaseService) protected firebaseService: FirebaseService,
     @inject('application.subscriptionSpec') public subsSpec: SubscriptionSpec,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
-  ) {
-    this.userId = +this.currentUserProfile[securityId];
-  }
+  ) {}
 
   async sendNotification(
     userId: typeof Users.prototype.userId,
@@ -78,6 +72,7 @@ export class PurchasesController {
     );
   }
 
+  @authenticate('jwt.access')
   @post('/purchases/validate/in-app', {
     summary: 'Validate in-app subscription purchase',
     security: OPERATION_SECURITY_SPEC,
@@ -118,7 +113,10 @@ export class PurchasesController {
       example: 'AbCd_eFgHiJ',
     })
     purchaseToken: string,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
   ): Promise<Purchases> {
+    const userId = +currentUserProfile[securityId];
+
     let purchaseTime: string;
 
     if (purchaseOrigin === 'cafebazaar') {
@@ -138,20 +136,20 @@ export class PurchasesController {
           'متاسفانه خرید انجام شده به تایید کافه‌بازار نرسید. ' +
           'جهت رفع هرگونه ابهام یا مغایرت، با پشتیبانی دُنگیپ تماس بگیرید';
 
-        console.error(`userId ${this.userId} ${errMsg}`);
+        console.error(`userId ${userId} ${errMsg}`);
         throw new HttpErrors.UnprocessableEntity(errMsg);
       } else if (purchaseStatus.purchaseState === 0) {
         purchaseTime = moment(purchaseStatus.purchaseTime).utc().toISOString();
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.subsService
-          .performSubscription(this.userId, planId, purchaseTime)
+          .performSubscription(userId, planId, purchaseTime)
           .then(async (subs) => {
-            await this.sendNotification(this.userId, subs);
+            await this.sendNotification(userId, subs);
           });
 
         const purchaseEnt = new Purchases({
-          userId: this.userId,
+          userId: userId,
           planId: planId,
           purchasedAt: purchaseTime,
           purchaseToken: purchaseToken,
@@ -164,13 +162,13 @@ export class PurchasesController {
           'هزینه پرداخت شده حداکثر تا ۲۴ ساعت آینده به حسابتان واریز می‌شود' +
           'جهت رفع هرگونه ابهام یا مغایرت، با پشتیبانی دُنگیپ تماس بگیرید';
 
-        console.error(`userId ${this.userId} ${errMsg}`);
+        console.error(`userId ${userId} ${errMsg}`);
         throw new HttpErrors.UnprocessableEntity(errMsg);
       }
     } else {
       const errMsg = 'Purchase origin is not supported';
 
-      console.error(`userId ${this.userId}: ${errMsg}`);
+      console.error(`userId ${userId}: ${errMsg}`);
       throw new HttpErrors.NotImplemented(errMsg);
     }
   }
