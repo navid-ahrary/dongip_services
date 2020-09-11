@@ -6,5 +6,5 @@ export class InsitePurchase extends Model {
 
   @property({type: 'string', required: true}) itemPrice: string;
 
-  @property({type: 'string', required: true}) wcPurchaseToken: string;
+  @property({type: 'string', required: true}) wcOrderKey: string;
 }

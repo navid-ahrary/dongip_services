@@ -20,6 +20,7 @@ import {
   SubscriptionService,
   FirebaseService,
   MessagePayload,
+  WoocommerceService,
 } from '../services';
 import {Purchases, Subscriptions, Users, InsitePurchase} from '../models';
 import {SubscriptionSpec} from '../application';
@@ -32,6 +33,7 @@ export class PurchasesController {
     @service(SubscriptionService) protected subsService: SubscriptionService,
     @service(CafebazaarService) protected cafebazaarService: CafebazaarService,
     @service(FirebaseService) protected firebaseService: FirebaseService,
+    @service(WoocommerceService) protected wcService: WoocommerceService,
     @inject('application.subscriptionSpec') public subsSpec: SubscriptionSpec,
   ) {}
 
@@ -205,12 +207,12 @@ export class PurchasesController {
       examples: {zarinpal: {value: 'zarinpal'}},
     })
     purchaseOrigin: string,
-    @param.query.string('purchaseToken', {
-      description: 'Purchase token',
+    @param.query.string('orderId', {
+      description: 'Woocommerce order id',
       required: true,
-      example: 'AbCd_eFgHiJ',
+      example: '450',
     })
-    purchaseToken: string,
+    transactionId: number,
     @requestBody({
       required: true,
       content: {
@@ -222,8 +224,8 @@ export class PurchasesController {
     reqBody: InsitePurchase,
   ) {
     console.log('PlanId:', planId);
-    console.log('Purchase origin', purchaseOrigin);
-    console.log('PurchaseToken', purchaseToken);
-    console.log('Request Body', reqBody);
+    console.log('Purchase origin: ', purchaseOrigin);
+    console.log('transactionId: ', transactionId);
+    console.log('Request Body: ', reqBody);
   }
 }
