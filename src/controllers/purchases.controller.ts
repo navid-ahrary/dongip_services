@@ -191,36 +191,40 @@ export class PurchasesController {
     orderId: number,
   ) {
     this.woocomService.getOrder(orderId).then(async (order) => {
-      const phoneOrEmail = this.phoneNumSerice.convertToE164Format(
-        order['billing']['phone'],
-      );
-      const planId = order['line_items'][0]['sku'];
-      const purchaseAmount = +order['line_items'][0]['price'];
-      const currency = order['currency'];
-      const purchaseToken = order['order_key'];
-      const purchasedAt = moment(order['date_paid_gmt']);
-      const purchaseOrigin = order['payment_method'];
+      if (order['status'] === 'processing') {
+        const phoneOrEmail = this.phoneNumSerice.convertToE164Format(
+          order['billing']['phone'],
+        );
+        const planId = order['line_items'][0]['sku'];
+        const purchaseAmount = +order['line_items'][0]['price'];
+        const currency = order['currency'];
+        const purchaseToken = order['order_key'];
+        const purchasedAt = moment(order['date_paid_gmt']);
+        const purchaseOrigin = order['payment_method'];
 
-      const user = await this.usersRepo.findOne({
-        where: {or: [{phone: phoneOrEmail}, {email: phoneOrEmail}]},
-      });
-
-      if (user) {
-        this.purchasesRepo.create({
-          userId: user.getId(),
-          planId: planId,
-          purchaseAmount: purchaseAmount,
-          currency: currency,
-          purchaseToken: purchaseToken,
-          purchasedAt: purchasedAt.toISOString(),
-          purchaseOrigin: purchaseOrigin,
+        const user = await this.usersRepo.findOne({
+          where: {or: [{phone: phoneOrEmail}, {email: phoneOrEmail}]},
         });
 
-        this.subsService
-          .performSubscription(user.getId(), planId, purchasedAt)
-          .then(async (subs) => {
-            await this.sendNotification(user.getId(), subs);
+        if (user) {
+          this.purchasesRepo.create({
+            userId: user.getId(),
+            planId: planId,
+            purchaseAmount: purchaseAmount,
+            currency: currency,
+            purchaseToken: purchaseToken,
+            purchasedAt: purchasedAt.toISOString(),
+            purchaseOrigin: purchaseOrigin,
           });
+
+          this.subsService
+            .performSubscription(user.getId(), planId, purchasedAt)
+            .then(async (subs) => {
+              await this.sendNotification(user.getId(), subs);
+
+              await this.woocomService.updateOrderStatus(orderId, 'completed');
+            });
+        }
       }
     });
   }

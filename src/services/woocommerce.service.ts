@@ -18,12 +18,12 @@ export class WoocommerceService {
     }),
   ) {}
 
-  async getOrder(orderKey: number): Promise<{[key: string]: any}> {
-    const res = await this.wcRestApi.get(`orders/${orderKey}`);
+  async getOrder(orderId: number): Promise<{[key: string]: any}> {
+    const res = await this.wcRestApi.get(`orders/${orderId}`);
     return res.data;
   }
 
-  async updateOrderStatus(orderKey: number, status: string): Promise<any> {
-    return this.wcRestApi.put(`orders/${orderKey}`, {status: status});
+  async updateOrderStatus(orderId: number, status: string): Promise<any> {
+    return this.wcRestApi.put(`orders/${orderId}`, {status: status});
   }
 }
