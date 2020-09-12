@@ -228,8 +228,8 @@ export class PurchasesController {
     console.log('transactionId: ', transactionId);
     console.log('Request Body: ', reqBody);
 
-    const order = await this.wcService.getOrder(reqBody.wcOrderId);
+    // const order = await this.wcService.getOrder(reqBody.wcOrderId);
 
-    console.log(order);
+    // console.log(order);
   }
 }
