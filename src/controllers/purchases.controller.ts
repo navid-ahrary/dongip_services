@@ -1,12 +1,6 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import {repository} from '@loopback/repository';
-import {
-  param,
-  HttpErrors,
-  getModelSchemaRef,
-  post,
-  requestBody,
-  api,
-} from '@loopback/rest';
+import {param, HttpErrors, getModelSchemaRef, post, api} from '@loopback/rest';
 import {service, inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
@@ -21,8 +15,9 @@ import {
   FirebaseService,
   MessagePayload,
   WoocommerceService,
+  PhoneNumberService,
 } from '../services';
-import {Purchases, Subscriptions, Users, InsitePurchase} from '../models';
+import {Purchases, Subscriptions, Users} from '../models';
 import {SubscriptionSpec} from '../application';
 
 @api({basePath: '/purchases/'})
@@ -33,7 +28,8 @@ export class PurchasesController {
     @service(SubscriptionService) protected subsService: SubscriptionService,
     @service(CafebazaarService) protected cafebazaarService: CafebazaarService,
     @service(FirebaseService) protected firebaseService: FirebaseService,
-    @service(WoocommerceService) protected wcService: WoocommerceService,
+    @service(WoocommerceService) protected woocomService: WoocommerceService,
+    @service(PhoneNumberService) protected phoneNumSerice: PhoneNumberService,
     @inject('application.subscriptionSpec') public subsSpec: SubscriptionSpec,
   ) {}
 
@@ -65,8 +61,8 @@ export class PurchasesController {
         title: createdNotify.title,
         body: createdNotify.body,
         subscriptionId: subscription.getId().toString(),
-        solTime: subscription.solTime,
-        eolTime: subscription.eolTime,
+        solTime: subscription.solTime.toString(),
+        eolTime: subscription.eolTime.toString(),
       },
     };
 
@@ -121,7 +117,7 @@ export class PurchasesController {
   ): Promise<Purchases> {
     const userId = +currentUserProfile[securityId];
 
-    let purchaseTime: string;
+    let purchaseTime: moment.Moment;
 
     if (purchaseOrigin === 'cafebazaar') {
       const purchaseStatus = await this.cafebazaarService.getPurchaseState({
@@ -143,9 +139,8 @@ export class PurchasesController {
         console.error(`userId ${userId} ${errMsg}`);
         throw new HttpErrors.UnprocessableEntity(errMsg);
       } else if (purchaseStatus.purchaseState === 0) {
-        purchaseTime = moment(purchaseStatus.purchaseTime).utc().toISOString();
+        purchaseTime = moment(purchaseStatus.purchaseTime).utc();
 
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.subsService
           .performSubscription(userId, planId, purchaseTime)
           .then(async (subs) => {
@@ -155,7 +150,7 @@ export class PurchasesController {
         const purchaseEnt = new Purchases({
           userId: userId,
           planId: planId,
-          purchasedAt: purchaseTime,
+          purchasedAt: purchaseTime.toISOString(),
           purchaseToken: purchaseToken,
           purchaseOrigin: purchaseOrigin,
         });
@@ -187,49 +182,46 @@ export class PurchasesController {
     },
   })
   async vaildateInsitePurchase(
-    @param.query.string('planId', {
-      description: 'planId/productId/sku',
-      required: true,
-      schema: {
-        enum: ['plan_gm1', 'plan_gm6', 'plan_gy1'],
-      },
-      examples: {
-        oneMonth: {value: 'plan_gm1'},
-        sixMonths: {value: 'plan_gm6'},
-        oneYear: {value: 'plan_gy1'},
-      },
-    })
-    planId: string,
-    @param.query.string('purchaseOrigin', {
-      description: 'Purchase origin',
-      required: true,
-      schema: {enum: ['zarinpal']},
-      examples: {zarinpal: {value: 'zarinpal'}},
-    })
-    purchaseOrigin: string,
-    @param.query.string('transactionId', {
+    @param.query.string('orderId', {
       description: 'Woocommerce order id',
       required: true,
-      example: '450',
+      schema: {type: 'number'},
+      example: 468,
     })
-    transactionId: number,
-    @requestBody({
-      required: true,
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(InsitePurchase),
-        },
-      },
-    })
-    reqBody: InsitePurchase,
+    orderId: number,
   ) {
-    console.log('PlanId:', planId);
-    console.log('Purchase origin: ', purchaseOrigin);
-    console.log('transactionId: ', transactionId);
-    console.log('Request Body: ', reqBody);
+    this.woocomService.getOrder(orderId).then(async (order) => {
+      const phoneOrEmail = this.phoneNumSerice.convertToE164Format(
+        order['billing']['phone'],
+      );
+      const planId = order['line_items'][0]['sku'];
+      const purchaseAmount = +order['line_items'][0]['price'];
+      const currency = order['currency'];
+      const purchaseToken = order['order_key'];
+      const purchasedAt = moment(order['date_paid_gmt']);
+      const purchaseOrigin = order['payment_method'];
 
-    // const order = await this.wcService.getOrder(reqBody.wcOrderId);
+      const user = await this.usersRepo.findOne({
+        where: {or: [{phone: phoneOrEmail}, {email: phoneOrEmail}]},
+      });
 
-    // console.log(order);
+      if (user) {
+        this.purchasesRepo.create({
+          userId: user.getId(),
+          planId: planId,
+          purchaseAmount: purchaseAmount,
+          currency: currency,
+          purchaseToken: purchaseToken,
+          purchasedAt: purchasedAt.toISOString(),
+          purchaseOrigin: purchaseOrigin,
+        });
+
+        this.subsService
+          .performSubscription(user.getId(), planId, purchasedAt)
+          .then(async (subs) => {
+            await this.sendNotification(user.getId(), subs);
+          });
+      }
+    });
   }
 }

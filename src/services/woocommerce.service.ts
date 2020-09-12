@@ -18,8 +18,9 @@ export class WoocommerceService {
     }),
   ) {}
 
-  async getOrder(orderKey: number): Promise<any> {
-    return this.wcRestApi.get(`orders/${orderKey}`);
+  async getOrder(orderKey: number): Promise<{[key: string]: any}> {
+    const res = await this.wcRestApi.get(`orders/${orderKey}`);
+    return res.data;
   }
 
   async updateOrderStatus(orderKey: number, status: string): Promise<any> {

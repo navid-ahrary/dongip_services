@@ -30,7 +30,7 @@ export class Purchases extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'mediumint',
+      dataType: 'mediumint unsigned',
     },
   })
   purchaseId: number;
@@ -64,7 +64,7 @@ export class Purchases extends Entity {
     mysql: {
       columnName: 'purchase_origin',
       dataType: 'varchar',
-      dataLength: 20,
+      dataLength: 11,
       nullable: 'N',
     },
   })
@@ -72,8 +72,7 @@ export class Purchases extends Entity {
 
   @property({
     type: 'date',
-    required: true,
-    default: 'now',
+    defaultFn: 'now',
     mysql: {
       columnName: 'created_at',
       dataType: 'datetime',
@@ -93,6 +92,28 @@ export class Purchases extends Entity {
     },
   })
   planId: string;
+
+  @property({
+    type: 'number',
+    required: true,
+    mysql: {
+      columnName: 'purchase_amount',
+      dataType: 'mediumint unsigned',
+      nullable: 'N',
+    },
+  })
+  purchaseAmount: number;
+
+  @property({
+    type: 'string',
+    required: true,
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 3,
+      nullable: 'N',
+    },
+  })
+  currency: string;
 
   @belongsTo(
     () => Users,

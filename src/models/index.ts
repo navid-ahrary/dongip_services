@@ -19,4 +19,3 @@ export * from './settings.model';
 export * from './links.model';
 export * from './purchases.model';
 export * from './subscriptions.model';
-export * from './insite-purchase.model';

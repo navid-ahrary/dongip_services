@@ -39,7 +39,7 @@ export class SubscriptionService {
   async performSubscription(
     userId: typeof Users.prototype.userId,
     planId: string,
-    purchaseTime: string,
+    purchaseTime: moment.Moment,
   ) {
     const durationAmount = this.subsSpec.plans[planId].duration.amount;
     const durationUnit = this.subsSpec.plans[planId].duration.unit;
