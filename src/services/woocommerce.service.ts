@@ -4,7 +4,7 @@ import {bind, BindingScope} from '@loopback/core';
 import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api';
 
 const websiteURL = 'https://www.dongip.ir';
-const consumerKey = process.env.WOOWOOCOMMERCE_CONSUMER_KEY;
+const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
 const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
 
 @bind({scope: BindingScope.SINGLETON})
