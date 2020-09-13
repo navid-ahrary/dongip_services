@@ -6,6 +6,7 @@ import {
   belongsTo,
   hasMany,
   RelationType,
+  Model,
 } from '@loopback/repository';
 
 import {Users} from './users.model';
@@ -14,25 +15,34 @@ import {PayerList} from './payer-list.model';
 import {BillList} from './bill-list.model';
 import {Groups} from './groups.model';
 import {Scores} from './scores.model';
+import {UsersRels} from './users-rels.model';
+
+enum CurrencyEnum {
+  IRAN_RIAL = 'IRR',
+  IRAN_TOMAN = 'IRT',
+  DUBAI_DIRHAM = 'AED',
+  US_DOLLAR = 'USD',
+  EUROPE_EURO = 'EUR',
+}
 
 @model({
   name: 'dongs',
   settings: {
     foreignKeys: {
-      fkDongsCategoryId: {
-        name: 'fk_dongs_category_id',
-        entity: 'categories',
-        entityKey: 'id',
-        foreignKey: 'categoryId',
-        onUpdate: 'restrict',
-        onDelete: 'cascade',
-      },
       fkDongsUserId: {
         name: 'fk_dongs_user_id',
         entity: 'users',
         entityKey: 'id',
         foreignKey: 'userId',
-        onUpdate: 'restrict',
+        onUpdate: 'no action',
+        onDelete: 'cascade',
+      },
+      fkDongsCategoryId: {
+        name: 'fk_dongs_category_id',
+        entity: 'categories',
+        entityKey: 'id',
+        foreignKey: 'categoryId',
+        onUpdate: 'no action',
         onDelete: 'cascade',
       },
       // fkDongsGroupId: {
@@ -113,9 +123,10 @@ export class Dongs extends Entity {
     type: 'string',
     default: 'IRT',
     jsonSchema: {
+      description: 'ISO 4217',
       minLength: 3,
       maxLength: 3,
-      description: 'ISO 4217',
+      enum: Object.values(CurrencyEnum),
     },
     mysql: {
       dataType: 'varchar',
@@ -123,7 +134,7 @@ export class Dongs extends Entity {
       nullable: 'N',
     },
   })
-  currency: string;
+  currency: CurrencyEnum;
 
   @belongsTo(
     () => Users,
@@ -237,3 +248,57 @@ export class Dongs extends Entity {
 export interface DongsRelations {}
 
 export type DongsWithRelations = Dongs & DongsRelations;
+
+@model()
+export class PostNewDong extends Model {
+  @property({type: 'number'}) dongId?: number;
+
+  @property({type: 'string', requird: true}) title: string;
+
+  @property({type: 'string', required: true}) desc: string;
+
+  @property({type: 'number'}) userId?: number;
+
+  @property({type: 'date', required: true}) createdAt: string;
+
+  @property({type: 'number', required: true}) pong: number;
+
+  @property({type: 'boolean'}) sendNotify?: boolean;
+
+  @property({type: 'number'})
+  categoryId: typeof Categories.prototype.categoryId;
+
+  @property({type: 'number'}) groupId: number;
+
+  @property({
+    type: 'string',
+    default: 'IRT',
+    jsonSchema: {
+      description: 'ISO 4217',
+      minLength: 3,
+      maxLength: 3,
+      enum: Object.values(CurrencyEnum),
+    },
+  })
+  currency?: CurrencyEnum;
+
+  @property({type: 'array', itemType: 'object'})
+  payerList: {
+    userRelId: typeof UsersRels.prototype.userRelId;
+    paidAmount: number;
+  }[];
+
+  @property({type: 'array', itemType: 'object'})
+  billList: {
+    userRelId: typeof UsersRels.prototype.userRelId;
+    dongAmount: number;
+  }[];
+
+  constructor(data?: Partial<PostNewDong>) {
+    super(data);
+  }
+}
+
+export interface PostNewDongRelations {}
+
+export type PostNewDongWithRelations = PostNewDong & PostNewDongRelations;

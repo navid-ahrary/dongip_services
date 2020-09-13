@@ -49,7 +49,7 @@ class ResponseNewDong extends Dongs {
   ValidateGroupIdInterceptor.BINDING_KEY,
   FirebasetokenInterceptor.BINDING_KEY,
 )
-@api({basePath: '/', paths: {}})
+@api({basePath: '/dongs/', paths: {}})
 @authenticate('jwt.access')
 export class DongsController {
   userId: number;
@@ -76,7 +76,7 @@ export class DongsController {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
-  @get('/dongs', {
+  @get('/', {
     summary: 'Get array of all Dongs',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -105,7 +105,7 @@ export class DongsController {
   }
 
   @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
-  @post('/dongs', {
+  @post('/', {
     summary: 'Create a new Dongs model instance',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -372,7 +372,7 @@ export class DongsController {
     }
   }
 
-  @del('/dongs/{dongId}', {
+  @del('/{dongId}', {
     summary: 'DELETE a Dong by dongId',
     security: OPERATION_SECURITY_SPEC,
     responses: {'204': {description: 'No content'}},
@@ -391,7 +391,7 @@ export class DongsController {
     }
   }
 
-  @del('/dongs', {
+  @del('/', {
     summary: 'DELETE all Dongs ',
     security: OPERATION_SECURITY_SPEC,
     responses: {

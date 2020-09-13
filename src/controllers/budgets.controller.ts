@@ -19,7 +19,7 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {ValidateBudgetIdInterceptor} from '../interceptors';
 
 @authenticate('jwt.access')
-@api({basePath: '/', paths: {}})
+@api({basePath: '/budgets/', paths: {}})
 @intercept(ValidateBudgetIdInterceptor.BINDING_KEY)
 export class BudgetsController {
   readonly userId: number;
@@ -31,7 +31,7 @@ export class BudgetsController {
     this.userId = +this.currentUserProfile[securityId];
   }
 
-  @get('/budgets', {
+  @get('/', {
     summary: 'GET all Budgets',
     description:
       'Budgets belongs to [Group, Category, UserRel] are included too',
@@ -54,7 +54,7 @@ export class BudgetsController {
     return this.budgetsRepository.find({where: {userId: this.userId}});
   }
 
-  @post('/budgets', {
+  @post('/', {
     summary: 'POST a Budget for all expenses',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -70,6 +70,9 @@ export class BudgetsController {
   })
   async createBudgets(
     @requestBody({
+      description:
+        'currency and calendar properties are optional.' +
+        'The values are equal to IRT and hijri, respectively',
       content: {
         'application/json': {
           schema: getModelSchemaRef(Budgets, {
@@ -77,11 +80,14 @@ export class BudgetsController {
             exclude: ['budgetId', 'createdAt', 'updatedAt'],
             optional: ['userId'],
           }),
+
           examples: {
             CategoryBudget: {
+              summary: 'Iran toman currency and jalali calendar',
               value: {
                 title: 'My Category Budget',
                 date: 139907,
+                calendar: 'jalali',
                 budgetAmount: 700000,
                 currency: 'IRT',
                 userRelId: 0,
@@ -90,22 +96,26 @@ export class BudgetsController {
               },
             },
             UserRelBudget: {
+              summary: 'Dubai dirham currency and hijri calendar',
               value: {
                 title: 'My UserRel Budget',
-                date: 139907,
+                date: 144209,
+                calendar: 'hijri',
                 budgetAmount: 700000,
-                currency: 'IRT',
+                currency: 'AED',
                 userRelId: 1,
                 categoryId: 0,
                 groupId: 0,
               },
             },
             GroupBudget: {
+              summary: 'US dollar currency and gregorian calendar',
               value: {
                 title: 'My Group Budget',
-                date: 139907,
+                date: 202009,
+                calendar: 'gregorian',
                 budgetAmount: 700000,
-                currency: 'IRT',
+                currency: 'USD',
                 userRelId: 0,
                 categoryId: 0,
                 groupId: 1,
@@ -122,7 +132,7 @@ export class BudgetsController {
     return this.budgetsRepository.create(newBudget);
   }
 
-  @patch('/budgets/{budgetId}', {
+  @patch('/{budgetId}', {
     summary: 'PATCH a Budget by budgetId',
     description:
       'Budgets belongs to [Group, Category, UserRel] are included too ',
@@ -152,6 +162,7 @@ export class BudgetsController {
                 title: 'My Category Budget',
                 date: 139907,
                 budgetAmount: 700000,
+                calendar: 'jalali',
                 currency: 'IRT',
                 userRelId: 0,
                 categoryId: 1,
@@ -163,6 +174,7 @@ export class BudgetsController {
                 title: 'My UserRel Budget',
                 date: 139907,
                 budgetAmount: 700000,
+                calendar: 'jalali',
                 currency: 'IRT',
                 userRelId: 1,
                 categoryId: 0,
@@ -173,6 +185,7 @@ export class BudgetsController {
               value: {
                 title: 'My Group Budget',
                 date: 139907,
+                calendar: 'jalali',
                 budgetAmount: 700000,
                 currency: 'IRT',
                 userRelId: 0,
@@ -190,7 +203,7 @@ export class BudgetsController {
     await this.budgetsRepository.updateById(budgetId, patchBudget);
   }
 
-  @del('/budgets/{budgetId}', {
+  @del('/{budgetId}', {
     summary: 'DELETE a Budget by budgetId',
     description:
       'Budgets belongs to [Group, Category, UserRel] are included too ',
@@ -210,7 +223,7 @@ export class BudgetsController {
     await this.budgetsRepository.deleteById(budgetId);
   }
 
-  @del('/budgets', {
+  @del('/', {
     summary: 'DELETE all Budgets ',
     description:
       'Budgets belongs to [Group, Category, UserRel] are included too ',

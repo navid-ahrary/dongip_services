@@ -10,16 +10,32 @@ import {UsersRels} from './users-rels.model';
 import {Categories} from './categories.model';
 import {Users} from './users.model';
 
+export enum CurrencyEnum {
+  IRAN_RIAL = 'IRR',
+  IRAN_TOMAN = 'IRT',
+  DUBAI_DIRHAM = 'AED',
+  US_DOLLAR = 'USD',
+  EUROPE_EURO = 'EUR',
+}
+
 @model({
   name: 'bill_list',
   settings: {
     foreignKeys: {
+      fkBillListUserId: {
+        name: 'fk_bill_list_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
       fkBillListCategoryId: {
         name: 'fk_bill_list_category_id',
         entity: 'categories',
         entityKey: 'id',
         foreignKey: 'categoryId',
-        onUpdate: 'restrict',
+        onUpdate: 'no action',
         onDelete: 'cascade',
       },
       fkBillListDongId: {
@@ -27,7 +43,7 @@ import {Users} from './users.model';
         entity: 'dongs',
         entityKey: 'id',
         foreignKey: 'dongId',
-        onUpdate: 'restrict',
+        onUpdate: 'no action',
         onDelete: 'cascade',
       },
       fkBillListUserRelId: {
@@ -35,15 +51,7 @@ import {Users} from './users.model';
         entity: 'users_rels',
         entityKey: 'id',
         foreignKey: 'userRelId',
-        onUpdate: 'restrict',
-        onDelete: 'cascade',
-      },
-      fkBillListUserId: {
-        name: 'fk_bill_list_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'restrict',
+        onUpdate: 'no action',
         onDelete: 'cascade',
       },
     },
@@ -80,9 +88,10 @@ export class BillList extends Entity {
     type: 'string',
     default: 'IRT',
     jsonSchema: {
+      description: 'ISO 4217',
       minLength: 3,
       maxLength: 3,
-      description: 'ISO 4217',
+      enum: Object.values(CurrencyEnum),
     },
     mysql: {
       dataType: 'varchar',
@@ -90,7 +99,7 @@ export class BillList extends Entity {
       nullable: 'N',
     },
   })
-  currency: string;
+  currency: CurrencyEnum;
 
   @property({
     type: 'date',

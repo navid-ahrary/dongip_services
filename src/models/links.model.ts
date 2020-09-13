@@ -1,6 +1,6 @@
 import {Entity, model, property} from '@loopback/repository';
 
-@model({name: 'links'})
+@model({name: 'links', settings: {mysql: {engine: 'aria'}}})
 export class Links extends Entity {
   @property({
     type: 'string',

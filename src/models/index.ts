@@ -9,7 +9,6 @@ export * from './verify.model';
 export * from './categories-source.model';
 export * from './bill-list.model';
 export * from './payer-list.model';
-export * from './post-new-dong.model';
 export * from './scores.model';
 export * from './groups.model';
 export * from './messages.model';

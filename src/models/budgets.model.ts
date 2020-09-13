@@ -5,15 +5,38 @@ import {
   belongsTo,
   RelationType,
 } from '@loopback/repository';
+
 import {Users} from './users.model';
 import {Categories} from './categories.model';
 import {UsersRels} from './users-rels.model';
 import {Groups} from './groups.model';
 
+enum CurrencyEnum {
+  IRAN_RIAL = 'IRR',
+  IRAN_TOMAN = 'IRT',
+  DUBAI_DIRHAM = 'AED',
+  US_DOLLAR = 'USD',
+  EUROPE_EURO = 'EUR',
+}
+
+enum CalendarEnum {
+  JALALI = 'jalali',
+  HIJRI = 'hijri',
+  GREGORIAN = 'gregorian',
+}
+
 @model({
   name: 'budgets',
   settings: {
     foreignKeys: {
+      fkBudgetsUserId: {
+        name: 'fk_budgets_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
       fkBudgetsCategoryId: {
         name: 'fk_budgets_category_id',
         entity: 'categories',
@@ -55,6 +78,14 @@ export class Budgets extends Entity {
   budgetId?: number;
 
   @property({
+    type: 'string',
+    required: true,
+    jsonSchema: {minLength: 1, maxLength: 20},
+    mysql: {dataType: 'varchar', dataLength: 20, nullable: 'N'},
+  })
+  title: string;
+
+  @property({
     type: 'number',
     required: true,
     mysql: {
@@ -67,11 +98,13 @@ export class Budgets extends Entity {
 
   @property({
     type: 'string',
+    required: false,
     default: 'IRT',
     jsonSchema: {
+      description: 'ISO 4217',
       minLength: 3,
       maxLength: 3,
-      description: 'ISO 4217',
+      enum: Object.values(CurrencyEnum),
     },
     mysql: {
       dataType: 'varchar',
@@ -79,43 +112,27 @@ export class Budgets extends Entity {
       nullable: 'N',
     },
   })
-  currency: string;
+  currency: CurrencyEnum;
 
   @property({
     type: 'number',
     required: true,
-    mysql: {dataType: 'int', nullable: 'N'},
+    mysql: {dataType: 'mediumint', nullable: 'N'},
   })
   date: number;
 
   @property({
-    type: 'string',
-    required: true,
+    type: 'number',
+    required: false,
+    default: 'jalali',
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 10,
+      enum: Object.values(CalendarEnum),
+    },
+    mysql: {dataType: 'varchar', dataLength: 10, nullable: 'N'},
   })
-  title: string;
-
-  @belongsTo(
-    () => Users,
-    {
-      name: 'user',
-      keyFrom: 'userId',
-      keyTo: 'userId',
-      source: Users,
-      target: () => Budgets,
-    },
-    {
-      type: 'Number',
-      required: true,
-      index: {normal: true},
-      mysql: {
-        columnName: 'user_id',
-        dataType: 'int',
-        dataLength: null,
-        nullable: 'N',
-      },
-    },
-  )
-  userId: number;
+  calendar: CalendarEnum;
 
   @belongsTo(
     () => Categories,
@@ -185,6 +202,28 @@ export class Budgets extends Entity {
     },
   )
   groupId?: number;
+
+  @belongsTo(
+    () => Users,
+    {
+      name: 'user',
+      keyFrom: 'userId',
+      keyTo: 'userId',
+      source: Users,
+      target: () => Budgets,
+    },
+    {
+      type: 'number',
+      required: true,
+      index: {normal: true},
+      mysql: {
+        columnName: 'user_id',
+        dataType: 'mediumint',
+        nullable: 'N',
+      },
+    },
+  )
+  userId: number;
 
   @property({
     type: 'date',
