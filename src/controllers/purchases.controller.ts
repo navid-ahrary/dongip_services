@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import {repository} from '@loopback/repository';
 import {param, HttpErrors, getModelSchemaRef, post, api} from '@loopback/rest';
 import {service, inject} from '@loopback/core';
@@ -141,6 +140,7 @@ export class PurchasesController {
       } else if (purchaseStatus.purchaseState === 0) {
         purchaseTime = moment(purchaseStatus.purchaseTime).utc();
 
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.subsService
           .performSubscription(userId, planId, purchaseTime)
           .then(async (subs) => {
@@ -190,6 +190,7 @@ export class PurchasesController {
     })
     orderId: number,
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.woocomService.getOrder(orderId).then(async (order) => {
       if (order['status'] === 'processing') {
         const phoneOrEmail = this.phoneNumSerice.convertToE164Format(
@@ -207,7 +208,7 @@ export class PurchasesController {
         });
 
         if (user) {
-          this.purchasesRepo.create({
+          await this.purchasesRepo.create({
             userId: user.getId(),
             planId: planId,
             purchaseAmount: purchaseAmount,
@@ -217,7 +218,7 @@ export class PurchasesController {
             purchaseOrigin: purchaseOrigin,
           });
 
-          this.subsService
+          await this.subsService
             .performSubscription(user.getId(), planId, purchasedAt)
             .then(async (subs) => {
               await this.sendNotification(user.getId(), subs);

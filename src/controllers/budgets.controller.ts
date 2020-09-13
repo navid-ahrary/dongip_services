@@ -72,7 +72,7 @@ export class BudgetsController {
     @requestBody({
       description:
         'currency and calendar properties are optional.' +
-        'The default values are equal to IRT and hijri, respectively',
+        ' The default values are equal to IRT and jalali, respectively',
       content: {
         'application/json': {
           schema: getModelSchemaRef(Budgets, {
