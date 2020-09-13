@@ -10,5 +10,4 @@ export * from './phone-number.service';
 export * from './subscription.service';
 export * from './cafebazaar.service';
 export * from './mailer.service';
-export * from './zarinpal.service';
 export * from './woocommerce.service';
