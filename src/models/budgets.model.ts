@@ -29,14 +29,6 @@ enum CalendarEnum {
   name: 'budgets',
   settings: {
     foreignKeys: {
-      fkBudgetsUserId: {
-        name: 'fk_budgets_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'cascade',
-        onDelete: 'cascade',
-      },
       fkBudgetsCategoryId: {
         name: 'fk_budgets_category_id',
         entity: 'categories',
@@ -59,6 +51,14 @@ enum CalendarEnum {
         entityKey: 'id',
         foreignKey: 'groupId',
         onUpdate: 'no action',
+        onDelete: 'cascade',
+      },
+      fkBudgetsUserId: {
+        name: 'fk_budgets_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
         onDelete: 'cascade',
       },
     },
