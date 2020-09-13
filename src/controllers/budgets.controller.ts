@@ -72,7 +72,7 @@ export class BudgetsController {
     @requestBody({
       description:
         'currency and calendar properties are optional.' +
-        'The values are equal to IRT and hijri, respectively',
+        'The default values are equal to IRT and hijri, respectively',
       content: {
         'application/json': {
           schema: getModelSchemaRef(Budgets, {
@@ -83,7 +83,7 @@ export class BudgetsController {
 
           examples: {
             CategoryBudget: {
-              summary: 'Iran toman currency and jalali calendar',
+              description: 'Iran toman currency and jalali calendar',
               value: {
                 title: 'My Category Budget',
                 date: 139907,
@@ -96,7 +96,7 @@ export class BudgetsController {
               },
             },
             UserRelBudget: {
-              summary: 'Dubai dirham currency and hijri calendar',
+              description: 'Dubai dirham currency and hijri calendar',
               value: {
                 title: 'My UserRel Budget',
                 date: 144209,
@@ -109,7 +109,7 @@ export class BudgetsController {
               },
             },
             GroupBudget: {
-              summary: 'US dollar currency and gregorian calendar',
+              description: 'US dollar currency and gregorian calendar',
               value: {
                 title: 'My Group Budget',
                 date: 202009,
