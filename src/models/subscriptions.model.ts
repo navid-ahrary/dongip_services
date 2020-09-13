@@ -1,7 +1,21 @@
 import {Entity, model, property, belongsTo} from '@loopback/repository';
 import {Users} from './users.model';
 
-@model({name: 'subscriptions'})
+@model({
+  name: 'subscriptions',
+  settings: {
+    foreignKeys: {
+      fkSettingsUserId: {
+        name: 'fk_subscriptions_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'no action',
+      },
+    },
+  },
+})
 export class Subscriptions extends Entity {
   @property({
     type: 'number',
@@ -19,10 +33,11 @@ export class Subscriptions extends Entity {
   @property({
     type: 'date',
     required: true,
+    defaultFn: 'now',
     mysql: {
       columnName: 'sol_time',
       dataType: 'datetime',
-      dataLength: null,
+      default: 'now',
       nullable: 'N',
     },
   })
@@ -44,11 +59,10 @@ export class Subscriptions extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {maxLength: 10},
     mysql: {
       columnName: 'plan_id',
       dataType: 'varchar',
-      dataLength: 10,
+      dataLength: 20,
       nullable: 'N',
     },
   })
