@@ -13,6 +13,8 @@ import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {inject, intercept} from '@loopback/core';
 import {authenticate} from '@loopback/authentication';
 
+import moment from 'moment';
+
 import {Budgets} from '../models';
 import {BudgetsRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
@@ -70,55 +72,50 @@ export class BudgetsController {
   })
   async createBudgets(
     @requestBody({
-      description:
-        'currency and calendar properties are optional.' +
-        ' The default values are equal to IRT and jalali, respectively',
+      description: 'Create a budget at specified period',
       content: {
         'application/json': {
           schema: getModelSchemaRef(Budgets, {
             title: 'NewBudgets',
-            exclude: ['budgetId', 'createdAt', 'updatedAt'],
+            exclude: ['budgetId', 'createdAt'],
             optional: ['userId'],
           }),
 
           examples: {
             CategoryBudget: {
-              description: 'Iran toman currency and jalali calendar',
               value: {
                 title: 'My Category Budget',
-                date: 139907,
-                calendar: 'jalali',
                 budgetAmount: 700000,
                 currency: 'IRT',
                 userRelId: 0,
                 categoryId: 1,
                 groupId: 0,
+                startDate: moment(),
+                endDate: moment().add(1, 'm'),
               },
             },
             UserRelBudget: {
-              description: 'Dubai dirham currency and hijri calendar',
               value: {
                 title: 'My UserRel Budget',
-                date: 144209,
-                calendar: 'hijri',
                 budgetAmount: 700000,
                 currency: 'AED',
                 userRelId: 1,
                 categoryId: 0,
                 groupId: 0,
+                startDate: moment(),
+                endDate: moment().add(3, 'm'),
               },
             },
             GroupBudget: {
-              description: 'US dollar currency and gregorian calendar',
               value: {
                 title: 'My Group Budget',
-                date: 202009,
-                calendar: 'gregorian',
                 budgetAmount: 700000,
                 currency: 'USD',
                 userRelId: 0,
                 categoryId: 0,
                 groupId: 1,
+                startDate: moment(),
+                endDate: moment().add(1, 'y'),
               },
             },
           },
@@ -153,7 +150,7 @@ export class BudgetsController {
         'application/json': {
           schema: getModelSchemaRef(Budgets, {
             partial: true,
-            exclude: ['budgetId', 'createdAt', 'updatedAt'],
+            exclude: ['budgetId', 'createdAt'],
             optional: ['userId'],
           }),
           examples: {
@@ -199,7 +196,6 @@ export class BudgetsController {
     })
     patchBudget: Budgets,
   ): Promise<void> {
-    patchBudget.updatedAt = new Date().toISOString();
     await this.budgetsRepository.updateById(budgetId, patchBudget);
   }
 

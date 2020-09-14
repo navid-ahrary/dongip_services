@@ -19,12 +19,6 @@ enum CurrencyEnum {
   EUROPE_EURO = 'EUR',
 }
 
-enum CalendarEnum {
-  JALALI = 'jalali',
-  HIJRI = 'hijri',
-  GREGORIAN = 'gregorian',
-}
-
 @model({
   name: 'budgets',
   settings: {
@@ -116,23 +110,30 @@ export class Budgets extends Entity {
 
   @property({
     type: 'number',
-    required: true,
+    required: false,
     mysql: {dataType: 'mediumint', nullable: 'N'},
   })
   date: number;
 
   @property({
-    type: 'number',
-    required: false,
-    default: 'jalali',
-    jsonSchema: {
-      minLength: 3,
-      maxLength: 10,
-      enum: Object.values(CalendarEnum),
+    type: 'date',
+    mysql: {
+      columnName: 'start_date',
+      dataType: 'datetime',
+      nullable: 'Y',
     },
-    mysql: {dataType: 'varchar', dataLength: 10, nullable: 'N'},
   })
-  calendar: CalendarEnum;
+  startDate?: string;
+
+  @property({
+    type: 'date',
+    mysql: {
+      columnName: 'end_date',
+      dataType: 'datetime',
+      nullable: 'Y',
+    },
+  })
+  endDate?: string;
 
   @belongsTo(
     () => Categories,
@@ -229,17 +230,14 @@ export class Budgets extends Entity {
     type: 'date',
     required: true,
     defaultFn: 'now',
-    mysql: {columnName: 'created_at', dataType: 'datetime', nullable: 'N'},
+    mysql: {
+      columnName: 'created_at',
+      dataType: 'timestamp',
+      nullable: 'N',
+      default: 'now',
+    },
   })
   createdAt: string;
-
-  @property({
-    type: 'date',
-    required: true,
-    defaultFn: 'now',
-    mysql: {columnName: 'updated_at', dataType: 'datetime', nullable: 'N'},
-  })
-  updatedAt: string;
 
   constructor(data?: Partial<Budgets>) {
     super(data);
