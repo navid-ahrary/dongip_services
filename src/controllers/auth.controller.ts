@@ -350,13 +350,13 @@ export class AuthController {
           examples: {
             phone: {
               value: {
-                phone: '+989176502184',
+                phone: '+989171234567',
                 password: 'DNG123456',
               },
             },
             email: {
               value: {
-                phone: 'dongip.supp@gmail.com',
+                email: 'dongip.supp@gmail.com',
                 password: 'DNG123456',
               },
             },

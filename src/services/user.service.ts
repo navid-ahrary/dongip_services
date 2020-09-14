@@ -19,10 +19,17 @@ export class MyUserService implements UserService<Users, Credentials> {
 
   async verifyCredentials(credentials: Credentials): Promise<Users> {
     const invalidCredentialsError = 'Invalid phone !';
+    let foundUser: Users | null;
 
-    const foundUser = await this.userRepository.findOne({
-      where: {phone: credentials.phone},
-    });
+    if (credentials.phone) {
+      foundUser = await this.userRepository.findOne({
+        where: {phone: credentials.phone},
+      });
+    } else {
+      foundUser = await this.userRepository.findOne({
+        where: {email: credentials.email},
+      });
+    }
 
     if (!foundUser) {
       throw new HttpErrors.NotFound(invalidCredentialsError);
