@@ -32,14 +32,6 @@ import {Budgets} from './budgets.model';
         onUpdate: 'cascade',
         onDelete: 'cascade',
       },
-      fkUsersRelsPhone: {
-        name: 'fk_users_rels_phone',
-        entity: 'users',
-        entityKey: 'phone',
-        foreignKey: 'phone',
-        onUpdate: 'cascade',
-        onDelete: 'no action',
-      },
     },
   },
 })
