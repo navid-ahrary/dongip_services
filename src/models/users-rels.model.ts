@@ -29,8 +29,16 @@ import {Budgets} from './budgets.model';
         entity: 'users',
         entityKey: 'id',
         foreignKey: 'userId',
-        onUpdate: 'restrict',
+        onUpdate: 'cascade',
         onDelete: 'cascade',
+      },
+      fkUsersRelsPhone: {
+        name: 'fk_users_rels_phone',
+        entity: 'users',
+        entityKey: 'phone',
+        foreignKey: 'phone',
+        onUpdate: 'cascade',
+        onDelete: 'no action',
       },
     },
   },
@@ -89,7 +97,6 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'string',
-    required: true,
     index: {normal: true},
     jsonSchema: {maxLength: 20},
     mysql: {

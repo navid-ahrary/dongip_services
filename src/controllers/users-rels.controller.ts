@@ -114,7 +114,6 @@ export class UsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             exclude: ['userRelId', 'userId', 'type', 'createdAt', 'updatedAt'],
-            optional: ['phone', 'email'],
           }),
           example: {
             phone: '+989171234567',
@@ -224,7 +223,7 @@ export class UsersRelsController {
               title: notifyTitle,
               body: notifyBody,
               name: user.name,
-              phone: user.phone,
+              phone: user.phone!,
               avatar: user.avatar,
             },
           },
@@ -246,7 +245,7 @@ export class UsersRelsController {
       },
     },
   })
-  async patchUsersRelsById(
+  async updateUsersRelsById(
     @param.path.number('userRelId', {required: true, example: 30})
     userRelId: typeof UsersRels.prototype.userRelId,
     @requestBody({
@@ -274,20 +273,22 @@ export class UsersRelsController {
         },
       },
     })
-    userRelReqBody: Partial<UsersRels>,
+    patchUserRelReqBody: Partial<UsersRels>,
   ): Promise<void> {
     let errorMessage: string;
 
-    userRelReqBody.updatedAt = moment.utc().toISOString();
+    patchUserRelReqBody.updatedAt = moment.utc().toISOString();
 
     try {
       // Patch UserRel
-      await this.usersRepository.usersRels(this.userId).patch(userRelReqBody, {
-        userRelId: userRelId,
-      });
+      await this.usersRepository
+        .usersRels(this.userId)
+        .patch(patchUserRelReqBody, {
+          userRelId: userRelId,
+        });
 
       // Patch related VirtualUser entity
-      const vu = _.pick(userRelReqBody, ['phone']);
+      const vu = _.pick(patchUserRelReqBody, ['phone']);
       if (vu.phone) {
         await this.usersRelsRepository
           .hasOneVirtualUser(userRelId)
@@ -316,7 +317,6 @@ export class UsersRelsController {
   async deleteUsersRelsById(
     @param.path.number('userRelId', {required: true, example: 36})
     userRelId: typeof UsersRels.prototype.userRelId,
-    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
     await this.usersRepository
       .usersRels(this.userId)
@@ -406,7 +406,7 @@ export class UsersRelsController {
       referenceRegionCode = foundUser.region;
     } else {
       referenceRegionCode = this.phoneNumberService.getRegionCodeISO(
-        foundUser.phone,
+        foundUser.phone!,
       );
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepository.updateById(this.userId, {

@@ -489,8 +489,10 @@ export class AuthController {
               'region',
               'platform',
               'email',
+              'phoneLocked',
+              'emailLocked',
             ],
-            optional: ['username', 'currency', 'language'],
+            optional: ['username', 'currency', 'language', 'phone'],
           }),
           example: {
             phone: '+989171234567',
@@ -513,29 +515,27 @@ export class AuthController {
     refreshToken: string;
     totalScores: number;
   }> {
-    const verifyId = Number(currentUserProfile[securityId]),
-      credentials: Credentials = new Credentials({
-        phone: newUser.phone,
-        password: newUser.password,
-      }),
+    const verifyId = +currentUserProfile[securityId],
       nowUTC = moment.utc(),
       userLanguage = newUser.language,
       userCurrency = newUser.currency;
 
     const foundVerify = await this.verifySerivce.verifyCredentials(
       verifyId,
-      credentials.password,
+      newUser.password,
     );
 
     const countRegisteredUsers = await this.usersRepository.count();
 
     try {
       const userObject = new Users({
-        avatar: newUser.avatar,
-        phone: newUser.phone,
-        name: newUser.name,
-        region: foundVerify.region ? foundVerify.region : undefined,
+        phone: foundVerify.phone ? foundVerify.phone : undefined,
         email: foundVerify.email ? foundVerify.email : undefined,
+        phoneLocked: foundVerify.phone ? true : false,
+        emailLocked: foundVerify.email ? true : false,
+        name: newUser.name,
+        avatar: newUser.avatar,
+        region: foundVerify.region ? foundVerify.region : undefined,
         roles: countRegisteredUsers.count < 1000 ? ['GOLD'] : ['BRONZE'],
         firebaseToken: firebaseToken ? firebaseToken : undefined,
         userAgent: this.ctx.request.headers['user-agent'],
@@ -547,10 +547,7 @@ export class AuthController {
 
       const savedScore = await this.usersRepository
         .scores(savedUser.getId())
-        .create({
-          score: 50,
-          createdAt: nowUTC.toISOString(),
-        });
+        .create({score: 50});
 
       // Convert user object to a UserProfile object (reduced set of properties)
       const userProfile = this.userService.convertToUserProfile(savedUser);
@@ -564,7 +561,7 @@ export class AuthController {
       this.usersRepository.usersRels(savedUser.getId()).create({
         type: 'self',
         avatar: savedUser.avatar,
-        phone: newUser.phone,
+        phone: foundVerify.phone ? foundVerify.phone : undefined,
         email: foundVerify.email ? foundVerify.email : undefined,
       });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises

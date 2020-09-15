@@ -48,17 +48,17 @@ export class Users extends Entity {
 
   @property({
     type: 'string',
-    required: true,
+    required: false,
     index: {unique: true},
     jsonSchema: {maxLength: 20},
     mysql: {
       columnName: 'phone',
       dataType: 'varchar',
       dataLength: 20,
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
-  phone: string;
+  phone?: string;
 
   @property({
     type: 'string',
@@ -174,6 +174,30 @@ export class Users extends Entity {
     },
   })
   region?: string;
+
+  @property({
+    type: 'boolean',
+    required: false,
+    mysql: {
+      columnName: 'phone_locked',
+      dataType: 'tinyint',
+      dataLength: 1,
+      nullable: 'N',
+    },
+  })
+  phoneLocked?: boolean;
+
+  @property({
+    type: 'boolean',
+    required: false,
+    mysql: {
+      columnName: 'email_locked',
+      dataType: 'tinyint',
+      dataLength: 1,
+      nullable: 'N',
+    },
+  })
+  emailLocked?: boolean;
 
   @hasMany(() => VirtualUsers, {
     name: 'virtualUsers',

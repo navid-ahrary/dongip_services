@@ -50,14 +50,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
-    let errMessg: string;
-
-    const methodsList = [
-      'findUsersRelsBudgets',
-      'createUsersRelsBudgets',
-      'patchUsersRelsById',
-      'deleteUsersRelsById',
-    ];
+    let errMsg: string;
 
     try {
       if (invocationCtx.methodName === 'createGroups') {
@@ -69,8 +62,9 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         });
 
         if (countUserRels.count !== userRelIds.length) {
-          errMessg = 'آی دی دوستی ها معتبر نیستن';
-          throw new Error(errMessg);
+          errMsg = 'آی دی دوستی ها معتبر نیستن';
+
+          throw new Error(errMsg);
         }
       } else if (invocationCtx.methodName === 'patchGroupsById') {
         if (invocationCtx.args[1].userRelIds) {
@@ -82,11 +76,15 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
           });
 
           if (countUserRels.count !== userRelIds.length) {
-            errMessg = 'آی دی دوستی ها معتبر نیستن';
-            throw new Error(errMessg);
+            errMsg = 'آی دی دوستی ها معتبر نیستن';
+
+            throw new Error(errMsg);
           }
         }
-      } else if (methodsList.includes(invocationCtx.methodName)) {
+      } else if (
+        invocationCtx.methodName === 'patchUsersRelsById' ||
+        invocationCtx.methodName === 'deleteUsersRelsById'
+      ) {
         const userRelId = invocationCtx.args[0];
 
         const foundUserRel = await this.usersRelsRepository.findOne({
@@ -98,8 +96,15 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         });
 
         if (!foundUserRel) {
-          errMessg = 'آی دی دوستی معتبر نیست';
-          throw new Error(errMessg);
+          errMsg = 'آی دی دوستی معتبر نیست';
+
+          throw new Error(errMsg);
+        }
+      } else if (invocationCtx.methodName === 'createUsersRels') {
+        if (!invocationCtx.args[0].phone) {
+          errMsg = 'Phone number must b provided';
+
+          throw new Error(errMsg);
         }
       }
     } catch (err) {

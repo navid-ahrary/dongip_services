@@ -356,7 +356,6 @@ export class DongsController {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepository.scores(this.userId).create({
         dongId: createdDong.getId(),
-        createdAt: newDong.createdAt,
         score: calculatedScore,
       });
 

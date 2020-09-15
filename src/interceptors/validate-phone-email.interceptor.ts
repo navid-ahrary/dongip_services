@@ -53,21 +53,24 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
       'verify',
       'login',
       'signup',
+      'updateUserById',
       'createUsersRels',
-      'patchUsersRels',
+      'updateUsersRelsById',
     ];
 
     if (funcNameList.includes(invocationCtx.methodName)) {
       if (invocationCtx.args[0].phone) {
         let phoneValue = invocationCtx.args[0].phone;
 
-        const isValid = this.phoneNumberService.isValid(phoneValue);
-        if (!isValid) {
-          throw new HttpErrors.UnprocessableEntity(invalidPhoneValueMessage);
-        }
+        if (phoneValue) {
+          const isValid = this.phoneNumberService.isValid(phoneValue);
+          if (!isValid) {
+            throw new HttpErrors.UnprocessableEntity(invalidPhoneValueMessage);
+          }
 
-        phoneValue = this.phoneNumberService.convertToE164Format(phoneValue);
-        invocationCtx.args[0].phone = phoneValue;
+          phoneValue = this.phoneNumberService.convertToE164Format(phoneValue);
+          invocationCtx.args[0].phone = phoneValue;
+        }
       } else if (invocationCtx.args[0].email) {
         const emailValue = invocationCtx.args[0].email;
         const dongipMailAddress = process.env.GMAIL_USER;

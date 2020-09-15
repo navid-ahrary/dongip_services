@@ -13,14 +13,15 @@ export const UserPatchRequestBody = {
           'dongs',
           'usersRels',
           'categories',
-          'phone',
           'virtualUsers',
           'firebaseToken',
           'refreshToken',
           'usersRels',
           'userAgent',
-          'email',
+          'phoneLocked',
+          'emailLocked',
         ],
+        optional: ['phone', 'email'],
       }),
       examples: {
         multiProps: {

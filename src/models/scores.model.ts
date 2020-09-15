@@ -60,15 +60,17 @@ export class Scores extends Entity {
 
   @property({
     type: 'date',
-    required: true,
+    required: false,
+    defaultFn: 'now',
     mysql: {
       columnName: 'created_at',
       dataType: 'datetime',
       dataLength: null,
       nullable: 'N',
+      default: 'now',
     },
   })
-  createdAt: string;
+  createdAt?: string;
 
   @belongsTo(
     () => Users,

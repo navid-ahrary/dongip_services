@@ -39,10 +39,6 @@ export class MyUserService implements UserService<Users, Credentials> {
   }
 
   convertToUserProfile(user: Users) {
-    if (!user.phone) {
-      throw new HttpErrors.UnprocessableEntity('phone is null');
-    }
-
     return {
       [securityId]: user.getId(),
       roles: user.roles,

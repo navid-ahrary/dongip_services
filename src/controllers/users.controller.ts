@@ -1,5 +1,5 @@
-import {inject, intercept} from '@loopback/core';
-import {repository} from '@loopback/repository';
+import {inject, intercept, service} from '@loopback/core';
+import {repository, DataObject} from '@loopback/repository';
 import {requestBody, HttpErrors, get, patch, api, param} from '@loopback/rest';
 import {
   authenticate,
@@ -13,7 +13,11 @@ import {UserPatchRequestBody} from './specs';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {Users, Credentials} from '../models';
 import {UsersRepository, LinksRepository} from '../repositories';
-import {FirebasetokenInterceptor} from '../interceptors';
+import {
+  FirebasetokenInterceptor,
+  ValidatePhoneEmailInterceptor,
+} from '../interceptors';
+import {PhoneNumberService} from '../services';
 
 @api({basePath: '/', paths: {}})
 @authenticate('jwt.access')
@@ -28,6 +32,7 @@ export class UsersController {
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     public jwtService: TokenService,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+    @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
   ) {
     this.userId = +this.currentUserProfile[securityId];
   }
@@ -120,7 +125,10 @@ export class UsersController {
     };
   }
 
-  @intercept(FirebasetokenInterceptor.BINDING_KEY)
+  @intercept(
+    FirebasetokenInterceptor.BINDING_KEY,
+    ValidatePhoneEmailInterceptor.BINDING_KEY,
+  )
   @patch('/users', {
     summary: "Update User's properties",
     description: 'Request body includes desired properties to update',
@@ -131,17 +139,55 @@ export class UsersController {
       },
     },
   })
-  async updateById(
-    @requestBody(UserPatchRequestBody) patchUserReqBody: Omit<Users, '_key'>,
+  async updateUserById(
+    @requestBody(UserPatchRequestBody) updateUserReqBody: Omit<Users, '_key'>,
   ): Promise<void> {
-    if (patchUserReqBody.avatar) {
+    if (updateUserReqBody.avatar) {
       await this.usersRepository
         .usersRels(this.userId)
-        .patch({avatar: patchUserReqBody.avatar}, {type: 'self'});
+        .patch({avatar: updateUserReqBody.avatar}, {type: 'self'});
     }
 
+    const patchUser: DataObject<Users> = {};
+
+    if (updateUserReqBody.phone) {
+      const phone = updateUserReqBody.phone;
+
+      const user = await this.usersRepository.findOne({
+        where: {userId: this.userId, phoneLocked: true},
+      });
+
+      if (user) {
+        delete updateUserReqBody.phone;
+      } else {
+        updateUserReqBody.region = this.phoneNumService.getRegionCodeISO(phone);
+        updateUserReqBody.phoneLocked = true;
+
+        patchUser.phone = phone;
+      }
+    }
+
+    if (updateUserReqBody.email) {
+      const user = await this.usersRepository.findOne({
+        where: {userId: this.userId, emailLocked: true},
+      });
+
+      if (user) {
+        delete updateUserReqBody.email;
+      } else {
+        updateUserReqBody.emailLocked = true;
+
+        patchUser.email = updateUserReqBody.email;
+      }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.usersRepository
+      .usersRels(this.userId)
+      .patch(patchUser, {type: 'self'});
+
     return this.usersRepository
-      .updateById(this.userId, patchUserReqBody)
+      .updateById(this.userId, updateUserReqBody)
       .catch((err) => {
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
           if (err.sqlMessage.endsWith("'users.username'")) {
