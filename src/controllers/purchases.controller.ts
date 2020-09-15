@@ -5,6 +5,7 @@ import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 
 import moment from 'moment';
+import isemail from 'isemail';
 
 import {PurchasesRepository, UsersRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
@@ -177,7 +178,7 @@ export class PurchasesController {
   @post('/in-site/validate/', {
     summary: 'Validate in-site subscription purchase',
     responses: {
-      200: {},
+      204: {description: 'no content'},
       422: {description: 'Purchase is not valid'},
     },
   })
@@ -193,9 +194,6 @@ export class PurchasesController {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.woocomService.getOrder(orderId).then(async (order) => {
       if (order['status'] === 'processing') {
-        const phoneOrEmail = this.phoneNumSerice.convertToE164Format(
-          order['billing']['phone'],
-        );
         const planId = order['line_items'][0]['sku'];
         const purchaseAmount = +order['line_items'][0]['price'];
         const currency = order['currency'];
@@ -203,9 +201,35 @@ export class PurchasesController {
         const purchasedAt = moment(order['date_paid_gmt']);
         const purchaseOrigin = order['payment_method'];
 
-        const user = await this.usersRepo.findOne({
-          where: {or: [{phone: phoneOrEmail}, {email: phoneOrEmail}]},
-        });
+        let user: Users;
+        let identiyValue: string;
+
+        const isMobile = this.phoneNumSerice.isValid(order['billing']['phone']);
+        const isEmail = isemail.validate(order['billing']['phone']);
+
+        if (isMobile) {
+          identiyValue = this.phoneNumSerice.convertToE164Format(
+            order['billing']['phone'],
+          );
+
+          const u = await this.usersRepo.find({
+            where: {phone: identiyValue},
+          });
+          user = u[0];
+        } else if (isEmail) {
+          identiyValue = this.phoneNumSerice.convertToE164Format(
+            order['billing']['phone'],
+          );
+
+          const u = await this.usersRepo.find({
+            where: {email: identiyValue},
+          });
+          user = u[0];
+        } else {
+          throw new Error(
+            `${order['billing']['phone']} is not a valid phone or email address`,
+          );
+        }
 
         if (user) {
           await this.purchasesRepo.create({
