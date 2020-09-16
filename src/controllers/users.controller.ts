@@ -1,6 +1,14 @@
 import {inject, intercept, service} from '@loopback/core';
 import {repository, DataObject} from '@loopback/repository';
-import {requestBody, HttpErrors, get, patch, api, param} from '@loopback/rest';
+import {
+  requestBody,
+  HttpErrors,
+  get,
+  patch,
+  api,
+  param,
+  getModelSchemaRef,
+} from '@loopback/rest';
 import {
   authenticate,
   UserService,
@@ -8,10 +16,12 @@ import {
 } from '@loopback/authentication';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 
+import _ from 'lodash';
+
 import {UserServiceBindings, TokenServiceBindings} from '../keys';
 import {UserPatchRequestBody} from './specs';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {Users, Credentials} from '../models';
+import {Users, Credentials, CompleteSignup} from '../models';
 import {UsersRepository, LinksRepository} from '../repositories';
 import {
   FirebasetokenInterceptor,
@@ -196,6 +206,50 @@ export class UsersController {
         }
         throw new HttpErrors.NotAcceptable(err.message);
       });
+  }
+
+  @patch('/users/complete-signup', {
+    summary: "Post essential user's properties for complete user properties",
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      204: {description: 'no content'},
+      422: {description: 'Unprocessable, Not allowed'},
+    },
+  })
+  async completeSignup(
+    @requestBody({
+      content: {
+        'json/application': {schema: getModelSchemaRef(CompleteSignup)},
+      },
+    })
+    cmpltSignBody: CompleteSignup,
+  ): Promise<void> {
+    const props = _.pick(cmpltSignBody, ['avatar', 'name', 'phone', 'email']);
+
+    if ('phone' in props) {
+      const u = await this.usersRepository.findOne({
+        where: {userId: this.userId, phoneLocked: true},
+      });
+
+      if (u) delete props.phone;
+    }
+
+    if ('email' in props) {
+      const u = await this.usersRepository.findOne({
+        where: {userId: this.userId, emailLocked: true},
+      });
+
+      if (u) delete props.email;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.usersRepository.updateById(this.userId, props);
+
+    if (cmpltSignBody.currency) {
+      const currency = cmpltSignBody.currency;
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepository.setting(this.userId).patch({currency: currency});
+    }
   }
 
   @get('/users/available', {

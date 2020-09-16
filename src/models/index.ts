@@ -1,5 +1,6 @@
 export * from './users.model';
 export * from './dongs.model';
+export * from './post-dong.model';
 export * from './blacklist.model';
 export * from './virtual-users.model';
 export * from './categories.model';
@@ -18,3 +19,4 @@ export * from './settings.model';
 export * from './links.model';
 export * from './purchases.model';
 export * from './subscriptions.model';
+export * from './complete-signup.model';
