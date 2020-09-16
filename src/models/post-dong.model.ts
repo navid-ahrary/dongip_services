@@ -1,4 +1,4 @@
-import {property, model} from '@loopback/repository';
+import {property, model, Model} from '@loopback/repository';
 
 import {CurrencyEnum} from './bill-list.model';
 import {UsersRels} from './users-rels.model';
