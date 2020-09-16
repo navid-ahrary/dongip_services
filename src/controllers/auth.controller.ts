@@ -180,7 +180,7 @@ export class AuthController {
           examples: {
             phone: {
               value: {
-                phone: '+989176502184',
+                phone: '+989171234567',
                 smsSignature: 'a2V5dG9vbCB',
               },
             },
@@ -329,9 +329,21 @@ export class AuthController {
         description: 'Some Users Properties',
         content: {
           'application/josn': {
-            schema: getModelSchemaRef(Credentials),
+            schema: {
+              type: 'object',
+              properties: {
+                userId: {type: 'number'},
+                phone: {type: 'string', nullable: true},
+                email: {type: 'string', nullable: true},
+                score: {type: 'number'},
+                accessToken: {type: 'string'},
+                refreshToken: {type: 'string'},
+              },
+            },
             example: {
               userId: 1,
+              phone: '+989171234567',
+              email: 'dongip.supp@gmail.com',
               score: 260,
               accessToken: 'string',
               refreshToken: 'string',
@@ -369,6 +381,8 @@ export class AuthController {
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<{
     userId: typeof Users.prototype.userId;
+    phone?: string;
+    email?: string;
     accessToken: string;
     refreshToken: string;
     totalScores: number;
@@ -422,8 +436,13 @@ export class AuthController {
         loggedInAt: moment.utc().toISOString(),
       });
 
+      const userPhone = user.phone ? user.phone : undefined;
+      const userEmail = user.email ? user.email : undefined;
+
       return {
         userId: user.getId(),
+        phone: userPhone,
+        email: userEmail,
         accessToken: accessToken,
         refreshToken: user.refreshToken,
         totalScores: scores,
