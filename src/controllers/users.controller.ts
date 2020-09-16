@@ -21,7 +21,7 @@ import _ from 'lodash';
 import {UserServiceBindings, TokenServiceBindings} from '../keys';
 import {UserPatchRequestBody} from './specs';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {Users, Credentials, CompleteSignup} from '../models';
+import {Users, Credentials, CompleteSignup, Settings} from '../models';
 import {UsersRepository, LinksRepository} from '../repositories';
 import {
   FirebasetokenInterceptor,
@@ -224,38 +224,45 @@ export class UsersController {
     })
     cmpltSignBody: CompleteSignup,
   ): Promise<void> {
-    const userProps = _.pick(cmpltSignBody, [
-      'avatar',
-      'name',
-      'phone',
-      'email',
-    ]);
-    const settingProps = _.pick(cmpltSignBody, ['language', 'currency']);
+    try {
+      const userProps = _.pick(cmpltSignBody, [
+        'avatar',
+        'name',
+        'phone',
+        'email',
+      ]);
+      const settingProps: Partial<Settings> = _.pick(cmpltSignBody, [
+        'language',
+        'currency',
+      ]);
 
-    if ('phone' in userProps) {
-      const u = await this.usersRepository.findOne({
-        where: {userId: this.userId, phoneLocked: true},
-      });
+      if ('phone' in userProps) {
+        const u = await this.usersRepository.findOne({
+          where: {userId: this.userId, phoneLocked: true},
+        });
 
-      if (u) delete userProps.phone;
-      else Object.assign(userProps, {phoneLocked: true});
-    }
+        if (u) delete userProps.phone;
+        else Object.assign(userProps, {phoneLocked: true});
+      }
 
-    if ('email' in userProps) {
-      const u = await this.usersRepository.findOne({
-        where: {userId: this.userId, emailLocked: true},
-      });
+      if ('email' in userProps) {
+        const u = await this.usersRepository.findOne({
+          where: {userId: this.userId, emailLocked: true},
+        });
 
-      if (u) delete userProps.email;
-      else Object.assign(userProps, {emailLocked: true});
-    }
+        if (u) delete userProps.email;
+        else Object.assign(userProps, {emailLocked: true});
+      }
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRepository.updateById(this.userId, userProps);
-
-    if (Object.keys(settingProps).length) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepository.setting(this.userId).patch(settingProps);
+      this.usersRepository.updateById(this.userId, userProps);
+
+      if (Object.keys(settingProps).length) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository.setting(this.userId).patch(settingProps);
+      }
+    } catch (err) {
+      console.error(err);
     }
   }
 
