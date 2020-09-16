@@ -208,6 +208,7 @@ export class UsersController {
       });
   }
 
+  @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
   @patch('/users/complete-signup', {
     summary: "Post essential user's properties for complete user properties",
     security: OPERATION_SECURITY_SPEC,
@@ -231,6 +232,7 @@ export class UsersController {
         'phone',
         'email',
       ]);
+
       const settingProps: Partial<Settings> = _.pick(cmpltSignBody, [
         'language',
         'currency',
@@ -254,8 +256,10 @@ export class UsersController {
         else Object.assign(userProps, {emailLocked: true});
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepository.updateById(this.userId, userProps);
+      if (Object.keys(userProps).length) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository.updateById(this.userId, userProps);
+      }
 
       if (Object.keys(settingProps).length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises

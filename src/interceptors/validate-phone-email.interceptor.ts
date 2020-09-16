@@ -56,6 +56,7 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
       'updateUserById',
       'createUsersRels',
       'updateUsersRelsById',
+      'completeSignup',
     ];
 
     if (funcNameList.includes(invocationCtx.methodName)) {

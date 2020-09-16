@@ -183,6 +183,7 @@ export class Users extends Entity {
       dataType: 'tinyint',
       dataLength: 1,
       nullable: 'N',
+      default: 1,
     },
   })
   phoneLocked?: boolean;
