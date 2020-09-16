@@ -20,6 +20,11 @@ export class CompleteSignup extends Model {
   @property({
     type: 'string',
   })
+  language?: string;
+
+  @property({
+    type: 'string',
+  })
   phone?: string;
 
   @property({

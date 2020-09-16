@@ -219,36 +219,43 @@ export class UsersController {
   async completeSignup(
     @requestBody({
       content: {
-        'json/application': {schema: getModelSchemaRef(CompleteSignup)},
+        'application/json': {schema: getModelSchemaRef(CompleteSignup)},
       },
     })
     cmpltSignBody: CompleteSignup,
   ): Promise<void> {
-    const props = _.pick(cmpltSignBody, ['avatar', 'name', 'phone', 'email']);
+    const userProps = _.pick(cmpltSignBody, [
+      'avatar',
+      'name',
+      'phone',
+      'email',
+    ]);
+    const settingProps = _.pick(cmpltSignBody, ['language', 'currency']);
 
-    if ('phone' in props) {
+    if ('phone' in userProps) {
       const u = await this.usersRepository.findOne({
         where: {userId: this.userId, phoneLocked: true},
       });
 
-      if (u) delete props.phone;
+      if (u) delete userProps.phone;
+      else Object.assign(userProps, {phoneLocked: true});
     }
 
-    if ('email' in props) {
+    if ('email' in userProps) {
       const u = await this.usersRepository.findOne({
         where: {userId: this.userId, emailLocked: true},
       });
 
-      if (u) delete props.email;
+      if (u) delete userProps.email;
+      else Object.assign(userProps, {emailLocked: true});
     }
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRepository.updateById(this.userId, props);
+    this.usersRepository.updateById(this.userId, userProps);
 
-    if (cmpltSignBody.currency) {
-      const currency = cmpltSignBody.currency;
+    if (Object.keys(settingProps).length) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepository.setting(this.userId).patch({currency: currency});
+      this.usersRepository.setting(this.userId).patch(settingProps);
     }
   }
 
