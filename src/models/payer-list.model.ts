@@ -18,11 +18,7 @@ import {CurrencyEnum} from './settings.model';
       fkPayerListUserId: {
         name: 'fk_payer_list_user_id',
         entity: 'users',
-<<<<<<< HEAD
-        entityKey: 'user_id',
-=======
         entityKey: 'id',
->>>>>>> parent of f635afc3... Convert mariadb id type
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
