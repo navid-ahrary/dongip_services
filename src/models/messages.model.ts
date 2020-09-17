@@ -8,7 +8,7 @@ import {Users} from './users.model';
       fkMessagesUserId: {
         name: 'fk_messages_user_id',
         entity: 'users',
-        entityKey: 'user_id',
+        entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
@@ -22,8 +22,9 @@ export class Messages extends Entity {
     id: true,
     generated: true,
     mysql: {
-      columnName: 'message_id',
-      dataType: 'mediumint unsigned',
+      columnName: 'id',
+      dataType: 'int',
+      nullable: 'N',
     },
   })
   messageId: number;
@@ -65,9 +66,9 @@ export class Messages extends Entity {
     required: true,
     mysql: {
       columnName: 'created_at',
-      dataType: 'timestamp',
+      dataType: 'datetime',
+      dataLength: null,
       nullable: 'N',
-      deafult: 'now',
     },
   })
   createdAt: string;
@@ -82,12 +83,13 @@ export class Messages extends Entity {
       target: () => Messages,
     },
     {
-      type: 'number',
+      type: 'Number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'mediumint',
+        dataLength: null,
         nullable: 'N',
       },
     },

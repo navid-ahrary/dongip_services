@@ -28,7 +28,7 @@ import {Budgets} from './budgets.model';
       fkCategoriesUserId: {
         name: 'fk_categories_user_id',
         entity: 'users',
-        entityKey: 'user_id',
+        entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
@@ -38,12 +38,12 @@ import {Budgets} from './budgets.model';
 })
 export class Categories extends Entity {
   @property({
-    type: 'number',
+    type: 'Number',
     id: true,
     required: false,
     generated: true,
     mysql: {
-      columnName: 'category_id',
+      columnName: 'id',
       dataType: 'mediumint unsigned',
       nullable: 'N',
     },
@@ -84,10 +84,7 @@ export class Categories extends Entity {
       type: 'number',
       required: true,
       index: {normal: true},
-      mysql: {
-        columnName: 'user_id',
-        dataType: 'mediumint unsigned',
-      },
+      mysql: {columnName: 'user_id', dataType: 'mediumint', nullable: 'N'},
     },
   )
   userId: number;

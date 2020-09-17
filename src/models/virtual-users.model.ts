@@ -28,7 +28,7 @@ import {UsersRels} from './users-rels.model';
       fkVirtualUsersUserId: {
         name: 'fk_virtual_users_user_id',
         entity: 'users',
-        entityKey: 'user_id',
+        entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
@@ -36,7 +36,7 @@ import {UsersRels} from './users-rels.model';
       fkVirtualUsersUserRelId: {
         name: 'fk_virtual_users_user_rel_id',
         entity: 'users_rels',
-        entityKey: 'user_rel_id',
+        entityKey: 'id',
         foreignKey: 'userRelId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
@@ -46,12 +46,12 @@ import {UsersRels} from './users-rels.model';
 })
 export class VirtualUsers extends Entity {
   @property({
-    type: 'number',
+    type: 'Number',
     id: true,
     required: false,
     generated: true,
     mysql: {
-      columnName: 'virtual_user_id',
+      columnName: 'id',
       dataType: 'mediumint unsigned',
       nullable: 'N',
     },
@@ -79,9 +79,8 @@ export class VirtualUsers extends Entity {
     defaultFn: 'now',
     mysql: {
       columnName: 'created_at',
-      dataType: 'timestamp',
+      dataType: 'datetime',
       nullable: 'N',
-      default: 'now',
     },
   })
   createdAt: string;
@@ -98,12 +97,13 @@ export class VirtualUsers extends Entity {
       target: () => VirtualUsers,
     },
     {
-      type: 'number',
+      type: 'Number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'mediumint',
+        dataLength: null,
         nullable: 'N',
       },
     },
@@ -121,12 +121,13 @@ export class VirtualUsers extends Entity {
       target: () => VirtualUsers,
     },
     {
-      type: 'number',
+      type: 'Number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_rel_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'int',
+        dataLength: null,
         nullable: 'N',
       },
     },

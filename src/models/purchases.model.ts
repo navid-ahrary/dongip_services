@@ -14,7 +14,7 @@ import {Users} from './users.model';
       fkPayerListUserId: {
         name: 'fk_purchases_user_id',
         entity: 'users',
-        entityKey: 'user_id',
+        entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'set null',
@@ -29,7 +29,7 @@ export class Purchases extends Entity {
     required: false,
     generated: true,
     mysql: {
-      columnName: 'purchase_id',
+      columnName: 'id',
       dataType: 'int unsigned',
     },
   })
@@ -75,9 +75,8 @@ export class Purchases extends Entity {
     defaultFn: 'now',
     mysql: {
       columnName: 'created_at',
-      dataType: 'timestamp',
+      dataType: 'datetime',
       nullable: 'N',
-      default: 'now',
     },
   })
   createdAt: string;
@@ -131,7 +130,8 @@ export class Purchases extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'mediumint',
+        dataLength: null,
         nullable: 'Y',
       },
     },

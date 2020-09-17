@@ -15,17 +15,17 @@ import {Dongs} from './dongs.model';
       fkScoresUserId: {
         name: 'fk_scores_user_id',
         entity: 'users',
-        entityKey: 'user_id',
+        entityKey: 'id',
         foreignKey: 'userId',
-        onUpdate: 'cascade',
+        onUpdate: 'restrict',
         onDelete: 'cascade',
       },
       fkScoresDongId: {
         name: 'fk_scores_dong_id',
         entity: 'dongs',
-        entityKey: 'dong_id',
+        entityKey: 'id',
         foreignKey: 'dongId',
-        onUpdate: 'no action',
+        onUpdate: 'restrict',
         onDelete: 'cascade',
       },
     },
@@ -33,12 +33,12 @@ import {Dongs} from './dongs.model';
 })
 export class Scores extends Entity {
   @property({
-    type: 'number',
+    type: 'Number',
     id: true,
     required: false,
     generated: true,
     mysql: {
-      columnName: 'score_id',
+      columnName: 'id',
       dataType: 'mediumint unsigned',
       nullable: 'N',
     },
@@ -63,7 +63,7 @@ export class Scores extends Entity {
     defaultFn: 'now',
     mysql: {
       columnName: 'created_at',
-      dataType: 'timestamp',
+      dataType: 'datetime',
       dataLength: null,
       nullable: 'N',
       default: 'now',
@@ -87,7 +87,8 @@ export class Scores extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'mediumint',
+        dataLength: null,
         nullable: 'N',
       },
     },
@@ -109,7 +110,7 @@ export class Scores extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'dong_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'int',
         nullable: 'Y',
       },
     },

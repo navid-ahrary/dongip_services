@@ -8,7 +8,7 @@ import {Users} from './users.model';
       fkSettingsUserId: {
         name: 'fk_subscriptions_user_id',
         entity: 'users',
-        entityKey: 'user_id',
+        entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
@@ -22,7 +22,7 @@ export class Subscriptions extends Entity {
     id: true,
     generated: true,
     mysql: {
-      columnName: 'subscription_id',
+      columnName: 'id',
       dataType: 'int unsigned',
       nullable: 'N',
     },
@@ -77,12 +77,13 @@ export class Subscriptions extends Entity {
       target: () => Subscriptions,
     },
     {
-      type: 'number',
+      type: 'Number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'mediumint',
+        dataLength: null,
         nullable: 'N',
       },
     },

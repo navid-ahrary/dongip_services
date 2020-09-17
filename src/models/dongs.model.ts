@@ -23,7 +23,7 @@ import {CurrencyEnum} from './settings.model';
       fkDongsUserId: {
         name: 'fk_dongs_user_id',
         entity: 'users',
-        entityKey: 'user_id',
+        entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
@@ -31,7 +31,7 @@ import {CurrencyEnum} from './settings.model';
       fkDongsCategoryId: {
         name: 'fk_dongs_category_id',
         entity: 'categories',
-        entityKey: 'category_id',
+        entityKey: 'id',
         foreignKey: 'categoryId',
         onUpdate: 'no action',
         onDelete: 'cascade',
@@ -41,12 +41,12 @@ import {CurrencyEnum} from './settings.model';
 })
 export class Dongs extends Entity {
   @property({
-    type: 'number',
+    type: 'Number',
     id: true,
     required: false,
     generated: true,
     mysql: {
-      columnName: 'dong_id',
+      columnName: 'id',
       dataType: 'mediumint unsigned',
       nullable: 'N',
     },
@@ -90,12 +90,12 @@ export class Dongs extends Entity {
   createdAt: string;
 
   @property({
-    type: 'number',
+    type: 'Number',
     required: true,
     mysql: {
       columnName: 'pong',
       dataLength: null,
-      dataType: 'bigint unsigned',
+      dataType: 'bigint',
       nullable: 'N',
     },
   })
@@ -129,12 +129,13 @@ export class Dongs extends Entity {
       type: RelationType.belongsTo,
     },
     {
-      type: 'number',
+      type: 'Number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'mediumint',
+        dataLength: null,
         nullable: 'N',
       },
     },
@@ -152,12 +153,13 @@ export class Dongs extends Entity {
       type: RelationType.belongsTo,
     },
     {
-      type: 'number',
+      type: 'Number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'category_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'int',
+        dataLength: null,
         nullable: 'N',
       },
     },
@@ -179,7 +181,8 @@ export class Dongs extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'group_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'int',
+        dataLength: null,
         nullable: 'Y',
       },
     },

@@ -27,7 +27,7 @@ import {Budgets} from './budgets.model';
       fkUsersRelsUserId: {
         name: 'fk_users_rels_user_id',
         entity: 'users',
-        entityKey: 'user_id',
+        entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
@@ -42,8 +42,14 @@ export class UsersRels extends Entity {
     required: false,
     generated: true,
     mysql: {
+<<<<<<< HEAD
       columnName: 'user_rel_id',
       dataType: 'mediumint unsigned',
+=======
+      columnName: 'id',
+      dataType: 'int',
+      dataLength: null,
+>>>>>>> parent of f635afc3... Convert mariadb id type
       nullable: 'N',
     },
   })
@@ -126,11 +132,7 @@ export class UsersRels extends Entity {
       type: 'number',
       required: true,
       index: {normal: true},
-      mysql: {
-        columnName: 'user_id',
-        dataType: 'mediumint unsigned',
-        nullable: 'N',
-      },
+      mysql: {columnName: 'user_id', dataType: 'mediumint', nullable: 'N'},
     },
   )
   userId: number;
@@ -139,12 +141,7 @@ export class UsersRels extends Entity {
     type: 'date',
     required: true,
     defaultFn: 'now',
-    mysql: {
-      columnName: 'created_at',
-      dataType: 'timestamp',
-      nullable: 'N',
-      default: 'now',
-    },
+    mysql: {columnName: 'created_at', dataType: 'datetime', nullable: 'N'},
   })
   createdAt: string;
 

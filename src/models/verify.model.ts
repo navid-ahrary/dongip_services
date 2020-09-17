@@ -8,7 +8,7 @@ export class Verify extends Entity {
     required: false,
     generated: true,
     mysql: {
-      columnName: 'verify_id',
+      columnName: 'id',
       dataType: 'int unsigned',
       nullable: 'N',
     },

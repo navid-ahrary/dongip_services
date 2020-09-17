@@ -18,7 +18,11 @@ import {CurrencyEnum} from './settings.model';
       fkPayerListUserId: {
         name: 'fk_payer_list_user_id',
         entity: 'users',
+<<<<<<< HEAD
         entityKey: 'user_id',
+=======
+        entityKey: 'id',
+>>>>>>> parent of f635afc3... Convert mariadb id type
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
@@ -26,7 +30,7 @@ import {CurrencyEnum} from './settings.model';
       fkPayerListCategoryId: {
         name: 'fk_payer_list_category_id',
         entity: 'categories',
-        entityKey: 'category_id',
+        entityKey: 'id',
         foreignKey: 'categoryId',
         onUpdate: 'no action',
         onDelete: 'cascade',
@@ -34,7 +38,7 @@ import {CurrencyEnum} from './settings.model';
       fkPayerListDongId: {
         name: 'fk_payer_list_dong_id',
         entity: 'dongs',
-        entityKey: 'dong_id',
+        entityKey: 'id',
         foreignKey: 'dongId',
         onUpdate: 'no action',
         onDelete: 'cascade',
@@ -42,7 +46,7 @@ import {CurrencyEnum} from './settings.model';
       fkPayerListUserRelId: {
         name: 'fk_payer_list_user_rel_id',
         entity: 'users_rels',
-        entityKey: 'user_rel_id',
+        entityKey: 'id',
         foreignKey: 'userRelId',
         onUpdate: 'no action',
         onDelete: 'cascade',
@@ -57,7 +61,7 @@ export class PayerList extends Entity {
     required: false,
     generated: true,
     mysql: {
-      columnName: 'payer_list_id',
+      columnName: 'id',
       dataType: 'mediumint unsigned',
       nullable: 'N',
     },
@@ -69,7 +73,8 @@ export class PayerList extends Entity {
     required: true,
     mysql: {
       columnName: 'paid_amount',
-      dataType: 'bigint unsigned',
+      dataType: 'bigint',
+      dataLength: null,
       nullable: 'N',
     },
   })
@@ -115,12 +120,13 @@ export class PayerList extends Entity {
       target: () => PayerList,
     },
     {
-      type: 'number',
+      type: 'Number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'dong_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'int',
+        dataLength: null,
         nullable: 'N',
       },
     },
@@ -138,12 +144,13 @@ export class PayerList extends Entity {
       target: () => PayerList,
     },
     {
-      type: 'number',
+      type: 'Number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_rel_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'int',
+        dataLength: null,
         nullable: 'N',
       },
     },
@@ -161,12 +168,13 @@ export class PayerList extends Entity {
       target: () => PayerList,
     },
     {
-      type: 'number',
+      type: 'Number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'category_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'int',
+        dataLength: null,
         nullable: 'N',
       },
     },
@@ -184,12 +192,13 @@ export class PayerList extends Entity {
       target: () => PayerList,
     },
     {
-      type: 'number',
+      type: 'Number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'mediumint',
+        dataLength: null,
         nullable: 'N',
       },
     },

@@ -16,7 +16,7 @@ import {Budgets} from './budgets.model';
       fkGroupsUserId: {
         name: 'fk_groups_user_id',
         entity: 'users',
-        entityKey: 'user_id',
+        entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
@@ -30,8 +30,9 @@ export class Groups extends Entity {
     id: true,
     generated: true,
     mysql: {
-      columnName: 'group_id',
-      dataType: 'mediumint unsigned',
+      columnName: 'id',
+      dataType: 'int',
+      dataLength: null,
       nullable: 'N',
     },
   })
@@ -62,7 +63,6 @@ export class Groups extends Entity {
       minItems: 2,
       minLength: 2,
       minimum: 1,
-      items: {maximum: 16777215, minimum: 1},
     },
     mysql: {columnName: 'user_rel_ids', nullable: 'N'},
   })
@@ -83,7 +83,8 @@ export class Groups extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'mediumint',
+        dataLength: null,
         nullable: 'N',
       },
     },

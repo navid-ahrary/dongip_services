@@ -19,7 +19,7 @@ import {CurrencyEnum} from './settings.model';
       fkBillListUserId: {
         name: 'fk_bill_list_user_id',
         entity: 'users',
-        entityKey: 'user_id',
+        entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
@@ -27,7 +27,7 @@ import {CurrencyEnum} from './settings.model';
       fkBillListCategoryId: {
         name: 'fk_bill_list_category_id',
         entity: 'categories',
-        entityKey: 'category_id',
+        entityKey: 'id',
         foreignKey: 'categoryId',
         onUpdate: 'no action',
         onDelete: 'cascade',
@@ -35,7 +35,7 @@ import {CurrencyEnum} from './settings.model';
       fkBillListDongId: {
         name: 'fk_bill_list_dong_id',
         entity: 'dongs',
-        entityKey: 'dong_id',
+        entityKey: 'id',
         foreignKey: 'dongId',
         onUpdate: 'no action',
         onDelete: 'cascade',
@@ -43,7 +43,7 @@ import {CurrencyEnum} from './settings.model';
       fkBillListUserRelId: {
         name: 'fk_bill_list_user_rel_id',
         entity: 'users_rels',
-        entityKey: 'user_rel_id',
+        entityKey: 'id',
         foreignKey: 'userRelId',
         onUpdate: 'no action',
         onDelete: 'cascade',
@@ -53,23 +53,26 @@ import {CurrencyEnum} from './settings.model';
 })
 export class BillList extends Entity {
   @property({
-    type: 'number',
+    type: 'Number',
     id: true,
     required: false,
     generated: true,
     mysql: {
-      columnName: 'bill_list_id',
-      dataType: 'mediumint unsigned',
+      columnName: 'id',
+      dataType: 'int',
+      dataLength: null,
+      nullable: 'N',
     },
   })
   billListId: number;
 
   @property({
-    type: 'number',
+    type: 'Number',
     required: true,
     mysql: {
       columnName: 'dong_amount',
-      dataType: 'bigint unsigned',
+      dataType: 'bigint',
+      dataLength: null,
       nullable: 'N',
     },
   })
@@ -120,7 +123,8 @@ export class BillList extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_rel_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'int',
+        dataLength: null,
         nullable: 'N',
       },
     },
@@ -138,12 +142,13 @@ export class BillList extends Entity {
       target: () => BillList,
     },
     {
-      type: 'number',
+      type: 'Number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'dong_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'int',
+        dataLength: null,
         nullable: 'N',
       },
     },
@@ -166,7 +171,8 @@ export class BillList extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'category_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'int',
+        dataLength: null,
         nullable: 'N',
       },
     },
@@ -189,7 +195,8 @@ export class BillList extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'mediumint',
+        dataLength: null,
         nullable: 'N',
       },
     },

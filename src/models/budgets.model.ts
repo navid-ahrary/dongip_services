@@ -19,7 +19,7 @@ import {CurrencyEnum} from './settings.model';
       fkBudgetsCategoryId: {
         name: 'fk_budgets_category_id',
         entity: 'categories',
-        entityKey: 'category_id',
+        entityKey: 'id',
         foreignKey: 'categoryId',
         onUpdate: 'no action',
         onDelete: 'cascade',
@@ -27,7 +27,7 @@ import {CurrencyEnum} from './settings.model';
       fkBudgetsUserRelId: {
         name: 'fk_budgets_user_rel_id',
         entity: 'users_rels',
-        entityKey: 'user_rel_id',
+        entityKey: 'id',
         foreignKey: 'userRelId',
         onUpdate: 'no action',
         onDelete: 'cascade',
@@ -35,7 +35,7 @@ import {CurrencyEnum} from './settings.model';
       fkBudgetsGroupId: {
         name: 'fk_budgets_group_id',
         entity: 'groups',
-        entityKey: 'group_id',
+        entityKey: 'id',
         foreignKey: 'groupId',
         onUpdate: 'no action',
         onDelete: 'cascade',
@@ -43,7 +43,7 @@ import {CurrencyEnum} from './settings.model';
       fkBudgetsUserId: {
         name: 'fk_budgets_user_id',
         entity: 'users',
-        entityKey: 'user_id',
+        entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
@@ -57,7 +57,7 @@ export class Budgets extends Entity {
     id: true,
     generated: true,
     mysql: {
-      columnName: 'budget_id',
+      columnName: 'id',
       dataType: 'mediumint unsigned',
       nullable: 'N',
     },
@@ -77,7 +77,7 @@ export class Budgets extends Entity {
     required: true,
     mysql: {
       columnName: 'budget_amount',
-      dataType: 'bigint unsigned',
+      dataType: 'bigint',
       nullable: 'N',
     },
   })
@@ -143,7 +143,8 @@ export class Budgets extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'category_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'int',
+        dataLength: null,
         nullable: 'Y',
       },
     },
@@ -165,7 +166,8 @@ export class Budgets extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_rel_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'int',
+        dataLength: null,
         nullable: 'Y',
       },
     },
@@ -187,7 +189,8 @@ export class Budgets extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'group_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'int',
+        dataLength: null,
         nullable: 'Y',
       },
     },
@@ -209,7 +212,7 @@ export class Budgets extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint unsigned',
+        dataType: 'mediumint',
         nullable: 'N',
       },
     },
