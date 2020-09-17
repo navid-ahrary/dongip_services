@@ -130,7 +130,7 @@ export class Purchases extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'Y',
       },

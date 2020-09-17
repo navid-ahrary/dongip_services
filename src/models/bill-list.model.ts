@@ -59,7 +59,7 @@ export class BillList extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'int',
+      dataType: 'mediumint unsigned',
       dataLength: null,
       nullable: 'N',
     },
@@ -71,7 +71,7 @@ export class BillList extends Entity {
     required: true,
     mysql: {
       columnName: 'dong_amount',
-      dataType: 'bigint',
+      dataType: 'bigint unsigned',
       dataLength: null,
       nullable: 'N',
     },
@@ -123,7 +123,7 @@ export class BillList extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_rel_id',
-        dataType: 'int',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },
@@ -147,7 +147,7 @@ export class BillList extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'dong_id',
-        dataType: 'int',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },
@@ -171,7 +171,7 @@ export class BillList extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'category_id',
-        dataType: 'int',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },
@@ -195,7 +195,7 @@ export class BillList extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },

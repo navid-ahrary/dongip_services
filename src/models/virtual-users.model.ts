@@ -46,7 +46,7 @@ import {UsersRels} from './users-rels.model';
 })
 export class VirtualUsers extends Entity {
   @property({
-    type: 'Number',
+    type: 'number',
     id: true,
     required: false,
     generated: true,
@@ -97,12 +97,12 @@ export class VirtualUsers extends Entity {
       target: () => VirtualUsers,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },
@@ -121,12 +121,12 @@ export class VirtualUsers extends Entity {
       target: () => VirtualUsers,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_rel_id',
-        dataType: 'int',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },

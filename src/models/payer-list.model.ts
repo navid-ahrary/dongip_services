@@ -116,12 +116,12 @@ export class PayerList extends Entity {
       target: () => PayerList,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'dong_id',
-        dataType: 'int',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },
@@ -140,12 +140,12 @@ export class PayerList extends Entity {
       target: () => PayerList,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_rel_id',
-        dataType: 'int',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },
@@ -164,12 +164,12 @@ export class PayerList extends Entity {
       target: () => PayerList,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'category_id',
-        dataType: 'int',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },
@@ -188,12 +188,12 @@ export class PayerList extends Entity {
       target: () => PayerList,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },

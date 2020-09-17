@@ -95,7 +95,7 @@ export class Dongs extends Entity {
     mysql: {
       columnName: 'pong',
       dataLength: null,
-      dataType: 'bigint',
+      dataType: 'bigint unsigned',
       nullable: 'N',
     },
   })
@@ -134,7 +134,7 @@ export class Dongs extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },
@@ -153,12 +153,12 @@ export class Dongs extends Entity {
       type: RelationType.belongsTo,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'category_id',
-        dataType: 'int',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },
@@ -181,7 +181,7 @@ export class Dongs extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'group_id',
-        dataType: 'int',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'Y',
       },

@@ -31,7 +31,7 @@ export class Groups extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'int',
+      dataType: 'mediumint unsigned',
       dataLength: null,
       nullable: 'N',
     },
@@ -83,7 +83,7 @@ export class Groups extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },

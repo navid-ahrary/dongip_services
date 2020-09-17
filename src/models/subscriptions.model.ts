@@ -77,12 +77,12 @@ export class Subscriptions extends Entity {
       target: () => Subscriptions,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },

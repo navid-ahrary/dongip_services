@@ -17,7 +17,7 @@ import {Dongs} from './dongs.model';
         entity: 'users',
         entityKey: 'id',
         foreignKey: 'userId',
-        onUpdate: 'restrict',
+        onUpdate: 'cascade',
         onDelete: 'cascade',
       },
       fkScoresDongId: {
@@ -33,7 +33,7 @@ import {Dongs} from './dongs.model';
 })
 export class Scores extends Entity {
   @property({
-    type: 'Number',
+    type: 'number',
     id: true,
     required: false,
     generated: true,
@@ -43,7 +43,7 @@ export class Scores extends Entity {
       nullable: 'N',
     },
   })
-  scoreId?: number;
+  scoreId: number;
 
   @property({
     type: 'Number',
@@ -87,7 +87,7 @@ export class Scores extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },
@@ -110,7 +110,7 @@ export class Scores extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'dong_id',
-        dataType: 'int',
+        dataType: 'mediumint unsigned',
         nullable: 'Y',
       },
     },

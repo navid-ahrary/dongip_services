@@ -3,7 +3,7 @@ import {Entity, model, property} from '@loopback/repository';
 @model({name: 'verify'})
 export class Verify extends Entity {
   @property({
-    type: 'Number',
+    type: 'number',
     id: true,
     required: false,
     generated: true,

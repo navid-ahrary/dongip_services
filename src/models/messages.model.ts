@@ -23,7 +23,7 @@ export class Messages extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'int',
+      dataType: 'mediumint unsigned',
       nullable: 'N',
     },
   })
@@ -83,12 +83,12 @@ export class Messages extends Entity {
       target: () => Messages,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'N',
       },

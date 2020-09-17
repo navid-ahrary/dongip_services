@@ -201,7 +201,7 @@ export class Settings extends Entity {
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',
-        nullable: 'Y',
+        nullable: 'N',
       },
     },
   )

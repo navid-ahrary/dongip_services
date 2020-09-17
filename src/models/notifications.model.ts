@@ -109,7 +109,7 @@ export class Notifications extends Entity {
     mysql: {
       columnName: 'user_rel_id',
       dataLength: null,
-      dataType: 'int',
+      dataType: 'mediumint unsigned',
       nullable: 'Y',
     },
   })
@@ -120,18 +120,18 @@ export class Notifications extends Entity {
     mysql: {
       columnName: 'dong_id',
       dataLength: null,
-      dataType: 'int',
+      dataType: 'mediumint unsigned',
       nullable: 'Y',
     },
   })
   dongId?: number;
 
   @property({
-    type: 'Number',
+    type: 'number',
     mysql: {
       columnName: 'dong_amount',
       dataLength: null,
-      dataType: 'bigint',
+      dataType: 'bigint unsigned',
       nullable: 'Y',
     },
   })
@@ -194,7 +194,7 @@ export class Notifications extends Entity {
     type: 'number',
     mysql: {
       columnName: 'subscription_id',
-      dataType: 'mediumint',
+      dataType: 'int unsigned',
       dataLength: null,
       nullable: 'Y',
     },
@@ -229,7 +229,7 @@ export class Notifications extends Entity {
     mysql: {
       columnName: 'plan_id',
       dataType: 'varchar',
-      dataLength: 10,
+      dataLength: 20,
       nullable: 'Y',
     },
   })
@@ -250,7 +250,7 @@ export class Notifications extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         nullable: 'Y',
       },
     },

@@ -77,7 +77,7 @@ export class Budgets extends Entity {
     required: true,
     mysql: {
       columnName: 'budget_amount',
-      dataType: 'bigint',
+      dataType: 'bigint unsigned',
       nullable: 'N',
     },
   })
@@ -143,7 +143,7 @@ export class Budgets extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'category_id',
-        dataType: 'int',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'Y',
       },
@@ -166,7 +166,7 @@ export class Budgets extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_rel_id',
-        dataType: 'int',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'Y',
       },
@@ -189,7 +189,7 @@ export class Budgets extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'group_id',
-        dataType: 'int',
+        dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'Y',
       },
@@ -212,7 +212,7 @@ export class Budgets extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         nullable: 'N',
       },
     },

@@ -84,7 +84,11 @@ export class Categories extends Entity {
       type: 'number',
       required: true,
       index: {normal: true},
-      mysql: {columnName: 'user_id', dataType: 'mediumint', nullable: 'N'},
+      mysql: {
+        columnName: 'user_id',
+        dataType: 'mediumint unsigned',
+        nullable: 'N',
+      },
     },
   )
   userId: number;

@@ -37,7 +37,7 @@ import {Budgets} from './budgets.model';
 })
 export class UsersRels extends Entity {
   @property({
-    type: 'Number',
+    type: 'number',
     id: true,
     required: false,
     generated: true,
@@ -126,7 +126,11 @@ export class UsersRels extends Entity {
       type: 'number',
       required: true,
       index: {normal: true},
-      mysql: {columnName: 'user_id', dataType: 'mediumint', nullable: 'N'},
+      mysql: {
+        columnName: 'user_id',
+        dataType: 'mediumint unsigned',
+        nullable: 'N',
+      },
     },
   )
   userId: number;
