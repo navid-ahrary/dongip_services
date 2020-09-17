@@ -42,14 +42,8 @@ export class UsersRels extends Entity {
     required: false,
     generated: true,
     mysql: {
-<<<<<<< HEAD
-      columnName: 'user_rel_id',
-      dataType: 'mediumint unsigned',
-=======
       columnName: 'id',
-      dataType: 'int',
-      dataLength: null,
->>>>>>> parent of f635afc3... Convert mariadb id type
+      dataType: 'mediumint unsigned',
       nullable: 'N',
     },
   })
