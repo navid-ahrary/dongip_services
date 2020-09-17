@@ -36,14 +36,6 @@ import {CurrencyEnum} from './settings.model';
         onUpdate: 'no action',
         onDelete: 'cascade',
       },
-      fkDongsGroupId: {
-        name: 'fk_dongs_group_id',
-        entity: 'groups',
-        entityKey: 'id',
-        foreignKey: 'groupId',
-        onUpdate: 'no action',
-        onDelete: 'no action',
-      },
     },
   },
 })
