@@ -20,7 +20,7 @@ import {Notifications} from './notifications.model';
 import {Budgets} from './budgets.model';
 import {Settings, SettingsWithRelations} from './settings.model';
 import {Purchases} from './purchases.model';
-import {Subscriptions} from './subscriptions.model';
+import {Subscriptions, SubscriptionsWithRelations} from './subscriptions.model';
 
 @model({name: 'users'})
 export class Users extends Entity {
@@ -360,7 +360,8 @@ export class Users extends Entity {
 }
 
 export interface UsersRelations {
-  setting: SettingsWithRelations;
+  setting?: SettingsWithRelations;
+  subscriptions?: SubscriptionsWithRelations[];
 }
 
 export type UsersWithRelations = Users & UsersRelations;

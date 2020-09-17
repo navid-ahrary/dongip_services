@@ -17,11 +17,18 @@ import {
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 
 import _ from 'lodash';
+import moment from 'moment';
 
 import {UserServiceBindings, TokenServiceBindings} from '../keys';
 import {UserPatchRequestBody} from './specs';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {Users, Credentials, CompleteSignup, Settings} from '../models';
+import {
+  Users,
+  Credentials,
+  CompleteSignup,
+  Settings,
+  UsersRels,
+} from '../models';
 import {UsersRepository, LinksRepository} from '../repositories';
 import {
   FirebasetokenInterceptor,
@@ -69,7 +76,27 @@ export class UsersController {
               type: 'object',
               properties: {
                 name: {type: 'string'},
-                roles: {type: 'array', items: {type: 'string'}},
+                roles: {
+                  type: 'array',
+                  items: {
+                    oneOf: [
+                      {type: 'string', minItems: 1, maxItems: 5},
+                      {type: undefined},
+                    ],
+                  },
+                },
+                planId: {
+                  type: 'string',
+                  nullable: true,
+                },
+                solTime: {
+                  type: 'string',
+                  nullable: true,
+                },
+                eolTime: {
+                  type: 'string',
+                  nullable: true,
+                },
                 registeredAt: {type: 'string'},
                 totalScores: {type: 'number'},
                 externalLinks: {
@@ -91,13 +118,17 @@ export class UsersController {
   })
   async findUserRrops(): Promise<{
     name: string;
-    roles: string[];
+    roles: string[] | [];
+    planId: string | null;
+    solTime: string | null;
+    eolTime: string | null;
     language: string;
     currency: string;
     registeredAt: string;
     totalScores: number;
     externalLinks: object;
   }> {
+    const nowUTC = moment.utc();
     const scores = await this.getUserScores(this.userId);
 
     const foundUser = await this.usersRepository.findById(this.userId, {
@@ -114,8 +145,37 @@ export class UsersController {
           relation: 'setting',
           scope: {fields: {userId: true, language: true, currency: true}},
         },
+        {
+          relation: 'subscriptions',
+          scope: {
+            limit: 1,
+            fields: {userId: true, solTime: true, eolTime: true},
+            where: {
+              solTime: {lte: nowUTC.toISOString()},
+              eolTime: {gte: nowUTC.toISOString()},
+            },
+          },
+        },
       ],
     });
+
+    const hasSubs = foundUser.subscriptions
+      ? foundUser.subscriptions.length > 0
+      : false;
+
+    const roles = foundUser.roles;
+
+    if (hasSubs && !roles.includes('GOLD')) {
+      roles[roles.indexOf('BRONZE')] = 'GOLD';
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepository.updateById(this.userId, {roles: roles});
+    }
+
+    if (!hasSubs && roles.includes('GOLD')) {
+      roles[roles.indexOf('GOLD')] = 'BRONZE';
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepository.updateById(this.userId, {roles: roles});
+    }
 
     const foundLinks = await this.linkRepository.find();
 
@@ -126,7 +186,10 @@ export class UsersController {
 
     return {
       name: foundUser!.name,
-      roles: foundUser!.roles,
+      roles: roles,
+      planId: hasSubs ? foundUser.subscriptions[0].planId : null,
+      solTime: hasSubs ? foundUser.subscriptions[0].solTime : null,
+      eolTime: hasSubs ? foundUser.subscriptions[0].eolTime : null,
       language: foundUser.setting.language,
       currency: foundUser.setting.currency,
       registeredAt: foundUser.registeredAt,
@@ -238,13 +301,18 @@ export class UsersController {
         'currency',
       ]);
 
+      const userRelProps: Partial<UsersRels> = {};
+
       if ('phone' in userProps) {
         const u = await this.usersRepository.findOne({
           where: {userId: this.userId, phoneLocked: true},
         });
 
         if (u) delete userProps.phone;
-        else Object.assign(userProps, {phoneLocked: true});
+        else {
+          Object.assign(userProps, {phoneLocked: true});
+          userRelProps.phone = userProps.phone;
+        }
       }
 
       if ('email' in userProps) {
@@ -253,8 +321,15 @@ export class UsersController {
         });
 
         if (u) delete userProps.email;
-        else Object.assign(userProps, {emailLocked: true});
+        else {
+          Object.assign(userProps, {emailLocked: true});
+          userRelProps.email = userProps.email;
+        }
       }
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepository
+        .usersRels(this.userId)
+        .patch(userRelProps, {type: 'self'});
 
       if (Object.keys(settingProps).length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises

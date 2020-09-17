@@ -530,6 +530,9 @@ export class AuthController {
     @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<{
     userId: typeof Users.prototype.userId;
+    planId: string | null;
+    solTime: string | null;
+    eolTime: string | null;
     accessToken: string;
     refreshToken: string;
     totalScores: number;
@@ -545,6 +548,8 @@ export class AuthController {
     );
 
     const countRegisteredUsers = await this.usersRepository.count();
+    const roles = countRegisteredUsers.count < 1000 ? ['GOLD'] : ['BRONZE'];
+    const planId = countRegisteredUsers.count < 1000 ? 'plan_gy1' : 'free';
 
     try {
       const userObject = new Users({
@@ -555,7 +560,7 @@ export class AuthController {
         name: newUser.name,
         avatar: newUser.avatar,
         region: foundVerify.region ? foundVerify.region : undefined,
-        roles: countRegisteredUsers.count < 1000 ? ['GOLD'] : ['BRONZE'],
+        roles: roles,
         firebaseToken: firebaseToken ? firebaseToken : undefined,
         userAgent: this.ctx.request.headers['user-agent'],
         platform: this.ctx.request.headers['platform']
@@ -563,6 +568,15 @@ export class AuthController {
           : undefined,
       });
       const savedUser = await this.usersRepository.create(userObject);
+
+      if (roles.includes('GOLD')) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository.subscriptions(savedUser.getId()).create({
+          planId: 'plan_gy1',
+          solTime: nowUTC.toISOString(),
+          eolTime: nowUTC.add(1, 'year').toISOString(),
+        });
+      }
 
       const savedScore = await this.usersRepository
         .scores(savedUser.getId())
@@ -606,6 +620,11 @@ export class AuthController {
 
       return {
         userId: savedUser.getId(),
+        planId: planId,
+        solTime: roles.includes('GOLD') ? nowUTC.toISOString() : null,
+        eolTime: roles.includes('GOLD')
+          ? nowUTC.add(1, 'year').toISOString()
+          : null,
         accessToken: accessToken,
         refreshToken: savedUser.refreshToken,
         totalScores: savedScore.score,
