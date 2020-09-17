@@ -57,7 +57,7 @@ export class Budgets extends Entity {
     id: true,
     generated: true,
     mysql: {
-      columnName: 'id',
+      columnName: 'budget_id',
       dataType: 'mediumint unsigned',
       dataLength: 8,
       nullable: 'N',

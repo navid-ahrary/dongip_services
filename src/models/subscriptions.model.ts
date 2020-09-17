@@ -22,7 +22,7 @@ export class Subscriptions extends Entity {
     id: true,
     generated: true,
     mysql: {
-      columnName: 'id',
+      columnName: 'subscription_id',
       dataType: 'int unsigned',
       dataLength: 11,
       nullable: 'N',

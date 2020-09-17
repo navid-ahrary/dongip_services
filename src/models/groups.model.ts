@@ -30,7 +30,7 @@ export class Groups extends Entity {
     id: true,
     generated: true,
     mysql: {
-      columnName: 'id',
+      columnName: 'group_id',
       dataType: 'mediumint unsigned',
       dataLength: null,
       nullable: 'N',

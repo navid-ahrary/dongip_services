@@ -42,7 +42,7 @@ export class Settings extends Entity {
     id: true,
     generated: true,
     mysql: {
-      columnName: 'id',
+      columnName: 'setting_id',
       dataType: 'mediumint unsigned',
       dataLength: 8,
       nullable: 'N',

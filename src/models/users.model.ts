@@ -30,7 +30,7 @@ export class Users extends Entity {
     required: false,
     generated: true,
     mysql: {
-      columnName: 'id',
+      columnName: 'user_id',
       dataType: 'mediumint unsigned',
       dataLength: 8,
       nullable: 'N',

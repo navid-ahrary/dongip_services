@@ -43,7 +43,7 @@ export class Categories extends Entity {
     required: false,
     generated: true,
     mysql: {
-      columnName: 'id',
+      columnName: 'category_id',
       dataType: 'mediumint unsigned',
       dataLength: 8,
       nullable: 'N',

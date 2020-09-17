@@ -29,7 +29,7 @@ export class Purchases extends Entity {
     required: false,
     generated: true,
     mysql: {
-      columnName: 'id',
+      columnName: 'purchase_id',
       dataType: 'int unsigned',
       dataLength: 11,
     },

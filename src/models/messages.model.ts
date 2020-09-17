@@ -22,7 +22,7 @@ export class Messages extends Entity {
     id: true,
     generated: true,
     mysql: {
-      columnName: 'id',
+      columnName: 'message_id',
       dataType: 'mediumint unsigned',
       dataLength: 8,
     },

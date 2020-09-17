@@ -58,7 +58,7 @@ export class BillList extends Entity {
     required: false,
     generated: true,
     mysql: {
-      columnName: 'id',
+      columnName: 'bill_list_id',
       dataType: 'mediumint unsigned',
       dataLength: 8,
     },
