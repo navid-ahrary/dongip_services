@@ -256,17 +256,31 @@ export class UsersController {
         else Object.assign(userProps, {emailLocked: true});
       }
 
-      if (Object.keys(userProps).length) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.usersRepository.updateById(this.userId, userProps);
-      }
-
       if (Object.keys(settingProps).length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.usersRepository.setting(this.userId).patch(settingProps);
       }
+
+      if (Object.keys(userProps).length) {
+        await this.usersRepository.updateById(this.userId, userProps);
+      }
     } catch (err) {
       console.error(err);
+
+      let errMsg = '';
+      if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
+        if (err.sqlMessage.endsWith("'phone'")) {
+          errMsg = 'این شماره موبایل قبلن ثبت نام شده است';
+        }
+        if (err.sqlMessage.endsWith("'email'")) {
+          errMsg = 'این آدرس ایمیل قبلن ثبت نام شده است';
+        }
+      } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
+        throw new HttpErrors.NotAcceptable(err.message);
+      } else {
+        throw new HttpErrors.NotAcceptable(err.message);
+      }
+      throw new HttpErrors.Conflict(errMsg);
     }
   }
 
