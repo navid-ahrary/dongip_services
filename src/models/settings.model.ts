@@ -200,7 +200,7 @@ export class Settings extends Entity {
       index: {unique: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         nullable: 'Y',
       },
     },
