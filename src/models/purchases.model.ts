@@ -17,7 +17,7 @@ import {Users} from './users.model';
         entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
-        onDelete: 'no action',
+        onDelete: 'set null',
       },
     },
   },
@@ -126,18 +126,17 @@ export class Purchases extends Entity {
       target: () => Purchases,
     },
     {
-      type: 'Number',
-      required: true,
+      type: 'number',
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint',
         dataLength: null,
-        nullable: 'N',
+        nullable: 'Y',
       },
     },
   )
-  userId: number;
+  userId?: number;
 
   constructor(data?: Partial<Purchases>) {
     super(data);

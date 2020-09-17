@@ -11,7 +11,7 @@ import {Users} from './users.model';
         entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
-        onDelete: 'no action',
+        onDelete: 'cascade',
       },
     },
   },

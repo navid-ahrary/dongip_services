@@ -30,7 +30,7 @@ import {UsersRels} from './users-rels.model';
         entity: 'users',
         entityKey: 'id',
         foreignKey: 'userId',
-        onUpdate: 'restrict',
+        onUpdate: 'cascade',
         onDelete: 'cascade',
       },
     },

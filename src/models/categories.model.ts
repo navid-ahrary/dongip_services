@@ -30,7 +30,7 @@ import {Budgets} from './budgets.model';
         entity: 'users',
         entityKey: 'id',
         foreignKey: 'userId',
-        onUpdate: 'restrict',
+        onUpdate: 'cascade',
         onDelete: 'cascade',
       },
     },

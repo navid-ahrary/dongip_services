@@ -30,7 +30,7 @@ export enum LanguageEnum {
         entity: 'users',
         entityKey: 'id',
         foreignKey: 'userId',
-        onUpdate: 'restrict',
+        onUpdate: 'cascade',
         onDelete: 'cascade',
       },
     },
