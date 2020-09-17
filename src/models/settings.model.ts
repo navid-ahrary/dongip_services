@@ -166,6 +166,7 @@ export class Settings extends Entity {
       minLength: 3,
       maxLength: 3,
       description: 'ISO 4217',
+      enum: Object.values(CurrencyEnum),
     },
     mysql: {
       dataType: 'varchar',
@@ -173,7 +174,7 @@ export class Settings extends Entity {
       nullable: 'N',
     },
   })
-  currency: string;
+  currency: CurrencyEnum;
 
   @property({
     type: 'date',
