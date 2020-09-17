@@ -24,14 +24,14 @@ import {Budgets} from './budgets.model';
       },
     },
     foreignKeys: {
-      // fkUsersRelsUserId: {
-      //   name: 'fk_users_rels_user_id',
-      //   entity: 'users',
-      //   entityKey: 'id',
-      //   foreignKey: 'userId',
-      //   onUpdate: 'cascade',
-      //   onDelete: 'cascade',
-      // },
+      fkUsersRelsUserId: {
+        name: 'fk_users_rels_user_id',
+        entity: 'users',
+        entityKey: 'user_id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
     },
   },
 })
@@ -44,7 +44,6 @@ export class UsersRels extends Entity {
     mysql: {
       columnName: 'user_rel_id',
       dataType: 'mediumint unsigned',
-      dataLength: 8,
       nullable: 'N',
     },
   })

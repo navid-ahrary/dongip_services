@@ -1,16 +1,8 @@
 import {inject} from '@loopback/core';
 import {Count, repository} from '@loopback/repository';
-import {
-  get,
-  getModelSchemaRef,
-  requestBody,
-  param,
-  api,
-  patch,
-} from '@loopback/rest';
+import {get, getModelSchemaRef, requestBody, api, patch} from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
-import moment from 'moment';
 
 import {Settings} from '../models';
 import {SettingsRepository, UsersRepository} from '../repositories';
@@ -63,15 +55,13 @@ export class SettingsController {
         'application/json': {
           schema: getModelSchemaRef(Settings, {
             partial: true,
-            exclude: ['userId', 'updatedAt', 'createdAt'],
+            exclude: ['userId', 'createdAt'],
           }),
         },
       },
     })
     patchSettings: Settings,
   ): Promise<Count> {
-    return this.usersRepository
-      .setting(this.userId)
-      .patch({...patchSettings, updatedAt: moment.utc().toISOString()});
+    return this.usersRepository.setting(this.userId).patch(patchSettings);
   }
 }

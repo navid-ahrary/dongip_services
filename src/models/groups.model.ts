@@ -13,14 +13,14 @@ import {Budgets} from './budgets.model';
   name: 'groups',
   settings: {
     foreignKeys: {
-      // fkGroupsUserId: {
-      //   name: 'fk_groups_user_id',
-      //   entity: 'users',
-      //   entityKey: 'id',
-      //   foreignKey: 'userId',
-      //   onUpdate: 'cascade',
-      //   onDelete: 'cascade',
-      // },
+      fkGroupsUserId: {
+        name: 'fk_groups_user_id',
+        entity: 'users',
+        entityKey: 'user_id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
     },
   },
 })
@@ -32,7 +32,6 @@ export class Groups extends Entity {
     mysql: {
       columnName: 'group_id',
       dataType: 'mediumint unsigned',
-      dataLength: null,
       nullable: 'N',
     },
   })

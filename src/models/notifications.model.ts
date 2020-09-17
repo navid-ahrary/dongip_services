@@ -12,14 +12,14 @@ import {CurrencyEnum} from './settings.model';
   name: 'notifications',
   settings: {
     foreignKeys: {
-      // fkNotificationsUserId: {
-      //   name: 'fk_notifications_user_id',
-      //   entity: 'users',
-      //   entityKey: 'id',
-      //   foreignKey: 'userId',
-      //   onUpdate: 'cascade',
-      //   onDelete: 'cascade',
-      // },
+      fkNotificationsUserId: {
+        name: 'fk_notifications_user_id',
+        entity: 'users',
+        entityKey: 'user_id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
     },
   },
 })
@@ -32,7 +32,6 @@ export class Notifications extends Entity {
     mysql: {
       columnName: 'notify_id',
       dataType: 'bigint unsigned',
-      dataLength: 20,
       nullable: 'N',
     },
   })

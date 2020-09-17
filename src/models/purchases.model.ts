@@ -11,14 +11,14 @@ import {Users} from './users.model';
   name: 'purchases',
   settings: {
     foreignKeys: {
-      // fkPayerListUserId: {
-      //   name: 'fk_purchases_user_id',
-      //   entity: 'users',
-      //   entityKey: 'id',
-      //   foreignKey: 'userId',
-      //   onUpdate: 'cascade',
-      //   onDelete: 'set null',
-      // },
+      fkPayerListUserId: {
+        name: 'fk_purchases_user_id',
+        entity: 'users',
+        entityKey: 'user_id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'set null',
+      },
     },
   },
 })
@@ -31,7 +31,6 @@ export class Purchases extends Entity {
     mysql: {
       columnName: 'purchase_id',
       dataType: 'int unsigned',
-      dataLength: 11,
     },
   })
   purchaseId: number;

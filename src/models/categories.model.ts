@@ -25,14 +25,14 @@ import {Budgets} from './budgets.model';
       },
     },
     foreignKeys: {
-      // fkCategoriesUserId: {
-      //   name: 'fk_categories_user_id',
-      //   entity: 'users',
-      //   entityKey: 'id',
-      //   foreignKey: 'userId',
-      //   onUpdate: 'cascade',
-      //   onDelete: 'cascade',
-      // },
+      fkCategoriesUserId: {
+        name: 'fk_categories_user_id',
+        entity: 'users',
+        entityKey: 'user_id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
     },
   },
 })
@@ -45,7 +45,6 @@ export class Categories extends Entity {
     mysql: {
       columnName: 'category_id',
       dataType: 'mediumint unsigned',
-      dataLength: 8,
       nullable: 'N',
     },
   })

@@ -25,14 +25,22 @@ import {UsersRels} from './users-rels.model';
       },
     },
     foreignKeys: {
-      // fkVirtualUsersUserId: {
-      //   name: 'fk_virtual_users_user_id',
-      //   entity: 'users',
-      //   entityKey: 'id',
-      //   foreignKey: 'userId',
-      //   onUpdate: 'cascade',
-      //   onDelete: 'cascade',
-      // },
+      fkVirtualUsersUserId: {
+        name: 'fk_virtual_users_user_id',
+        entity: 'users',
+        entityKey: 'user_id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+      fkVirtualUsersUserRelId: {
+        name: 'fk_virtual_users_user_rel_id',
+        entity: 'users_rels',
+        entityKey: 'user_rel_id',
+        foreignKey: 'userRelId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
     },
   },
 })
@@ -45,7 +53,6 @@ export class VirtualUsers extends Entity {
     mysql: {
       columnName: 'virtual_user_id',
       dataType: 'mediumint unsigned',
-      dataLength: 8,
       nullable: 'N',
     },
   })

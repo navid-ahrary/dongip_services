@@ -11,24 +11,24 @@ import {Dongs} from './dongs.model';
 @model({
   name: 'scores',
   settings: {
-    // foreignKeys: {
-    //   fkScoresUserId: {
-    //     name: 'fk_scores_user_id',
-    //     entity: 'users',
-    //     entityKey: 'id',
-    //     foreignKey: 'userId',
-    //     onUpdate: 'restrict',
-    //     onDelete: 'cascade',
-    //   },
-    //   fkScoresDongId: {
-    //     name: 'fk_scores_dong_id',
-    //     entity: 'dongs',
-    //     entityKey: 'id',
-    //     foreignKey: 'dongId',
-    //     onUpdate: 'restrict',
-    //     onDelete: 'cascade',
-    //   },
-    // },
+    foreignKeys: {
+      fkScoresUserId: {
+        name: 'fk_scores_user_id',
+        entity: 'users',
+        entityKey: 'user_id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+      fkScoresDongId: {
+        name: 'fk_scores_dong_id',
+        entity: 'dongs',
+        entityKey: 'dong_id',
+        foreignKey: 'dongId',
+        onUpdate: 'no action',
+        onDelete: 'cascade',
+      },
+    },
   },
 })
 export class Scores extends Entity {
@@ -40,7 +40,6 @@ export class Scores extends Entity {
     mysql: {
       columnName: 'score_id',
       dataType: 'mediumint unsigned',
-      dataLength: 8,
       nullable: 'N',
     },
   })

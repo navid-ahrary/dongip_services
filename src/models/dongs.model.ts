@@ -20,22 +20,22 @@ import {CurrencyEnum} from './settings.model';
   name: 'dongs',
   settings: {
     foreignKeys: {
-      // fkDongsUserId: {
-      //   name: 'fk_dongs_user_id',
-      //   entity: 'users',
-      //   entityKey: 'id',
-      //   foreignKey: 'userId',
-      //   onUpdate: 'cascade',
-      //   onDelete: 'cascade',
-      // },
-      // fkDongsCategoryId: {
-      //   name: 'fk_dongs_category_id',
-      //   entity: 'categories',
-      //   entityKey: 'id',
-      //   foreignKey: 'categoryId',
-      //   onUpdate: 'no action',
-      //   onDelete: 'cascade',
-      // },
+      fkDongsUserId: {
+        name: 'fk_dongs_user_id',
+        entity: 'users',
+        entityKey: 'user_id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+      fkDongsCategoryId: {
+        name: 'fk_dongs_category_id',
+        entity: 'categories',
+        entityKey: 'category_id',
+        foreignKey: 'categoryId',
+        onUpdate: 'no action',
+        onDelete: 'cascade',
+      },
     },
   },
 })
@@ -48,7 +48,6 @@ export class Dongs extends Entity {
     mysql: {
       columnName: 'dong_id',
       dataType: 'mediumint unsigned',
-      dataLength: 8,
       nullable: 'N',
     },
   })

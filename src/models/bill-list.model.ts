@@ -15,40 +15,40 @@ import {CurrencyEnum} from './settings.model';
 @model({
   name: 'bill_list',
   settings: {
-    // foreignKeys: {
-    //   fkBillListUserId: {
-    //     name: 'fk_bill_list_user_id',
-    //     entity: 'users',
-    //     entityKey: 'id',
-    //     foreignKey: 'userId',
-    //     onUpdate: 'cascade',
-    //     onDelete: 'cascade',
-    //   },
-    //   fkBillListCategoryId: {
-    //     name: 'fk_bill_list_category_id',
-    //     entity: 'categories',
-    //     entityKey: 'id',
-    //     foreignKey: 'categoryId',
-    //     onUpdate: 'no action',
-    //     onDelete: 'cascade',
-    //   },
-    //   fkBillListDongId: {
-    //     name: 'fk_bill_list_dong_id',
-    //     entity: 'dongs',
-    //     entityKey: 'id',
-    //     foreignKey: 'dongId',
-    //     onUpdate: 'no action',
-    //     onDelete: 'cascade',
-    //   },
-    //   fkBillListUserRelId: {
-    //     name: 'fk_bill_list_user_rel_id',
-    //     entity: 'users_rels',
-    //     entityKey: 'id',
-    //     foreignKey: 'userRelId',
-    //     onUpdate: 'no action',
-    //     onDelete: 'cascade',
-    //   },
-    // },
+    foreignKeys: {
+      fkBillListUserId: {
+        name: 'fk_bill_list_user_id',
+        entity: 'users',
+        entityKey: 'user_id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+      fkBillListCategoryId: {
+        name: 'fk_bill_list_category_id',
+        entity: 'categories',
+        entityKey: 'category_id',
+        foreignKey: 'categoryId',
+        onUpdate: 'no action',
+        onDelete: 'cascade',
+      },
+      fkBillListDongId: {
+        name: 'fk_bill_list_dong_id',
+        entity: 'dongs',
+        entityKey: 'dong_id',
+        foreignKey: 'dongId',
+        onUpdate: 'no action',
+        onDelete: 'cascade',
+      },
+      fkBillListUserRelId: {
+        name: 'fk_bill_list_user_rel_id',
+        entity: 'users_rels',
+        entityKey: 'user_rel_id',
+        foreignKey: 'userRelId',
+        onUpdate: 'no action',
+        onDelete: 'cascade',
+      },
+    },
   },
 })
 export class BillList extends Entity {
@@ -60,7 +60,6 @@ export class BillList extends Entity {
     mysql: {
       columnName: 'bill_list_id',
       dataType: 'mediumint unsigned',
-      dataLength: 8,
     },
   })
   billListId: number;

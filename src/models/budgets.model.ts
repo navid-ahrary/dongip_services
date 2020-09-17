@@ -15,40 +15,40 @@ import {CurrencyEnum} from './settings.model';
 @model({
   name: 'budgets',
   settings: {
-    // foreignKeys: {
-    //   fkBudgetsCategoryId: {
-    //     name: 'fk_budgets_category_id',
-    //     entity: 'categories',
-    //     entityKey: 'id',
-    //     foreignKey: 'categoryId',
-    //     onUpdate: 'no action',
-    //     onDelete: 'cascade',
-    //   },
-    //   fkBudgetsUserRelId: {
-    //     name: 'fk_budgets_user_rel_id',
-    //     entity: 'users_rels',
-    //     entityKey: 'id',
-    //     foreignKey: 'userRelId',
-    //     onUpdate: 'no action',
-    //     onDelete: 'cascade',
-    //   },
-    //   fkBudgetsGroupId: {
-    //     name: 'fk_budgets_group_id',
-    //     entity: 'groups',
-    //     entityKey: 'id',
-    //     foreignKey: 'groupId',
-    //     onUpdate: 'no action',
-    //     onDelete: 'cascade',
-    //   },
-    //   fkBudgetsUserId: {
-    //     name: 'fk_budgets_user_id',
-    //     entity: 'users',
-    //     entityKey: 'id',
-    //     foreignKey: 'userId',
-    //     onUpdate: 'cascade',
-    //     onDelete: 'cascade',
-    //   },
-    // },
+    foreignKeys: {
+      fkBudgetsCategoryId: {
+        name: 'fk_budgets_category_id',
+        entity: 'categories',
+        entityKey: 'category_id',
+        foreignKey: 'categoryId',
+        onUpdate: 'no action',
+        onDelete: 'cascade',
+      },
+      fkBudgetsUserRelId: {
+        name: 'fk_budgets_user_rel_id',
+        entity: 'users_rels',
+        entityKey: 'user_rel_id',
+        foreignKey: 'userRelId',
+        onUpdate: 'no action',
+        onDelete: 'cascade',
+      },
+      fkBudgetsGroupId: {
+        name: 'fk_budgets_group_id',
+        entity: 'groups',
+        entityKey: 'group_id',
+        foreignKey: 'groupId',
+        onUpdate: 'no action',
+        onDelete: 'cascade',
+      },
+      fkBudgetsUserId: {
+        name: 'fk_budgets_user_id',
+        entity: 'users',
+        entityKey: 'user_id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+    },
   },
 })
 export class Budgets extends Entity {
@@ -59,7 +59,6 @@ export class Budgets extends Entity {
     mysql: {
       columnName: 'budget_id',
       dataType: 'mediumint unsigned',
-      dataLength: 8,
       nullable: 'N',
     },
   })

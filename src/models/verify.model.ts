@@ -10,7 +10,6 @@ export class Verify extends Entity {
     mysql: {
       columnName: 'verify_id',
       dataType: 'int unsigned',
-      dataLength: 11,
       nullable: 'N',
     },
   })

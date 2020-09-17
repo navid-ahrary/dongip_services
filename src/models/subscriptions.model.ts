@@ -5,14 +5,14 @@ import {Users} from './users.model';
   name: 'subscriptions',
   settings: {
     foreignKeys: {
-      // fkSettingsUserId: {
-      //   name: 'fk_subscriptions_user_id',
-      //   entity: 'users',
-      //   entityKey: 'id',
-      //   foreignKey: 'userId',
-      //   onUpdate: 'cascade',
-      //   onDelete: 'cascade',
-      // },
+      fkSettingsUserId: {
+        name: 'fk_subscriptions_user_id',
+        entity: 'users',
+        entityKey: 'user_id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
     },
   },
 })
@@ -24,7 +24,6 @@ export class Subscriptions extends Entity {
     mysql: {
       columnName: 'subscription_id',
       dataType: 'int unsigned',
-      dataLength: 11,
       nullable: 'N',
     },
   })
