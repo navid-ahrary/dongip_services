@@ -8,6 +8,19 @@ import {
 
 import {Users, UsersWithRelations} from './users.model';
 
+export enum CurrencyEnum {
+  IRAN_RIAL = 'IRR',
+  IRAN_TOMAN = 'IRT',
+  DUBAI_DIRHAM = 'AED',
+  US_DOLLAR = 'USD',
+  EUROPE_EURO = 'EUR',
+}
+
+export enum LanguageEnum {
+  FARSI = 'fa',
+  ENGLISH = 'en',
+}
+
 @model({
   name: 'settings',
   settings: {
@@ -136,6 +149,7 @@ export class Settings extends Entity {
       minLength: 2,
       maxLength: 2,
       description: 'ISO 639-1',
+      enum: Object.values(LanguageEnum),
     },
     mysql: {
       dataType: 'varchar',
@@ -143,7 +157,7 @@ export class Settings extends Entity {
       nullable: 'N',
     },
   })
-  language: string;
+  language: LanguageEnum;
 
   @property({
     type: 'string',

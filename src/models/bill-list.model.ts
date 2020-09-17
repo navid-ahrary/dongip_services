@@ -5,18 +5,12 @@ import {
   belongsTo,
   RelationType,
 } from '@loopback/repository';
+
 import {Dongs} from './dongs.model';
 import {UsersRels} from './users-rels.model';
 import {Categories} from './categories.model';
 import {Users} from './users.model';
-
-export enum CurrencyEnum {
-  IRAN_RIAL = 'IRR',
-  IRAN_TOMAN = 'IRT',
-  DUBAI_DIRHAM = 'AED',
-  US_DOLLAR = 'USD',
-  EUROPE_EURO = 'EUR',
-}
+import {CurrencyEnum} from './settings.model';
 
 @model({
   name: 'bill_list',

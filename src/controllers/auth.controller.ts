@@ -1,5 +1,5 @@
 import {inject, service, intercept} from '@loopback/core';
-import {repository, property, model} from '@loopback/repository';
+import {repository} from '@loopback/repository';
 import {
   post,
   requestBody,
@@ -26,7 +26,7 @@ import {
   TokenServiceBindings,
 } from '../keys';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {Users, Credentials, Verify} from '../models';
+import {Users, Credentials, Verify, NewUser} from '../models';
 import {
   UsersRepository,
   BlacklistRepository,
@@ -48,32 +48,6 @@ import {
 } from '../interceptors';
 import {MailerService} from '../services/mailer.service';
 
-@model()
-export class NewUser extends Users {
-  @property({type: 'string', required: true, length: 9}) password: string;
-
-  @property({
-    type: 'string',
-    default: 'fa',
-    jsonSchema: {
-      minLength: 2,
-      maxLength: 2,
-      description: 'ISO 639-1',
-    },
-  })
-  language?: string;
-
-  @property({
-    type: 'string',
-    default: 'IRR',
-    jsonSchema: {
-      minLength: 3,
-      maxLength: 3,
-      description: 'ISO 4217',
-    },
-  })
-  currency?: string;
-}
 @api({basePath: '/auth', paths: {}})
 @intercept(
   ValidatePhoneEmailInterceptor.BINDING_KEY,

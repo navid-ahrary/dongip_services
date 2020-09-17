@@ -60,9 +60,9 @@ export class Groups extends Entity {
     minItems: 2,
     jsonSchema: {
       uniqueItems: true,
+      type: 'array',
       minItems: 2,
-      minLength: 2,
-      minimum: 1,
+      items: {type: 'integer', minimum: 1},
     },
     mysql: {columnName: 'user_rel_ids', nullable: 'N'},
   })

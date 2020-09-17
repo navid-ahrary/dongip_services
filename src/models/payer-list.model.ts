@@ -9,14 +9,7 @@ import {Dongs} from './dongs.model';
 import {UsersRels} from './users-rels.model';
 import {Categories} from './categories.model';
 import {Users} from './users.model';
-
-enum CurrencyEnum {
-  IRAN_RIAL = 'IRR',
-  IRAN_TOMAN = 'IRT',
-  DUBAI_DIRHAM = 'AED',
-  US_DOLLAR = 'USD',
-  EUROPE_EURO = 'EUR',
-}
+import {CurrencyEnum} from './settings.model';
 
 @model({
   name: 'payer_list',

@@ -1,8 +1,8 @@
 import {property, model, Model} from '@loopback/repository';
 
-import {CurrencyEnum} from './bill-list.model';
 import {UsersRels} from './users-rels.model';
 import {Categories} from './categories.model';
+import {CurrencyEnum} from './settings.model';
 
 @model()
 export class PostNewDong extends Model {

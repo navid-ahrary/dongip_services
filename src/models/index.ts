@@ -20,3 +20,4 @@ export * from './links.model';
 export * from './purchases.model';
 export * from './subscriptions.model';
 export * from './complete-signup.model';
+export * from './new-user.model';

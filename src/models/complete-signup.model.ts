@@ -1,4 +1,5 @@
 import {Model, model, property} from '@loopback/repository';
+import {CurrencyEnum, LanguageEnum} from './settings.model';
 
 @model()
 export class CompleteSignup extends Model {
@@ -20,9 +21,10 @@ export class CompleteSignup extends Model {
       minLength: 2,
       maxLength: 2,
       description: 'ISO 639-1',
+      enum: Object.values(LanguageEnum),
     },
   })
-  language?: string;
+  language?: LanguageEnum;
 
   @property({
     type: 'string',
@@ -30,9 +32,10 @@ export class CompleteSignup extends Model {
       minLength: 3,
       maxLength: 3,
       description: 'ISO 4217',
+      enum: Object.values(CurrencyEnum),
     },
   })
-  currency?: string;
+  currency?: CurrencyEnum;
 
   @property({
     type: 'string',
@@ -42,7 +45,11 @@ export class CompleteSignup extends Model {
 
   @property({
     type: 'string',
-    jsonSchema: {maxLength: 100},
+    jsonSchema: {
+      maxLength: 100,
+      format: 'email',
+      pattern: '^w+@[a-zA-Z_]+?.[a-zA-Z]{2,3}$',
+    },
   })
   email?: string;
 

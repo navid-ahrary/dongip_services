@@ -6,7 +6,6 @@ import {
   belongsTo,
   hasMany,
   RelationType,
-  Model,
 } from '@loopback/repository';
 
 import {Users} from './users.model';
@@ -15,15 +14,7 @@ import {PayerList} from './payer-list.model';
 import {BillList} from './bill-list.model';
 import {Groups} from './groups.model';
 import {Scores} from './scores.model';
-import {UsersRels} from './users-rels.model';
-
-enum CurrencyEnum {
-  IRAN_RIAL = 'IRR',
-  IRAN_TOMAN = 'IRT',
-  DUBAI_DIRHAM = 'AED',
-  US_DOLLAR = 'USD',
-  EUROPE_EURO = 'EUR',
-}
+import {CurrencyEnum} from './settings.model';
 
 @model({
   name: 'dongs',

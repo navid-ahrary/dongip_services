@@ -10,14 +10,7 @@ import {Users} from './users.model';
 import {Categories} from './categories.model';
 import {UsersRels} from './users-rels.model';
 import {Groups} from './groups.model';
-
-enum CurrencyEnum {
-  IRAN_RIAL = 'IRR',
-  IRAN_TOMAN = 'IRT',
-  DUBAI_DIRHAM = 'AED',
-  US_DOLLAR = 'USD',
-  EUROPE_EURO = 'EUR',
-}
+import {CurrencyEnum} from './settings.model';
 
 @model({
   name: 'budgets',
