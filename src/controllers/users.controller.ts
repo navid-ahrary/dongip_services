@@ -265,9 +265,8 @@ export class UsersController {
         await this.usersRepository.updateById(this.userId, userProps);
       }
     } catch (err) {
-      console.error(err);
-
       let errMsg = '';
+
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         if (err.sqlMessage.endsWith("'phone'")) {
           errMsg = 'این شماره موبایل قبلن ثبت نام شده است';
