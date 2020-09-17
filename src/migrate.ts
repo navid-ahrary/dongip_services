@@ -15,7 +15,6 @@ export async function migrate(args: string[]) {
       'verify',
       'users',
       'settings',
-      'notifications',
       'messages',
       'categories',
       'groups',
@@ -28,6 +27,7 @@ export async function migrate(args: string[]) {
       'budgets',
       'purchases',
       'subscriptions',
+      'notifications',
     ],
   });
 

@@ -25,27 +25,27 @@ import {UsersRels} from './users-rels.model';
       },
     },
     foreignKeys: {
-      fkVirtualUsersUserId: {
-        name: 'fk_virtual_users_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'cascade',
-        onDelete: 'cascade',
-      },
+      // fkVirtualUsersUserId: {
+      //   name: 'fk_virtual_users_user_id',
+      //   entity: 'users',
+      //   entityKey: 'id',
+      //   foreignKey: 'userId',
+      //   onUpdate: 'cascade',
+      //   onDelete: 'cascade',
+      // },
     },
   },
 })
 export class VirtualUsers extends Entity {
   @property({
-    type: 'Number',
+    type: 'number',
     id: true,
     required: false,
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'int',
-      dataLength: null,
+      dataType: 'mediumint unsigned',
+      dataLength: 8,
       nullable: 'N',
     },
   })
@@ -72,8 +72,9 @@ export class VirtualUsers extends Entity {
     defaultFn: 'now',
     mysql: {
       columnName: 'created_at',
-      dataType: 'datetime',
+      dataType: 'timestamp',
       nullable: 'N',
+      default: 'now',
     },
   })
   createdAt: string;
@@ -90,13 +91,12 @@ export class VirtualUsers extends Entity {
       target: () => VirtualUsers,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
-        dataLength: null,
+        dataType: 'mediumint unsigned',
         nullable: 'N',
       },
     },
@@ -114,13 +114,12 @@ export class VirtualUsers extends Entity {
       target: () => VirtualUsers,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_rel_id',
-        dataType: 'int',
-        dataLength: null,
+        dataType: 'mediumint unsigned',
         nullable: 'N',
       },
     },

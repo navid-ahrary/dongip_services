@@ -6,19 +6,20 @@ import {
   RelationType,
 } from '@loopback/repository';
 import {Users} from './users.model';
+import {CurrencyEnum} from './settings.model';
 
 @model({
   name: 'notifications',
   settings: {
     foreignKeys: {
-      fkNotificationsUserId: {
-        name: 'fk_notifications_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'cascade',
-        onDelete: 'cascade',
-      },
+      // fkNotificationsUserId: {
+      //   name: 'fk_notifications_user_id',
+      //   entity: 'users',
+      //   entityKey: 'id',
+      //   foreignKey: 'userId',
+      //   onUpdate: 'cascade',
+      //   onDelete: 'cascade',
+      // },
     },
   },
 })
@@ -30,8 +31,8 @@ export class Notifications extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'bigint',
-      dataLength: null,
+      dataType: 'bigint unsigned',
+      dataLength: 20,
       nullable: 'N',
     },
   })
@@ -43,8 +44,8 @@ export class Notifications extends Entity {
     defaultFn: 'now',
     mysql: {
       columnName: 'created_at',
-      dataType: 'datetime',
-      dataLength: null,
+      dataType: 'timestamp',
+      default: 'now',
       nullable: 'N',
     },
   })
@@ -109,8 +110,7 @@ export class Notifications extends Entity {
     type: 'number',
     mysql: {
       columnName: 'user_rel_id',
-      dataLength: null,
-      dataType: 'int',
+      dataType: 'mediumint unsigned',
       nullable: 'Y',
     },
   })
@@ -120,8 +120,7 @@ export class Notifications extends Entity {
     type: 'number',
     mysql: {
       columnName: 'dong_id',
-      dataLength: null,
-      dataType: 'int',
+      dataType: 'mediumint unsigned',
       nullable: 'Y',
     },
   })
@@ -132,7 +131,7 @@ export class Notifications extends Entity {
     mysql: {
       columnName: 'dong_amount',
       dataLength: null,
-      dataType: 'bigint',
+      dataType: 'bigint unsigned',
       nullable: 'Y',
     },
   })
@@ -145,6 +144,7 @@ export class Notifications extends Entity {
       minLength: 3,
       maxLength: 3,
       description: 'ISO 4217',
+      enum: Object.values(CurrencyEnum),
     },
     mysql: {
       dataType: 'varchar',
@@ -152,7 +152,7 @@ export class Notifications extends Entity {
       nullable: 'Y',
     },
   })
-  currency?: string;
+  currency?: CurrencyEnum;
 
   @property({
     type: 'string',
@@ -195,8 +195,7 @@ export class Notifications extends Entity {
     type: 'number',
     mysql: {
       columnName: 'subscription_id',
-      dataType: 'mediumint',
-      dataLength: null,
+      dataType: 'int unsigned',
       nullable: 'Y',
     },
   })
@@ -251,7 +250,7 @@ export class Notifications extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         nullable: 'Y',
       },
     },

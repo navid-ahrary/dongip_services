@@ -5,14 +5,14 @@ import {Users} from './users.model';
   name: 'subscriptions',
   settings: {
     foreignKeys: {
-      fkSettingsUserId: {
-        name: 'fk_subscriptions_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'cascade',
-        onDelete: 'cascade',
-      },
+      // fkSettingsUserId: {
+      //   name: 'fk_subscriptions_user_id',
+      //   entity: 'users',
+      //   entityKey: 'id',
+      //   foreignKey: 'userId',
+      //   onUpdate: 'cascade',
+      //   onDelete: 'cascade',
+      // },
     },
   },
 })
@@ -23,8 +23,8 @@ export class Subscriptions extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'mediumint',
-      dataLength: null,
+      dataType: 'int unsigned',
+      dataLength: 11,
       nullable: 'N',
     },
   })
@@ -78,13 +78,12 @@ export class Subscriptions extends Entity {
       target: () => Subscriptions,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
-        dataLength: null,
+        dataType: 'mediumint unsigned',
         nullable: 'N',
       },
     },

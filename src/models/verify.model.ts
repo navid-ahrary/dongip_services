@@ -9,8 +9,8 @@ export class Verify extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'int',
-      dataLength: null,
+      dataType: 'int unsigned',
+      dataLength: 11,
       nullable: 'N',
     },
   })

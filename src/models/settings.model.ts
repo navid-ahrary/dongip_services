@@ -25,14 +25,14 @@ export enum LanguageEnum {
   name: 'settings',
   settings: {
     foreignKeys: {
-      fkSettingsUserId: {
-        name: 'fk_settings_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'cascade',
-        onDelete: 'cascade',
-      },
+      // fkSettingsUserId: {
+      //   name: 'fk_settings_user_id',
+      //   entity: 'users',
+      //   entityKey: 'id',
+      //   foreignKey: 'userId',
+      //   onUpdate: 'cascade',
+      //   onDelete: 'cascade',
+      // },
     },
   },
 })
@@ -44,6 +44,7 @@ export class Settings extends Entity {
     mysql: {
       columnName: 'id',
       dataType: 'mediumint unsigned',
+      dataLength: 8,
       nullable: 'N',
     },
   })
@@ -180,7 +181,12 @@ export class Settings extends Entity {
     type: 'date',
     required: true,
     defaultFn: 'now',
-    mysql: {columnName: 'created_at', dataType: 'datetime', nullable: 'N'},
+    mysql: {
+      columnName: 'created_at',
+      dataType: 'timestamp',
+      nullable: 'N',
+      default: 'now',
+    },
   })
   createdAt: string;
 
@@ -208,7 +214,7 @@ export class Settings extends Entity {
       index: {unique: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
+        dataType: 'mediumint unsigned',
         nullable: 'Y',
       },
     },

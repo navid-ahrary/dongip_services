@@ -14,40 +14,40 @@ import {CurrencyEnum} from './settings.model';
 @model({
   name: 'payer_list',
   settings: {
-    foreignKeys: {
-      fkPayerListUserId: {
-        name: 'fk_payer_list_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'cascade',
-        onDelete: 'cascade',
-      },
-      fkPayerListCategoryId: {
-        name: 'fk_payer_list_category_id',
-        entity: 'categories',
-        entityKey: 'id',
-        foreignKey: 'categoryId',
-        onUpdate: 'no action',
-        onDelete: 'cascade',
-      },
-      fkPayerListDongId: {
-        name: 'fk_payer_list_dong_id',
-        entity: 'dongs',
-        entityKey: 'id',
-        foreignKey: 'dongId',
-        onUpdate: 'no action',
-        onDelete: 'cascade',
-      },
-      fkPayerListUserRelId: {
-        name: 'fk_payer_list_user_rel_id',
-        entity: 'users_rels',
-        entityKey: 'id',
-        foreignKey: 'userRelId',
-        onUpdate: 'no action',
-        onDelete: 'cascade',
-      },
-    },
+    // foreignKeys: {
+    //   fkPayerListUserId: {
+    //     name: 'fk_payer_list_user_id',
+    //     entity: 'users',
+    //     entityKey: 'id',
+    //     foreignKey: 'userId',
+    //     onUpdate: 'cascade',
+    //     onDelete: 'cascade',
+    //   },
+    //   fkPayerListCategoryId: {
+    //     name: 'fk_payer_list_category_id',
+    //     entity: 'categories',
+    //     entityKey: 'id',
+    //     foreignKey: 'categoryId',
+    //     onUpdate: 'no action',
+    //     onDelete: 'cascade',
+    //   },
+    //   fkPayerListDongId: {
+    //     name: 'fk_payer_list_dong_id',
+    //     entity: 'dongs',
+    //     entityKey: 'id',
+    //     foreignKey: 'dongId',
+    //     onUpdate: 'no action',
+    //     onDelete: 'cascade',
+    //   },
+    //   fkPayerListUserRelId: {
+    //     name: 'fk_payer_list_user_rel_id',
+    //     entity: 'users_rels',
+    //     entityKey: 'id',
+    //     foreignKey: 'userRelId',
+    //     onUpdate: 'no action',
+    //     onDelete: 'cascade',
+    //   },
+    // },
   },
 })
 export class PayerList extends Entity {
@@ -58,8 +58,8 @@ export class PayerList extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'int',
-      dataLength: null,
+      dataType: 'mediumint unsigned',
+      dataLength: 8,
       nullable: 'N',
     },
   })
@@ -70,8 +70,7 @@ export class PayerList extends Entity {
     required: true,
     mysql: {
       columnName: 'paid_amount',
-      dataType: 'bigint',
-      dataLength: null,
+      dataType: 'bigint unsigned',
       nullable: 'N',
     },
   })
@@ -117,13 +116,12 @@ export class PayerList extends Entity {
       target: () => PayerList,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'dong_id',
-        dataType: 'int',
-        dataLength: null,
+        dataType: 'mediumint unsigned',
         nullable: 'N',
       },
     },
@@ -141,13 +139,12 @@ export class PayerList extends Entity {
       target: () => PayerList,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_rel_id',
-        dataType: 'int',
-        dataLength: null,
+        dataType: 'mediumint unsigned',
         nullable: 'N',
       },
     },
@@ -165,13 +162,12 @@ export class PayerList extends Entity {
       target: () => PayerList,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'category_id',
-        dataType: 'int',
-        dataLength: null,
+        dataType: 'mediumint unsigned',
         nullable: 'N',
       },
     },
@@ -189,13 +185,12 @@ export class PayerList extends Entity {
       target: () => PayerList,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
-        dataLength: null,
+        dataType: 'mediumint unsigned',
         nullable: 'N',
       },
     },

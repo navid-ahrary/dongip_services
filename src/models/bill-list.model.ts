@@ -15,64 +15,62 @@ import {CurrencyEnum} from './settings.model';
 @model({
   name: 'bill_list',
   settings: {
-    foreignKeys: {
-      fkBillListUserId: {
-        name: 'fk_bill_list_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'cascade',
-        onDelete: 'cascade',
-      },
-      fkBillListCategoryId: {
-        name: 'fk_bill_list_category_id',
-        entity: 'categories',
-        entityKey: 'id',
-        foreignKey: 'categoryId',
-        onUpdate: 'no action',
-        onDelete: 'cascade',
-      },
-      fkBillListDongId: {
-        name: 'fk_bill_list_dong_id',
-        entity: 'dongs',
-        entityKey: 'id',
-        foreignKey: 'dongId',
-        onUpdate: 'no action',
-        onDelete: 'cascade',
-      },
-      fkBillListUserRelId: {
-        name: 'fk_bill_list_user_rel_id',
-        entity: 'users_rels',
-        entityKey: 'id',
-        foreignKey: 'userRelId',
-        onUpdate: 'no action',
-        onDelete: 'cascade',
-      },
-    },
+    // foreignKeys: {
+    //   fkBillListUserId: {
+    //     name: 'fk_bill_list_user_id',
+    //     entity: 'users',
+    //     entityKey: 'id',
+    //     foreignKey: 'userId',
+    //     onUpdate: 'cascade',
+    //     onDelete: 'cascade',
+    //   },
+    //   fkBillListCategoryId: {
+    //     name: 'fk_bill_list_category_id',
+    //     entity: 'categories',
+    //     entityKey: 'id',
+    //     foreignKey: 'categoryId',
+    //     onUpdate: 'no action',
+    //     onDelete: 'cascade',
+    //   },
+    //   fkBillListDongId: {
+    //     name: 'fk_bill_list_dong_id',
+    //     entity: 'dongs',
+    //     entityKey: 'id',
+    //     foreignKey: 'dongId',
+    //     onUpdate: 'no action',
+    //     onDelete: 'cascade',
+    //   },
+    //   fkBillListUserRelId: {
+    //     name: 'fk_bill_list_user_rel_id',
+    //     entity: 'users_rels',
+    //     entityKey: 'id',
+    //     foreignKey: 'userRelId',
+    //     onUpdate: 'no action',
+    //     onDelete: 'cascade',
+    //   },
+    // },
   },
 })
 export class BillList extends Entity {
   @property({
-    type: 'Number',
+    type: 'number',
     id: true,
     required: false,
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'int',
-      dataLength: null,
-      nullable: 'N',
+      dataType: 'mediumint unsigned',
+      dataLength: 8,
     },
   })
   billListId: number;
 
   @property({
-    type: 'Number',
+    type: 'number',
     required: true,
     mysql: {
       columnName: 'dong_amount',
-      dataType: 'bigint',
-      dataLength: null,
+      dataType: 'bigint unsigned',
       nullable: 'N',
     },
   })
@@ -123,8 +121,7 @@ export class BillList extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_rel_id',
-        dataType: 'int',
-        dataLength: null,
+        dataType: 'mediumint unsigned',
         nullable: 'N',
       },
     },
@@ -142,13 +139,12 @@ export class BillList extends Entity {
       target: () => BillList,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'dong_id',
-        dataType: 'int',
-        dataLength: null,
+        dataType: 'mediumint unsigned',
         nullable: 'N',
       },
     },
@@ -171,8 +167,7 @@ export class BillList extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'category_id',
-        dataType: 'int',
-        dataLength: null,
+        dataType: 'mediumint unsigned',
         nullable: 'N',
       },
     },
@@ -195,8 +190,7 @@ export class BillList extends Entity {
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
-        dataLength: null,
+        dataType: 'mediumint unsigned',
         nullable: 'N',
       },
     },

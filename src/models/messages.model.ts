@@ -5,14 +5,14 @@ import {Users} from './users.model';
   name: 'messages',
   settings: {
     foreignKeys: {
-      fkMessagesUserId: {
-        name: 'fk_messages_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'cascade',
-        onDelete: 'cascade',
-      },
+      // fkMessagesUserId: {
+      //   name: 'fk_messages_user_id',
+      //   entity: 'users',
+      //   entityKey: 'id',
+      //   foreignKey: 'userId',
+      //   onUpdate: 'cascade',
+      //   onDelete: 'cascade',
+      // },
     },
   },
 })
@@ -23,8 +23,8 @@ export class Messages extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'int',
-      nullable: 'N',
+      dataType: 'mediumint unsigned',
+      dataLength: 8,
     },
   })
   messageId: number;
@@ -66,9 +66,9 @@ export class Messages extends Entity {
     required: true,
     mysql: {
       columnName: 'created_at',
-      dataType: 'datetime',
-      dataLength: null,
+      dataType: 'timestamp',
       nullable: 'N',
+      deafult: 'now',
     },
   })
   createdAt: string;
@@ -83,13 +83,12 @@ export class Messages extends Entity {
       target: () => Messages,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: {normal: true},
       mysql: {
         columnName: 'user_id',
-        dataType: 'mediumint',
-        dataLength: null,
+        dataType: 'mediumint unsigned',
         nullable: 'N',
       },
     },

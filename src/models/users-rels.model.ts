@@ -24,14 +24,14 @@ import {Budgets} from './budgets.model';
       },
     },
     foreignKeys: {
-      fkUsersRelsUserId: {
-        name: 'fk_users_rels_user_id',
-        entity: 'users',
-        entityKey: 'id',
-        foreignKey: 'userId',
-        onUpdate: 'cascade',
-        onDelete: 'cascade',
-      },
+      // fkUsersRelsUserId: {
+      //   name: 'fk_users_rels_user_id',
+      //   entity: 'users',
+      //   entityKey: 'id',
+      //   foreignKey: 'userId',
+      //   onUpdate: 'cascade',
+      //   onDelete: 'cascade',
+      // },
     },
   },
 })
@@ -43,8 +43,8 @@ export class UsersRels extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'int',
-      dataLength: null,
+      dataType: 'mediumint unsigned',
+      dataLength: 8,
       nullable: 'N',
     },
   })
@@ -127,7 +127,11 @@ export class UsersRels extends Entity {
       type: 'number',
       required: true,
       index: {normal: true},
-      mysql: {columnName: 'user_id', dataType: 'mediumint', nullable: 'N'},
+      mysql: {
+        columnName: 'user_id',
+        dataType: 'mediumint unsigned',
+        nullable: 'N',
+      },
     },
   )
   userId: number;
@@ -136,7 +140,12 @@ export class UsersRels extends Entity {
     type: 'date',
     required: true,
     defaultFn: 'now',
-    mysql: {columnName: 'created_at', dataType: 'datetime', nullable: 'N'},
+    mysql: {
+      columnName: 'created_at',
+      dataType: 'timestamp',
+      nullable: 'N',
+      default: 'now',
+    },
   })
   createdAt: string;
 
