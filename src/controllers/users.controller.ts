@@ -273,11 +273,11 @@ export class UsersController {
 
   @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
   @patch('/users/complete-signup', {
-    summary: "Post essential user's properties for complete user properties",
+    summary: "Post essential user's properties for complete user signup",
     security: OPERATION_SECURITY_SPEC,
     responses: {
       204: {description: 'no content'},
-      422: {description: 'Unprocessable, Not allowed'},
+      409: {description: 'Conflict phone or email'},
     },
   })
   async completeSignup(
