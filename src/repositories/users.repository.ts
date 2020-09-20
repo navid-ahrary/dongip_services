@@ -8,12 +8,6 @@ import {inject, Getter} from '@loopback/core';
 
 import {MysqlDataSource} from '../datasources';
 import {PasswordHasher} from '../services';
-import {
-  VirtualUsersRepository,
-  DongsRepository,
-  CategoriesRepository,
-  UsersRelsRepository,
-} from './';
 import {PasswordHasherBindings} from '../keys';
 import {
   Users,
@@ -42,6 +36,10 @@ import {BudgetsRepository} from './budgets.repository';
 import {SettingsRepository} from './settings.repository';
 import {PurchasesRepository} from './purchases.repository';
 import {SubscriptionsRepository} from './subscriptions.repository';
+import {VirtualUsersRepository} from './virtual-users.repository';
+import {DongsRepository} from './dongs.repository';
+import {CategoriesRepository} from './categories.repository';
+import {UsersRelsRepository} from './users-rels.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
