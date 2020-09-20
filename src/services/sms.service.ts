@@ -9,15 +9,15 @@ const Kavenegar = require('kavenegar');
 import {VerifyRepository} from '../repositories';
 import {PhoneNumberService} from './phone-number.service';
 
-type VerifyLookupSMS = {
+export interface VerifyLookupSMS {
   token: string;
   token2: string | undefined;
   template: string;
   type: string;
   receptor: string;
-};
+}
 
-type KavenegarResponse = {
+export interface KavenegarResponse {
   statusCode: number;
   body: {
     messageid: number;
@@ -29,7 +29,7 @@ type KavenegarResponse = {
     date: number;
     cost: number;
   };
-};
+}
 
 @bind({scope: BindingScope.SINGLETON})
 export class SmsService {
