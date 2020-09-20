@@ -7,7 +7,7 @@ dotenv.config();
 
 import {UsersRepository, SubscriptionsRepository} from '../repositories';
 import {SubscriptionSpec} from '../application';
-import {Users} from '../models';
+import {Users, Subscriptions} from '../models';
 
 @bind({scope: BindingScope.SINGLETON})
 export class SubscriptionService {
@@ -40,7 +40,7 @@ export class SubscriptionService {
     userId: typeof Users.prototype.userId,
     planId: string,
     purchaseTime: moment.Moment,
-  ) {
+  ): Promise<Subscriptions> {
     const durationAmount = this.subsSpec.plans[planId].duration.amount;
     const durationUnit = this.subsSpec.plans[planId].duration.unit;
 
