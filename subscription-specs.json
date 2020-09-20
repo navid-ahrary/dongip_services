@@ -1,5 +1,4 @@
 {
-  "gatewayProviders": ["zarinpal", "idpay"],
   "plans": {
     "plan_gm1": {
       "description": {

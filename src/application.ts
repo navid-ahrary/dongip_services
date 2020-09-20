@@ -60,7 +60,6 @@ const pkg: PackageInfo = require('../package.json');
  * Subscription specs from subscriotion-scpecs.json
  */
 export interface SubscriptionSpec {
-  gatewayProviders: string[];
   baseCallbackUrl: string;
   plans: {
     [planId: string]: {
