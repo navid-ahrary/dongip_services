@@ -12,7 +12,7 @@ import {
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
-import {inject, intercept} from '@loopback/core';
+import {inject, intercept, Context} from '@loopback/core';
 
 import {Categories} from '../models';
 import {UsersRepository, CategoriesRepository} from '../repositories';
@@ -30,16 +30,20 @@ import {
 @api({basePath: '/', paths: {}})
 export class CategoriesController {
   userId: number;
+  lang: string;
 
   constructor(
-    @repository(UsersRepository)
-    protected usersRepository: UsersRepository,
+    @repository(UsersRepository) protected usersRepository: UsersRepository,
     @repository(CategoriesRepository)
     protected categoryRepository: CategoriesRepository,
-    @inject(SecurityBindings.USER)
-    protected currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject.context() public ctx: Context,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
+
+    this.lang = this.ctx.request.headers['accept-language']
+      ? this.ctx.request.headers['accept-language']
+      : 'fa';
   }
 
   @get('/categories', {
@@ -101,9 +105,7 @@ export class CategoriesController {
       .catch((err) => {
         // Duplicate title error handling
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          throw new HttpErrors.Conflict(
-            'این دسته بندی رو داری. یه اسم دیگه انتخاب کن',
-          );
+          throw new HttpErrors.Conflict(this.l);
         } else {
           throw new HttpErrors.NotAcceptable(err);
         }

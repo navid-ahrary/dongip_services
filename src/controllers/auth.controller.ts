@@ -47,6 +47,7 @@ import {
   ValidatePhoneEmailInterceptor,
 } from '../interceptors';
 import {MailerService} from '../services/mailer.service';
+import {LocalizedMessages} from '../application';
 
 @api({basePath: '/auth', paths: {}})
 @intercept(
@@ -54,6 +55,8 @@ import {MailerService} from '../services/mailer.service';
   ValidatePasswordInterceptor.BINDING_KEY,
 )
 export class AuthController {
+  lang: string;
+
   constructor(
     @inject.context() public ctx: RequestContext,
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -77,7 +80,12 @@ export class AuthController {
     @service(SmsService) public smsService: SmsService,
     @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
     @service(MailerService) protected mailerService: MailerService,
-  ) {}
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+  ) {
+    this.lang = this.ctx.request.headers['accept-language']
+      ? this.ctx.request.headers['accept-language']
+      : 'fa';
+  }
 
   generateRandomString(length: number) {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -203,7 +211,7 @@ export class AuthController {
 
     if (countRequstedVerifyCode.count > 5) {
       throw new HttpErrors.TooManyRequests(
-        'تعداد در خواست هاینان بیش از حد مجاز است. ۵ دقیقه منتظر بمانید',
+        this.locMsg['TOO_MANY_REQUEST'][this.lang],
       );
     }
 
@@ -274,9 +282,9 @@ export class AuthController {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.mailerService
         .sendMail({
-          subject: 'کد ورود به اپلیکیشن دُنگیپ',
+          subject: this.locMsg['SEND_VERFIY_EMAIL'][this.lang],
           to: verifyReqBody.email,
-          text: `کد ورود به اپلیکیشن دُنگیپ ${randomCode}`,
+          text: `${this.locMsg['SEND_VERFIY_EMAIL'][this.lang]} ${randomCode}`,
         })
         .then(async (res) => {
           await this.verifyRepository.updateById(createdVerify.getId(), {
@@ -366,7 +374,7 @@ export class AuthController {
       (_.has(credentials, 'phone') && _.has(credentials, 'email'))
     ) {
       throw new HttpErrors.UnprocessableEntity(
-        'Either Phone or email must be provided',
+        this.locMsg['PHONE_OR_EMAIL_NOT_PROVIDED'][this.lang],
       );
     }
 
@@ -610,7 +618,7 @@ export class AuthController {
         err.sqlMessage.endsWith("'phone'")
       ) {
         throw new HttpErrors.Conflict(
-          'این شماره موبایل قبلن ثبت نام شده است. اگر متعلق به شماست، از طریق گزینه «ورود با موبایل» به اپ وارد شوید',
+          this.locMsg['SINGUP_CONFILCT_PHONE_NUMBER'][this.lang],
         );
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
         throw new HttpErrors.NotAcceptable(err.message);
@@ -645,7 +653,9 @@ export class AuthController {
     );
 
     if (!isMatched) {
-      throw new HttpErrors.Unauthorized('Refresh tokens are not matched');
+      throw new HttpErrors.Unauthorized(
+        this.locMsg['REFRESH_TOKEN_NOT_MATCHED'][this.lang],
+      );
     }
 
     const userProfile = this.userService.convertToUserProfile(user);
