@@ -10,7 +10,8 @@ import {
 import {repository} from '@loopback/repository';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {CategoriesRepository, UsersRepository} from '../repositories';
-import {HttpErrors} from '@loopback/rest';
+import {HttpErrors, RequestContext} from '@loopback/rest';
+import {LocalizedMessages} from '../application';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -19,15 +20,21 @@ import {HttpErrors} from '@loopback/rest';
 @bind({tags: {key: ValidateCategoryIdInterceptor.BINDING_KEY}})
 export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidateCategoryIdInterceptor.name}`;
-  userId: number;
+  private readonly userId: number;
+  lang: string;
 
   constructor(
     @repository(CategoriesRepository)
     public categoriesRepo: CategoriesRepository,
     @repository(UsersRepository) public usersRepo: UsersRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+    @inject.context() public ctx: RequestContext,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
+    this.lang = this.ctx.request.headers['accept-language']
+      ? this.ctx.request.headers['accept-language']
+      : 'fa';
   }
 
   /**
@@ -57,7 +64,8 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
       });
       // Validate categoryId
       if (!curretnUserFoundCategory) {
-        throw new HttpErrors.UnprocessableEntity('دسته بندی معتبر نیست');
+        const errMessage = this.locMsg['CATEGORY_NOT_VALID'][this.lang];
+        throw new HttpErrors.UnprocessableEntity(errMessage);
       }
     } else if (
       invocationCtx.methodName === 'deleteCategoriesById' ||
@@ -72,7 +80,8 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
       });
 
       if (!foundCategory) {
-        throw new HttpErrors.UnprocessableEntity('آی دی دسته بندی معتبر نیست');
+        const errMsg = this.locMsg['CATEGORY_NOT_VALID'][this.lang];
+        throw new HttpErrors.UnprocessableEntity(errMsg);
       }
     }
     const result = await next();

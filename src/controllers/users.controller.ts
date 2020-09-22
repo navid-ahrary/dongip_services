@@ -8,6 +8,7 @@ import {
   api,
   param,
   getModelSchemaRef,
+  RequestContext,
 } from '@loopback/rest';
 import {
   authenticate,
@@ -35,11 +36,13 @@ import {
   ValidatePhoneEmailInterceptor,
 } from '../interceptors';
 import {PhoneNumberService} from '../services';
+import {LocalizedMessages} from '../application';
 
 @api({basePath: '/', paths: {}})
 @authenticate('jwt.access')
 export class UsersController {
   private readonly userId: number;
+  lang: string;
 
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -50,8 +53,13 @@ export class UsersController {
     public jwtService: TokenService,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
+    @inject.context() public ctx: RequestContext,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
+    this.lang = this.ctx.request.headers['accept-language']
+      ? this.ctx.request.headers['accept-language']
+      : 'fa';
   }
 
   async getUserScores(userId: typeof Users.prototype.userId): Promise<number> {
@@ -264,7 +272,9 @@ export class UsersController {
       .catch((err) => {
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
           if (err.sqlMessage.endsWith("'users.username'")) {
-            throw new HttpErrors.Conflict('username مورد نظر در دسترس نیست');
+            throw new HttpErrors.Conflict(
+              this.locMsg['USERNAME_UNAVAILABLE'][this.lang],
+            );
           }
         }
         throw new HttpErrors.NotAcceptable(err.message);
@@ -344,10 +354,10 @@ export class UsersController {
 
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         if (err.sqlMessage.endsWith("'phone'")) {
-          errMsg = 'این شماره موبایل قبلن ثبت نام شده است';
+          errMsg = this.locMsg['COMPLETE_SIGNUP_CONFILICT_PHONE'][this.lang];
         }
         if (err.sqlMessage.endsWith("'email'")) {
-          errMsg = 'این آدرس ایمیل قبلن ثبت نام شده است';
+          errMsg = this.locMsg['COMPLETE_SIGNUP_CONFILICT_EMAIL'][this.lang];
         }
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
         throw new HttpErrors.NotAcceptable(err.message);
@@ -374,6 +384,9 @@ export class UsersController {
       username: username,
     });
 
-    if (foundUsername.count) throw new HttpErrors.Conflict('در دسترس نیست');
+    if (foundUsername.count)
+      throw new HttpErrors.Conflict(
+        this.locMsg['USERNAME_UNAVAILABLE'][this.lang],
+      );
   }
 }

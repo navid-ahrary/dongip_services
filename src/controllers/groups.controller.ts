@@ -9,6 +9,7 @@ import {
   requestBody,
   api,
   HttpErrors,
+  RequestContext,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
@@ -24,6 +25,7 @@ import {
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {ValidateUsersRelsInterceptor} from '../interceptors';
 import {ValidateGroupIdInterceptor} from '../interceptors/validate-group-id.interceptor';
+import {LocalizedMessages} from '../application';
 
 @intercept(
   ValidateUsersRelsInterceptor.BINDING_KEY,
@@ -32,7 +34,8 @@ import {ValidateGroupIdInterceptor} from '../interceptors/validate-group-id.inte
 @api({basePath: '/', paths: {}})
 @authenticate('jwt.access')
 export class GroupsController {
-  userId: number;
+  private readonly userId: number;
+  lang: string;
 
   constructor(
     @repository(GroupsRepository) protected groupsRepository: GroupsRepository,
@@ -43,8 +46,13 @@ export class GroupsController {
     public payerListRepository: PayerListRepository,
     @repository(BillListRepository)
     public billListRepository: BillListRepository,
+    @inject.context() public ctx: RequestContext,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
+    this.lang = this.ctx.request.headers['accept-language']
+      ? this.ctx.request.headers['accept-language']
+      : 'fa';
   }
 
   @post('/groups', {
@@ -77,7 +85,6 @@ export class GroupsController {
       },
     })
     newGroup: Omit<Groups, 'groupId'>,
-    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<Groups> {
     return this.usersRepository.groups(this.userId).create(newGroup);
   }
@@ -99,11 +106,8 @@ export class GroupsController {
       },
     },
   })
-  async findGroups(
-    @param.header.string('firebase-token') firebaseToken?: string,
-  ): Promise<Groups[]> {
-    const userId = this.userId;
-    return this.usersRepository.groups(userId).find();
+  async findGroups(): Promise<Groups[]> {
+    return this.usersRepository.groups(this.userId).find();
   }
 
   @patch('/groups/{groupId}', {
@@ -137,15 +141,15 @@ export class GroupsController {
       },
     })
     groups: Groups,
-    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
     await this.usersRepository
       .groups(this.userId)
       .patch(groups, {groupId: groupId})
       .then((countPatched) => {
         if (!countPatched.count) {
-          const errorMessage = 'این گروه رو پیدا نکردم!';
-          throw new HttpErrors.NotFound(errorMessage);
+          throw new HttpErrors.NotFound(
+            this.locMsg['GROUP_NOT_VALID'][this.lang],
+          );
         }
       });
   }
@@ -163,7 +167,6 @@ export class GroupsController {
   async deleteGroupsById(
     @param.path.number('groupId', {required: true})
     groupId: typeof Groups.prototype.groupId,
-    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
     try {
       await this.dongsRepository.updateAll(
@@ -177,8 +180,9 @@ export class GroupsController {
       });
 
       if (!countDeleted.count) {
-        const errorMessage = 'این گروه رو پیدا نکردم!';
-        throw new HttpErrors.NotFound(errorMessage);
+        throw new HttpErrors.NotFound(
+          this.locMsg['GROUP_NOT_VALID'][this.lang],
+        );
       }
     } catch (err) {
       throw new HttpErrors.NotFound(err);
@@ -200,9 +204,7 @@ export class GroupsController {
       },
     },
   })
-  async deleteAllGroups(
-    @param.header.string('firebase-token') firebaseToken?: string,
-  ): Promise<Count> {
+  async deleteAllGroups(): Promise<Count> {
     try {
       await this.dongsRepository.updateAll(
         {groupId: undefined},

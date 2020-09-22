@@ -11,7 +11,8 @@ import {
 import {repository} from '@loopback/repository';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {GroupsRepository} from '../repositories';
-import {HttpErrors} from '@loopback/rest';
+import {HttpErrors, RequestContext} from '@loopback/rest';
+import {LocalizedMessages} from '../application';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -20,14 +21,20 @@ import {HttpErrors} from '@loopback/rest';
 @bind({tags: {key: ValidateGroupIdInterceptor.BINDING_KEY}})
 export class ValidateGroupIdInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidateGroupIdInterceptor.name}`;
-  readonly userId: number;
+  private readonly userId: number;
+  lang: string;
 
   constructor(
     @repository(GroupsRepository)
     public groupsRepository: GroupsRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject.context() public ctx: RequestContext,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
+    this.lang = this.ctx.request.headers['accept-language']
+      ? this.ctx.request.headers['accept-language']
+      : 'fa';
   }
 
   /**
@@ -58,8 +65,10 @@ export class ValidateGroupIdInterceptor implements Provider<Interceptor> {
             where: {userId: this.userId, groupId: groupId},
           })
           .then((result) => {
-            if (!result)
-              throw new HttpErrors.UnprocessableEntity('آی دی گروه معتبر نیست');
+            if (!result) {
+              const errMsg = this.locMsg['GROUP_NOT_VALID'][this.lang];
+              throw new HttpErrors.UnprocessableEntity(errMsg);
+            }
           });
       }
     } else if (
@@ -77,8 +86,10 @@ export class ValidateGroupIdInterceptor implements Provider<Interceptor> {
           where: {userId: this.userId, groupId: groupId},
         })
         .then((result) => {
-          if (!result)
-            throw new HttpErrors.UnprocessableEntity('آی دی گروه معتبر نیست');
+          if (!result) {
+            const errMsg = this.locMsg['GROUP_NOT_VALID'][this.lang];
+            throw new HttpErrors.UnprocessableEntity(errMsg);
+          }
         });
     }
     const result = await next();

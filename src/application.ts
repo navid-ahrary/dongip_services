@@ -63,7 +63,6 @@ export interface SubscriptionSpec {
   baseCallbackUrl: string;
   plans: {
     [planId: string]: {
-      description: {[language: string]: string};
       id: string;
       name: string;
       grade: string;
@@ -81,13 +80,14 @@ const subsSpec: SubscriptionSpec = require('../subscription-specs.json');
 
 export interface LocalizedMessages {
   [key: string]: {
-    [language: string]: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [language: string]: any;
   };
 }
 export const LocalizedMessages = BindingKey.create<LocalizedMessages>(
   'application.localizedMessages',
 );
-const localizedMessages: LocalizedMessages = require('../locale/messages.json');
+const localizedMessages: LocalizedMessages = require('../locale/localized-contents.json');
 
 export class MyApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),

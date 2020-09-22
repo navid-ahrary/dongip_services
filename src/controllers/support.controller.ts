@@ -6,6 +6,7 @@ import {
   post,
   requestBody,
   HttpErrors,
+  RequestContext,
 } from '@loopback/rest';
 import {authorize} from '@loopback/authorization';
 import {authenticate} from '@loopback/authentication';
@@ -19,22 +20,30 @@ import {Messages, Users} from '../models';
 import {basicAuthorization, FirebaseService, MessagePayload} from '../services';
 import {MessagesRepository, UsersRepository} from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
+import {LocalizedMessages} from '../application';
 
 @api({basePath: '/support/', paths: {}})
 @authorize({allowedRoles: ['GOD'], voters: [basicAuthorization]})
 @authenticate('jwt.access')
 export class SupportController {
-  userId: number;
+  private readonly userId: number;
+  lang: string;
 
   constructor(
     @repository(MessagesRepository)
     public messagesRepository: MessagesRepository,
     @repository(UsersRepository)
     public usersRepository: UsersRepository,
-    @inject(SecurityBindings.USER) protected curretnUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
     @service(FirebaseService) protected firebaseService: FirebaseService,
+    @inject.context() public ctx: RequestContext,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
-    this.userId = +this.curretnUserProfile[securityId];
+    this.userId = +this.currentUserProfile[securityId];
+
+    this.lang = this.ctx.request.headers['accept-language']
+      ? this.ctx.request.headers['accept-language']
+      : 'fa';
   }
 
   @get('/messages', {
@@ -130,7 +139,7 @@ export class SupportController {
 
       const notifyMessage: MessagePayload = {
         notification: {
-          title: 'پاسخ به تیکت',
+          title: this.locMsg['TICKET_RESPONSE'][this.lang],
           body: newMessage.message.toString(),
           clickAction: 'FLUTTER_NOTIFICATION_CLICK',
         },

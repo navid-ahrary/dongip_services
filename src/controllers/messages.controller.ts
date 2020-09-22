@@ -11,7 +11,7 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 @api({basePath: '/', paths: {}})
 @authenticate('jwt.access')
 export class MessagesController {
-  userId: number;
+  private readonly userId: number;
 
   constructor(
     @repository(MessagesRepository)
@@ -19,7 +19,7 @@ export class MessagesController {
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
   }
 
   @post('/messages', {

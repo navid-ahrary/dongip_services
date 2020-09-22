@@ -618,7 +618,7 @@ export class AuthController {
         err.sqlMessage.endsWith("'phone'")
       ) {
         throw new HttpErrors.Conflict(
-          this.locMsg['SINGUP_CONFILCT_PHONE_NUMBER'][this.lang],
+          this.locMsg['SINGUP_CONFILCT_PHONE'][this.lang],
         );
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
         throw new HttpErrors.NotAcceptable(err.message);

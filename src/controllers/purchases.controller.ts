@@ -1,5 +1,12 @@
 import {repository} from '@loopback/repository';
-import {param, HttpErrors, getModelSchemaRef, post, api} from '@loopback/rest';
+import {
+  param,
+  HttpErrors,
+  getModelSchemaRef,
+  post,
+  api,
+  RequestContext,
+} from '@loopback/rest';
 import {service, inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
@@ -18,9 +25,9 @@ import {
   PhoneNumberService,
 } from '../services';
 import {Purchases, Subscriptions, Users} from '../models';
-import {SubscriptionSpec} from '../application';
+import {SubscriptionSpec, LocalizedMessages} from '../application';
 
-@api({basePath: '/purchases/'})
+@api({basePath: '/'})
 export class PurchasesController {
   constructor(
     @repository(PurchasesRepository) public purchasesRepo: PurchasesRepository,
@@ -31,22 +38,26 @@ export class PurchasesController {
     @service(WoocommerceService) protected woocomService: WoocommerceService,
     @service(PhoneNumberService) protected phoneNumSerice: PhoneNumberService,
     @inject('application.subscriptionSpec') public subsSpec: SubscriptionSpec,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {}
 
   async sendNotification(
     userId: typeof Users.prototype.userId,
     subscription: Subscriptions,
   ) {
+    const user = await this.usersRepo.findById(userId, {
+      fields: {firebaseToken: true, userId: true, setting: true},
+      include: [{relation: 'setting'}],
+    });
+
+    const lang = user.setting.language;
+    const planId = subscription.planId;
+
     const createdNotify = await this.usersRepo.notifications(userId).create({
       userId: userId,
       type: 'subscription',
-      title: this.subsSpec.plans[subscription.planId].description['fa'],
-      body:
-        'شما مشترک طلایی دُنگیپ هستید. تمام امکانات اپلیکیشن در اختیار شماست',
-    });
-
-    const user = await this.usersRepo.findById(userId, {
-      fields: {firebaseToken: true},
+      title: this.locMsg['PLAN_ID'][lang][planId],
+      body: this.locMsg['SUBSCRIPTION_NOTIFY_BODY'][lang],
     });
 
     const notifyPayload: MessagePayload = {
@@ -73,7 +84,7 @@ export class PurchasesController {
   }
 
   @authenticate('jwt.access')
-  @post('/in-app/validate/', {
+  @post('/purchases/in-app/validate/', {
     summary: 'Validate in-app subscription purchase',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -114,8 +125,12 @@ export class PurchasesController {
     })
     purchaseToken: string,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject.context() ctx: RequestContext,
   ): Promise<Purchases> {
     const userId = +currentUserProfile[securityId];
+    const lang = ctx.request.headers['accept-language']
+      ? ctx.request.headers['accept-language']
+      : 'fa';
 
     let purchaseTime: moment.Moment;
 
@@ -132,9 +147,7 @@ export class PurchasesController {
         (purchaseStatus.error === 'invalid_value' &&
           purchaseStatus.error_description === 'Product is not found.')
       ) {
-        const errMsg =
-          'متاسفانه خرید انجام شده به تایید کافه‌بازار نرسید. ' +
-          'جهت رفع هرگونه ابهام یا مغایرت، با پشتیبانی دُنگیپ تماس بگیرید';
+        const errMsg = this.locMsg['CAFEBAZAAR_PURCHASE_NOT_VALID'][lang];
 
         console.error(`userId ${userId} ${errMsg}`);
         throw new HttpErrors.UnprocessableEntity(errMsg);
@@ -158,10 +171,7 @@ export class PurchasesController {
 
         return this.purchasesRepo.create(purchaseEnt);
       } else {
-        const errMsg =
-          'متاسفانه خرید انجام شده از سمت کافه‌بازار برگشت خورده‌است. ' +
-          'هزینه پرداخت شده حداکثر تا ۲۴ ساعت آینده به حسابتان واریز می‌شود' +
-          'جهت رفع هرگونه ابهام یا مغایرت، با پشتیبانی دُنگیپ تماس بگیرید';
+        const errMsg = this.locMsg['CAFEBAZAAR_PURCHASE_DROPED'][lang];
 
         console.error(`userId ${userId} ${errMsg}`);
         throw new HttpErrors.UnprocessableEntity(errMsg);
@@ -175,7 +185,7 @@ export class PurchasesController {
   }
 
   @authenticate.skip()
-  @post('/in-site/validate/', {
+  @post('/purchases/in-site/validate/', {
     summary: 'Validate in-site subscription purchase',
     responses: {
       204: {description: 'no content'},

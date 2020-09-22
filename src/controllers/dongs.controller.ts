@@ -16,12 +16,14 @@ import {
   api,
   param,
   del,
+  RequestContext,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {inject, service, intercept} from '@loopback/core';
 
 import _ from 'lodash';
+import util from 'util';
 
 import {Dongs, PostNewDong, Notifications} from '../models';
 import {
@@ -39,6 +41,7 @@ import {
   FirebasetokenInterceptor,
 } from '../interceptors';
 import {ValidateGroupIdInterceptor} from '../interceptors/validate-group-id.interceptor';
+import {LocalizedMessages} from '../application';
 
 @model()
 class ResponseNewDong extends Dongs {
@@ -49,10 +52,11 @@ class ResponseNewDong extends Dongs {
   ValidateGroupIdInterceptor.BINDING_KEY,
   FirebasetokenInterceptor.BINDING_KEY,
 )
-@api({basePath: '/dongs/', paths: {}})
+@api({basePath: '/', paths: {}})
 @authenticate('jwt.access')
 export class DongsController {
-  userId: number;
+  private readonly userId: number;
+  lang: string;
 
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -68,15 +72,20 @@ export class DongsController {
     @service(FirebaseService) private firebaseSerice: FirebaseService,
     @inject(SecurityBindings.USER)
     private currentUserProfile: UserProfile,
+    @inject.context() public ctx: RequestContext,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
+    this.lang = this.ctx.request.headers['accept-language']
+      ? this.ctx.request.headers['accept-language']
+      : 'fa';
   }
 
   public numberWithCommas(x: number): string {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
-  @get('/', {
+  @get('/dongs/', {
     summary: 'Get array of all Dongs',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -93,9 +102,7 @@ export class DongsController {
       },
     },
   })
-  async findDongs(
-    @param.header.string('firebase-token') firebaseToken?: string,
-  ): Promise<Dongs[]> {
+  async findDongs(): Promise<Dongs[]> {
     const filter: Filter<Dongs> = {
       order: ['createdAt DESC'],
       include: [{relation: 'payerList'}, {relation: 'billList'}],
@@ -105,7 +112,7 @@ export class DongsController {
   }
 
   @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
-  @post('/', {
+  @post('/dongs/', {
     summary: 'Create a new Dongs model instance',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -191,7 +198,9 @@ export class DongsController {
         where: {or: allUsersRelsIdList},
       });
     if (currentUserFoundUsersRelsList.length !== allUsersRelsIdList.length) {
-      throw new HttpErrors.NotFound('بعضی از دوستی ها معتبر نیستن!');
+      throw new HttpErrors.UnprocessableEntity(
+        this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang],
+      );
     }
 
     // Check payer is user himself
@@ -257,6 +266,7 @@ export class DongsController {
           if (relation.type !== 'self') {
             const user = await this.usersRepository.findOne({
               where: {phone: relation.phone},
+              include: [{relation: 'setting'}],
             });
 
             // If relation is mutual, add to notification reciever list
@@ -264,7 +274,8 @@ export class DongsController {
               const foundMutualUsersRels = await this.usersRelsRepository.findOne(
                 {
                   where: {
-                    and: [{phone: currentUserPhone}, {userId: user.getId()}],
+                    phone: currentUserPhone,
+                    userId: user.getId(),
                   },
                 },
               );
@@ -287,10 +298,18 @@ export class DongsController {
                 const notifyBodyDongAmount = this.numberWithCommas(
                   roundedDongAmount,
                 );
+
                 // Notification data payload
                 const notifyData = new Notifications({
-                  title: 'دنگیپ شدی',
-                  body: `از طرف ${foundMutualUsersRels.name} مبلغ ${notifyBodyDongAmount} تومن`,
+                  title: this.locMsg['DONGIP_NOTIFY_TITLE'][
+                    user.setting.language
+                  ],
+                  body: util.format(
+                    this.locMsg['DONGIP_NOTIFY_BODY'][user.setting.language],
+                    foundMutualUsersRels.name,
+                    notifyBodyDongAmount,
+                    newDong.currency,
+                  ),
                   desc: createdDong.desc ? createdDong.desc : '',
                   type: 'dong',
                   categoryTitle: currentUserCategory.title,
@@ -371,7 +390,7 @@ export class DongsController {
     }
   }
 
-  @del('/{dongId}', {
+  @del('/dongs/{dongId}', {
     summary: 'DELETE a Dong by dongId',
     security: OPERATION_SECURITY_SPEC,
     responses: {'204': {description: 'No content'}},
@@ -386,11 +405,12 @@ export class DongsController {
     });
 
     if (countDeleted.count !== 1) {
-      throw new HttpErrors.UnprocessableEntity('دنگ مورد نظر وجود ندارد!');
+      const errMsg = this.locMsg['DONG_NOT_VALID'][this.lang];
+      throw new HttpErrors.UnprocessableEntity(errMsg);
     }
   }
 
-  @del('/', {
+  @del('/dongs/', {
     summary: 'DELETE all Dongs ',
     security: OPERATION_SECURITY_SPEC,
     responses: {
