@@ -11,13 +11,13 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 @api({basePath: '/', paths: {}})
 @authenticate('jwt.access')
 export class NotificationsController {
-  userId: number;
+  private readonly userId: number;
 
   constructor(
     @repository(UsersRepository) protected usersRepository: UsersRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
   }
 
   @get('/notifications', {

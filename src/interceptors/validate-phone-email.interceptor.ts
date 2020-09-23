@@ -5,8 +5,9 @@ import {
   InvocationResult,
   Provider,
   ValueOrPromise,
+  inject,
 } from '@loopback/context';
-import {HttpErrors} from '@loopback/rest';
+import {HttpErrors, RestBindings, Request} from '@loopback/rest';
 import {service} from '@loopback/core';
 
 import isemail from 'isemail';
@@ -14,6 +15,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import {PhoneNumberService} from '../services';
+import {LocalizedMessages} from '../application';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -25,6 +27,8 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
 
   constructor(
     @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @inject(RestBindings.Http.REQUEST) private req: Request,
   ) {}
 
   /**
@@ -46,8 +50,12 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
-    const invalidPhoneValueMessage = 'شماره موبایل وارد شده معتبر نیست!';
-    const invalidEmailValueMessage = 'آدرس ایمیل وارد شده معتبر نیست!';
+    const lang = this.req.headers['accept-language']
+      ? this.req.headers['accept-language']
+      : 'fa';
+
+    const invalidPhoneValueMessage = this.locMsg['PHONE_NOT_VALID'][lang];
+    const invalidEmailValueMessage = this.locMsg['EMAIL_NOT_VALID'][lang];
 
     const funcNameList = [
       'verify',

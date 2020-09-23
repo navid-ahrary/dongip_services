@@ -1,9 +1,6 @@
 {
   "plans": {
     "plan_gm1": {
-      "description": {
-        "fa": "اشتراک طلایی یک‌ماهه دُنگیپ"
-      },
       "id": "plan_gm1",
       "grade": "golden",
       "duration": {
@@ -19,9 +16,6 @@
       "onSale": true
     },
     "plan_gm6": {
-      "description": {
-        "fa": "اشتراک طلایی شش‌ماهه دُنگیپ"
-      },
       "id": "plan_gm6",
       "grade": "golden",
       "duration": {
@@ -37,9 +31,6 @@
       "onSale": true
     },
     "plan_gy1": {
-      "description": {
-        "fa": "اشتراک طلایی یک‌ساله دُنگیپ"
-      },
       "id": "plan_gy1",
       "grade": "golden",
       "duration": {

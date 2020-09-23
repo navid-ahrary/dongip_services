@@ -17,7 +17,7 @@ import {ValidateGroupIdInterceptor} from '../interceptors/validate-group-id.inte
 @api({basePath: '/groups', paths: {}})
 @authenticate('jwt.access')
 export class GroupsDongsController {
-  userId: number;
+  private readonly userId: number;
 
   constructor(
     @repository(GroupsRepository) protected groupsRepository: GroupsRepository,
@@ -28,7 +28,7 @@ export class GroupsDongsController {
     @repository(BillListRepository)
     public billListRepository: BillListRepository,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
   }
 
   @get('/{groupId}/dongs', {

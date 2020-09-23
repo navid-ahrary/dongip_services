@@ -11,7 +11,8 @@ import {
 import {repository} from '@loopback/repository';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {UsersRelsRepository, UsersRepository} from '../repositories';
-import {HttpErrors} from '@loopback/rest';
+import {HttpErrors, Request, RestBindings} from '@loopback/rest';
+import {LocalizedMessages} from '../application';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -20,17 +21,19 @@ import {HttpErrors} from '@loopback/rest';
 @bind({tags: {key: ValidateUsersRelsInterceptor.BINDING_KEY}})
 export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidateUsersRelsInterceptor.name}`;
-  readonly userId: number;
+  private readonly userId: number;
+  lang: string;
 
   constructor(
     @repository(UsersRelsRepository)
     public usersRelsRepository: UsersRelsRepository,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @inject(RestBindings.Http.REQUEST) private req: Request,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
   }
-
   /**
    * This method is used by LoopBack context to produce an interceptor function
    * for the binding.
@@ -50,6 +53,10 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
+    this.lang = this.req.headers['accept-language']
+      ? this.req.headers['accept-language']
+      : 'fa';
+
     let errMsg: string;
 
     try {
@@ -62,7 +69,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         });
 
         if (countUserRels.count !== userRelIds.length) {
-          errMsg = 'آی دی دوستی ها معتبر نیستن';
+          errMsg = this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang];
 
           throw new Error(errMsg);
         }
@@ -76,17 +83,16 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
           });
 
           if (countUserRels.count !== userRelIds.length) {
-            errMsg = 'آی دی دوستی ها معتبر نیستن';
+            errMsg = this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang];
 
             throw new Error(errMsg);
           }
         }
       } else if (
-        invocationCtx.methodName === 'patchUsersRelsById' ||
+        invocationCtx.methodName === 'updateUsersRelsById' ||
         invocationCtx.methodName === 'deleteUsersRelsById'
       ) {
         const userRelId = invocationCtx.args[0];
-
         const foundUserRel = await this.usersRelsRepository.findOne({
           where: {
             userRelId: userRelId,
@@ -96,7 +102,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         });
 
         if (!foundUserRel) {
-          errMsg = 'آی دی دوستی معتبر نیست';
+          errMsg = this.locMsg['USER_REL_NOT_VALID'][this.lang];
 
           throw new Error(errMsg);
         }

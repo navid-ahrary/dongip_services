@@ -1,13 +1,15 @@
 import {
-  /* inject, */
   bind,
   Interceptor,
   InvocationContext,
   InvocationResult,
   Provider,
   ValueOrPromise,
+  inject,
 } from '@loopback/core';
-import {HttpErrors} from '@loopback/rest';
+
+import {HttpErrors, Request, RestBindings} from '@loopback/rest';
+import {LocalizedMessages} from '../application';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -16,10 +18,12 @@ import {HttpErrors} from '@loopback/rest';
 @bind({tags: {key: ValidatePasswordInterceptor.BINDING_KEY}})
 export class ValidatePasswordInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidatePasswordInterceptor.name}`;
+  lang: string;
 
-  /*
-  constructor() {}
-  */
+  constructor(
+    @inject(RestBindings.Http.REQUEST) private req: Request,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+  ) {}
 
   /**
    * This method is used by LoopBack context to produce an interceptor function
@@ -40,14 +44,18 @@ export class ValidatePasswordInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
+    this.lang = this.req.headers['accept-language']
+      ? this.req.headers['accept-language']
+      : 'fa';
+
     if (
       invocationCtx.methodName === 'login' ||
       invocationCtx.methodName === 'signup'
     ) {
-      const invalidPassword = 'طول رمز ۹ کاراکتر نیست!';
+      const invalidPassword = this.locMsg['PASSWORD_LENGTH'][this.lang];
 
       if (
-        invocationCtx.args[0].password.length !== 9 ||
+        invocationCtx.args[0].password.length - 3 !== 6 ||
         typeof invocationCtx.args[0].password !== 'string'
       ) {
         throw new HttpErrors.UnprocessableEntity(invalidPassword);

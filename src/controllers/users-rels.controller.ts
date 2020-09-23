@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import {repository, Count} from '@loopback/repository';
+import {repository} from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -10,6 +10,7 @@ import {
   HttpErrors,
   api,
   del,
+  RequestContext,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
@@ -17,9 +18,10 @@ import {inject, service, intercept} from '@loopback/core';
 
 import _ from 'lodash';
 import moment from 'moment';
+import util from 'util';
 
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {UsersRels, Users, Settings, Notifications} from '../models';
+import {UsersRels, Users, Notifications} from '../models';
 import {
   UsersRepository,
   VirtualUsersRepository,
@@ -34,6 +36,7 @@ import {
   FirebasetokenInterceptor,
   ValidateUsersRelsInterceptor,
 } from '../interceptors';
+import {LocalizedMessages} from '../application';
 
 @api({basePath: '/', paths: {}})
 @intercept(
@@ -42,7 +45,8 @@ import {
 )
 @authenticate('jwt.access')
 export class UsersRelsController {
-  readonly userId: number;
+  private readonly userId: number;
+  lang: string;
 
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -57,8 +61,13 @@ export class UsersRelsController {
     @service(FirebaseService) public firebaseService: FirebaseService,
     @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject.context() public ctx: RequestContext,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
+    this.lang = this.ctx.request.headers['accept-language']
+      ? this.ctx.request.headers['accept-language']
+      : 'fa';
   }
 
   private normalizePhonesList(
@@ -137,7 +146,9 @@ export class UsersRelsController {
       fields: {phone: true, avatar: true, name: true},
     });
     if (user.phone === userRelReqBody.phone) {
-      throw new HttpErrors.UnprocessableEntity(':) تو بهترین دوست خودتی');
+      throw new HttpErrors.UnprocessableEntity(
+        this.locMsg['YOURE_YOUR_FRIEND'][this.lang],
+      );
     }
     // Create a UserRel belongs to current user
     const createdUserRel = await this.usersRepository
@@ -150,8 +161,8 @@ export class UsersRelsController {
 
           // Duplicate phone error handling
           if (err.sqlMessage.endsWith("'user_id&phone'")) {
-            errorMessage = 'این شماره تو لیست دوستهات وجود داره';
-          } else errorMessage = 'خطای مدیریت نشده ' + err.message; // Otherwise
+            errorMessage = this.locMsg['USERS_RELS_CONFILICT_PHONE'][this.lang];
+          } else errorMessage = ' unmanaged error ' + err.message; // Otherwise
 
           throw new HttpErrors.Conflict(errorMessage);
         }
@@ -166,16 +177,13 @@ export class UsersRelsController {
 
     const foundTargetUser = await this.usersRepository.findOne({
       where: {phone: userRelReqBody.phone},
-      fields: {userId: true, firebaseToken: true},
+      fields: {userId: true, firebaseToken: true, setting: true},
+      include: [{relation: 'setting'}],
     });
 
     if (foundTargetUser) {
-      const foundTargetUserSettings: Settings = await this.usersRepository
-        .setting(foundTargetUser.getId())
-        .get({fields: {userRelNotify: true}});
-
       // Target user desired to receiving userRel suggestion notificication
-      if (foundTargetUserSettings.userRelNotify) {
+      if (foundTargetUser.setting.userRelNotify) {
         let notifyTitle: string;
         let notifyBody: string;
         let notifyType: string;
@@ -187,12 +195,29 @@ export class UsersRelsController {
 
         if (!foundBiUserRel) {
           notifyType = 'userRel';
-          notifyTitle = 'دوستی جدید';
-          notifyBody = `${user.name} شما رو دوست دنگیپش میدونه، اگه میخایی حساب های مشترک بین تون همگام سازی شن، با لمس این پیام به دوستهات اضافه ش کن`;
+          notifyTitle = this.locMsg['NEW_USERS_RELS_NOTIFY_TITLE'][
+            foundTargetUser.setting.language
+          ];
+          notifyBody = util.format(
+            this.locMsg['NEW_USERS_RELS_NOTIFY_BODY'][
+              foundTargetUser.setting.language
+            ],
+            user.name,
+          );
         } else {
           notifyType = 'biUserRel';
-          notifyTitle = `همگام سازی حساب با ${foundBiUserRel.name}`;
-          notifyBody = `${foundBiUserRel.name} هم شما رو دوست دنگیپش میدونه. از این به بعد حساب های مشترک بین تون همگام سازی میشن`;
+          notifyTitle = util.format(
+            this.locMsg['USERS_RELS_BACK_NOTIFY_TITLE'][
+              foundTargetUser.setting.language
+            ],
+            foundBiUserRel.name,
+          );
+          notifyBody = notifyTitle = util.format(
+            this.locMsg['USERS_RELS_BACK_NOTIFY_BODY'][
+              foundTargetUser.setting.language
+            ],
+            foundBiUserRel.name,
+          );
         }
 
         const createdNotify: Notifications = await this.usersRepository
@@ -297,8 +322,8 @@ export class UsersRelsController {
     } catch (err) {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         if (err.sqlMessage.endsWith("'user_id&phone'")) {
-          errorMessage = 'این شماره تو لیست دوستهات وجود داره';
-        } else errorMessage = 'خطای مدیریت نشده ' + err.message;
+          errorMessage = this.locMsg['USERS_RELS_CONFILICT_PHONE'][this.lang];
+        } else errorMessage = 'Unmanaged error ' + err.message;
 
         throw new HttpErrors.Conflict(errorMessage);
       }
@@ -432,20 +457,16 @@ export class UsersRelsController {
     responses: {'200': {description: 'Count deleted UsersRels'}},
   })
   async deleteAllUsersRels() {
-    let countDeletedUsersRels: Count;
-
     try {
-      await this.virtualUsersRepository.deleteAll({userId: this.userId});
-
-      countDeletedUsersRels = await this.usersRelsRepository.deleteAll({
+      const countDeletedUsersRels = await this.usersRelsRepository.deleteAll({
         type: {neq: 'self'},
         userId: this.userId,
       });
 
-      // Delete all Groups
-      await this.groupsRepository.deleteAll({userId: this.userId});
-      // Update all Dongs
-      await this.dongsRepository.updateAll(
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.groupsRepository.deleteAll({userId: this.userId});
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.dongsRepository.updateAll(
         {groupId: undefined},
         {userId: this.userId},
       );

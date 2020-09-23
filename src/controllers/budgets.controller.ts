@@ -21,10 +21,10 @@ import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
 import {ValidateBudgetIdInterceptor} from '../interceptors';
 
 @authenticate('jwt.access')
-@api({basePath: '/budgets/', paths: {}})
+@api({basePath: '/', paths: {}})
 @intercept(ValidateBudgetIdInterceptor.BINDING_KEY)
 export class BudgetsController {
-  readonly userId: number;
+  private readonly userId: number;
 
   constructor(
     @repository(BudgetsRepository) public budgetsRepository: BudgetsRepository,
@@ -33,7 +33,7 @@ export class BudgetsController {
     this.userId = +this.currentUserProfile[securityId];
   }
 
-  @get('/', {
+  @get('/budgets/', {
     summary: 'GET all Budgets',
     description:
       'Budgets belongs to [Group, Category, UserRel] are included too',
@@ -56,7 +56,7 @@ export class BudgetsController {
     return this.budgetsRepository.find({where: {userId: this.userId}});
   }
 
-  @post('/', {
+  @post('/budgets/', {
     summary: 'POST a Budget for all expenses',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -124,12 +124,10 @@ export class BudgetsController {
     })
     newBudget: Omit<Budgets, 'budgetId'>,
   ): Promise<Budgets> {
-    newBudget.userId = this.userId;
-
-    return this.budgetsRepository.create(newBudget);
+    return this.budgetsRepository.create({...newBudget, userId: this.userId});
   }
 
-  @patch('/{budgetId}', {
+  @patch('/budgets/{budgetId}', {
     summary: 'PATCH a Budget by budgetId',
     description:
       'Budgets belongs to [Group, Category, UserRel] are included too ',
@@ -199,7 +197,7 @@ export class BudgetsController {
     await this.budgetsRepository.updateById(budgetId, patchBudget);
   }
 
-  @del('/{budgetId}', {
+  @del('/budgets/{budgetId}', {
     summary: 'DELETE a Budget by budgetId',
     description:
       'Budgets belongs to [Group, Category, UserRel] are included too ',
@@ -214,12 +212,11 @@ export class BudgetsController {
   async deleteBudgetsById(
     @param.path.number('budgetId', {required: true, example: 1})
     budgetId: typeof Budgets.prototype.budgetId,
-    @param.header.string('firebase-token') firebaseToken: string,
   ): Promise<void> {
     await this.budgetsRepository.deleteById(budgetId);
   }
 
-  @del('/', {
+  @del('/budgets/', {
     summary: 'DELETE all Budgets ',
     description:
       'Budgets belongs to [Group, Category, UserRel] are included too ',

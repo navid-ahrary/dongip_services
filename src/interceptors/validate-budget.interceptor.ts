@@ -9,7 +9,7 @@ import {
 } from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {repository} from '@loopback/repository';
-import {HttpErrors} from '@loopback/rest';
+import {HttpErrors, Request, RestBindings} from '@loopback/rest';
 
 import {
   BudgetsRepository,
@@ -18,6 +18,7 @@ import {
   UsersRelsRepository,
 } from '../repositories';
 import {Budgets} from '../models';
+import {LocalizedMessages} from '../application';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -26,7 +27,8 @@ import {Budgets} from '../models';
 @bind({tags: {key: ValidateBudgetIdInterceptor.BINDING_KEY}})
 export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidateBudgetIdInterceptor.name}`;
-  readonly userId: number;
+  private readonly userId: number;
+  lang: string;
 
   constructor(
     @repository(BudgetsRepository) public budgetsRepo: BudgetsRepository,
@@ -34,10 +36,11 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
     public categoriessRepo: CategoriesRepository,
     @repository(GroupsRepository) public groupsRepo: GroupsRepository,
     @repository(UsersRelsRepository) public usersRelsRepo: UsersRelsRepository,
-
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+    @inject(RestBindings.Http.REQUEST) private req: Request,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
   }
 
   /**
@@ -59,6 +62,10 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
+    this.lang = this.req.headers['accept-language']
+      ? this.req.headers['accept-language']
+      : 'fa';
+
     if (
       invocationCtx.methodName === 'updateBudgetsById' ||
       invocationCtx.methodName === 'deleteBudgetsById'
@@ -70,7 +77,9 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
       });
 
       if (!foundBudget) {
-        throw new HttpErrors.UnprocessableEntity('آی دی بودجه بندی معتبر نیست');
+        throw new HttpErrors.UnprocessableEntity(
+          this.locMsg['BUDGET_NOT_VALID'][this.lang],
+        );
       }
     }
 
@@ -88,46 +97,49 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
   }
 
   async validateBudgetReqBody(entity: Budgets): Promise<Budgets> {
-    const errMessage = 'فقط یکی از آیتم ها رو میشه بودجه بندی کرد';
+    let errMsg = this.locMsg['BUDGET_SELECT_ITEM'][this.lang];
 
     if (entity.categoryId && entity.categoryId > 0) {
       if (entity.userRelId !== 0 || entity.groupId !== 0) {
-        throw new HttpErrors.UnprocessableEntity(errMessage);
+        throw new HttpErrors.UnprocessableEntity(errMsg);
       }
 
       const foundCategory = await this.categoriessRepo.findOne({
         where: {userId: this.userId, categoryId: entity.categoryId},
       });
       if (!foundCategory) {
-        throw new HttpErrors.UnprocessableEntity('آی دی دسته بندی معتبر نیست');
+        errMsg = this.locMsg['GROUP_NOT_VALID'][this.lang];
+        throw new HttpErrors.UnprocessableEntity(errMsg);
       }
 
       entity.groupId = undefined;
       entity.userRelId = undefined;
     } else if (entity.userRelId && entity.userRelId > 0) {
       if (entity.categoryId !== 0 || entity.groupId !== 0) {
-        throw new HttpErrors.UnprocessableEntity(errMessage);
+        throw new HttpErrors.UnprocessableEntity(errMsg);
       }
 
       const foundUserRel = await this.usersRelsRepo.findOne({
         where: {userId: this.userId, userRelId: entity.userRelId},
       });
       if (!foundUserRel) {
-        throw new HttpErrors.UnprocessableEntity('آی دی دوستی معتبر نیست');
+        errMsg = this.locMsg['USER_REL_NOT_VALID'][this.lang];
+        throw new HttpErrors.UnprocessableEntity(errMsg);
       }
 
       entity.categoryId = undefined;
       entity.groupId = undefined;
     } else if (entity.groupId && entity.groupId > 0) {
       if (entity.userRelId !== 0 || entity.categoryId !== 0) {
-        throw new HttpErrors.UnprocessableEntity(errMessage);
+        throw new HttpErrors.UnprocessableEntity(errMsg);
       }
 
       const foundأGroup = await this.groupsRepo.findOne({
         where: {userId: this.userId, groupId: entity.groupId},
       });
       if (!foundأGroup) {
-        throw new HttpErrors.UnprocessableEntity('آی دی گروه معتبر نیست');
+        errMsg = this.locMsg['GROUP_NOT_VALID'][this.lang];
+        throw new HttpErrors.UnprocessableEntity(errMsg);
       }
 
       entity.categoryId = undefined;

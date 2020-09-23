@@ -9,6 +9,7 @@ import {
   HttpErrors,
   api,
   del,
+  RequestContext,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
@@ -21,6 +22,7 @@ import {
   FirebasetokenInterceptor,
   ValidateCategoryIdInterceptor,
 } from '../interceptors';
+import {LocalizedMessages} from '../application';
 
 @intercept(
   FirebasetokenInterceptor.BINDING_KEY,
@@ -30,16 +32,21 @@ import {
 @api({basePath: '/', paths: {}})
 export class CategoriesController {
   userId: number;
+  lang: string;
 
   constructor(
-    @repository(UsersRepository)
-    protected usersRepository: UsersRepository,
+    @repository(UsersRepository) protected usersRepository: UsersRepository,
     @repository(CategoriesRepository)
     protected categoryRepository: CategoriesRepository,
-    @inject(SecurityBindings.USER)
-    protected currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject.context() public ctx: RequestContext,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
-    this.userId = Number(this.currentUserProfile[securityId]);
+    this.userId = +this.currentUserProfile[securityId];
+
+    this.lang = this.ctx.request.headers['accept-language']
+      ? this.ctx.request.headers['accept-language']
+      : 'fa';
   }
 
   @get('/categories', {
@@ -56,9 +63,7 @@ export class CategoriesController {
       },
     },
   })
-  async find(
-    @param.header.string('firebase-token') firebaseToken: string,
-  ): Promise<Categories[]> {
+  async find(): Promise<Categories[]> {
     return this.usersRepository.categories(this.userId).find();
   }
 
@@ -93,7 +98,6 @@ export class CategoriesController {
       },
     })
     newCategories: Omit<Categories, '_key'>,
-    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<Categories> {
     const createdCat: Categories = await this.usersRepository
       .categories(this.userId)
@@ -102,7 +106,7 @@ export class CategoriesController {
         // Duplicate title error handling
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
           throw new HttpErrors.Conflict(
-            'این دسته بندی رو داری. یه اسم دیگه انتخاب کن',
+            this.locMsg['CONFLICT_CATEGORY_NAME'][this.lang],
           );
         } else {
           throw new HttpErrors.NotAcceptable(err);
@@ -152,22 +156,21 @@ export class CategoriesController {
       },
     })
     category: Partial<Categories>,
-    @param.header.string('firebase-token') firebaseToken?: string,
   ): Promise<void> {
     await this.usersRepository
       .categories(this.userId)
       .patch(category, {categoryId: categoryId})
       .then((result) => {
         if (!result.count) {
-          throw new HttpErrors.NotFound(
-            'Entity not found: Category with id ' + categoryId,
-          );
+          const errMsg = this.locMsg['CATEGORY_NOT_VALID'][this.lang];
+          throw new HttpErrors.UnprocessableEntity(errMsg);
         }
       })
       .catch((err) => {
         // Duplicate title error handling
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          throw new HttpErrors.Conflict('این اسم توی دسته بندی هات وجود داره!');
+          const errMsg = this.locMsg['CONFLICT_CATEGORY_NAME'][this.lang];
+          throw new HttpErrors.Conflict(errMsg);
         }
         throw new HttpErrors.NotAcceptable(err.message);
       });
