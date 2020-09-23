@@ -67,8 +67,8 @@ export class Budgets extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {minLength: 1, maxLength: 20},
-    mysql: {dataType: 'varchar', dataLength: 20, nullable: 'N'},
+    jsonSchema: {minLength: 1, maxLength: 50},
+    mysql: {dataType: 'varchar', dataLength: 50, nullable: 'N'},
   })
   title: string;
 
