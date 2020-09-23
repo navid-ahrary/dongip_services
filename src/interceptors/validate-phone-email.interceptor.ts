@@ -7,7 +7,7 @@ import {
   ValueOrPromise,
   inject,
 } from '@loopback/context';
-import {HttpErrors, RequestContext} from '@loopback/rest';
+import {HttpErrors, RestBindings, Request} from '@loopback/rest';
 import {service} from '@loopback/core';
 
 import isemail from 'isemail';
@@ -24,17 +24,12 @@ import {LocalizedMessages} from '../application';
 @bind({tags: {key: ValidatePhoneEmailInterceptor.BINDING_KEY}})
 export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidatePhoneEmailInterceptor.name}`;
-  lang: string;
 
   constructor(
     @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
-    @inject.context() public ctx: RequestContext,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
-  ) {
-    this.lang = this.ctx.request.headers['accept-language']
-      ? this.ctx.request.headers['accept-language']
-      : 'fa';
-  }
+    @inject(RestBindings.Http.REQUEST) private req: Request,
+  ) {}
 
   /**
    * This method is used by LoopBack context to produce an interceptor function
@@ -55,8 +50,12 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
-    const invalidPhoneValueMessage = this.locMsg['PHONE_NOT_VALID'][this.lang];
-    const invalidEmailValueMessage = this.locMsg['EMAIL_NOT_VALID'][this.lang];
+    const lang = this.req.headers['accept-language']
+      ? this.req.headers['accept-language']
+      : 'fa';
+
+    const invalidPhoneValueMessage = this.locMsg['PHONE_NOT_VALID'][lang];
+    const invalidEmailValueMessage = this.locMsg['EMAIL_NOT_VALID'][lang];
 
     const funcNameList = [
       'verify',

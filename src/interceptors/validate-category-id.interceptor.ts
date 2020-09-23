@@ -10,7 +10,7 @@ import {
 import {repository} from '@loopback/repository';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {CategoriesRepository, UsersRepository} from '../repositories';
-import {HttpErrors, RequestContext} from '@loopback/rest';
+import {HttpErrors, Request, RestBindings} from '@loopback/rest';
 import {LocalizedMessages} from '../application';
 
 /**
@@ -28,13 +28,10 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
     public categoriesRepo: CategoriesRepository,
     @repository(UsersRepository) public usersRepo: UsersRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
-    @inject.context() public ctx: RequestContext,
+    @inject(RestBindings.Http.REQUEST) private req: Request,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-    this.lang = this.ctx.request.headers['accept-language']
-      ? this.ctx.request.headers['accept-language']
-      : 'fa';
   }
 
   /**
@@ -56,6 +53,10 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
+    this.lang = this.req.headers['accept-language']
+      ? this.req.headers['accept-language']
+      : 'fa';
+
     if (invocationCtx.methodName === 'createDongs') {
       const categoryId = invocationCtx.args[0].categoryId;
 

@@ -11,7 +11,7 @@ import {
 import {repository} from '@loopback/repository';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {UsersRelsRepository, UsersRepository} from '../repositories';
-import {HttpErrors, RequestContext} from '@loopback/rest';
+import {HttpErrors, Request, RestBindings} from '@loopback/rest';
 import {LocalizedMessages} from '../application';
 
 /**
@@ -29,13 +29,10 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
     public usersRelsRepository: UsersRelsRepository,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
-    @inject.context() public ctx: RequestContext,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @inject(RestBindings.Http.REQUEST) private req: Request,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-    this.lang = this.ctx.request.headers['accept-language']
-      ? this.ctx.request.headers['accept-language']
-      : 'fa';
   }
   /**
    * This method is used by LoopBack context to produce an interceptor function
@@ -56,6 +53,10 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
+    this.lang = this.req.headers['accept-language']
+      ? this.req.headers['accept-language']
+      : 'fa';
+
     let errMsg: string;
 
     try {
@@ -88,11 +89,10 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
           }
         }
       } else if (
-        invocationCtx.methodName === 'patchUsersRelsById' ||
+        invocationCtx.methodName === 'updateUsersRelsById' ||
         invocationCtx.methodName === 'deleteUsersRelsById'
       ) {
         const userRelId = invocationCtx.args[0];
-
         const foundUserRel = await this.usersRelsRepository.findOne({
           where: {
             userRelId: userRelId,

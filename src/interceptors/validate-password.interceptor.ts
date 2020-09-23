@@ -1,5 +1,4 @@
 import {
-  /* inject, */
   bind,
   Interceptor,
   InvocationContext,
@@ -8,7 +7,8 @@ import {
   ValueOrPromise,
   inject,
 } from '@loopback/core';
-import {HttpErrors, RequestContext} from '@loopback/rest';
+
+import {HttpErrors, Request, RestBindings} from '@loopback/rest';
 import {LocalizedMessages} from '../application';
 
 /**
@@ -21,13 +21,9 @@ export class ValidatePasswordInterceptor implements Provider<Interceptor> {
   lang: string;
 
   constructor(
-    @inject.context() public ctx: RequestContext,
+    @inject(RestBindings.Http.REQUEST) private req: Request,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
-  ) {
-    this.lang = this.ctx.request.headers['accept-language']
-      ? this.ctx.request.headers['accept-language']
-      : 'fa';
-  }
+  ) {}
 
   /**
    * This method is used by LoopBack context to produce an interceptor function
@@ -48,6 +44,10 @@ export class ValidatePasswordInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
+    this.lang = this.req.headers['accept-language']
+      ? this.req.headers['accept-language']
+      : 'fa';
+
     if (
       invocationCtx.methodName === 'login' ||
       invocationCtx.methodName === 'signup'

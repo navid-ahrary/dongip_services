@@ -9,7 +9,7 @@ import {
 } from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {repository} from '@loopback/repository';
-import {HttpErrors, RequestContext} from '@loopback/rest';
+import {HttpErrors, Request, RestBindings} from '@loopback/rest';
 
 import {
   BudgetsRepository,
@@ -37,14 +37,10 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
     @repository(GroupsRepository) public groupsRepo: GroupsRepository,
     @repository(UsersRelsRepository) public usersRelsRepo: UsersRelsRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
-    @inject.context() public ctx: RequestContext,
+    @inject(RestBindings.Http.REQUEST) private req: Request,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-
-    this.lang = this.ctx.request.headers['accept-language']
-      ? this.ctx.request.headers['accept-language']
-      : 'fa';
   }
 
   /**
@@ -66,6 +62,10 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
+    this.lang = this.req.headers['accept-language']
+      ? this.req.headers['accept-language']
+      : 'fa';
+
     if (
       invocationCtx.methodName === 'updateBudgetsById' ||
       invocationCtx.methodName === 'deleteBudgetsById'
