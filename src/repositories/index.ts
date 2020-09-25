@@ -5,7 +5,6 @@ export * from './virtual-users.repository';
 export * from './categories.repository';
 export * from './users-rels.repository';
 export * from './verify.repository';
-export * from './categories-source.repository';
 export * from './bill-list.repository';
 export * from './payer-list.repository';
 export * from './scores.repository';

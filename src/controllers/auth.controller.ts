@@ -33,7 +33,6 @@ import {
   VerifyRepository,
   CategoriesRepository,
   SettingsRepository,
-  CategoriesSourceRepository,
 } from '../repositories';
 import {
   FirebaseService,
@@ -47,7 +46,7 @@ import {
   ValidatePhoneEmailInterceptor,
 } from '../interceptors';
 import {MailerService} from '../services/mailer.service';
-import {LocalizedMessages} from '../application';
+import {LocalizedMessages, CategoriesSource} from '../application';
 
 @api({basePath: '/auth', paths: {}})
 @intercept(
@@ -63,8 +62,6 @@ export class AuthController {
     @repository(BlacklistRepository)
     public blacklistRepository: BlacklistRepository,
     @repository(VerifyRepository) private verifyRepository: VerifyRepository,
-    @repository(CategoriesSourceRepository)
-    public categoriesSourceRepository: CategoriesSourceRepository,
     @repository(SettingsRepository)
     public settingsRepository: SettingsRepository,
     @repository(CategoriesRepository)
@@ -81,6 +78,7 @@ export class AuthController {
     @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
     @service(MailerService) protected mailerService: MailerService,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @inject('application.categoriesSourceList') public catSrc: CategoriesSource,
   ) {
     this.lang = this.ctx.request.headers['accept-language']
       ? this.ctx.request.headers['accept-language']
@@ -579,14 +577,14 @@ export class AuthController {
         phone: foundVerify.phone ? foundVerify.phone : undefined,
         email: foundVerify.email ? foundVerify.email : undefined,
       });
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.categoriesSourceRepository.find().then((initCatList) => {
-        initCatList.forEach((cat) => {
-          Object.assign(cat, {userId: savedUser.userId});
-        });
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.categoriesRepository.createAll(initCatList);
+
+      const initCatList = this.catSrc;
+      initCatList.forEach((cat) => {
+        Object.assign(cat, {userId: savedUser.userId});
       });
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.categoriesRepository.createAll(initCatList);
+
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.settingsRepository.create({
         userId: savedUser.userId,

@@ -1,0 +1,117 @@
+[{
+    "title": "آرایشی و بهداشتی",
+    "icon": "assets/images/icons/shopping/ic_normal_shopping_22.png"
+  },
+  {
+    "title": "آموزش",
+    "icon": "assets/images/icons/education/ic_category_education_normal.png"
+  },
+  {
+    "title": "اجاره خونه",
+    "icon": "assets/images/icons/education/ic_normal_education_01.png"
+  },
+  {
+    "title": "اینترنت",
+    "icon": "assets/images/icons/electronic/ic_normal_electronics_01.png"
+  },
+  {
+    "title": "بنزین",
+    "icon": "assets/images/icons/transportation/ic_normal_transportation_01.png"
+  },
+  {
+    "title": "بهداشت و سلامت",
+    "icon": "assets/images/icons/medical/ic_normal_medical_04.png"
+  },
+  {
+    "title": "بیمه",
+    "icon": "assets/images/icons/medical/3-min.png"
+  },
+  {
+    "title": "تاکسی",
+    "icon": "assets/images/icons/transportation/ic_normal_transportation_13.png"
+  },
+  {
+    "title": "تسویه حساب",
+    "icon": "assets/images/icons/income/ic_normal_income_03.png"
+  },
+  {
+    "title": "تعمیرات",
+    "icon": "assets/images/icons/furniture/ic_normal_furniture_12.png"
+  },
+  {
+    "title": "تناسب اندام",
+    "icon": "assets/images/icons/fitness/ic_normal_fitness_01.png"
+  },
+  {
+    "title": "تکنولوژی",
+    "icon": "assets/images/icons/electronic/ic_normal_electronics_06.png"
+  },
+  {
+    "title": "جرائم رانندگی",
+    "icon": "assets/images/icons/transportation/ic_normal_transportation_04.png"
+  },
+  {
+    "title": "حیوان خانگی",
+    "icon": "assets/images/icons/personal/4-min.png"
+  },
+  {
+    "title": "خانواده",
+    "icon": "assets/images/icons/family/ic_normal_family_01.png"
+  },
+  {
+    "title": "خرید خانه",
+    "icon": "assets/images/icons/shopping/ic_normal_shopping_01.png"
+  },
+  {
+    "title": "دخانیات",
+    "icon": "assets/images/icons/personal/ic_category_cigarette_normal.png"
+  },
+  {
+    "title": "رستوران",
+    "icon": "assets/images/icons/food/ic_category_food_normal.png"
+  },
+  {
+    "title": "سرگرمی",
+    "icon": "assets/images/icons/entertainment/ic_category_entertainment_normal.png"
+  },
+  {
+    "title": "سوخت",
+    "icon": "assets/images/icons/transportation/ic_normal_transportation_01.png"
+  },
+  {
+    "title": "سینما و تئاتر",
+    "icon": "assets/images/icons/entertainment/ic_normal_entertainment_02.png"
+  },
+  {
+    "title": "قبض",
+    "icon": "assets/images/icons/personal/ic_normal_personal_02.png"
+  },
+  {
+    "title": "قسط",
+    "icon": "assets/images/icons/personal/ic_normal_personal_02.png"
+  },
+  {
+    "title": "مسافرت",
+    "icon": "assets/images/icons/transportation/ic_normal_transportation_14.png"
+  },
+  {
+    "title": "نقدی",
+    "icon": "assets/images/icons/income/ic_normal_income_02.png"
+  },
+  {
+    "title": "هنر و موسیقی",
+    "icon": "assets/images/icons/education/ic_normal_education_05.png"
+  },
+  {
+    "title": "پیک نیک",
+    "icon": "assets/images/icons/life/ic_normal_life_02.png"
+  },
+  {
+    "title": "کافه",
+    "icon": "assets/images/icons/food/ic_normal_food_03.png"
+  },
+  {
+    "title": "گل و گیاه",
+    "icon": "assets/images/icons/furniture/ic_normal_furniture_04.png"
+  }
+]

@@ -7,7 +7,6 @@ export * from './categories.model';
 export * from './credentials.model';
 export * from './users-rels.model';
 export * from './verify.model';
-export * from './categories-source.model';
 export * from './bill-list.model';
 export * from './payer-list.model';
 export * from './scores.model';

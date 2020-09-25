@@ -76,7 +76,7 @@ export interface SubscriptionSpec {
 export const SubscriptionSpec = BindingKey.create<SubscriptionSpec>(
   'application.subscriptionSpec',
 );
-const subsSpec: SubscriptionSpec = require('../subscription-specs.json');
+const subsSpec: SubscriptionSpec = require('../assets/subscription-specs.json');
 
 export interface LocalizedMessages {
   [key: string]: {
@@ -88,6 +88,17 @@ export const LocalizedMessages = BindingKey.create<LocalizedMessages>(
   'application.localizedMessages',
 );
 const localizedMessages: LocalizedMessages = require('../locale/localized-contents.json');
+
+export interface CategoriesSource
+  extends Array<{
+    title: string;
+    icon: string;
+  }> {}
+
+export const CategoriesSourceList = BindingKey.create<CategoriesSource>(
+  'application.categoriesSourceList',
+);
+const categoriesSourceList: CategoriesSource = require('../assets/categories-source.json');
 
 export class MyApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
@@ -192,6 +203,9 @@ export class MyApplication extends BootMixin(
 
     // Bind locale messages
     this.bind(LocalizedMessages).to(localizedMessages);
+
+    // Bind categories source lists
+    this.bind(CategoriesSourceList).to(categoriesSourceList);
 
     this.bind(TokenServiceBindings.TOKEN_SECRET).to(
       TokenServiceConstants.TOKEN_SECRET_VALUE!,
