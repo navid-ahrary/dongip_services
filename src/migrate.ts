@@ -9,7 +9,6 @@ export async function migrate(args: string[]) {
   await app.migrateSchema({
     existingSchema,
     models: [
-      'categories_source',
       'links',
       'black_list',
       'verify',
