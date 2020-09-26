@@ -311,7 +311,7 @@ export class DongsController {
                     this.locMsg['DONGIP_NOTIFY_BODY'][user.setting.language],
                     notifyBodyDongAmount,
                     this.locMsg['CURRENCY'][user.setting.language][
-                      'newDong.currency'
+                      newDong.currency
                     ],
                     foundMutualUsersRels.name,
                   ),
