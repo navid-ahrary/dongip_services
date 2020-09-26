@@ -306,9 +306,9 @@ export class DongsController {
                   ],
                   body: util.format(
                     this.locMsg['DONGIP_NOTIFY_BODY'][user.setting.language],
-                    foundMutualUsersRels.name,
                     notifyBodyDongAmount,
                     newDong.currency,
+                    foundMutualUsersRels.name,
                   ),
                   desc: createdDong.desc ? createdDong.desc : '',
                   type: 'dong',

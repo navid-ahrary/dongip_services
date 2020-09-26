@@ -84,8 +84,8 @@
     "en": "You Dongiped"
   },
   "DONGIP_NOTIFY_BODY": {
-    "fa": "مبلغ %s از طرف %s %s",
-    "en": "Amount %s from %s %s"
+    "fa": "مبلغ %s %s از طرف %s",
+    "en": "Amount %s %s from %s"
   },
   "PLAN_ID": {
     "fa": {
