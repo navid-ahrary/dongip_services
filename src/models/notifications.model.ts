@@ -54,7 +54,7 @@ export class Notifications extends Entity {
     required: true,
     mysql: {
       dataType: 'varchar',
-      dataLength: 50,
+      dataLength: 200,
       nullable: 'N',
     },
   })
