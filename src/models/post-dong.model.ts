@@ -36,7 +36,7 @@ export class PostNewDong extends Model {
       enum: Object.values(CurrencyEnum),
     },
   })
-  currency?: CurrencyEnum;
+  currency?: string;
 
   @property({type: 'array', itemType: 'object'})
   payerList: {

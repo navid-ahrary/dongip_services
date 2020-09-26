@@ -166,6 +166,9 @@ export class DongsController {
     if (newDong.userId) delete newDong.userId;
     if (newDong.dongId) delete newDong.dongId;
 
+    if (!newDong.currency) {
+      newDong.currency = 'IRT';
+    }
     // Current user
     const currentUser = await this.usersRepository.findOne({
       where: {userId: this.userId},
@@ -307,7 +310,9 @@ export class DongsController {
                   body: util.format(
                     this.locMsg['DONGIP_NOTIFY_BODY'][user.setting.language],
                     notifyBodyDongAmount,
-                    newDong.currency,
+                    this.locMsg['CURRENCY'][user.setting.language][
+                      'newDong.currency'
+                    ],
                     foundMutualUsersRels.name,
                   ),
                   desc: createdDong.desc ? createdDong.desc : '',

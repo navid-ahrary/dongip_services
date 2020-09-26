@@ -116,7 +116,7 @@ export class Dongs extends Entity {
       nullable: 'N',
     },
   })
-  currency: CurrencyEnum;
+  currency: string;
 
   @belongsTo(
     () => Users,

@@ -157,7 +157,7 @@ export class Settings extends Entity {
       nullable: 'N',
     },
   })
-  language: LanguageEnum;
+  language: string;
 
   @property({
     type: 'string',
@@ -174,7 +174,7 @@ export class Settings extends Entity {
       nullable: 'N',
     },
   })
-  currency: CurrencyEnum;
+  currency: string;
 
   @property({
     type: 'date',
