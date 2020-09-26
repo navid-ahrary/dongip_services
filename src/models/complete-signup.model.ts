@@ -47,8 +47,6 @@ export class CompleteSignup extends Model {
     type: 'string',
     jsonSchema: {
       maxLength: 100,
-      format: 'email',
-      pattern: '^w+@[a-zA-Z_]+?.[a-zA-Z]{2,3}$',
     },
   })
   email?: string;
