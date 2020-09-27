@@ -37,10 +37,7 @@ export class PhoneNumberService {
    * @param regionCode string
    * @returns string
    */
-  normalizePhoneNumberWithZeroPrefix(
-    phone: string,
-    regionCode: string,
-  ): string {
+  normalizeZeroPrefix(phone: string, regionCode = 'IR'): string {
     if (phone.startsWith('00')) {
       phone = phone.replace('00', '+');
       const pn = new AwesomePhoneNumber(phone, regionCode);

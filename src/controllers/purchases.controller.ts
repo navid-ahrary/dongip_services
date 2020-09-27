@@ -211,30 +211,30 @@ export class PurchasesController {
         const purchasedAt = moment(order['date_paid_gmt']);
         const purchaseOrigin = order['payment_method'];
 
-        let user: Users;
-        let identiyValue: string;
+        let identiyValue = order['billing']['phone'];
+        let user: Users | null;
 
-        const isMobile = this.phoneNumSerice.isValid(order['billing']['phone']);
-        const isEmail = isemail.validate(order['billing']['phone']);
+        const isMobile = this.phoneNumSerice.isValid(identiyValue);
+        const isEmail = isemail.validate(identiyValue);
 
         if (isMobile) {
-          identiyValue = this.phoneNumSerice.convertToE164Format(
-            order['billing']['phone'],
-          );
+          identiyValue = this.phoneNumSerice.convertToE164Format(identiyValue);
 
-          const u = await this.usersRepo.find({
+          user = await this.usersRepo.findOne({
             where: {phone: identiyValue},
           });
-          user = u[0];
         } else if (isEmail) {
-          identiyValue = this.phoneNumSerice.convertToE164Format(
-            order['billing']['phone'],
-          );
+          identiyValue = this.phoneNumSerice.convertToE164Format(identiyValue);
 
-          const u = await this.usersRepo.find({
+          user = await this.usersRepo.findOne({
             where: {email: identiyValue},
           });
-          user = u[0];
+        } else if (identiyValue.startsWith('0')) {
+          identiyValue = this.phoneNumSerice.normalizeZeroPrefix(identiyValue);
+
+          user = await this.usersRepo.findOne({
+            where: {email: identiyValue},
+          });
         } else {
           throw new Error(
             `${order['billing']['phone']} is not a valid phone or email address`,
@@ -255,7 +255,7 @@ export class PurchasesController {
           await this.subsService
             .performSubscription(user.getId(), planId, purchasedAt)
             .then(async (subs) => {
-              await this.sendNotification(user.getId(), subs);
+              await this.sendNotification(user!.getId(), subs);
 
               await this.woocomService.updateOrderStatus(orderId, 'completed');
             });

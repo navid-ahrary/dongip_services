@@ -75,9 +75,7 @@ export class UsersRelsController {
     refrenceRegionCode: string,
   ): string[] {
     phonesList.forEach((phone, index) => {
-      phonesList[
-        index
-      ] = this.phoneNumberService.normalizePhoneNumberWithZeroPrefix(
+      phonesList[index] = this.phoneNumberService.normalizeZeroPrefix(
         phone,
         refrenceRegionCode,
       );
