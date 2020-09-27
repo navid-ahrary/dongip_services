@@ -1,7 +1,6 @@
 import {bind, BindingScope, inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 
-import _ from 'lodash';
 import moment from 'moment';
 import dotenv from 'dotenv';
 dotenv.config();

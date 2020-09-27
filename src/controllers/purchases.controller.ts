@@ -233,7 +233,7 @@ export class PurchasesController {
           identiyValue = this.phoneNumSerice.normalizeZeroPrefix(identiyValue);
 
           user = await this.usersRepo.findOne({
-            where: {email: identiyValue},
+            where: {phone: identiyValue},
           });
         } else {
           throw new Error(
