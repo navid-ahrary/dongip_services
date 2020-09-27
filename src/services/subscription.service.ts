@@ -1,6 +1,7 @@
 import {bind, BindingScope, inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 
+import _ from 'lodash';
 import moment from 'moment';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -19,11 +20,15 @@ export class SubscriptionService {
     protected subsSpec: SubscriptionSpec,
   ) {}
 
-  async getCurrentState(userId: typeof Users.prototype.userId) {
+  async getLastState(
+    userId: typeof Users.prototype.userId,
+  ): Promise<Partial<Subscriptions> | null> {
     return this.subsRepo.findOne({
+      order: ['eolTime DESC'],
+      limit: 1,
+      fields: {userId: true, solTime: true, eolTime: true},
       where: {
         userId: userId,
-        solTime: {lte: moment.utc().toISOString()},
         eolTime: {gte: moment.utc().toISOString()},
       },
     });
@@ -46,13 +51,13 @@ export class SubscriptionService {
 
     let sol: string, eol: string;
 
-    const currentSubs = await this.getCurrentState(userId);
+    const lastSubs = await this.getLastState(userId);
     // If user has a subscription, new plan'll start from subscriptino's eol
-    if (currentSubs) {
-      const currentEOL = currentSubs.eolTime;
+    if (lastSubs) {
+      const lastEOL = lastSubs.eolTime;
 
-      sol = currentEOL;
-      eol = moment(currentEOL).add(durationAmount, durationUnit).toISOString();
+      sol = moment(lastEOL).toISOString();
+      eol = moment(lastEOL).add(durationAmount, durationUnit).toISOString();
     } else {
       sol = moment(purchaseTime).toISOString();
       eol = moment(purchaseTime)
