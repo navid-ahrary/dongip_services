@@ -55,11 +55,15 @@ export class SubscriptionService {
     if (lastSubs) {
       const lastEOL = lastSubs.eolTime;
 
-      sol = moment(lastEOL).toISOString();
-      eol = moment(lastEOL).add(durationAmount, durationUnit).toISOString();
+      sol = moment(lastEOL).utc().toISOString();
+      eol = moment(lastEOL)
+        .utc()
+        .add(durationAmount, durationUnit)
+        .toISOString();
     } else {
-      sol = moment(purchaseTime).toISOString();
+      sol = moment(purchaseTime).utc().toISOString();
       eol = moment(purchaseTime)
+        .utc()
         .add(durationAmount, durationUnit)
         .toISOString();
     }

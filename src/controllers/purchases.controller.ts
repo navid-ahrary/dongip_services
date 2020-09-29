@@ -6,6 +6,7 @@ import {
   post,
   api,
   RequestContext,
+  requestBody,
 } from '@loopback/rest';
 import {service, inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
@@ -24,7 +25,7 @@ import {
   WoocommerceService,
   PhoneNumberService,
 } from '../services';
-import {Purchases, Subscriptions, Users} from '../models';
+import {Purchases, Subscriptions, Users, InappPurchase} from '../models';
 import {SubscriptionSpec, LocalizedMessages} from '../application';
 
 @api({basePath: '/'})
@@ -80,6 +81,45 @@ export class PurchasesController {
     await this.firebaseService.sendToDeviceMessage(
       user.firebaseToken!,
       notifyPayload,
+    );
+  }
+
+  @authenticate('jwt.access')
+  @post('/purchases/in-app', {
+    summary: 'Report in-app subscription purchase',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      201: {
+        description: 'Subscription model',
+        content: {
+          'application/json': {schema: getModelSchemaRef(Subscriptions)},
+        },
+      },
+    },
+  })
+  async getInappPurchase(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(InappPurchase),
+          example: {
+            planId: 'plan_gm1',
+            purchaseUnixTime: 1595967742659,
+          },
+        },
+      },
+    })
+    inappPurchBody: InappPurchase,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+  ): Promise<Subscriptions> {
+    const userId = +currentUserProfile[securityId];
+
+    const purchaseUTCTime = moment(inappPurchBody.purchaseUnixTime);
+
+    return this.subsService.performSubscription(
+      userId,
+      inappPurchBody.planId,
+      purchaseUTCTime,
     );
   }
 
