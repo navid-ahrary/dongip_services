@@ -40,12 +40,12 @@ import {
   PasswordHasher,
   VerifyService,
   PhoneNumberService,
+  EmailService,
 } from '../services';
 import {
   ValidatePasswordInterceptor,
   ValidatePhoneEmailInterceptor,
 } from '../interceptors';
-import {MailerService} from '../services/mailer.service';
 import {LocalizedMessages, CategoriesSource} from '../application';
 
 @api({basePath: '/auth', paths: {}})
@@ -76,7 +76,7 @@ export class AuthController {
     @service(VerifyService) public verifySerivce: VerifyService,
     @service(SmsService) public smsService: SmsService,
     @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
-    @service(MailerService) protected mailerService: MailerService,
+    @service(EmailService) protected emailService: EmailService,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
     @inject('application.categoriesSourceList') public catSrc: CategoriesSource,
   ) {
@@ -278,17 +278,21 @@ export class AuthController {
         });
     } else if (verifyReqBody.email) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.mailerService
-        .sendMail({
-          subject: this.locMsg['SEND_VERFIY_EMAIL'][this.lang],
-          to: verifyReqBody.email,
-          text: `${this.locMsg['SEND_VERFIY_EMAIL'][this.lang]} ${randomCode}`,
+      this.emailService
+        .sendSupportMail({
+          subject: this.locMsg['VERFIY_EMAIL_SUBJECT'][this.lang],
+          toAddress: verifyReqBody.email,
+          content: `${
+            this.locMsg['VERFIY_EMAIL_CONTENT'][this.lang]
+          } ${randomCode}`,
         })
         .then(async (res) => {
           await this.verifyRepository.updateById(createdVerify.getId(), {
-            emailMessageId: res['messageId'],
-            emailStatusText: res['response'],
+            emailMessageId: res.data.messageId,
           });
+        })
+        .catch((err) => {
+          console.error(err);
         });
     }
 

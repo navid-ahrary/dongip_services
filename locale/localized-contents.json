@@ -19,9 +19,13 @@
     "fa": "تعداد در خواست هاینان بیش از حد مجاز است. ۵ دقیقه منتظر بمانید",
     "en": "You have requested too many recently, wait for 5 minutes"
   },
-  "SEND_VERFIY_EMAIL": {
-    "fa": "کد ورود به اپلیکیشن دُنگیپ",
-    "en": "Login code in Dongip app"
+  "VERFIY_EMAIL_SUBJECT": {
+    "fa": "دُنگیپ | کد ورود به اپلیکیشن",
+    "en": "Dongip | Login code"
+  },
+  "VERFIY_EMAIL_CONTENT": {
+    "fa": "کد ورود",
+    "en": "Login code"
   },
   "PHONE_OR_EMAIL_NOT_PROVIDED": {
     "fa": "شماره موبایل یا ایمیل را وارد کنید",

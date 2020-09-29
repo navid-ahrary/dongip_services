@@ -9,5 +9,5 @@ export * from './cronjob.service';
 export * from './phone-number.service';
 export * from './subscription.service';
 export * from './cafebazaar.service';
-export * from './mailer.service';
+export * from './email.service';
 export * from './woocommerce.service';
