@@ -120,7 +120,7 @@ export class MyApplication extends BootMixin(
         description: 'API Gateway',
         contact: {
           name: 'Dongip Team',
-          email: 'tellus@dongip.ir',
+          email: 'info@dongip.ir',
           url: 'https://www.dongip.ir/about-us',
         },
       },
