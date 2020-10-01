@@ -95,6 +95,9 @@ export class PurchasesController {
           'application/json': {schema: getModelSchemaRef(Subscriptions)},
         },
       },
+      409: {
+        description: 'Error: Duplicate purchaseToken',
+      },
     },
   })
   async getInappPurchase(
@@ -104,6 +107,7 @@ export class PurchasesController {
           schema: getModelSchemaRef(InappPurchase),
           example: {
             planId: 'plan_gm1',
+            purchaseToken: 'VRFS0nyW_ZLP_7SU',
             purchaseUnixTime: 1595967742659,
           },
         },
@@ -111,10 +115,26 @@ export class PurchasesController {
     })
     inappPurchBody: InappPurchase,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-  ): Promise<Subscriptions> {
+  ): Promise<Subscriptions | null> {
     const userId = +currentUserProfile[securityId];
 
     const purchaseUTCTime = moment(inappPurchBody.purchaseUnixTime);
+
+    try {
+      const purchaseEnt = new Purchases({
+        userId: userId,
+        planId: inappPurchBody.planId,
+        purchaseToken: inappPurchBody.purchaseToken,
+        purchaseOrigin: 'cafebazaar',
+        purchasedAt: purchaseUTCTime.toISOString(),
+      });
+
+      await this.purchasesRepo.create(purchaseEnt);
+    } catch (err) {
+      if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
+        throw new HttpErrors.Conflict(err.sqlMessage);
+      }
+    }
 
     return this.subsService.performSubscription(
       userId,

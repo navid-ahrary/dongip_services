@@ -19,20 +19,6 @@ export class SubscriptionService {
     protected subsSpec: SubscriptionSpec,
   ) {}
 
-  async getLastState(
-    userId: typeof Users.prototype.userId,
-  ): Promise<Partial<Subscriptions> | null> {
-    return this.subsRepo.findOne({
-      order: ['eolTime DESC'],
-      limit: 1,
-      fields: {userId: true, solTime: true, eolTime: true},
-      where: {
-        userId: userId,
-        eolTime: {gte: moment.utc().toISOString()},
-      },
-    });
-  }
-
   /** Perform subsciption on user
    *
    * @param userId number
@@ -50,7 +36,14 @@ export class SubscriptionService {
 
     let sol: string, eol: string;
 
-    const lastSubs = await this.getLastState(userId);
+    const lastSubs = await this.subsRepo.findOne({
+      order: ['eolTime DESC'],
+      limit: 1,
+      where: {
+        userId: userId,
+        eolTime: {gte: moment.utc().toISOString()},
+      },
+    });
     // If user has a subscription, new plan'll start from subscriptino's eol
     if (lastSubs) {
       const lastEOL = lastSubs.eolTime;

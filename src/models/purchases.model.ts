@@ -38,6 +38,7 @@ export class Purchases extends Entity {
   @property({
     type: 'string',
     required: true,
+    index: {unique: true},
     mysql: {
       columnName: 'purchase_token',
       dataType: 'varchar',
@@ -95,25 +96,23 @@ export class Purchases extends Entity {
 
   @property({
     type: 'number',
-    required: true,
     mysql: {
       columnName: 'purchase_amount',
       dataType: 'mediumint unsigned',
       nullable: 'N',
     },
   })
-  purchaseAmount: number;
+  purchaseAmount?: number;
 
   @property({
     type: 'string',
-    required: true,
     mysql: {
       dataType: 'varchar',
       dataLength: 3,
       nullable: 'N',
     },
   })
-  currency: string;
+  currency?: string;
 
   @belongsTo(
     () => Users,

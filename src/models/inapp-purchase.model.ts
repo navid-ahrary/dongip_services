@@ -8,6 +8,9 @@ export class InappPurchase extends Model {
   @property({type: 'number', required: true})
   purchaseUnixTime: number;
 
+  @property({type: 'string', required: true})
+  purchaseToken: string;
+
   constructor(data?: Partial<InappPurchase>) {
     super(data);
   }
