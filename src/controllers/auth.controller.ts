@@ -512,6 +512,7 @@ export class AuthController {
     newUser: NewUser,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.header.string('firebase-token') firebaseToken?: string,
+    @param.header.string('accept-language') lang?: string,
   ): Promise<{
     userId: typeof Users.prototype.userId;
     planId: string | null;
@@ -582,7 +583,7 @@ export class AuthController {
         email: foundVerify.email ? foundVerify.email : undefined,
       });
 
-      const initCatList = this.catSrc;
+      const initCatList = this.catSrc[this.lang];
       initCatList.forEach((cat) => {
         Object.assign(cat, {userId: savedUser.userId});
       });

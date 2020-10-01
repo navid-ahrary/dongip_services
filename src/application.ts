@@ -89,11 +89,9 @@ export const LocalizedMessages = BindingKey.create<LocalizedMessages>(
 );
 const localizedMessages: LocalizedMessages = require('../locale/localized-contents.json');
 
-export interface CategoriesSource
-  extends Array<{
-    title: string;
-    icon: string;
-  }> {}
+export interface CategoriesSource {
+  [language: string]: Array<{title: string; icon: string}>;
+}
 
 export const CategoriesSourceList = BindingKey.create<CategoriesSource>(
   'application.categoriesSourceList',
