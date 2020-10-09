@@ -98,9 +98,9 @@
       "plan_gy1": "اشتراک طلایی ۱ ساله دُنگیپ"
     },
     "en": {
-      "plan_gm1": "Dongip 1 month gold subscription",
-      "plan_gm6": "Dongip 6 months gold subscription",
-      "plan_gy1": "Dongip 1 year gold subscription"
+      "plan_gm1": "Dongip 1 month premium subscription",
+      "plan_gm6": "Dongip 6 months premium subscription",
+      "plan_gy1": "Dongip 1 year premium subscription"
     }
   },
   "SUBSCRIPTION_NOTIFY_BODY": {
