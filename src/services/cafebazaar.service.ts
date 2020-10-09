@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {bind, BindingScope} from '@loopback/core';
+import {BindingScope, injectable} from '@loopback/core';
 import axios from 'axios';
 import qs from 'qs';
 import dotenv from 'dotenv';
@@ -30,7 +30,7 @@ export interface Purchase {
   purchaseToken: string;
 }
 
-@bind({scope: BindingScope.TRANSIENT})
+@injectable({scope: BindingScope.TRANSIENT})
 export class CafebazaarService {
   private readonly packageName = process.env.CAFEBAZAAR_PACKAGE_NAME;
   private readonly refreshToken = process.env.CAFEBAZAAR_REFRESH_TOKEN;

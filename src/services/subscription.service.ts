@@ -1,4 +1,4 @@
-import {bind, BindingScope, inject} from '@loopback/core';
+import {BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 
 import moment from 'moment';
@@ -9,7 +9,7 @@ import {UsersRepository, SubscriptionsRepository} from '../repositories';
 import {SubscriptionSpec} from '../application';
 import {Users, Subscriptions} from '../models';
 
-@bind({scope: BindingScope.SINGLETON})
+@injectable({scope: BindingScope.SINGLETON})
 export class SubscriptionService {
   constructor(
     @repository(UsersRepository) protected usersRepo: UsersRepository,

@@ -1,11 +1,11 @@
-import {bind, BindingScope} from '@loopback/core';
+import {BindingScope, injectable} from '@loopback/core';
 import {HttpErrors} from '@loopback/rest';
 import {repository} from '@loopback/repository';
 
 import {VerifyRepository} from '../repositories';
 import {Verify} from '../models';
 
-@bind({scope: BindingScope.TRANSIENT})
+@injectable({scope: BindingScope.TRANSIENT})
 export class VerifyService {
   constructor(
     @repository(VerifyRepository) public verifyRepository: VerifyRepository,

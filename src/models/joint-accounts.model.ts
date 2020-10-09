@@ -1,6 +1,29 @@
-import {Entity, model, property} from '@loopback/repository';
+import {
+  Entity,
+  model,
+  property,
+  belongsTo,
+  RelationType,
+  hasMany,
+} from '@loopback/repository';
+import {Users} from './users.model';
+import {JointAccountSubscribe} from './joint-account-subscribe.model';
 
-@model({name: 'joint_accounts'})
+@model({
+  name: 'joint_accounts',
+  settings: {
+    foreignKeys: {
+      fkNotificationsUserId: {
+        name: 'fk_joint_accounts_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+    },
+  },
+})
 export class JointAccounts extends Entity {
   @property({
     type: 'number',
@@ -52,13 +75,40 @@ export class JointAccounts extends Entity {
   })
   createdAt: string;
 
+  @belongsTo(
+    () => Users,
+    {
+      name: 'user',
+      keyFrom: 'userId',
+      keyTo: 'userId',
+      type: RelationType.belongsTo,
+      source: Users,
+      target: () => JointAccounts,
+    },
+    {
+      type: 'number',
+      required: true,
+      index: {normal: true},
+      mysql: {
+        columnName: 'user_id',
+        dataType: 'mediumint unsigned',
+        dataLength: null,
+        nullable: 'N',
+      },
+    },
+  )
+  userId: number;
+
+  @hasMany(() => JointAccountSubscribe, {keyTo: 'jointAccountId'})
+  jointAccountSubscribes: JointAccountSubscribe[];
+
   constructor(data?: Partial<JointAccounts>) {
     super(data);
   }
 }
 
 export interface JointAccountsRelations {
-  // describe navigational properties here
+  jointAccountSubscribes?: JointAccountSubscribe[];
 }
 
 export type JointAccountsWithRelations = JointAccounts & JointAccountsRelations;

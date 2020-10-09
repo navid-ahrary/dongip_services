@@ -50,9 +50,7 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
-    const lang = this.req.headers['accept-language']
-      ? this.req.headers['accept-language']
-      : 'fa';
+    const lang = this.req.headers['accept-language'] ?? 'fa';
 
     const invalidPhoneValueMessage = this.locMsg['PHONE_NOT_VALID'][lang];
     const invalidEmailValueMessage = this.locMsg['EMAIL_NOT_VALID'][lang];

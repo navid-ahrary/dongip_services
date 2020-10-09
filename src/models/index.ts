@@ -22,5 +22,6 @@ export * from './complete-signup.model';
 export * from './new-user.model';
 export * from './inapp-purchase.model';
 export * from './joint-accounts.model';
-export * from './joint-subscribe.model';
-export * from './joint-account-request.model';
+export * from './joint-account-subscribe.model';
+export * from './joint-request.model';
+export * from './joint-response.model';

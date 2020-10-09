@@ -65,9 +65,7 @@ export class UsersRelsController {
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-    this.lang = this.ctx.request.headers['accept-language']
-      ? this.ctx.request.headers['accept-language']
-      : 'fa';
+    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
 
   private normalizePhonesList(
@@ -135,15 +133,15 @@ export class UsersRelsController {
     const userRelObject = new UsersRels({
       name: userRelReqBody.name,
       avatar: userRelReqBody.avatar,
-      type: 'virtual',
       phone: userRelReqBody.phone,
+      type: 'unidirectional',
     });
 
     // Check phone number is not user's
-    const user = await this.usersRepository.findById(this.userId, {
+    const currentUser = await this.usersRepository.findById(this.userId, {
       fields: {phone: true, avatar: true, name: true},
     });
-    if (user.phone === userRelReqBody.phone) {
+    if (currentUser.phone === userRelReqBody.phone) {
       throw new HttpErrors.UnprocessableEntity(
         this.locMsg['YOURE_YOUR_FRIEND'][this.lang],
       );
@@ -188,13 +186,11 @@ export class UsersRelsController {
         let notifyType: string;
 
         const foundBiUserRel = await this.usersRelsRepository.findOne({
-          where: {userId: foundTargetUser.getId(), phone: user.phone},
+          where: {userId: foundTargetUser.getId(), phone: currentUser.phone},
           fields: {name: true},
         });
 
         if (!foundBiUserRel) {
-          userRelObject.type = 'unidirectional';
-
           notifyType = 'userRel';
           notifyTitle = this.locMsg['NEW_USERS_RELS_NOTIFY_TITLE'][
             foundTargetUser.setting.language
@@ -203,10 +199,11 @@ export class UsersRelsController {
             this.locMsg['NEW_USERS_RELS_NOTIFY_BODY'][
               foundTargetUser.setting.language
             ],
-            user.name,
+            currentUser.name,
           );
         } else {
           userRelObject.type = 'bidirectional';
+          createdUserRel.type = 'bidirectional';
 
           notifyType = 'biUserRel';
           notifyTitle = util.format(
@@ -221,6 +218,11 @@ export class UsersRelsController {
             ],
             foundBiUserRel.name,
           );
+
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          this.usersRepository
+            .usersRels(foundTargetUser.getId())
+            .patch({type: 'bidirectional'}, {phone: currentUser.phone});
         }
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -235,9 +237,9 @@ export class UsersRelsController {
             title: notifyTitle,
             body: notifyBody,
             type: notifyType,
-            name: user.name,
-            phone: user.phone,
-            avatar: user.avatar,
+            name: currentUser.name,
+            phone: currentUser.phone,
+            avatar: currentUser.avatar,
             createdAt: new Date().toLocaleString('en-US', {
               timeZone: 'Asia/Tehran',
             }),
@@ -256,9 +258,9 @@ export class UsersRelsController {
                   type: notifyType,
                   title: notifyTitle,
                   body: notifyBody,
-                  name: user.name,
-                  phone: user.phone!,
-                  avatar: user.avatar,
+                  name: currentUser.name,
+                  phone: currentUser.phone!,
+                  avatar: currentUser.avatar,
                 },
               },
             );

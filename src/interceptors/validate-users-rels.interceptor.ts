@@ -53,9 +53,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
-    this.lang = this.req.headers['accept-language']
-      ? this.req.headers['accept-language']
-      : 'fa';
+    this.lang = this.req.headers['accept-language'] ?? 'fa';
 
     let errMsg: string;
 
@@ -110,10 +108,10 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         const userRelIds = invocationCtx.args[0].userRelIds;
 
         const foundUR = await this.usersRepository.usersRels(this.userId).find({
-          fields: {userRelId: true, userId: true, phone: true},
+          fields: {userRelId: true, userId: true, type: true},
           where: {
             userRelId: {inq: userRelIds},
-            type: {inq: ['self', 'bidirectional', 'unidirectional']},
+            type: {inq: ['self', 'bidirectional']},
           },
         });
 

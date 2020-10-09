@@ -1,12 +1,13 @@
 import {CronJob, cronJob} from '@loopback/cron';
 import {repository} from '@loopback/repository';
-import {service, BindingScope} from '@loopback/core';
+import {service, BindingScope, inject} from '@loopback/core';
 import moment from 'moment';
 import debug from 'debug';
 const log = debug('api:cronjob');
 
 import {SettingsRepository, UsersRepository} from '../repositories';
 import {FirebaseService, BatchMessage} from '../services';
+import {LocalizedMessages} from '../application';
 
 @cronJob({scope: BindingScope.TRANSIENT})
 export class CronJobService extends CronJob {
@@ -15,6 +16,7 @@ export class CronJobService extends CronJob {
     public settingsRepository: SettingsRepository,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @service(FirebaseService) public firebaseService: FirebaseService,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     super({
       name: 'reminderNotifyJob',
@@ -36,7 +38,7 @@ export class CronJobService extends CronJob {
     const nowUTC = moment.utc();
 
     const foundSettings = await this.settingsRepository.find({
-      fields: {userId: true},
+      fields: {userId: true, language: true},
       where: {
         scheduleNotify: true,
         scheduleTime: {
@@ -57,15 +59,17 @@ export class CronJobService extends CronJob {
       ],
     });
 
-    const notifyTitle = 'وقتشه حساب کتاب‌هاتو دُنگیپ کنی';
-    const notifyBodyMessage = 'امروز چه هزینه‌هایی داشتی ؟';
     const firebaseMessages: BatchMessage = [];
 
     for (const setting of foundSettings) {
       if (setting.user) {
+        const lang = setting.language;
+        const notifyTitle = this.locMsg['DAILY_NOTIFY_TITLE'][lang];
+        const notifyBody = this.locMsg['DAILY_NOTIFY_BODY'][lang];
+
         firebaseMessages.push({
           token: setting.user.firebaseToken!,
-          notification: {title: notifyTitle, body: notifyBodyMessage},
+          notification: {title: notifyTitle, body: notifyBody},
           android: {
             notification: {
               clickAction: 'FLUTTER_NOTIFICATION_CLICK',

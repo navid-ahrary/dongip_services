@@ -36,7 +36,7 @@ import {
   UsersRelsRepository,
 } from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {FirebaseService, BatchMessage} from '../services';
+import {FirebaseService, BatchMessage, JointAccountService} from '../services';
 import {
   ValidateCategoryIdInterceptor,
   FirebasetokenInterceptor,
@@ -60,26 +60,26 @@ export class DongsController {
   lang: string;
 
   constructor(
-    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(UsersRepository) protected usersRepository: UsersRepository,
     @repository(UsersRelsRepository)
-    public usersRelsRepository: UsersRelsRepository,
-    @repository(DongsRepository) public dongRepository: DongsRepository,
+    protected usersRelsRepository: UsersRelsRepository,
+    @repository(DongsRepository) protected dongRepository: DongsRepository,
     @repository(CategoriesRepository)
-    public categoriesRepository: CategoriesRepository,
+    protected categoriesRepository: CategoriesRepository,
     @repository(PayerListRepository)
-    public payerListRepository: PayerListRepository,
+    protected payerListRepository: PayerListRepository,
     @repository(BillListRepository)
-    public billListRepository: BillListRepository,
-    @service(FirebaseService) private firebaseSerice: FirebaseService,
-    @inject(SecurityBindings.USER)
-    private currentUserProfile: UserProfile,
-    @inject.context() public ctx: RequestContext,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    protected billListRepository: BillListRepository,
+    @service(FirebaseService) protected firebaseService: FirebaseService,
+    @service(JointAccountService)
+    protected jointAccountService: JointAccountService,
+    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+    @inject.context() protected ctx: RequestContext,
+    @inject('application.localizedMessages')
+    protected locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-    this.lang = this.ctx.request.headers['accept-language']
-      ? this.ctx.request.headers['accept-language']
-      : 'fa';
+    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
 
   public numberWithCommas(x: number | string): string {
@@ -136,18 +136,24 @@ export class DongsController {
         'application/json': {
           schema: getModelSchemaRef(PostNewDong, {
             title: 'NewDongs',
-            optional: ['title', 'desc', 'groupId', 'currency'],
+            optional: [
+              'title',
+              'desc',
+              'groupId',
+              'currency',
+              'jountAccountId',
+            ],
           }),
           example: {
             title: 'New dong',
             desc: 'Dongip it',
+            sendNotify: true,
             createdAt: moment.utc().toISOString(),
             categoryId: 12,
             groupId: 1,
             jointAccountId: 42,
             pong: 80000,
             currency: 'IRT',
-            sendNotify: true,
             payerList: [{userRelId: 1, paidAmount: 80000}],
             billList: [
               {userRelId: 1, dongAmount: 20000},
@@ -215,7 +221,6 @@ export class DongsController {
     });
     if (userRel.length === 1) currentUserIsPayer = true;
 
-    // Create a Dongs objcet
     const dong = new Dongs({
       title: newDong.title,
       createdAt: newDong.createdAt,
@@ -373,7 +378,7 @@ export class DongsController {
         // send notification to friends
         if (firebaseMessagesList.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          this.firebaseSerice.sendAllMessage(firebaseMessagesList);
+          this.firebaseService.sendAllMessage(firebaseMessagesList);
         }
       }
 

@@ -27,13 +27,13 @@ export async function basicAuthorization(
   }
 
   // Authorize everything that does not have a allowedRoles property
-  if (!metadata.allowedRoles) {
+  if (!metadata.allowedRoles && !metadata.deniedRoles) {
     return AuthorizationDecision.ALLOW;
   }
 
   let roleIsAllowed = false;
   for (const role of currentUser.roles) {
-    if (metadata.allowedRoles.includes(role)) {
+    if (metadata.allowedRoles?.includes(role)) {
       roleIsAllowed = true;
       break;
     }

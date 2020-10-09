@@ -154,5 +154,13 @@
   "PASSWORD_LENGTH": {
     "fa": "طول رمز باید ۶ کاراکتر باشد",
     "en": "Password length should be atleast 6 character"
+  },
+  "DAILY_NOTIFY_TITLE": {
+    "fa": "وقتشه حساب کتاب‌هاتو دُنگیپ کنی",
+    "en": "It's time to submit your transactions"
+  },
+  "DAILY_NOTIFY_BODY": {
+    "fa": "امروز چه هزینه‌هایی داشتی ؟",
+    "en": "What did you spend today ?"
   }
 }

@@ -3,9 +3,10 @@ import {
   repository,
   BelongsToAccessor,
 } from '@loopback/repository';
+
 import {
-  JointSubscribe,
-  JointSubscribeRelations,
+  JointAccountSubscribe,
+  JointAccountSubscribeRelations,
   JointAccounts,
   Users,
 } from '../models';
@@ -14,19 +15,19 @@ import {inject, Getter} from '@loopback/core';
 import {JointAccountsRepository} from './joint-accounts.repository';
 import {UsersRepository} from './users.repository';
 
-export class JointSubscribeRepository extends DefaultCrudRepository<
-  JointSubscribe,
-  typeof JointSubscribe.prototype.jointSubscriberId,
-  JointSubscribeRelations
+export class JointAccountSubscribeRepository extends DefaultCrudRepository<
+  JointAccountSubscribe,
+  typeof JointAccountSubscribe.prototype.jointSubscriberId,
+  JointAccountSubscribeRelations
 > {
   public readonly jointAccount: BelongsToAccessor<
     JointAccounts,
-    typeof JointSubscribe.prototype.jointSubscriberId
+    typeof JointAccountSubscribe.prototype.jointSubscriberId
   >;
 
   public readonly user: BelongsToAccessor<
     Users,
-    typeof JointSubscribe.prototype.jointSubscriberId
+    typeof JointAccountSubscribe.prototype.jointSubscriberId
   >;
 
   constructor(
@@ -36,9 +37,11 @@ export class JointSubscribeRepository extends DefaultCrudRepository<
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
-    super(JointSubscribe, dataSource);
+    super(JointAccountSubscribe, dataSource);
+
     this.user = this.createBelongsToAccessorFor('user', usersRepositoryGetter);
     this.registerInclusionResolver('user', this.user.inclusionResolver);
+
     this.jointAccount = this.createBelongsToAccessorFor(
       'jointAccount',
       jointAccountsRepositoryGetter,

@@ -25,6 +25,7 @@ import {
   Settings,
   Purchases,
   Subscriptions,
+  JointAccounts,
 } from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
@@ -40,6 +41,7 @@ import {VirtualUsersRepository} from './virtual-users.repository';
 import {DongsRepository} from './dongs.repository';
 import {CategoriesRepository} from './categories.repository';
 import {UsersRelsRepository} from './users-rels.repository';
+import {JointAccountsRepository} from './joint-accounts.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
@@ -115,6 +117,11 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
+  public readonly jointAccounts: HasManyRepositoryFactory<
+    JointAccounts,
+    typeof Users.prototype.userId
+  >;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -147,8 +154,19 @@ export class UsersRepository extends DefaultCrudRepository<
     protected purchasesRepositoryGetter: Getter<PurchasesRepository>,
     @repository.getter('SubscriptionsRepository')
     protected subscriptionsRepositoryGetter: Getter<SubscriptionsRepository>,
+
+    @repository.getter('JointAccountsRepository')
+    protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
   ) {
     super(Users, dataSource);
+    this.jointAccounts = this.createHasManyRepositoryFactoryFor(
+      'jointAccounts',
+      jointAccountsRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'jointAccounts',
+      this.jointAccounts.inclusionResolver,
+    );
 
     this.subscriptions = this.createHasManyRepositoryFactoryFor(
       'subscriptions',

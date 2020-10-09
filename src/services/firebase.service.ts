@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import {bind, BindingScope} from '@loopback/core';
+import {BindingScope, injectable} from '@loopback/core';
 import {
   messaging,
   initializeApp,
@@ -29,7 +29,7 @@ export interface FirebaseService {
   ): Promise<messaging.BatchResponse>;
 }
 
-@bind({scope: BindingScope.SINGLETON})
+@injectable({scope: BindingScope.SINGLETON})
 export class FirebaseService {
   constructor(
     private serviceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`),

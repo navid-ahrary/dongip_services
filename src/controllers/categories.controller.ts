@@ -44,9 +44,7 @@ export class CategoriesController {
   ) {
     this.userId = +this.currentUserProfile[securityId];
 
-    this.lang = this.ctx.request.headers['accept-language']
-      ? this.ctx.request.headers['accept-language']
-      : 'fa';
+    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
 
   @get('/categories', {

@@ -1,36 +1,31 @@
-import {repository, DataObject, property} from '@loopback/repository';
-import {post, getModelSchemaRef, requestBody} from '@loopback/rest';
+import {repository, DataObject} from '@loopback/repository';
+import {post, get, getModelSchemaRef, requestBody} from '@loopback/rest';
 import {intercept, inject} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
 
-import {JointAccountRequest, JointSubscribe, Users} from '../models';
+import {JointRequest, JointResponse, JointAccountSubscribe} from '../models';
 import {
   JointAccountsRepository,
-  JointSubscribeRepository,
+  JointAccountSubscribeRepository,
   UsersRelsRepository,
   UsersRepository,
 } from '../repositories';
 import {ValidateUsersRelsInterceptor} from '../interceptors';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-
-class JointAccountResponse extends JointAccountRequest {
-  @property({
-    type: 'number',
-    required: false,
-  })
-  jointAccountId: number;
-}
+import {basicAuthorization} from '../services';
 
 @authenticate('jwt.access')
+@authorize({allowedRoles: ['GOLD'], voters: [basicAuthorization]})
 export class JointAccountController {
   private readonly userId: number;
 
   constructor(
     @repository(JointAccountsRepository)
     protected jointAccountsRepo: JointAccountsRepository,
-    @repository(JointSubscribeRepository)
-    protected jointSubscribeRepo: JointSubscribeRepository,
+    @repository(JointAccountSubscribeRepository)
+    protected jointAccSubscribeRepo: JointAccountSubscribeRepository,
     @repository(UsersRelsRepository)
     protected usersRelsRepo: UsersRelsRepository,
     @repository(UsersRepository) protected usersRepo: UsersRepository,
@@ -40,13 +35,13 @@ export class JointAccountController {
   }
 
   @post('/joint-accounts', {
-    summary: 'Create a joint account',
+    summary: 'POST a new JointAccounts',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'JointAccounts model instance',
         content: {
-          'application/json': {schema: getModelSchemaRef(JointAccountResponse)},
+          'application/json': {schema: getModelSchemaRef(JointResponse)},
         },
       },
     },
@@ -56,21 +51,22 @@ export class JointAccountController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(JointAccountRequest, {
+          schema: getModelSchemaRef(JointRequest, {
             title: 'NewJointAccounts',
             includeRelations: false,
           }),
           example: {
             title: 'family',
             description: 'Share credit card, me and wife',
-            userRelIds: [1, 5],
+            userRelIds: [1, 11],
           },
         },
       },
     })
-    jointAccountsReq: Omit<JointAccountRequest, 'jointAccountsId'>,
-  ): Promise<JointAccountResponse> {
+    jointAccountsReq: Omit<JointRequest, 'jointAccountsId'>,
+  ): Promise<JointResponse> {
     const JA = await this.jointAccountsRepo.create({
+      userId: this.userId,
       title: jointAccountsReq.title,
       description: jointAccountsReq.description,
     });
@@ -89,22 +85,80 @@ export class JointAccountController {
           where: {phone: {inq: urs.map((u) => u.phone)}},
         });
 
-        const jsList = this.createJSList(
-          JA.getId(),
-          users.map((u) => u.getId()),
-        );
-        await this.jointSubscribeRepo.createAll(jsList);
+        const jsList: Array<DataObject<JointAccountSubscribe>> = [];
+        for (const userId of users.map((u) => u.getId())) {
+          jsList.push({userId, jointAccountId: JA.jointAccountId});
+        }
+        await this.jointAccSubscribeRepo.createAll(jsList);
       });
 
-    return {jointAccountId: JA.getId(), ...jointAccountsReq};
+    return {
+      jointAccountId: JA.getId(),
+      createdAt: JA.createdAt,
+      ...jointAccountsReq,
+    };
   }
 
-  private createJSList(
-    jointAccountId: typeof JointSubscribe.prototype.jointAccountId,
-    userIds: Array<typeof Users.prototype.userId>,
-  ): Array<DataObject<JointSubscribe>> {
-    const result: Array<DataObject<JointSubscribe>> = [];
-    for (const userId of userIds) result.push({userId, jointAccountId});
+  @get('/joint-accounts', {
+    summary: 'GET array of all JointAccounts',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      200: {
+        'application/json': {
+          description: 'Array of JointAccount',
+          content: {
+            'application/json': {
+              schema: {type: 'array', items: getModelSchemaRef(JointResponse)},
+            },
+          },
+        },
+      },
+    },
+  })
+  async getJointAccounts(): Promise<JointResponse[]> {
+    const result: Array<JointResponse> = [];
+
+    const jsas = await this.jointAccSubscribeRepo.find({
+      fields: {jointAccountId: true},
+      where: {userId: this.userId},
+    });
+
+    const jaIds = jsas.map((jsa) => jsa.jointAccountId);
+
+    const JAs = await this.jointAccountsRepo.find({
+      fields: {userId: false},
+      where: {jointAccountId: {inq: jaIds}},
+      include: [{relation: 'jointAccountSubscribes'}],
+    });
+
+    console.log(JAs);
+
+    for (const ja of JAs) {
+      const userRelIds: Array<number> = [];
+      for (const jas of ja.jointAccountSubscribes) {
+        const u = await this.usersRepo.findById(jas.userId, {
+          fields: {userId: true, phone: true},
+        });
+
+        const userRel = await this.usersRelsRepo.findOne({
+          fields: {userRelId: true, userId: true, phone: true},
+          where: {userId: this.userId, phone: u.phone},
+        });
+
+        userRelIds.push(userRel?.getId());
+      }
+
+      result.push(
+        new JointResponse({
+          jointAccountId: ja.getId(),
+          title: ja.title,
+          description: ja.title,
+          userRelIds: userRelIds,
+          createdAt: ja.createdAt,
+        }),
+      );
+    }
+
     return result;
   }
 }

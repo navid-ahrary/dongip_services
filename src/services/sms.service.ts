@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {bind, BindingScope, service} from '@loopback/core';
+import {BindingScope, injectable, service} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {config} from 'dotenv';
 config();
@@ -31,7 +31,7 @@ export interface KavenegarResponse {
   };
 }
 
-@bind({scope: BindingScope.SINGLETON})
+@injectable({scope: BindingScope.SINGLETON})
 export class SmsService {
   private readonly SMS_TEMPLATE = process.env.SMS_TEMPLATE;
   private readonly LOOKUP_TYPE = 'sms';
