@@ -35,6 +35,7 @@ import {Budgets} from './budgets.model';
       },
     },
   },
+  jsonSchema: {description: 'Categories model'},
 })
 export class Categories extends Entity {
   @property({

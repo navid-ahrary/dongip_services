@@ -129,6 +129,7 @@ export class GroupsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(Groups, {
+            title: 'PatchGroups',
             partial: true,
             exclude: ['groupId', 'userId'],
           }),

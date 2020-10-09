@@ -24,6 +24,7 @@ import {inject, service, intercept} from '@loopback/core';
 
 import _ from 'lodash';
 import util from 'util';
+import moment from 'moment';
 
 import {Dongs, PostNewDong, Notifications} from '../models';
 import {
@@ -81,7 +82,7 @@ export class DongsController {
       : 'fa';
   }
 
-  public numberWithCommas(x: number): string {
+  public numberWithCommas(x: number | string): string {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
@@ -121,6 +122,7 @@ export class DongsController {
         content: {
           'application/json': {
             schema: getModelSchemaRef(ResponseNewDong, {
+              title: 'NewDongs',
               includeRelations: false,
             }),
           },
@@ -139,11 +141,12 @@ export class DongsController {
           example: {
             title: 'New dong',
             desc: 'Dongip it',
-            createdAt: new Date().toISOString(),
-            categoryId: 1,
-            groupId: 12,
+            createdAt: moment.utc().toISOString(),
+            categoryId: 12,
+            groupId: 1,
+            jointAccountId: 42,
             pong: 80000,
-            currency: 'IRR',
+            currency: 'IRT',
             sendNotify: true,
             payerList: [{userRelId: 1, paidAmount: 80000}],
             billList: [
@@ -357,9 +360,7 @@ export class DongsController {
                   // iOS options
                   apns: {
                     payload: {
-                      aps: {
-                        alert: {actionLocKey: 'FLUTTER_NOTIFICATION_CLICK'},
-                      },
+                      aps: {},
                     },
                     fcmOptions: {},
                   },

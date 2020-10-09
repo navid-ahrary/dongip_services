@@ -20,6 +20,8 @@ export async function migrate(args: string[]) {
       'users_rels',
       'virtual_users',
       'dongs',
+      'joint_subscribe',
+      'joint_accounts',
       'bill_list',
       'payer_list',
       'scores',

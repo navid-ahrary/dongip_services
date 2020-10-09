@@ -9,9 +9,18 @@ import {
   hasMany,
 } from '@loopback/repository';
 
-import {Users} from './';
+import {Users} from './users.model';
 import {VirtualUsers} from './virtual-users.model';
 import {Budgets} from './budgets.model';
+
+enum TypeEnum {
+  SELF = 'self',
+  VIRTUAL = 'virtual',
+  UNIDIRECTIONAL = 'unidirectional',
+  BIDIRECTIONAL = 'bidirectional',
+}
+
+type Type = 'self' | 'virtual' | 'unidirectional' | 'bidirectional';
 
 @model({
   name: 'users_rels',
@@ -76,7 +85,7 @@ export class UsersRels extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {maxLength: 20},
+    jsonSchema: {maxLength: 20, enum: Object.values(TypeEnum)},
     mysql: {
       columnName: 'type',
       dataType: 'varchar',
@@ -84,7 +93,7 @@ export class UsersRels extends Entity {
       nullable: 'N',
     },
   })
-  type: string;
+  type: Type;
 
   @property({
     type: 'string',

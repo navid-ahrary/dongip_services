@@ -106,9 +106,19 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
 
           throw new Error(errMsg);
         }
-      } else if (invocationCtx.methodName === 'createUsersRels') {
-        if (!invocationCtx.args[0].phone) {
-          errMsg = 'Phone number must b provided';
+      } else if (invocationCtx.methodName === 'createJointAccount') {
+        const userRelIds = invocationCtx.args[0].userRelIds;
+
+        const foundUR = await this.usersRepository.usersRels(this.userId).find({
+          fields: {userRelId: true, userId: true, phone: true},
+          where: {
+            userRelId: {inq: userRelIds},
+            type: {inq: ['self', 'bidirectional', 'unidirectional']},
+          },
+        });
+
+        if (foundUR.length !== userRelIds.length) {
+          errMsg = this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang];
 
           throw new Error(errMsg);
         }

@@ -16,3 +16,5 @@ export * from './settings.repository';
 export * from './links.repository';
 export * from './purchases.repository';
 export * from './subscriptions.repository';
+export * from './joint-accounts.repository';
+export * from './joint-subscribe.repository';

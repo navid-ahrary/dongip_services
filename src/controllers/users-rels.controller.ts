@@ -21,7 +21,7 @@ import moment from 'moment';
 import util from 'util';
 
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {UsersRels, Users, Notifications} from '../models';
+import {UsersRels, Users} from '../models';
 import {
   UsersRepository,
   VirtualUsersRepository,
@@ -148,6 +148,7 @@ export class UsersRelsController {
         this.locMsg['YOURE_YOUR_FRIEND'][this.lang],
       );
     }
+
     // Create a UserRel belongs to current user
     const createdUserRel = await this.usersRepository
       .usersRels(this.userId)
@@ -168,8 +169,8 @@ export class UsersRelsController {
         throw new HttpErrors.NotAcceptable(err.message);
       });
 
-    // Create a VirtualUser belongs to current user
-    await this.usersRepository
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.usersRepository
       .virtualUsers(this.userId)
       .create({phone: userRelReqBody.phone, userRelId: createdUserRel.getId()});
 
@@ -192,6 +193,8 @@ export class UsersRelsController {
         });
 
         if (!foundBiUserRel) {
+          userRelObject.type = 'unidirectional';
+
           notifyType = 'userRel';
           notifyTitle = this.locMsg['NEW_USERS_RELS_NOTIFY_TITLE'][
             foundTargetUser.setting.language
@@ -203,6 +206,8 @@ export class UsersRelsController {
             user.name,
           );
         } else {
+          userRelObject.type = 'bidirectional';
+
           notifyType = 'biUserRel';
           notifyTitle = util.format(
             this.locMsg['USERS_RELS_BACK_NOTIFY_TITLE'][
@@ -210,7 +215,7 @@ export class UsersRelsController {
             ],
             foundBiUserRel.name,
           );
-          notifyBody = notifyTitle = util.format(
+          notifyBody = util.format(
             this.locMsg['USERS_RELS_BACK_NOTIFY_BODY'][
               foundTargetUser.setting.language
             ],
@@ -218,7 +223,13 @@ export class UsersRelsController {
           );
         }
 
-        const createdNotify: Notifications = await this.usersRepository
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRelsRepository.updateById(createdUserRel.getId(), {
+          type: userRelObject.type,
+        });
+
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository
           .notifications(foundTargetUser.getId())
           .create({
             title: notifyTitle,
@@ -230,27 +241,28 @@ export class UsersRelsController {
             createdAt: new Date().toLocaleString('en-US', {
               timeZone: 'Asia/Tehran',
             }),
+          })
+          .then(async (createdNotify) => {
+            await this.firebaseService.sendToDeviceMessage(
+              foundTargetUser.firebaseToken!,
+              {
+                notification: {
+                  title: notifyTitle,
+                  body: notifyBody,
+                  clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+                },
+                data: {
+                  notifyId: createdNotify.getId().toString(),
+                  type: notifyType,
+                  title: notifyTitle,
+                  body: notifyBody,
+                  name: user.name,
+                  phone: user.phone!,
+                  avatar: user.avatar,
+                },
+              },
+            );
           });
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.firebaseService.sendToDeviceMessage(
-          foundTargetUser.firebaseToken!,
-          {
-            notification: {
-              title: notifyTitle,
-              body: notifyBody,
-              clickAction: 'FLUTTER_NOTIFICATION_CLICK',
-            },
-            data: {
-              notifyId: createdNotify.getId().toString(),
-              type: notifyType,
-              title: notifyTitle,
-              body: notifyBody,
-              name: user.name,
-              phone: user.phone!,
-              avatar: user.avatar,
-            },
-          },
-        );
       }
     }
 
