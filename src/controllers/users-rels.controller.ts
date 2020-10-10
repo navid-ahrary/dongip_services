@@ -210,7 +210,7 @@ export class UsersRelsController {
             ],
             foundBiUserRel.name,
           );
-          notifyBody = notifyTitle = util.format(
+          notifyBody = util.format(
             this.locMsg['USERS_RELS_BACK_NOTIFY_BODY'][
               foundTargetUser.setting.language
             ],
@@ -218,7 +218,8 @@ export class UsersRelsController {
           );
         }
 
-        const createdNotify: Notifications = await this.usersRepository
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository
           .notifications(foundTargetUser.getId())
           .create({
             title: notifyTitle,
@@ -230,27 +231,28 @@ export class UsersRelsController {
             createdAt: new Date().toLocaleString('en-US', {
               timeZone: 'Asia/Tehran',
             }),
+          })
+          .then(async (createdNotify) => {
+            await this.firebaseService.sendToDeviceMessage(
+              foundTargetUser.firebaseToken!,
+              {
+                notification: {
+                  title: notifyTitle,
+                  body: notifyBody,
+                  clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+                },
+                data: {
+                  notifyId: createdNotify.getId().toString(),
+                  type: notifyType,
+                  title: notifyTitle,
+                  body: notifyBody,
+                  name: user.name,
+                  phone: user.phone!,
+                  avatar: user.avatar,
+                },
+              },
+            );
           });
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.firebaseService.sendToDeviceMessage(
-          foundTargetUser.firebaseToken!,
-          {
-            notification: {
-              title: notifyTitle,
-              body: notifyBody,
-              clickAction: 'FLUTTER_NOTIFICATION_CLICK',
-            },
-            data: {
-              notifyId: createdNotify.getId().toString(),
-              type: notifyType,
-              title: notifyTitle,
-              body: notifyBody,
-              name: user.name,
-              phone: user.phone!,
-              avatar: user.avatar,
-            },
-          },
-        );
       }
     }
 
