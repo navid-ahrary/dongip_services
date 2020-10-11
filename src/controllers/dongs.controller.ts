@@ -263,6 +263,22 @@ export class DongsController {
       // Store payerLists in database
       const createdBillList = await this.billListRepository.createAll(billList);
 
+      if (newDong.jountAccountId) {
+        const selfRel = await this.usersRelsRepository.findOne({
+          fields: {userRelId: true, userId: true},
+        });
+
+        if (_.findIndex(billList, {userRelId: selfRel?.getId()}) > -1) {
+          const userBill = _.find(billList, {userRelId: selfRel?.getId()});
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          this.jointAccountService.submit(
+            this.userId,
+            newDong.jountAccountId,
+            userBill!,
+          );
+        }
+      }
+
       const sendNotify = _.has(newDong, 'sendNotify')
         ? newDong.sendNotify
         : true;

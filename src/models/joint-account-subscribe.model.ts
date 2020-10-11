@@ -78,6 +78,7 @@ export class JointAccountSubscribe extends Entity {
 
 export interface JointAccountSubscribeRelations {
   jointAccount?: JointAccounts;
+  user?: Users;
 }
 
 export type JointAccountSubscribeWithRelations = JointAccountSubscribe &

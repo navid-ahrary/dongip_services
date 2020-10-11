@@ -22,6 +22,7 @@ import {Settings, SettingsWithRelations} from './settings.model';
 import {Purchases} from './purchases.model';
 import {Subscriptions, SubscriptionsWithRelations} from './subscriptions.model';
 import {JointAccounts} from './joint-accounts.model';
+import {JointAccountSubscribe} from './joint-account-subscribe.model';
 
 @model({name: 'users'})
 export class Users extends Entity {
@@ -364,6 +365,17 @@ export class Users extends Entity {
     target: () => JointAccounts,
   })
   jointAccounts: JointAccounts[];
+
+  @hasMany(() => JointAccountSubscribe, {
+    name: 'jointAccountSubscribes',
+    keyFrom: 'userId',
+    keyTo: 'jointAccountSubscribeId',
+    type: RelationType.hasMany,
+    targetsMany: true,
+    source: Users,
+    target: () => JointAccountSubscribe,
+  })
+  jointAccountSubscribes: JointAccountSubscribe[];
 
   constructor(data?: Partial<Users>) {
     super(data);

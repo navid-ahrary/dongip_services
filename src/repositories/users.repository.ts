@@ -25,8 +25,7 @@ import {
   Settings,
   Purchases,
   Subscriptions,
-  JointAccounts,
-} from '../models';
+  JointAccounts, JointAccountSubscribe} from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 import {ScoresRepository} from './scores.repository';
@@ -42,6 +41,7 @@ import {DongsRepository} from './dongs.repository';
 import {CategoriesRepository} from './categories.repository';
 import {UsersRelsRepository} from './users-rels.repository';
 import {JointAccountsRepository} from './joint-accounts.repository';
+import {JointAccountSubscribeRepository} from './joint-account-subscribe.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
@@ -122,6 +122,8 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
+  public readonly jointAccountSubscribes: HasManyRepositoryFactory<JointAccountSubscribe, typeof Users.prototype.userId>;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -156,9 +158,11 @@ export class UsersRepository extends DefaultCrudRepository<
     protected subscriptionsRepositoryGetter: Getter<SubscriptionsRepository>,
 
     @repository.getter('JointAccountsRepository')
-    protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
+    protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>, @repository.getter('JointAccountSubscribeRepository') protected jointAccountSubscribeRepositoryGetter: Getter<JointAccountSubscribeRepository>,
   ) {
     super(Users, dataSource);
+    this.jointAccountSubscribes = this.createHasManyRepositoryFactoryFor('jointAccountSubscribes', jointAccountSubscribeRepositoryGetter,);
+    this.registerInclusionResolver('jointAccountSubscribes', this.jointAccountSubscribes.inclusionResolver);
     this.jointAccounts = this.createHasManyRepositoryFactoryFor(
       'jointAccounts',
       jointAccountsRepositoryGetter,
