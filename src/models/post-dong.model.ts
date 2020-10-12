@@ -8,12 +8,7 @@ import {Dongs} from './dongs.model';
 import {Users} from './users.model';
 import {Groups} from './groups.model';
 
-export interface Transaction {
-  userRelId: typeof UsersRels.prototype.userRelId;
-  dongAmount: number;
-}
-
-@model({jsonSchema: {description: 'Post a new dong'}})
+@model()
 export class PostNewDong extends Model {
   @property({
     type: 'number',
@@ -67,7 +62,7 @@ export class PostNewDong extends Model {
   @property({
     type: 'number',
   })
-  jountAccountId?: typeof JointAccounts.prototype.jointAccountId;
+  jointAccountId?: typeof JointAccounts.prototype.jointAccountId;
 
   @property({
     type: 'string',
@@ -85,13 +80,19 @@ export class PostNewDong extends Model {
     type: 'array',
     itemType: 'object',
   })
-  payerList: Array<Transaction>;
+  payerList: {
+    userRelId: typeof UsersRels.prototype.userRelId;
+    dongAmount: number;
+  }[];
 
   @property({
     type: 'array',
     itemType: 'object',
   })
-  billList: Array<Transaction>;
+  billList: {
+    userRelId: typeof UsersRels.prototype.userRelId;
+    dongAmount: number;
+  }[];
 
   constructor(data?: Partial<PostNewDong>) {
     super(data);

@@ -5,10 +5,10 @@ import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 
-import {JointRequest, JointResponse, JointAccountSubscribe} from '../models';
+import {JointRequest, JointResponse, JointAccountSubscribes} from '../models';
 import {
   JointAccountsRepository,
-  JointAccountSubscribeRepository,
+  JointAccountSubscribesRepository,
   UsersRelsRepository,
   UsersRepository,
 } from '../repositories';
@@ -24,8 +24,8 @@ export class JointAccountController {
   constructor(
     @repository(JointAccountsRepository)
     protected jointAccountsRepo: JointAccountsRepository,
-    @repository(JointAccountSubscribeRepository)
-    protected jointAccSubscribeRepo: JointAccountSubscribeRepository,
+    @repository(JointAccountSubscribesRepository)
+    protected jointAccSubscribesRepo: JointAccountSubscribesRepository,
     @repository(UsersRelsRepository)
     protected usersRelsRepo: UsersRelsRepository,
     @repository(UsersRepository) protected usersRepo: UsersRepository,
@@ -85,11 +85,11 @@ export class JointAccountController {
           where: {phone: {inq: urs.map((u) => u.phone)}},
         });
 
-        const jsList: Array<DataObject<JointAccountSubscribe>> = [];
+        const jsList: Array<DataObject<JointAccountSubscribes>> = [];
         for (const userId of users.map((u) => u.getId())) {
           jsList.push({userId, jointAccountId: JA.jointAccountId});
         }
-        await this.jointAccSubscribeRepo.createAll(jsList);
+        await this.jointAccSubscribesRepo.createAll(jsList);
       });
 
     return {
@@ -118,7 +118,7 @@ export class JointAccountController {
   async getJointAccounts(): Promise<JointResponse[]> {
     const result: Array<JointResponse> = [];
 
-    const jsas = await this.jointAccSubscribeRepo.find({
+    const jsas = await this.jointAccSubscribesRepo.find({
       fields: {jointAccountId: true},
       where: {userId: this.userId},
     });

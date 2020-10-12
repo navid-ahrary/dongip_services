@@ -31,10 +31,9 @@ export interface FirebaseService {
 
 @injectable({scope: BindingScope.SINGLETON})
 export class FirebaseService {
-  constructor(
-    private serviceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`),
-  ) {
-    this.initializeApp(serviceAccount);
+  private serviceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
+  constructor() {
+    this.initializeApp(this.serviceAccount);
   }
 
   private initializeApp(serviceAccount: ServiceAccount) {
@@ -50,6 +49,17 @@ export class FirebaseService {
     payload: messaging.MessagingPayload,
     options?: messaging.MessagingOptions | undefined,
   ): Promise<messaging.MessagingDevicesResponse> {
+    Object.assign(payload.notification, {
+      // Android options
+      android: {
+        notification: {clickAction: 'FLUTTER_NOTIFICATION_CLICK'},
+      },
+      // iOS options
+      apns: {
+        payload: {},
+        fcmOptions: {},
+      },
+    });
     const response = await messaging().sendToDevice(
       firebaseToken,
       payload,
@@ -72,6 +82,19 @@ export class FirebaseService {
     message: messaging.MulticastMessage,
     dryRun?: boolean,
   ) {
+    Object.assign(message, {
+      // Android options
+      android: {
+        notification: {clickAction: 'FLUTTER_NOTIFICATION_CLICK'},
+      },
+      // iOS options
+      apns: {
+        payload: {},
+        fcmOptions: {},
+      },
+    });
+
+    // Android options
     await messaging()
       .sendMulticast(message, dryRun)
       .then(function (_response) {
@@ -101,6 +124,19 @@ export class FirebaseService {
   public async sendAllMessage(
     messages: Array<messaging.Message>,
   ): Promise<messaging.BatchResponse> {
+    messages.forEach((msg) =>
+      Object.assign(msg, {
+        // Android options
+        android: {
+          notification: {clickAction: 'FLUTTER_NOTIFICATION_CLICK'},
+        },
+        // iOS options
+        apns: {
+          payload: {},
+          fcmOptions: {},
+        },
+      }),
+    );
     const response = await messaging()
       .sendAll(messages)
       .catch(function (_error) {

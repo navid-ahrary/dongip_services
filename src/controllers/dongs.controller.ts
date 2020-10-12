@@ -36,7 +36,7 @@ import {
   UsersRelsRepository,
 } from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {FirebaseService, BatchMessage, JointAccountService} from '../services';
+import {FirebaseService, BatchMessage, JointService, Joint} from '../services';
 import {
   ValidateCategoryIdInterceptor,
   FirebasetokenInterceptor,
@@ -60,19 +60,18 @@ export class DongsController {
   lang: string;
 
   constructor(
-    @repository(UsersRepository) protected usersRepository: UsersRepository,
+    @repository(UsersRepository) protected usersRepo: UsersRepository,
     @repository(UsersRelsRepository)
-    protected usersRelsRepository: UsersRelsRepository,
-    @repository(DongsRepository) protected dongRepository: DongsRepository,
+    protected usersRelsRepo: UsersRelsRepository,
+    @repository(DongsRepository) protected dongRepo: DongsRepository,
     @repository(CategoriesRepository)
-    protected categoriesRepository: CategoriesRepository,
+    protected categoriesRepo: CategoriesRepository,
     @repository(PayerListRepository)
-    protected payerListRepository: PayerListRepository,
+    protected payerListRepo: PayerListRepository,
     @repository(BillListRepository)
-    protected billListRepository: BillListRepository,
+    protected billListRepo: BillListRepository,
     @service(FirebaseService) protected firebaseService: FirebaseService,
-    @service(JointAccountService)
-    protected jointAccountService: JointAccountService,
+    @service(JointService) protected jointService: JointService,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @inject.context() protected ctx: RequestContext,
     @inject('application.localizedMessages')
@@ -109,7 +108,7 @@ export class DongsController {
       include: [{relation: 'payerList'}, {relation: 'billList'}],
     };
 
-    return this.usersRepository.dongs(this.userId).find(filter);
+    return this.usersRepo.dongs(this.userId).find(filter);
   }
 
   @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
@@ -141,7 +140,7 @@ export class DongsController {
               'desc',
               'groupId',
               'currency',
-              'jountAccountId',
+              'jointAccountId',
             ],
           }),
           example: {
@@ -167,6 +166,7 @@ export class DongsController {
     })
     newDong: Omit<PostNewDong, 'id'>,
   ): Promise<DataObject<ResponseNewDong>> {
+    console.log(newDong);
     const newDongScore = 50;
     const mutualFriendScore = 20;
 
@@ -175,11 +175,8 @@ export class DongsController {
     if (newDong.userId) delete newDong.userId;
     if (newDong.dongId) delete newDong.dongId;
 
-    if (!newDong.currency) {
-      newDong.currency = 'IRT';
-    }
     // Current user
-    const currentUser = await this.usersRepository.findOne({
+    const currentUser = await this.usersRepo.findOne({
       where: {userId: this.userId},
       fields: {userId: true, phone: true, name: true},
     });
@@ -204,7 +201,7 @@ export class DongsController {
     });
 
     // Validate userRelIds in billList and payerList
-    const currentUserFoundUsersRelsList = await this.usersRepository
+    const currentUserFoundUsersRelsList = await this.usersRepo
       .usersRels(this.userId)
       .find({
         where: {or: allUsersRelsIdList},
@@ -216,28 +213,28 @@ export class DongsController {
     }
 
     // Check payer is user himself
-    const userRel = await this.usersRepository.usersRels(this.userId).find({
+    const userRel = await this.usersRepo.usersRels(this.userId).find({
       where: {and: [{userRelId: payerList[0].userRelId}, {type: 'self'}]},
     });
     if (userRel.length === 1) currentUserIsPayer = true;
 
-    const dong = new Dongs({
-      title: newDong.title,
-      createdAt: newDong.createdAt,
-      categoryId: newDong.categoryId,
-      desc: newDong.desc,
-      pong: newDong.pong,
-      currency: newDong.currency,
-      groupId: newDong.groupId,
-    });
-
     try {
-      const createdDong = await this.usersRepository
+      const createdDong = await this.usersRepo
         .dongs(this.userId)
-        .create(dong);
+        .create(
+          _.pick(newDong, [
+            'title',
+            'createdAt',
+            'categoryId',
+            'desc',
+            'pong',
+            'currency',
+            'groupId',
+          ]),
+        );
 
       payerList.forEach((item) => {
-        item = Object.assign(item, {
+        item = _.assign(item, {
           userId: this.userId,
           dongId: createdDong.getId(),
           createdAt: createdDong.createdAt,
@@ -247,7 +244,7 @@ export class DongsController {
       });
 
       billList.forEach((item) => {
-        item = Object.assign(item, {
+        item = _.assign(item, {
           userId: this.userId,
           dongId: createdDong.getId(),
           createdAt: createdDong.createdAt,
@@ -257,69 +254,45 @@ export class DongsController {
       });
 
       // Store billlists in database
-      const createdPayerList = await this.payerListRepository.createAll(
-        payerList,
-      );
+      const createdPayerList = await this.payerListRepo.createAll(payerList);
       // Store payerLists in database
-      const createdBillList = await this.billListRepository.createAll(billList);
+      const createdBillList = await this.billListRepo.createAll(billList);
 
-      if (newDong.jountAccountId) {
-        const selfRel = await this.usersRelsRepository.findOne({
-          fields: {userRelId: true, userId: true},
-        });
-
-        if (_.findIndex(billList, {userRelId: selfRel?.getId()}) > -1) {
-          const userBill = _.find(billList, {userRelId: selfRel?.getId()});
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          this.jointAccountService.submit(
-            this.userId,
-            newDong.jountAccountId,
-            userBill!,
-          );
-        }
-      }
+      const currentUserCategory = await this.categoriesRepo.findById(
+        newDong.categoryId,
+        {fields: {title: true, icon: true}},
+      );
 
       const sendNotify = _.has(newDong, 'sendNotify')
         ? newDong.sendNotify
         : true;
 
       if (currentUserIsPayer && sendNotify) {
-        const currentUserCategory = await this.categoriesRepository.findById(
-          newDong.categoryId,
-          {fields: {title: true, icon: true}},
-        );
-
         for (const relation of currentUserFoundUsersRelsList) {
           if (relation.type !== 'self') {
-            const user = await this.usersRepository.findOne({
+            const user = await this.usersRepo.findOne({
               where: {phone: relation.phone},
               include: [{relation: 'setting'}],
             });
 
             // If relation is mutual, add to notification reciever list
-            if (user && user.firebaseToken !== 'null') {
-              const foundMutualUsersRels = await this.usersRelsRepository.findOne(
-                {
-                  where: {
-                    phone: currentUserPhone,
-                    userId: user.getId(),
-                  },
+            if (user?.firebaseToken !== 'null') {
+              const foundMutualUsersRels = await this.usersRelsRepo.findOne({
+                where: {
+                  phone: currentUserPhone,
+                  userId: user!.getId(),
                 },
-              );
+              });
 
               if (foundMutualUsersRels) {
                 // Increament scoreFactor for every mutual friend contribute in dong
                 mutualFactor++;
                 // Get rounded dong amount
-                const roundedDongAmount = _.find(billList, {
-                  userRelId: relation.getId(),
-                })
-                  ? Math.floor(
-                      _.find(billList, {
-                        userRelId: relation.getId(),
-                      })!.dongAmount,
-                    )
-                  : 0;
+                const roundedDongAmount = Math.floor(
+                  _.find(billList, {
+                    userRelId: relation.getId(),
+                  })!.dongAmount,
+                );
 
                 // Seperate thousands with "," for use in notification body
                 const notifyBodyDongAmount = this.numberWithCommas(
@@ -329,13 +302,13 @@ export class DongsController {
                 // Notification data payload
                 const notifyData = new Notifications({
                   title: this.locMsg['DONGIP_NOTIFY_TITLE'][
-                    user.setting.language
+                    user!.setting.language
                   ],
                   body: util.format(
-                    this.locMsg['DONGIP_NOTIFY_BODY'][user.setting.language],
+                    this.locMsg['DONGIP_NOTIFY_BODY'][user!.setting.language],
                     notifyBodyDongAmount,
-                    this.locMsg['CURRENCY'][user.setting.language][
-                      newDong.currency
+                    this.locMsg['CURRENCY'][user!.setting.language][
+                      createdDong.currency
                     ],
                     foundMutualUsersRels.name,
                   ),
@@ -350,12 +323,12 @@ export class DongsController {
                   dongId: createdDong.getId(),
                 });
 
-                const createdNotify = await this.usersRepository
-                  .notifications(user.getId())
+                const createdNotify = await this.usersRepo
+                  .notifications(user!.getId())
                   .create(notifyData);
                 // Generate notification messages
                 firebaseMessagesList.push({
-                  token: user.firebaseToken!,
+                  token: user!.firebaseToken!,
                   notification: {
                     title: notifyData.title,
                     body: notifyData.body,
@@ -374,17 +347,6 @@ export class DongsController {
                     currency: createdNotify.currency!,
                     dongId: notifyData.dongId!.toString(),
                   },
-                  // Android options
-                  android: {
-                    notification: {clickAction: 'FLUTTER_NOTIFICATION_CLICK'},
-                  },
-                  // iOS options
-                  apns: {
-                    payload: {
-                      aps: {},
-                    },
-                    fcmOptions: {},
-                  },
                 });
               }
             }
@@ -400,13 +362,45 @@ export class DongsController {
 
       const calculatedScore = newDongScore + mutualFactor * mutualFriendScore;
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepository.scores(this.userId).create({
+      this.usersRepo.scores(this.userId).create({
         dongId: createdDong.getId(),
         score: calculatedScore,
       });
 
       createdDong.billList = createdBillList;
       createdDong.payerList = createdPayerList;
+
+      if (newDong.jointAccountId) {
+        const selfRel = await this.usersRelsRepo.findOne({
+          fields: {userRelId: true, userId: true},
+        });
+
+        if (_.findIndex(billList, {userRelId: selfRel?.getId()}) > -1) {
+          const userBill = _.find(createdBillList, {
+            userRelId: selfRel?.getId(),
+          });
+
+          const data: Joint = {
+            dongId: createdDong.getId(),
+            createdAt: createdDong.createdAt,
+            currency: createdDong.currency,
+            desc: createdDong.desc,
+            title: createdDong.title,
+            dongAmount: userBill!.dongAmount,
+            categoryTitle: currentUserCategory.title,
+            categoryIcon: currentUserCategory.icon,
+            billListId: userBill!.getId(),
+          };
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          this.jointService
+            .submit(this.userId, newDong.jointAccountId, data)
+            .then(async () => {
+              await this.billListRepo.updateById(userBill!.billListId!, {
+                jointAccountId: newDong.jointAccountId,
+              });
+            });
+        }
+      }
 
       return {
         ...createdDong,
@@ -427,7 +421,7 @@ export class DongsController {
     dongId: typeof Dongs.prototype.dongId,
   ): Promise<void> {
     // Delete Dong by dongId
-    const countDeleted = await this.usersRepository.dongs(this.userId).delete({
+    const countDeleted = await this.usersRepo.dongs(this.userId).delete({
       dongId: dongId,
     });
 
@@ -452,6 +446,6 @@ export class DongsController {
     },
   })
   async deleteAllDongs() {
-    return this.usersRepository.dongs(this.userId).delete();
+    return this.usersRepo.dongs(this.userId).delete();
   }
 }

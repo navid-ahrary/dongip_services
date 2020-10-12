@@ -1,13 +1,22 @@
-import {Entity, model, property, belongsTo} from '@loopback/repository';
+import {
+  Entity,
+  model,
+  property,
+  belongsTo,
+  RelationType,
+} from '@loopback/repository';
 
-import {JointAccounts} from './joint-accounts.model';
-import {Users} from './users.model';
+import {
+  JointAccounts,
+  JointAccountsWithRelations,
+} from './joint-accounts.model';
+import {Users, UsersWithRelations} from './users.model';
 
 @model({
-  name: 'joint_account_subscribe',
+  name: 'joint_account_subscribes',
   settings: {
     foreignKeys: {
-      fkJointSubscribeJointAccountId: {
+      fkJointAccountSubscribeJointAccountId: {
         name: 'fk_joint_account_subscribe_joint_account_id',
         entity: 'joint_accounts',
         entityKey: 'id',
@@ -15,7 +24,7 @@ import {Users} from './users.model';
         onUpdate: 'cascade',
         onDelete: 'cascade',
       },
-      fkJointSubscribeUserId: {
+      fkJointAccountSubscribeUserId: {
         name: 'fk_joint_account_subscribe_user_id',
         entity: 'users',
         entityKey: 'id',
@@ -26,7 +35,7 @@ import {Users} from './users.model';
     },
   },
 })
-export class JointAccountSubscribe extends Entity {
+export class JointAccountSubscribes extends Entity {
   @property({
     type: 'number',
     id: true,
@@ -37,11 +46,11 @@ export class JointAccountSubscribe extends Entity {
       nullable: 'N',
     },
   })
-  jointSubscriberId: number;
+  jointAccountSubscribeId?: number;
 
   @belongsTo(
     () => JointAccounts,
-    {name: 'jointAccount'},
+    {name: 'jointAccount', keyFrom: 'jointAccount', keyTo: 'jointAccount'},
     {
       type: 'number',
       required: true,
@@ -49,6 +58,7 @@ export class JointAccountSubscribe extends Entity {
       mysql: {
         columnName: 'joint_account_id',
         dataType: 'mediumint unsigned',
+        dataLength: null,
         nullable: 'N',
       },
     },
@@ -57,7 +67,14 @@ export class JointAccountSubscribe extends Entity {
 
   @belongsTo(
     () => Users,
-    {name: 'user'},
+    {
+      name: 'user',
+      keyFrom: 'userId',
+      keyTo: 'userId',
+      type: RelationType.belongsTo,
+      source: Users,
+      target: () => JointAccountSubscribes,
+    },
     {
       type: 'number',
       required: true,
@@ -65,21 +82,22 @@ export class JointAccountSubscribe extends Entity {
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',
+        dataLength: null,
         nullable: 'N',
       },
     },
   )
   userId: number;
 
-  constructor(data?: Partial<JointAccountSubscribe>) {
+  constructor(data?: Partial<JointAccountSubscribes>) {
     super(data);
   }
 }
 
-export interface JointAccountSubscribeRelations {
-  jointAccount?: JointAccounts;
-  user?: Users;
+export interface JointAccountSubscribesRelations {
+  jointAccount: JointAccountsWithRelations;
+  user: UsersWithRelations;
 }
 
-export type JointAccountSubscribeWithRelations = JointAccountSubscribe &
-  JointAccountSubscribeRelations;
+export type JointAccountSubscribesWithRelations = JointAccountSubscribes &
+  JointAccountSubscribesRelations;

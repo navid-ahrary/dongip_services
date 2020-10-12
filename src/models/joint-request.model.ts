@@ -24,10 +24,11 @@ export class JointRequest extends Model {
 
   @property({
     jsonSchema: {
-      description:
-        'Self user rel should included if user desires to subscribing in joint account',
+      description: 'For now just a joint account with 2 subscriber is allowed',
       type: 'array',
       uniqueItems: true,
+      minItems: 2,
+      maxItems: 2,
       items: {type: 'number', minimum: 1},
     },
   })

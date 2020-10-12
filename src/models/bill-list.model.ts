@@ -11,6 +11,7 @@ import {UsersRels} from './users-rels.model';
 import {Categories} from './categories.model';
 import {Users} from './users.model';
 import {CurrencyEnum} from './settings.model';
+import {JointAccounts} from './joint-accounts.model';
 
 @model({
   name: 'bill_list',
@@ -93,7 +94,7 @@ export class BillList extends Entity {
       nullable: 'N',
     },
   })
-  currency: CurrencyEnum;
+  currency: string;
 
   @property({
     type: 'date',
@@ -202,6 +203,28 @@ export class BillList extends Entity {
     },
   )
   userId: number;
+
+  @belongsTo(
+    () => JointAccounts,
+    {
+      name: 'jointAccount',
+      keyFrom: 'jointAccountId',
+      keyTo: 'jointAccountId',
+      type: RelationType.belongsTo,
+      source: JointAccounts,
+      target: () => BillList,
+    },
+    {
+      type: 'number',
+      index: {normal: true},
+      mysql: {
+        columnName: 'joint_account_id',
+        dataType: 'mediumint unsigned',
+        nullable: 'Y',
+      },
+    },
+  )
+  jointAccountId?: number;
 
   constructor(data?: Partial<BillList>) {
     super(data);

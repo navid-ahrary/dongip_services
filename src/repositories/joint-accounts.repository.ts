@@ -10,11 +10,13 @@ import {
   JointAccounts,
   JointAccountsRelations,
   Users,
-  JointAccountSubscribe,
+  JointAccountSubscribes,
+  BillList,
 } from '../models';
 import {MysqlDataSource} from '../datasources';
 import {UsersRepository} from './users.repository';
-import {JointAccountSubscribeRepository} from './joint-account-subscribe.repository';
+import {JointAccountSubscribesRepository} from './joint-account-subscribes.repository';
+import {BillListRepository} from './bill-list.repository';
 
 export class JointAccountsRepository extends DefaultCrudRepository<
   JointAccounts,
@@ -27,7 +29,12 @@ export class JointAccountsRepository extends DefaultCrudRepository<
   >;
 
   public readonly jointAccountSubscribes: HasManyRepositoryFactory<
-    JointAccountSubscribe,
+    JointAccountSubscribes,
+    typeof JointAccounts.prototype.jointAccountId
+  >;
+
+  public readonly billList: HasManyRepositoryFactory<
+    BillList,
     typeof JointAccounts.prototype.jointAccountId
   >;
 
@@ -35,15 +42,22 @@ export class JointAccountsRepository extends DefaultCrudRepository<
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
-    @repository.getter('JointAccountSubscribeRepository')
-    protected jointAccountSubscribeRepositoryGetter: Getter<
-      JointAccountSubscribeRepository
+    @repository.getter('JointAccountSubscribesRepository')
+    protected jointAccountSubscribesRepositoryGetter: Getter<
+      JointAccountSubscribesRepository
     >,
+    @repository.getter('BillListRepository')
+    protected billListRepositoryGetter: Getter<BillListRepository>,
   ) {
     super(JointAccounts, dataSource);
+    this.billList = this.createHasManyRepositoryFactoryFor(
+      'billList',
+      billListRepositoryGetter,
+    );
+    this.registerInclusionResolver('billList', this.billList.inclusionResolver);
     this.jointAccountSubscribes = this.createHasManyRepositoryFactoryFor(
       'jointAccountSubscribes',
-      jointAccountSubscribeRepositoryGetter,
+      jointAccountSubscribesRepositoryGetter,
     );
     this.registerInclusionResolver(
       'jointAccountSubscribes',

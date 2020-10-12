@@ -17,4 +17,4 @@ export * from './links.repository';
 export * from './purchases.repository';
 export * from './subscriptions.repository';
 export * from './joint-accounts.repository';
-export * from './joint-account-subscribe.repository';
+export * from './joint-account-subscribes.repository';

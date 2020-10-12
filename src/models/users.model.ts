@@ -12,7 +12,7 @@ import {PayerList} from './payer-list.model';
 import {VirtualUsers} from './virtual-users.model';
 import {Dongs} from './dongs.model';
 import {Categories} from './categories.model';
-import {UsersRels} from './users-rels.model';
+import {UsersRels, UsersRelsWithRelations} from './users-rels.model';
 import {Scores} from './scores.model';
 import {Groups} from './groups.model';
 import {Messages} from './messages.model';
@@ -21,8 +21,14 @@ import {Budgets} from './budgets.model';
 import {Settings, SettingsWithRelations} from './settings.model';
 import {Purchases} from './purchases.model';
 import {Subscriptions, SubscriptionsWithRelations} from './subscriptions.model';
-import {JointAccounts} from './joint-accounts.model';
-import {JointAccountSubscribe} from './joint-account-subscribe.model';
+import {
+  JointAccounts,
+  JointAccountsWithRelations,
+} from './joint-accounts.model';
+import {
+  JointAccountSubscribes,
+  JointAccountSubscribesWithRelations,
+} from './joint-account-subscribes.model';
 
 @model({name: 'users'})
 export class Users extends Entity {
@@ -358,7 +364,7 @@ export class Users extends Entity {
   @hasMany(() => JointAccounts, {
     name: 'jointAccounts',
     keyFrom: 'userId',
-    keyTo: 'jointAccountId',
+    keyTo: 'userId',
     type: RelationType.hasMany,
     targetsMany: true,
     source: Users,
@@ -366,16 +372,16 @@ export class Users extends Entity {
   })
   jointAccounts: JointAccounts[];
 
-  @hasMany(() => JointAccountSubscribe, {
+  @hasMany(() => JointAccountSubscribes, {
     name: 'jointAccountSubscribes',
     keyFrom: 'userId',
-    keyTo: 'jointAccountSubscribeId',
+    keyTo: 'userUd',
     type: RelationType.hasMany,
     targetsMany: true,
     source: Users,
-    target: () => JointAccountSubscribe,
+    target: () => JointAccountSubscribes,
   })
-  jointAccountSubscribes: JointAccountSubscribe[];
+  jointAccountSubscribes: JointAccountSubscribes[];
 
   constructor(data?: Partial<Users>) {
     super(data);
@@ -383,9 +389,11 @@ export class Users extends Entity {
 }
 
 export interface UsersRelations {
-  setting?: SettingsWithRelations;
+  setting: SettingsWithRelations;
   subscriptions?: SubscriptionsWithRelations[];
-  JointAccounts?: JointAccounts[];
+  JointAccounts?: JointAccountsWithRelations[];
+  userRels: UsersRelsWithRelations[];
+  jointAccountSubscribes?: JointAccountSubscribesWithRelations[];
 }
 
 export type UsersWithRelations = Users & UsersRelations;

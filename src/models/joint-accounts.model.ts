@@ -7,7 +7,11 @@ import {
   hasMany,
 } from '@loopback/repository';
 import {Users} from './users.model';
-import {JointAccountSubscribe} from './joint-account-subscribe.model';
+import {
+  JointAccountSubscribes,
+  JointAccountSubscribesWithRelations,
+} from './joint-account-subscribes.model';
+import {BillList, BillListWithRelations} from './bill-list.model';
 
 @model({
   name: 'joint_accounts',
@@ -99,8 +103,14 @@ export class JointAccounts extends Entity {
   )
   userId: number;
 
-  @hasMany(() => JointAccountSubscribe, {keyTo: 'jointAccountId'})
-  jointAccountSubscribes: JointAccountSubscribe[];
+  @hasMany(() => JointAccountSubscribes, {
+    keyTo: 'jointAccountId',
+    keyFrom: 'jointAccountId',
+  })
+  jointAccountSubscribes: JointAccountSubscribes[];
+
+  @hasMany(() => BillList, {keyTo: 'jointAccountId', keyFrom: 'jointAccountId'})
+  billList: BillList[];
 
   constructor(data?: Partial<JointAccounts>) {
     super(data);
@@ -108,7 +118,8 @@ export class JointAccounts extends Entity {
 }
 
 export interface JointAccountsRelations {
-  jointAccountSubscribes?: JointAccountSubscribe[];
+  jointAccountSubscribes?: JointAccountSubscribesWithRelations[];
+  billList?: BillListWithRelations[];
 }
 
 export type JointAccountsWithRelations = JointAccounts & JointAccountsRelations;

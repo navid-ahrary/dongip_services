@@ -1,33 +1,32 @@
 import {
+  BelongsToAccessor,
   DefaultCrudRepository,
   repository,
-  BelongsToAccessor,
 } from '@loopback/repository';
-
 import {
-  JointAccountSubscribe,
-  JointAccountSubscribeRelations,
   JointAccounts,
+  JointAccountSubscribes,
+  JointAccountSubscribesRelations,
   Users,
 } from '../models';
 import {MysqlDataSource} from '../datasources';
-import {inject, Getter} from '@loopback/core';
-import {JointAccountsRepository} from './joint-accounts.repository';
+import {Getter, inject} from '@loopback/core';
 import {UsersRepository} from './users.repository';
+import {JointAccountsRepository} from './joint-accounts.repository';
 
-export class JointAccountSubscribeRepository extends DefaultCrudRepository<
-  JointAccountSubscribe,
-  typeof JointAccountSubscribe.prototype.jointSubscriberId,
-  JointAccountSubscribeRelations
+export class JointAccountSubscribesRepository extends DefaultCrudRepository<
+  JointAccountSubscribes,
+  typeof JointAccountSubscribes.prototype.jointAccountSubscribeId,
+  JointAccountSubscribesRelations
 > {
   public readonly jointAccount: BelongsToAccessor<
     JointAccounts,
-    typeof JointAccountSubscribe.prototype.jointSubscriberId
+    typeof JointAccountSubscribes.prototype.jointAccountSubscribeId
   >;
 
   public readonly user: BelongsToAccessor<
     Users,
-    typeof JointAccountSubscribe.prototype.jointSubscriberId
+    typeof JointAccountSubscribes.prototype.jointAccountSubscribeId
   >;
 
   constructor(
@@ -37,7 +36,7 @@ export class JointAccountSubscribeRepository extends DefaultCrudRepository<
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
-    super(JointAccountSubscribe, dataSource);
+    super(JointAccountSubscribes, dataSource);
 
     this.user = this.createBelongsToAccessorFor('user', usersRepositoryGetter);
     this.registerInclusionResolver('user', this.user.inclusionResolver);

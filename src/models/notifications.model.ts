@@ -235,6 +235,17 @@ export class Notifications extends Entity {
   })
   planId: string;
 
+  @property({
+    type: 'string',
+    jsonSchema: {maxLength: 10},
+    mysql: {
+      columnName: 'joint_account_id',
+      dataType: 'mediumint unsigned',
+      nullable: 'Y',
+    },
+  })
+  jointAccountId: string;
+
   @belongsTo(
     () => Users,
     {

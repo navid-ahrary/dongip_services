@@ -10,4 +10,3 @@ export * from './notifications.controller';
 export * from './budgets.controller';
 export * from './settings.controller';
 export * from './joint-account.controller';
-export * from './users-joint-account-subscribe.controller';
