@@ -165,14 +165,16 @@ export class UsersRepository extends DefaultCrudRepository<
     >,
   ) {
     super(Users, dataSource);
-    // this.jointAccountSubscribes = this.createHasManyRepositoryFactoryFor(
-    //   'jointAccountSubscribes',
-    //   jointAccountSubscribesRepositoryGetter,
-    // );
-    // this.registerInclusionResolver(
-    //   'jointAccountSubscribes',
-    //   this.jointAccountSubscribes.inclusionResolver,
-    // );
+
+    this.jointAccountSubscribes = this.createHasManyRepositoryFactoryFor(
+      'jointAccountSubscribes',
+      jointAccountSubscribesRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'jointAccountSubscribes',
+      this.jointAccountSubscribes.inclusionResolver,
+    );
+
     this.jointAccounts = this.createHasManyRepositoryFactoryFor(
       'jointAccounts',
       jointAccountsRepositoryGetter,

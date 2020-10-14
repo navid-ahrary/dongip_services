@@ -9,7 +9,7 @@ import {Users} from './users.model';
 import {Groups} from './groups.model';
 
 @model()
-export class PostNewDong extends Model {
+export class PostDong extends Model {
   @property({
     type: 'number',
   })
@@ -94,11 +94,11 @@ export class PostNewDong extends Model {
     dongAmount: number;
   }[];
 
-  constructor(data?: Partial<PostNewDong>) {
+  constructor(data?: Partial<PostDong>) {
     super(data);
   }
 }
 
-export interface PostNewDongRelations {}
+export interface PostDongRelations {}
 
-export type PostNewDongWithRelations = PostNewDong & PostNewDongRelations;
+export type PostDongWithRelations = PostDong & PostDongRelations;

@@ -370,14 +370,13 @@ export class Users extends Entity {
     source: Users,
     target: () => JointAccounts,
   })
-  jointAccounts: JointAccounts[];
+  jointAccounts?: JointAccounts[];
 
   @hasMany(() => JointAccountSubscribes, {
-    name: 'jointAccountSubscribes',
+    keyTo: 'userId',
     keyFrom: 'userId',
-    keyTo: 'userUd',
-    type: RelationType.hasMany,
     targetsMany: true,
+    type: RelationType.hasMany,
     source: Users,
     target: () => JointAccountSubscribes,
   })
@@ -390,9 +389,9 @@ export class Users extends Entity {
 
 export interface UsersRelations {
   setting: SettingsWithRelations;
+  usersRels: UsersRelsWithRelations[];
   subscriptions?: SubscriptionsWithRelations[];
   JointAccounts?: JointAccountsWithRelations[];
-  userRels: UsersRelsWithRelations[];
   jointAccountSubscribes?: JointAccountSubscribesWithRelations[];
 }
 

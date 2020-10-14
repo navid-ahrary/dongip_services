@@ -1,8 +1,16 @@
 import {injectable, BindingScope, service, inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
+import util from 'util';
+import moment from 'moment';
 
 import {LocalizedMessages} from '../application';
-import {Dongs, JointAccounts, Notifications, Users} from '../models';
+import {
+  Categories,
+  Dongs,
+  JointAccounts,
+  Notifications,
+  Users,
+} from '../models';
 import {
   BillListRepository,
   CategoriesRepository,
@@ -46,24 +54,18 @@ export class JointService {
 
   async submit(
     currentUserId: typeof Users.prototype.userId,
+    currentUserPhone: typeof Users.prototype.phone,
     jointAcountId: typeof JointAccounts.prototype.jointAccountId,
+    currentUserCategory: Categories,
     data: Joint,
   ) {
     const JAS = await this.jointAccSubscribeRepo.find({
-      fields: {jointAccountSubscribeId: false},
-      where: {jointAccountId: jointAcountId},
+      where: {jointAccountId: jointAcountId, userId: {neq: currentUserId}},
       include: [
         {
           relation: 'user',
           scope: {
-            fields: {
-              userId: true,
-              firebaseToken: true,
-              phone: true,
-              setting: true,
-              userRels: true,
-              categories: true,
-            },
+            fields: {userId: true, firebaseToken: true, phone: true},
             include: [
               {
                 relation: 'setting',
@@ -73,11 +75,16 @@ export class JointService {
               },
               {
                 relation: 'categories',
-                scope: {fields: {userId: true, categoryId: true}},
+                scope: {
+                  where: {title: currentUserCategory.title},
+                },
               },
               {
-                relation: 'userRels',
-                scope: {fields: {userId: true, userRelId: true}},
+                relation: 'usersRels',
+                scope: {
+                  fields: {userId: true, userRelId: true, name: true},
+                  where: {phone: currentUserPhone},
+                },
               },
             ],
           },
@@ -85,66 +92,87 @@ export class JointService {
       ],
     });
 
-    console.log(JAS);
+    const firebaseMessagesList: BatchMessage = [];
 
-    // const firebaseMessagesList: BatchMessage = [];
-    // for (const ja of JAS) {
-    //   const dong = new Dongs({
-    //     title: data.title,
-    //     createdAt: data.createdAt,
-    //     categoryId: 9,
-    //     desc: data.desc,
-    //     pong: data.dongAmount,
-    //     currency: data.currency,
-    //   });
-    //   const savedDong = await this.dongRepo.create(dong);
-    //   await this.dongRepo.billList(savedDong.getId()).create({
-    //     dongAmount: data.dongAmount,
-    //     currency: data.currency,
-    //     jointAccountId: jointAcountId,
-    //     userRelId: 1,
-    //     createdAt: data.createdAt,
-    //   });
+    for (const ja of JAS) {
+      const cat =
+        ja.user.categories[0] ??
+        (await this.userRepo.categories(ja.user.getId()).create({
+          title: currentUserCategory.title,
+          icon: currentUserCategory.icon,
+        }));
 
-    //   const notifyData = new Notifications({
-    //     userId: ja.user!.getId(),
-    //     title: this.locMsg['JOINT_NOTIFY_TITLE'][ja.user!.setting.language],
-    //     body: this.locMsg['JOINT_NOTIFY_BODY'][ja.user!.setting.language],
-    //     desc: savedDong.desc,
-    //     dongId: savedDong.getId().toString(),
-    //     dongAmount: data.dongAmount,
-    //     currency: savedDong.currency,
-    //     categoryTitle: data.categoryTitle,
-    //     categoryIcon: data.categoryIcon,
-    //     userRelId: 1,
-    //     type: 'jointAccount',
-    //     createdAt: data.createdAt,
-    //   });
-    //   const createdNotify = await this.notifyRepo.create(notifyData);
+      const dongEnt = new Dongs({
+        title: data.title,
+        createdAt: data.createdAt,
+        categoryId: cat.getId(),
+        desc: data.desc,
+        pong: data.dongAmount,
+        currency: data.currency,
+      });
 
-    //   firebaseMessagesList.push({
-    //     token: ja.user!.firebaseToken!,
-    //     notification: {
-    //       title: notifyData.title,
-    //       body: notifyData.body,
-    //     },
-    //     data: {
-    //       notifyId: createdNotify.getId().toString(),
-    //       title: notifyData.title!,
-    //       body: notifyData.body!,
-    //       desc: notifyData.desc!,
-    //       type: 'jointAccount',
-    //       categoryTitle: notifyData.categoryTitle!,
-    //       categoryIcon: notifyData.categoryIcon!,
-    //       createdAt: notifyData.createdAt!,
-    //       userRelId: notifyData.userRelId!.toString(),
-    //       dongAmount: notifyData.dongAmount!.toString(),
-    //       currency: createdNotify.currency!,
-    //       dongId: notifyData.dongId!.toString(),
-    //     },
-    //   });
-    // }
+      const savedDong = await this.userRepo
+        .dongs(ja.user.getId())
+        .create(dongEnt);
+      await this.userRepo.billList(ja.user.getId()).create({
+        categoryId: cat.getId(),
+        dongId: savedDong.getId(),
+        userRelId: ja.user.usersRels[0].getId(),
+        jointAccountId: jointAcountId,
+        dongAmount: data.dongAmount,
+        currency: data.currency,
+        createdAt: data.createdAt,
+      });
 
-    // await this.firebaserService.sendAllMessage(firebaseMessagesList);
+      const currency = this.locMsg['CURRENCY'][ja.user!.setting.language][
+        data.currency
+      ];
+      const dongAmount = data.dongAmount;
+
+      const notifyData = new Notifications({
+        userId: ja.user!.getId(),
+        title: this.locMsg['JOINT_NOTIFY_TITLE'][ja.user!.setting.language],
+        body: util.format(
+          this.locMsg['JOINT_NOTIFY_BODY'][ja.user!.setting.language],
+          dongAmount,
+          currency,
+          ja.user.usersRels[0].name,
+        ),
+        desc: savedDong.desc,
+        dongId: savedDong.getId().toString(),
+        dongAmount: dongAmount,
+        currency: savedDong.currency,
+        categoryTitle: cat.title,
+        categoryIcon: cat.icon,
+        userRelId: ja.user.usersRels[0].getId(),
+        type: 'jointAccount',
+        createdAt: moment(data.createdAt).utc().toISOString(),
+      });
+      const createdNotify = await this.notifyRepo.create(notifyData);
+
+      firebaseMessagesList.push({
+        token: ja.user!.firebaseToken!,
+        notification: {
+          title: createdNotify.title,
+          body: createdNotify.body,
+        },
+        data: {
+          notifyId: createdNotify.getId().toString(),
+          title: createdNotify.title!,
+          body: createdNotify.body!,
+          desc: createdNotify.desc!,
+          type: createdNotify.type,
+          categoryTitle: createdNotify.categoryTitle!,
+          categoryIcon: createdNotify.categoryIcon!,
+          createdAt: createdNotify.createdAt!.toString(),
+          userRelId: createdNotify.userRelId!.toString(),
+          dongAmount: createdNotify.dongAmount!.toString(),
+          currency: createdNotify.currency!,
+          dongId: createdNotify.dongId!.toString(),
+        },
+      });
+    }
+
+    await this.firebaserService.sendAllMessage(firebaseMessagesList);
   }
 }

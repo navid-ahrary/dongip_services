@@ -1,3 +1,4 @@
+import {Getter, inject} from '@loopback/core';
 import {
   BelongsToAccessor,
   DefaultCrudRepository,
@@ -10,9 +11,8 @@ import {
   Users,
 } from '../models';
 import {MysqlDataSource} from '../datasources';
-import {Getter, inject} from '@loopback/core';
-import {UsersRepository} from './users.repository';
 import {JointAccountsRepository} from './joint-accounts.repository';
+import {UsersRepository} from './users.repository';
 
 export class JointAccountSubscribesRepository extends DefaultCrudRepository<
   JointAccountSubscribes,

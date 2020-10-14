@@ -10,7 +10,7 @@ import {
   JointAccounts,
   JointAccountsWithRelations,
 } from './joint-accounts.model';
-import {Users, UsersWithRelations} from './users.model';
+import {UsersWithRelations, Users} from './users.model';
 
 @model({
   name: 'joint_account_subscribes',
@@ -82,7 +82,6 @@ export class JointAccountSubscribes extends Entity {
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',
-        dataLength: null,
         nullable: 'N',
       },
     },

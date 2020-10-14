@@ -104,6 +104,7 @@ export class JointAccounts extends Entity {
   userId: number;
 
   @hasMany(() => JointAccountSubscribes, {
+    name: 'jointAccountSubscribes',
     keyTo: 'jointAccountId',
     keyFrom: 'jointAccountId',
   })

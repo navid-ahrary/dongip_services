@@ -55,10 +55,7 @@ export class FirebaseService {
         notification: {clickAction: 'FLUTTER_NOTIFICATION_CLICK'},
       },
       // iOS options
-      apns: {
-        payload: {},
-        fcmOptions: {},
-      },
+      apns: {},
     });
     const response = await messaging().sendToDevice(
       firebaseToken,
@@ -69,9 +66,9 @@ export class FirebaseService {
     if (response.successCount) {
       console.log(`Sucessfully sent notification: ${JSON.stringify(response)}`);
     } else if (response.failureCount) {
-      console.error(`Failed sent notification${JSON.stringify(response)}`);
+      console.warn(`Failed sent notification${JSON.stringify(response)}`);
     } else {
-      console.error('There is no response from firebase');
+      console.warn('There is no response from firebase');
     }
 
     return response;
@@ -105,7 +102,7 @@ export class FirebaseService {
               failedTokens.push(message.tokens[idx]);
             }
           });
-          console.error(`List of tokens that caused failure ${failedTokens}`);
+          console.warn(`List of tokens that caused failure ${failedTokens}`);
           throw new HttpErrors.NotImplemented(
             `List of tokens that caused failure ${failedTokens}`,
           );
@@ -113,7 +110,7 @@ export class FirebaseService {
         console.log(`Successfully sent notifications, ${_response}`);
       })
       .catch(function (_error) {
-        console.log(`Error sending notifications, ${_error}`);
+        console.warn(`Error sending notifications, ${_error}`);
         throw new HttpErrors.NotImplemented(
           `Error sending notifications, ${_error}`,
         );
@@ -131,10 +128,7 @@ export class FirebaseService {
           notification: {clickAction: 'FLUTTER_NOTIFICATION_CLICK'},
         },
         // iOS options
-        apns: {
-          payload: {},
-          fcmOptions: {},
-        },
+        apns: {},
       }),
     );
     const response = await messaging()
@@ -149,9 +143,9 @@ export class FirebaseService {
         `Successfully sent notifications, ${JSON.stringify(response)}`,
       );
     } else if (response.failureCount) {
-      console.error(`Failed sent notifications: ${JSON.stringify(response)}`);
+      console.warn(`Failed sent notifications: ${JSON.stringify(response)}`);
     } else {
-      console.error('There is no response from firebase');
+      console.warn('There is no response from firebase');
     }
 
     return response;
