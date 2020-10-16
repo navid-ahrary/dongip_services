@@ -24,8 +24,9 @@ import {inject, service, intercept} from '@loopback/core';
 
 import _ from 'lodash';
 import util from 'util';
+import moment from 'moment';
 
-import {Dongs, PostNewDong, Notifications} from '../models';
+import {Dongs, PostDong, Notifications} from '../models';
 import {
   UsersRepository,
   DongsRepository,
@@ -35,7 +36,7 @@ import {
   UsersRelsRepository,
 } from '../repositories';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {FirebaseService, BatchMessage} from '../services';
+import {FirebaseService, BatchMessage, Joint, JointService} from '../services';
 import {
   ValidateCategoryIdInterceptor,
   FirebasetokenInterceptor,
@@ -70,15 +71,14 @@ export class DongsController {
     @repository(BillListRepository)
     public billListRepository: BillListRepository,
     @service(FirebaseService) private firebaseSerice: FirebaseService,
+    @service(JointService) protected jointService: JointService,
     @inject(SecurityBindings.USER)
     private currentUserProfile: UserProfile,
     @inject.context() public ctx: RequestContext,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-    this.lang = this.ctx.request.headers['accept-language']
-      ? this.ctx.request.headers['accept-language']
-      : 'fa';
+    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
 
   public numberWithCommas(x: number): string {
@@ -132,14 +132,20 @@ export class DongsController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(PostNewDong, {
+          schema: getModelSchemaRef(PostDong, {
             title: 'NewDongs',
-            optional: ['title', 'desc', 'groupId', 'currency'],
+            optional: [
+              'title',
+              'desc',
+              'groupId',
+              'jointAccountId',
+              'currency',
+            ],
           }),
           example: {
             title: 'New dong',
             desc: 'Dongip it',
-            createdAt: new Date().toISOString(),
+            createdAt: moment.utc().toISOString(),
             categoryId: 1,
             groupId: 12,
             pong: 80000,
@@ -156,7 +162,7 @@ export class DongsController {
         },
       },
     })
-    newDong: Omit<PostNewDong, 'id'>,
+    newDong: PostDong,
   ): Promise<DataObject<ResponseNewDong>> {
     const newDongScore = 50;
     const mutualFriendScore = 20;
@@ -166,51 +172,76 @@ export class DongsController {
     if (newDong.userId) delete newDong.userId;
     if (newDong.dongId) delete newDong.dongId;
 
-    if (!newDong.currency) {
-      newDong.currency = 'IRT';
-    }
-    // Current user
-    const currentUser = await this.usersRepository.findOne({
-      where: {userId: this.userId},
-      fields: {userId: true, phone: true, name: true},
-    });
-    const currentUserPhone = currentUser!.phone;
-
     let billList = newDong.billList,
       payerList = newDong.payerList,
-      allUsersRelsIdList: {userRelId: number}[] = [],
+      allUsersRelsIdList: number[] = [],
       currentUserIsPayer: Boolean = false,
       firebaseMessagesList: BatchMessage = [];
 
     payerList.forEach((item) => {
-      if (_.findIndex(allUsersRelsIdList, {userRelId: item.userRelId}) === -1) {
-        allUsersRelsIdList.push({userRelId: item.userRelId});
+      if (!allUsersRelsIdList.includes(item.userRelId)) {
+        allUsersRelsIdList.push(item.userRelId);
       }
     });
 
     billList.forEach((item) => {
-      if (_.findIndex(allUsersRelsIdList, {userRelId: item.userRelId}) === -1) {
-        allUsersRelsIdList.push({userRelId: item.userRelId});
+      if (!allUsersRelsIdList.includes(item.userRelId)) {
+        allUsersRelsIdList.push(item.userRelId);
       }
     });
 
-    // Validate userRelIds in billList and payerList
-    const currentUserFoundUsersRelsList = await this.usersRepository
-      .usersRels(this.userId)
-      .find({
-        where: {or: allUsersRelsIdList},
-      });
-    if (currentUserFoundUsersRelsList.length !== allUsersRelsIdList.length) {
+    const currentUser = await this.usersRepository.findById(this.userId, {
+      fields: {
+        userId: true,
+        phone: true,
+        name: true,
+        jointAccounts: true,
+        usersRels: true,
+      },
+      include: [
+        {
+          relation: 'categories',
+          scope: {
+            where: {categoryId: newDong.categoryId},
+          },
+        },
+        {
+          relation: 'usersRels',
+          scope: {
+            fields: {userRelId: true, userId: true, phone: true, type: true},
+            where: {
+              or: [{type: 'self'}, {userRelId: {inq: allUsersRelsIdList}}],
+            },
+          },
+        },
+        {
+          relation: 'jointAccounts',
+          scope: {
+            fields: {createdAt: false},
+            where: {jointAccountId: newDong.jointAccountId},
+            include: [
+              {
+                relation: 'jointAccountSubscribes',
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    const usersRels = currentUser.usersRels;
+    const exterUserRelsList = _.filter(usersRels, (ur) => ur.type !== 'self');
+    const selfUserRel = _.find(usersRels, (ur) => ur.type === 'self');
+
+    if (usersRels.length !== allUsersRelsIdList.length) {
       throw new HttpErrors.UnprocessableEntity(
         this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang],
       );
     }
 
-    // Check payer is user himself
-    const userRel = await this.usersRepository.usersRels(this.userId).find({
-      where: {and: [{userRelId: payerList[0].userRelId}, {type: 'self'}]},
-    });
-    if (userRel.length === 1) currentUserIsPayer = true;
+    if (selfUserRel?.getId() === newDong.billList[0].userRelId) {
+      currentUserIsPayer = true;
+    }
 
     // Create a Dongs objcet
     const dong = new Dongs({
@@ -229,7 +260,7 @@ export class DongsController {
         .create(dong);
 
       payerList.forEach((item) => {
-        item = Object.assign(item, {
+        item = _.assign(item, {
           userId: this.userId,
           dongId: createdDong.getId(),
           createdAt: createdDong.createdAt,
@@ -239,7 +270,7 @@ export class DongsController {
       });
 
       billList.forEach((item) => {
-        item = Object.assign(item, {
+        item = _.assign(item, {
           userId: this.userId,
           dongId: createdDong.getId(),
           createdAt: createdDong.createdAt,
@@ -260,117 +291,99 @@ export class DongsController {
         : true;
 
       if (currentUserIsPayer && sendNotify) {
-        const currentUserCategory = await this.categoriesRepository.findById(
-          newDong.categoryId,
-          {fields: {title: true, icon: true}},
-        );
+        for (const relation of exterUserRelsList) {
+          const user = await this.usersRepository.findOne({
+            where: {phone: relation.phone},
+            include: [{relation: 'setting'}],
+          });
 
-        for (const relation of currentUserFoundUsersRelsList) {
-          if (relation.type !== 'self') {
-            const user = await this.usersRepository.findOne({
-              where: {phone: relation.phone},
-              include: [{relation: 'setting'}],
-            });
-
-            // If relation is mutual, add to notification reciever list
-            if (user && user.firebaseToken !== 'null') {
-              const foundMutualUsersRels = await this.usersRelsRepository.findOne(
-                {
-                  where: {
-                    phone: currentUserPhone,
-                    userId: user.getId(),
-                  },
+          // If relation is mutual, add to notification reciever list
+          if (user && user.firebaseToken !== 'null') {
+            const foundMutualUsersRels = await this.usersRelsRepository.findOne(
+              {
+                where: {
+                  phone: currentUser.phone,
+                  userId: user.getId(),
                 },
+              },
+            );
+
+            if (foundMutualUsersRels) {
+              // Increament scoreFactor for every mutual friend contribute in dong
+              mutualFactor++;
+              // Get rounded dong amount
+              const roundedDongAmount = _.find(billList, {
+                userRelId: relation.getId(),
+              })
+                ? Math.floor(
+                    _.find(billList, {
+                      userRelId: relation.getId(),
+                    })!.dongAmount,
+                  )
+                : 0;
+
+              // Seperate thousands with "," for use in notification body
+              const notifyBodyDongAmount = this.numberWithCommas(
+                roundedDongAmount,
               );
 
-              if (foundMutualUsersRels) {
-                // Increament scoreFactor for every mutual friend contribute in dong
-                mutualFactor++;
-                // Get rounded dong amount
-                const roundedDongAmount = _.find(billList, {
-                  userRelId: relation.getId(),
-                })
-                  ? Math.floor(
-                      _.find(billList, {
-                        userRelId: relation.getId(),
-                      })!.dongAmount,
-                    )
-                  : 0;
-
-                // Seperate thousands with "," for use in notification body
-                const notifyBodyDongAmount = this.numberWithCommas(
-                  roundedDongAmount,
-                );
-
-                // Notification data payload
-                const notifyData = new Notifications({
-                  title: this.locMsg['DONGIP_NOTIFY_TITLE'][
-                    user.setting.language
+              // Notification data payload
+              const notifyData = new Notifications({
+                title: this.locMsg['DONGIP_NOTIFY_TITLE'][
+                  user.setting.language
+                ],
+                body: util.format(
+                  this.locMsg['DONGIP_NOTIFY_BODY'][user.setting.language],
+                  notifyBodyDongAmount,
+                  this.locMsg['CURRENCY'][user.setting.language][
+                    createdDong.currency
                   ],
-                  body: util.format(
-                    this.locMsg['DONGIP_NOTIFY_BODY'][user.setting.language],
-                    notifyBodyDongAmount,
-                    this.locMsg['CURRENCY'][user.setting.language][
-                      newDong.currency
-                    ],
-                    foundMutualUsersRels.name,
-                  ),
-                  desc: createdDong.desc ? createdDong.desc : '',
-                  type: 'dong',
-                  categoryTitle: currentUserCategory.title,
-                  categoryIcon: currentUserCategory.icon,
-                  createdAt: newDong.createdAt,
-                  userRelId: foundMutualUsersRels.getId(),
-                  dongAmount: roundedDongAmount,
-                  currency: newDong.currency,
-                  dongId: createdDong.getId(),
-                });
+                  foundMutualUsersRels.name,
+                ),
+                desc: createdDong.desc ? createdDong.desc : '',
+                type: 'dong',
+                categoryTitle: currentUser.categories[0].title,
+                categoryIcon: currentUser.categories[0].icon,
+                createdAt: moment(createdDong.createdAt).utc().toISOString(),
+                userRelId: foundMutualUsersRels.getId(),
+                dongAmount: roundedDongAmount,
+                currency: createdDong.currency,
+                dongId: createdDong.getId(),
+              });
 
-                const createdNotify = await this.usersRepository
-                  .notifications(user.getId())
-                  .create(notifyData);
-                // Generate notification messages
-                firebaseMessagesList.push({
-                  token: user.firebaseToken!,
-                  notification: {
-                    title: notifyData.title,
-                    body: notifyData.body,
-                  },
-                  data: {
-                    notifyId: createdNotify.getId().toString(),
-                    title: notifyData.title!,
-                    body: notifyData.body!,
-                    desc: notifyData.desc!,
-                    type: notifyData.type!,
-                    categoryTitle: notifyData.categoryTitle!,
-                    categoryIcon: notifyData.categoryIcon!,
-                    createdAt: notifyData.createdAt!,
-                    userRelId: notifyData.userRelId!.toString(),
-                    dongAmount: notifyData.dongAmount!.toString(),
-                    currency: createdNotify.currency!,
-                    dongId: notifyData.dongId!.toString(),
-                  },
-                  // Android options
-                  android: {
-                    notification: {clickAction: 'FLUTTER_NOTIFICATION_CLICK'},
-                  },
-                  // iOS options
-                  apns: {
-                    payload: {
-                      aps: {
-                        alert: {actionLocKey: 'FLUTTER_NOTIFICATION_CLICK'},
-                      },
-                    },
-                    fcmOptions: {},
-                  },
-                });
-              }
+              const createdNotify = await this.usersRepository
+                .notifications(user.getId())
+                .create(notifyData);
+
+              // Generate notification messages
+              firebaseMessagesList.push({
+                token: user.firebaseToken!,
+                notification: {
+                  title: notifyData.title,
+                  body: notifyData.body,
+                },
+                data: {
+                  notifyId: createdNotify.getId().toString(),
+                  title: notifyData.title!,
+                  body: notifyData.body!,
+                  desc: notifyData.desc!,
+                  type: notifyData.type!,
+                  categoryTitle: notifyData.categoryTitle!,
+                  categoryIcon: notifyData.categoryIcon!,
+                  createdAt: notifyData.createdAt!,
+                  userRelId: notifyData.userRelId!.toString(),
+                  dongAmount: notifyData.dongAmount!.toString(),
+                  currency: createdNotify.currency!,
+                  dongId: notifyData.dongId!.toString(),
+                },
+              });
             }
           }
         }
 
         // send notification to friends
         if (firebaseMessagesList.length > 0) {
+          console.log(firebaseMessagesList);
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           this.firebaseSerice.sendAllMessage(firebaseMessagesList);
         }
@@ -386,12 +399,50 @@ export class DongsController {
       createdDong.billList = createdBillList;
       createdDong.payerList = createdPayerList;
 
+      if (currentUser.jointAccounts) {
+        if (
+          _.findIndex(billList, {userRelId: currentUser.usersRels[0].getId()}) >
+          -1
+        ) {
+          const userBill = _.find(createdBillList, {
+            userRelId: currentUser.usersRels[0].getId(),
+          });
+
+          const data: Joint = {
+            dongId: createdDong.getId(),
+            createdAt: createdDong.createdAt,
+            currency: createdDong.currency,
+            desc: createdDong.desc,
+            title: createdDong.title,
+            dongAmount: userBill!.dongAmount,
+            categoryTitle: currentUser.categories[0].title,
+            categoryIcon: currentUser.categories[0].icon,
+            billListId: userBill!.getId(),
+          };
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          this.jointService
+            .submit(
+              this.userId,
+              currentUser.phone,
+              currentUser.jointAccounts[0].getId(),
+              currentUser.categories[0],
+              data,
+            )
+            .then(async () => {
+              await this.billListRepository.updateById(userBill!.billListId!, {
+                jointAccountId: newDong.jointAccountId,
+              });
+            });
+        }
+      }
+
       return {
         ...createdDong,
         score: calculatedScore,
       };
     } catch (err) {
-      throw new HttpErrors.UnprocessableEntity(err);
+      console.error(err);
+      throw new HttpErrors.UnprocessableEntity(err.message);
     }
   }
 

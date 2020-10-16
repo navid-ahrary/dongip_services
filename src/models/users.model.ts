@@ -12,7 +12,7 @@ import {PayerList} from './payer-list.model';
 import {VirtualUsers} from './virtual-users.model';
 import {Dongs} from './dongs.model';
 import {Categories} from './categories.model';
-import {UsersRels} from './users-rels.model';
+import {UsersRels, UsersRelsWithRelations} from './users-rels.model';
 import {Scores} from './scores.model';
 import {Groups} from './groups.model';
 import {Messages} from './messages.model';
@@ -21,6 +21,14 @@ import {Budgets} from './budgets.model';
 import {Settings, SettingsWithRelations} from './settings.model';
 import {Purchases} from './purchases.model';
 import {Subscriptions, SubscriptionsWithRelations} from './subscriptions.model';
+import {
+  JointAccounts,
+  JointAccountsWithRelations,
+} from './joint-accounts.model';
+import {
+  JointAccountSubscribes,
+  JointAccountSubscribesWithRelations,
+} from './joint-account-subscribes.model';
 
 @model({name: 'users'})
 export class Users extends Entity {
@@ -353,14 +361,38 @@ export class Users extends Entity {
   })
   subscriptions: Subscriptions[];
 
+  @hasMany(() => JointAccounts, {
+    name: 'jointAccounts',
+    keyFrom: 'userId',
+    keyTo: 'userId',
+    type: RelationType.hasMany,
+    targetsMany: true,
+    source: Users,
+    target: () => JointAccounts,
+  })
+  jointAccounts?: JointAccounts[];
+
+  @hasMany(() => JointAccountSubscribes, {
+    keyTo: 'userId',
+    keyFrom: 'userId',
+    targetsMany: true,
+    type: RelationType.hasMany,
+    source: Users,
+    target: () => JointAccountSubscribes,
+  })
+  jointAccountSubscribes: JointAccountSubscribes[];
+
   constructor(data?: Partial<Users>) {
     super(data);
   }
 }
 
 export interface UsersRelations {
-  setting?: SettingsWithRelations;
+  setting: SettingsWithRelations;
+  usersRels: UsersRelsWithRelations[];
   subscriptions?: SubscriptionsWithRelations[];
+  JointAccounts?: JointAccountsWithRelations[];
+  jointAccountSubscribes?: JointAccountSubscribesWithRelations[];
 }
 
 export type UsersWithRelations = Users & UsersRelations;

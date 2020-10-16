@@ -53,9 +53,7 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
-    this.lang = this.req.headers['accept-language']
-      ? this.req.headers['accept-language']
-      : 'fa';
+    this.lang = this.req.headers['accept-language'] ?? 'fa';
 
     if (invocationCtx.methodName === 'createDongs') {
       const categoryId = invocationCtx.args[0].categoryId;

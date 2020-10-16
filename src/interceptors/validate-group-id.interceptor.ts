@@ -53,9 +53,7 @@ export class ValidateGroupIdInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
-    this.lang = this.req.headers['accept-language']
-      ? this.req.headers['accept-language']
-      : 'fa';
+    this.lang = this.req.headers['accept-language'] ?? 'fa';
 
     if (invocationCtx.methodName === 'createDongs') {
       if (invocationCtx.args[0].groupId) {

@@ -1,11 +1,11 @@
-import {bind, BindingScope} from '@loopback/core';
+import {BindingScope, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 
 import AwesomePhoneNumber from 'awesome-phonenumber';
 
 import {UsersRepository} from '../repositories';
 
-@bind({scope: BindingScope.CONTEXT})
+@injectable({scope: BindingScope.REQUEST})
 export class PhoneNumberService {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,

@@ -35,6 +35,7 @@ import {Budgets} from './budgets.model';
       },
     },
   },
+  jsonSchema: {description: 'Categories model'},
 })
 export class Categories extends Entity {
   @property({
@@ -125,7 +126,14 @@ export class Categories extends Entity {
   })
   dongs: Dongs[];
 
-  @hasMany(() => Budgets, {keyTo: 'categoryId'})
+  @hasMany(() => Budgets, {
+    keyTo: 'categoryId',
+    keyFrom: 'categoryId',
+    type: RelationType.hasMany,
+    source: Categories,
+    target: () => Budgets,
+    targetsMany: true,
+  })
   budgets: Budgets[];
 
   constructor(data?: Partial<Categories>) {

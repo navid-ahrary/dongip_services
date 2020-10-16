@@ -88,8 +88,20 @@
     "en": "You have been Dongiped"
   },
   "DONGIP_NOTIFY_BODY": {
-    "fa": "مبلغ %s %s از طرف %s",
+    "fa": "مبلغ %s %s توسط %s",
     "en": "Amount %s %s from %s"
+  },
+  "JOINT_NOTIFY_TITLE": {
+    "fa": "حساب مشترک",
+    "en": "Joint Account"
+  },
+  "JOINT_NOTIFY_BODY": {
+    "fa": "مبلغ %s %s توسط %s",
+    "en": "Amount %s %s from %s"
+  },
+  "JOINT_USER_REL_BI_ERR": {
+    "fa": "برای ساخت حساب مشترک، بایستی دوستاتون هم شما رو دوست دنگیپشون بدونن. از %s بخواه که شما رو به دوستاشون اضافه کنن",
+    "en": "For Creating a joint account, your friend should you know as a Dongip friend also, ask %s to add you to friends' list"
   },
   "PLAN_ID": {
     "fa": {
@@ -132,7 +144,7 @@
     "en": "New friend"
   },
   "NEW_USERS_RELS_NOTIFY_BODY": {
-    "fa": "%s شما رو دوست دنگیپش میدونه. اگه میخایی حساب های مشترک بین تون همگام سازی شن، با لمس این پیام به دوستهات اضافه ش کن",
+    "fa": "%s شما رو دوست دنگیپش میدونه. اگه میخایی حساب های بین تون همگام سازی شن، با لمس این پیام به دوستهات اضافه ش کن",
     "en": "%s knows you as a Dongip friend. If you like to sync your bills, tap on this message and add to your friends' list"
   },
   "USERS_RELS_BACK_NOTIFY_TITLE": {
@@ -140,7 +152,7 @@
     "en": "Sync with %s"
   },
   "USERS_RELS_BACK_NOTIFY_BODY": {
-    "fa": "%s هم شما رو دوست دنگیپش میدونه. از این به بعد حساب های مشترک بین تون همگام سازی میشن",
+    "fa": "%s هم شما رو دوست دنگیپش میدونه. از این به بعد حساب های بین تون همگام سازی میشن",
     "en": "%s knows you as a Dongip friend. From now on, your transactions will be synced"
   },
   "USERNAME_UNAVAILABLE": {
@@ -149,10 +161,18 @@
   },
   "BUDGET_SELECT_ITEM": {
     "fa": "فقط یکی از آیتم ها رو میشه بودجه بندی کرد",
-    "en": "only one item allowed"
+    "en": "Only one item allowed"
   },
   "PASSWORD_LENGTH": {
     "fa": "طول رمز باید ۶ کاراکتر باشد",
     "en": "Password length should be atleast 6 character"
+  },
+  "DAILY_NOTIFY_TITLE": {
+    "fa": "وقتشه حساب کتاب‌هاتو دُنگیپ کنی",
+    "en": "It's time to submit your transactions"
+  },
+  "DAILY_NOTIFY_BODY": {
+    "fa": "امروز چه هزینه‌هایی داشتی ؟",
+    "en": "What did you spend today ?"
   }
 }

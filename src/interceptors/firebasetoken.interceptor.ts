@@ -49,7 +49,7 @@ export class FirebasetokenInterceptor implements Provider<Interceptor> {
       }),
       userId = +this.currentUserProfile[securityId];
 
-    if (httpReq && httpReq!.headers['firebase-token']) {
+    if (httpReq?.headers['firebase-token']) {
       const firebaseToken = httpReq.headers['firebase-token'];
 
       if (typeof firebaseToken === 'string') {

@@ -7,8 +7,6 @@ import {
 import {inject, Getter} from '@loopback/core';
 
 import {MysqlDataSource} from '../datasources';
-import {PasswordHasher} from '../services';
-import {PasswordHasherBindings} from '../keys';
 import {
   Users,
   VirtualUsers,
@@ -25,6 +23,8 @@ import {
   Settings,
   Purchases,
   Subscriptions,
+  JointAccounts,
+  JointAccountSubscribes,
 } from '../models';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
@@ -40,6 +40,8 @@ import {VirtualUsersRepository} from './virtual-users.repository';
 import {DongsRepository} from './dongs.repository';
 import {CategoriesRepository} from './categories.repository';
 import {UsersRelsRepository} from './users-rels.repository';
+import {JointAccountsRepository} from './joint-accounts.repository';
+import {JointAccountSubscribesRepository} from './joint-account-subscribes.repository';
 
 export class UsersRepository extends DefaultCrudRepository<
   Users,
@@ -115,6 +117,16 @@ export class UsersRepository extends DefaultCrudRepository<
     typeof Users.prototype.userId
   >;
 
+  public readonly jointAccounts: HasManyRepositoryFactory<
+    JointAccounts,
+    typeof Users.prototype.userId
+  >;
+
+  public readonly jointAccountSubscribes: HasManyRepositoryFactory<
+    JointAccountSubscribes,
+    typeof Users.prototype.userId
+  >;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -125,8 +137,6 @@ export class UsersRepository extends DefaultCrudRepository<
     protected categoryRepositoryGetter: Getter<CategoriesRepository>,
     @repository.getter('UsersRelsRepository')
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
-    @inject(PasswordHasherBindings.PASSWORD_HASHER)
-    public passwordHasher: PasswordHasher,
     @repository.getter('BillListRepository')
     protected billListRepositoryGetter: Getter<BillListRepository>,
     @repository.getter('PayerListRepository')
@@ -147,8 +157,32 @@ export class UsersRepository extends DefaultCrudRepository<
     protected purchasesRepositoryGetter: Getter<PurchasesRepository>,
     @repository.getter('SubscriptionsRepository')
     protected subscriptionsRepositoryGetter: Getter<SubscriptionsRepository>,
+    @repository.getter('JointAccountsRepository')
+    protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
+    @repository.getter('JointAccountSubscribesRepository')
+    protected jointAccountSubscribesRepositoryGetter: Getter<
+      JointAccountSubscribesRepository
+    >,
   ) {
     super(Users, dataSource);
+
+    this.jointAccountSubscribes = this.createHasManyRepositoryFactoryFor(
+      'jointAccountSubscribes',
+      jointAccountSubscribesRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'jointAccountSubscribes',
+      this.jointAccountSubscribes.inclusionResolver,
+    );
+
+    this.jointAccounts = this.createHasManyRepositoryFactoryFor(
+      'jointAccounts',
+      jointAccountsRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'jointAccounts',
+      this.jointAccounts.inclusionResolver,
+    );
 
     this.subscriptions = this.createHasManyRepositoryFactoryFor(
       'subscriptions',

@@ -9,7 +9,7 @@ import {
   hasMany,
 } from '@loopback/repository';
 
-import {Users} from './';
+import {Users} from './users.model';
 import {VirtualUsers} from './virtual-users.model';
 import {Budgets} from './budgets.model';
 
@@ -76,7 +76,9 @@ export class UsersRels extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {maxLength: 20},
+    jsonSchema: {
+      maxLength: 20,
+    },
     mysql: {
       columnName: 'type',
       dataType: 'varchar',
@@ -84,7 +86,7 @@ export class UsersRels extends Entity {
       nullable: 'N',
     },
   })
-  type: string;
+  type: 'self' | 'unidirectional' | 'bidirectional';
 
   @property({
     type: 'string',

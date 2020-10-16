@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {bind, BindingScope} from '@loopback/core';
+import {BindingScope, injectable} from '@loopback/core';
 
 import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api';
 
@@ -7,7 +7,7 @@ const websiteURL = 'https://www.dongip.ir';
 const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
 const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
 
-@bind({scope: BindingScope.SINGLETON})
+@injectable({scope: BindingScope.SINGLETON})
 export class WoocommerceService {
   constructor(
     protected wcRestApi = new WooCommerceRestApi({

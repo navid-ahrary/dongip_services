@@ -11,3 +11,4 @@ export * from './subscription.service';
 export * from './cafebazaar.service';
 export * from './email.service';
 export * from './woocommerce.service';
+export * from './joint.service';

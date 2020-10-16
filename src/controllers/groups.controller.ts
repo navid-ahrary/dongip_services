@@ -50,9 +50,7 @@ export class GroupsController {
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-    this.lang = this.ctx.request.headers['accept-language']
-      ? this.ctx.request.headers['accept-language']
-      : 'fa';
+    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
 
   @post('/groups', {
@@ -129,6 +127,7 @@ export class GroupsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(Groups, {
+            title: 'PatchGroups',
             partial: true,
             exclude: ['groupId', 'userId'],
           }),

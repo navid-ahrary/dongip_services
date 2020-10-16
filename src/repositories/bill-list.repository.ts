@@ -9,14 +9,14 @@ import {
   BillList,
   BillListRelations,
   Categories,
-  Users,
-} from '../models';
+  Users, JointAccounts} from '../models';
 import {MysqlDataSource} from '../datasources';
 import {inject, Getter} from '@loopback/core';
 import {DongsRepository} from './dongs.repository';
 import {UsersRelsRepository} from './users-rels.repository';
 import {CategoriesRepository} from './categories.repository';
 import {UsersRepository} from './users.repository';
+import {JointAccountsRepository} from './joint-accounts.repository';
 
 export class BillListRepository extends DefaultCrudRepository<
   BillList,
@@ -43,6 +43,8 @@ export class BillListRepository extends DefaultCrudRepository<
     typeof BillList.prototype.billListId
   >;
 
+  public readonly jointAccount: BelongsToAccessor<JointAccounts, typeof BillList.prototype.billListId>;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('DongsRepository')
@@ -52,9 +54,11 @@ export class BillListRepository extends DefaultCrudRepository<
     @repository.getter('CategoriesRepository')
     protected categoryRepositoryGetter: Getter<CategoriesRepository>,
     @repository.getter('UsersRepository')
-    protected usersRepositoryGetter: Getter<UsersRepository>,
+    protected usersRepositoryGetter: Getter<UsersRepository>, @repository.getter('JointAccountsRepository') protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
   ) {
     super(BillList, dataSource);
+    this.jointAccount = this.createBelongsToAccessorFor('jointAccount', jointAccountsRepositoryGetter,);
+    this.registerInclusionResolver('jointAccount', this.jointAccount.inclusionResolver);
 
     this.users = this.createBelongsToAccessorFor(
       'users',

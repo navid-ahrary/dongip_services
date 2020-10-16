@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {bind, BindingScope} from '@loopback/core';
+import {BindingScope, injectable} from '@loopback/core';
 
 import util from 'util';
 import axios from 'axios';
@@ -37,7 +37,7 @@ export interface SentEmail {
   };
 }
 
-@bind({scope: BindingScope.SINGLETON})
+@injectable({scope: BindingScope.SINGLETON})
 export class EmailService {
   constructor() {}
 

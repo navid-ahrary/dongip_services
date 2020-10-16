@@ -30,7 +30,7 @@ export class Purchases extends Entity {
     generated: true,
     mysql: {
       columnName: 'id',
-      dataType: 'int unsigned',
+      dataType: 'mediumint unsigned',
     },
   })
   purchaseId: number;

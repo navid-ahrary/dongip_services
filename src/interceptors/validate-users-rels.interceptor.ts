@@ -1,15 +1,16 @@
 import {
-  /* inject, */
+  inject,
   bind,
   Interceptor,
   InvocationContext,
   InvocationResult,
   Provider,
   ValueOrPromise,
-  inject,
 } from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
+import util from 'util';
+
 import {UsersRelsRepository, UsersRepository} from '../repositories';
 import {HttpErrors, Request, RestBindings} from '@loopback/rest';
 import {LocalizedMessages} from '../application';
@@ -53,9 +54,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
     invocationCtx: InvocationContext,
     next: () => ValueOrPromise<InvocationResult>,
   ) {
-    this.lang = this.req.headers['accept-language']
-      ? this.req.headers['accept-language']
-      : 'fa';
+    this.lang = this.req.headers['accept-language'] ?? 'fa';
 
     let errMsg: string;
 
@@ -70,7 +69,6 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
 
         if (countUserRels.count !== userRelIds.length) {
           errMsg = this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang];
-
           throw new Error(errMsg);
         }
       } else if (invocationCtx.methodName === 'patchGroupsById') {
@@ -84,7 +82,6 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
 
           if (countUserRels.count !== userRelIds.length) {
             errMsg = this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang];
-
             throw new Error(errMsg);
           }
         }
@@ -103,15 +100,34 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
 
         if (!foundUserRel) {
           errMsg = this.locMsg['USER_REL_NOT_VALID'][this.lang];
-
           throw new Error(errMsg);
         }
-      } else if (invocationCtx.methodName === 'createUsersRels') {
-        if (!invocationCtx.args[0].phone) {
-          errMsg = 'Phone number must b provided';
+      } else if (invocationCtx.methodName === 'createJointAccount') {
+        const userRelIds = invocationCtx.args[0].userRelIds;
 
+        const foundUrs = await this.usersRepository
+          .usersRels(this.userId)
+          .find({
+            fields: {userRelId: true, userId: true, type: true, name: true},
+            where: {
+              userRelId: {inq: userRelIds},
+            },
+          });
+
+        if (foundUrs.length !== userRelIds.length) {
+          errMsg = this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang];
           throw new Error(errMsg);
         }
+
+        foundUrs.forEach((ur) => {
+          if (ur.type === 'unidirectional') {
+            errMsg = util.format(
+              this.locMsg['JOINT_USER_REL_BI_ERR'][this.lang],
+              ur.name,
+            );
+            throw new Error(errMsg);
+          } else return;
+        });
       }
     } catch (err) {
       throw new HttpErrors.UnprocessableEntity(err.message);

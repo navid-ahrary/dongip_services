@@ -80,9 +80,7 @@ export class AuthController {
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
     @inject('application.categoriesSourceList') public catSrc: CategoriesSource,
   ) {
-    this.lang = this.ctx.request.headers['accept-language']
-      ? this.ctx.request.headers['accept-language']
-      : 'fa';
+    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
 
   generateRandomString(length: number) {
