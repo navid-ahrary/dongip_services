@@ -239,7 +239,7 @@ export class DongsController {
       );
     }
 
-    if (selfUserRel?.getId() === newDong.billList[0].userRelId) {
+    if (selfUserRel?.getId() === newDong.payerList[0].userRelId) {
       currentUserIsPayer = true;
     }
 

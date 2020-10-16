@@ -4,7 +4,6 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "target": "ES2019",
     "strict": true,
     "allowJs": true,
     "declaration": false
