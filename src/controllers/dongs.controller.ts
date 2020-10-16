@@ -148,6 +148,7 @@ export class DongsController {
             createdAt: moment.utc().toISOString(),
             categoryId: 1,
             groupId: 12,
+            jointAccountId: 1,
             pong: 80000,
             currency: 'IRR',
             sendNotify: true,
