@@ -49,14 +49,6 @@ export class FirebaseService {
     payload: messaging.MessagingPayload,
     options?: messaging.MessagingOptions | undefined,
   ): Promise<messaging.MessagingDevicesResponse> {
-    Object.assign(payload.notification, {
-      // Android options
-      android: {
-        notification: {clickAction: 'FLUTTER_NOTIFICATION_CLICK'},
-      },
-      // iOS options
-      apns: {},
-    });
     const response = await messaging().sendToDevice(
       firebaseToken,
       payload,
