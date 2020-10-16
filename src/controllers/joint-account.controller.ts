@@ -131,8 +131,6 @@ export class JointAccountController {
       include: [{relation: 'jointAccountSubscribes'}],
     });
 
-    console.log(JAs);
-
     for (const ja of JAs) {
       const userRelIds: Array<number> = [];
       for (const jas of ja.jointAccountSubscribes) {

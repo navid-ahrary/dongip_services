@@ -382,9 +382,7 @@ export class DongsController {
           }
         }
 
-        // send notification to friends
         if (firebaseMessagesList.length > 0) {
-          console.log(firebaseMessagesList);
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           this.firebaseSerice.sendAllMessage(firebaseMessagesList);
         }

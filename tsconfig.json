@@ -5,6 +5,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,
+    "target": "ES2019",
     "allowJs": true,
     "declaration": false
   },

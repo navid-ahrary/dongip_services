@@ -95,12 +95,12 @@ export class JointService {
     const firebaseMessagesList: BatchMessage = [];
 
     for (const ja of JAS) {
-      const cat =
-        ja.user.categories[0] ??
-        (await this.userRepo.categories(ja.user.getId()).create({
-          title: currentUserCategory.title,
-          icon: currentUserCategory.icon,
-        }));
+      const cat = ja.user.categories
+        ? ja.user.categories[0]
+        : await this.userRepo.categories(ja.user.getId()).create({
+            title: currentUserCategory.title,
+            icon: currentUserCategory.icon,
+          });
 
       const dongEnt = new Dongs({
         title: data.title,
