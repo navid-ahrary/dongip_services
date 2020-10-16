@@ -86,7 +86,7 @@ export class UsersRels extends Entity {
       nullable: 'N',
     },
   })
-  type: 'self' | 'unidirectional' | 'bidirectional';
+  type: 'self' | 'unidirectional' | 'bidirectional' | 'virtual';
 
   @property({
     type: 'string',

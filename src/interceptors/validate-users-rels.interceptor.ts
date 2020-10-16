@@ -10,6 +10,7 @@ import {
 import {repository} from '@loopback/repository';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import util from 'util';
+import _ from 'lodash';
 
 import {UsersRelsRepository, UsersRepository} from '../repositories';
 import {HttpErrors, Request, RestBindings} from '@loopback/rest';
@@ -108,26 +109,65 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         const foundUrs = await this.usersRepository
           .usersRels(this.userId)
           .find({
-            fields: {userRelId: true, userId: true, type: true, name: true},
+            fields: {
+              userRelId: true,
+              userId: true,
+              type: true,
+              name: true,
+              phone: true,
+            },
             where: {
-              userRelId: {inq: userRelIds},
+              or: [
+                {userRelId: {inq: userRelIds}, userId: this.userId},
+                {type: 'self', userId: this.userId},
+              ],
             },
           });
+        const currentUserPhone = _.map(foundUrs, (ur) => {
+          if (ur.type === 'self') return ur.phone;
+        })[0];
 
         if (foundUrs.length !== userRelIds.length) {
           errMsg = this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang];
           throw new Error(errMsg);
         }
 
-        foundUrs.forEach((ur) => {
+        for (const ur of foundUrs) {
           if (ur.type === 'unidirectional') {
             errMsg = util.format(
               this.locMsg['JOINT_USER_REL_BI_ERR'][this.lang],
               ur.name,
             );
             throw new Error(errMsg);
-          } else return;
-        });
+            // Check user those using previous version
+          } else if (ur.type === 'virtual') {
+            const targetToCurrentRel = await this.usersRepository.findOne({
+              where: {phone: ur.phone},
+              include: [
+                {
+                  relation: 'usersRels',
+                  scope: {where: {phone: currentUserPhone}},
+                },
+              ],
+            });
+
+            if (targetToCurrentRel?.usersRels) {
+              await this.usersRelsRepository.updateAll(
+                {type: 'bidirectional'},
+                {
+                  or: [
+                    {userRelId: targetToCurrentRel.usersRels[0].getId()},
+                    {userRelId: ur.getId()},
+                  ],
+                },
+              );
+            } else {
+              await this.usersRelsRepository.updateById(ur.getId(), {
+                type: 'unidirectional',
+              });
+            }
+          }
+        }
       }
     } catch (err) {
       throw new HttpErrors.UnprocessableEntity(err.message);
