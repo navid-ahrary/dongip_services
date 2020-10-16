@@ -85,7 +85,7 @@
   },
   "DONGIP_NOTIFY_TITLE": {
     "fa": "دنگیپ شدی",
-    "en": "You have been Dongiped"
+    "en": "A transaction has been submitted in your name."
   },
   "DONGIP_NOTIFY_BODY": {
     "fa": "مبلغ %s %s توسط %s",
