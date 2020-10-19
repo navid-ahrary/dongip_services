@@ -12,6 +12,8 @@ import {
   JointAccountSubscribesWithRelations,
 } from './joint-account-subscribes.model';
 import {BillList, BillListWithRelations} from './bill-list.model';
+import {Dongs} from './dongs.model';
+import {PayerList} from './payer-list.model';
 
 @model({
   name: 'joint_accounts',
@@ -112,6 +114,12 @@ export class JointAccounts extends Entity {
 
   @hasMany(() => BillList, {keyTo: 'jointAccountId', keyFrom: 'jointAccountId'})
   billList: BillList[];
+
+  @hasMany(() => Dongs, {keyTo: 'jointAccountId'})
+  dongs: Dongs[];
+
+  @hasMany(() => PayerList, {keyTo: 'jointAccountId'})
+  payerLists: PayerList[];
 
   constructor(data?: Partial<JointAccounts>) {
     super(data);

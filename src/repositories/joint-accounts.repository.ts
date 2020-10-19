@@ -11,12 +11,13 @@ import {
   JointAccountsRelations,
   Users,
   JointAccountSubscribes,
-  BillList,
-} from '../models';
+  BillList, Dongs, PayerList} from '../models';
 import {MysqlDataSource} from '../datasources';
 import {UsersRepository} from './users.repository';
 import {JointAccountSubscribesRepository} from './joint-account-subscribes.repository';
 import {BillListRepository} from './bill-list.repository';
+import {DongsRepository} from './dongs.repository';
+import {PayerListRepository} from './payer-list.repository';
 
 export class JointAccountsRepository extends DefaultCrudRepository<
   JointAccounts,
@@ -38,6 +39,10 @@ export class JointAccountsRepository extends DefaultCrudRepository<
     typeof JointAccounts.prototype.jointAccountId
   >;
 
+  public readonly dongs: HasManyRepositoryFactory<Dongs, typeof JointAccounts.prototype.jointAccountId>;
+
+  public readonly payerLists: HasManyRepositoryFactory<PayerList, typeof JointAccounts.prototype.jointAccountId>;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
@@ -47,9 +52,13 @@ export class JointAccountsRepository extends DefaultCrudRepository<
       JointAccountSubscribesRepository
     >,
     @repository.getter('BillListRepository')
-    protected billListRepositoryGetter: Getter<BillListRepository>,
+    protected billListRepositoryGetter: Getter<BillListRepository>, @repository.getter('DongsRepository') protected dongsRepositoryGetter: Getter<DongsRepository>, @repository.getter('PayerListRepository') protected payerListRepositoryGetter: Getter<PayerListRepository>,
   ) {
     super(JointAccounts, dataSource);
+    this.payerLists = this.createHasManyRepositoryFactoryFor('payerLists', payerListRepositoryGetter,);
+    this.registerInclusionResolver('payerLists', this.payerLists.inclusionResolver);
+    this.dongs = this.createHasManyRepositoryFactoryFor('dongs', dongsRepositoryGetter,);
+    this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
     this.billList = this.createHasManyRepositoryFactoryFor(
       'billList',
       billListRepositoryGetter,

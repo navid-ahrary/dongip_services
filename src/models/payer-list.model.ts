@@ -10,6 +10,7 @@ import {UsersRels} from './users-rels.model';
 import {Categories} from './categories.model';
 import {Users} from './users.model';
 import {CurrencyEnum} from './settings.model';
+import {JointAccounts} from './joint-accounts.model';
 
 @model({
   name: 'payer_list',
@@ -200,6 +201,9 @@ export class PayerList extends Entity {
     },
   )
   userId: number;
+
+  @belongsTo(() => JointAccounts)
+  jointAccountId: number;
 
   constructor(data?: Partial<PayerList>) {
     super(data);

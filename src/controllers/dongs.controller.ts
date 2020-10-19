@@ -1,12 +1,5 @@
 /* eslint-disable prefer-const */
-import {
-  Filter,
-  repository,
-  property,
-  model,
-  CountSchema,
-  DataObject,
-} from '@loopback/repository';
+import { Filter, repository, property, model, CountSchema, DataObject } from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -18,15 +11,15 @@ import {
   del,
   RequestContext,
 } from '@loopback/rest';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {authenticate} from '@loopback/authentication';
-import {inject, service, intercept} from '@loopback/core';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { authenticate } from '@loopback/authentication';
+import { inject, service, intercept } from '@loopback/core';
 
 import _ from 'lodash';
 import util from 'util';
 import moment from 'moment';
 
-import {Dongs, PostDong, Notifications} from '../models';
+import { Dongs, PostDong, Notifications } from '../models';
 import {
   UsersRepository,
   DongsRepository,
@@ -35,25 +28,19 @@ import {
   CategoriesRepository,
   UsersRelsRepository,
 } from '../repositories';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {FirebaseService, BatchMessage, Joint, JointService} from '../services';
-import {
-  ValidateCategoryIdInterceptor,
-  FirebasetokenInterceptor,
-} from '../interceptors';
-import {ValidateGroupIdInterceptor} from '../interceptors/validate-group-id.interceptor';
-import {LocalizedMessages} from '../application';
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
+import { FirebaseService, BatchMessage, Joint, JointService } from '../services';
+import { ValidateCategoryIdInterceptor, FirebasetokenInterceptor } from '../interceptors';
+import { ValidateGroupIdInterceptor } from '../interceptors/validate-group-id.interceptor';
+import { LocalizedMessages } from '../application';
 
 @model()
 class ResponseNewDong extends Dongs {
-  @property({type: 'number'})
+  @property({ type: 'number' })
   score: number;
 }
-@intercept(
-  ValidateGroupIdInterceptor.BINDING_KEY,
-  FirebasetokenInterceptor.BINDING_KEY,
-)
-@api({basePath: '/', paths: {}})
+@intercept(ValidateGroupIdInterceptor.BINDING_KEY, FirebasetokenInterceptor.BINDING_KEY)
+@api({ basePath: '/', paths: {} })
 @authenticate('jwt.access')
 export class DongsController {
   private readonly userId: number;
@@ -95,7 +82,7 @@ export class DongsController {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(Dongs, {includeRelations: false}),
+              items: getModelSchemaRef(Dongs, { includeRelations: false }),
             },
           },
         },
@@ -105,7 +92,7 @@ export class DongsController {
   async findDongs(): Promise<Dongs[]> {
     const filter: Filter<Dongs> = {
       order: ['createdAt DESC'],
-      include: [{relation: 'payerList'}, {relation: 'billList'}],
+      include: [{ relation: 'payerList' }, { relation: 'billList' }],
     };
 
     return this.usersRepository.dongs(this.userId).find(filter);
@@ -134,13 +121,7 @@ export class DongsController {
         'application/json': {
           schema: getModelSchemaRef(PostDong, {
             title: 'NewDongs',
-            optional: [
-              'title',
-              'desc',
-              'groupId',
-              'jointAccountId',
-              'currency',
-            ],
+            optional: ['title', 'desc', 'groupId', 'jointAccountId', 'currency'],
           }),
           example: {
             title: 'New dong',
@@ -152,12 +133,12 @@ export class DongsController {
             pong: 80000,
             currency: 'IRR',
             sendNotify: true,
-            payerList: [{userRelId: 1, paidAmount: 80000}],
+            payerList: [{ userRelId: 1, paidAmount: 80000 }],
             billList: [
-              {userRelId: 1, dongAmount: 20000},
-              {userRelId: 2, dongAmount: 20000},
-              {userRelId: 3, dongAmount: 20000},
-              {userRelId: 4, dongAmount: 20000},
+              { userRelId: 1, dongAmount: 20000 },
+              { userRelId: 2, dongAmount: 20000 },
+              { userRelId: 3, dongAmount: 20000 },
+              { userRelId: 4, dongAmount: 20000 },
             ],
           },
         },
@@ -203,23 +184,23 @@ export class DongsController {
         {
           relation: 'categories',
           scope: {
-            where: {categoryId: newDong.categoryId},
+            where: { categoryId: newDong.categoryId },
           },
         },
         {
           relation: 'usersRels',
           scope: {
-            fields: {userRelId: true, userId: true, phone: true, type: true},
+            fields: { userRelId: true, userId: true, phone: true, type: true },
             where: {
-              or: [{type: 'self'}, {userRelId: {inq: allUsersRelsIdList}}],
+              or: [{ type: 'self' }, { userRelId: { inq: allUsersRelsIdList } }],
             },
           },
         },
         {
           relation: 'jointAccounts',
           scope: {
-            fields: {createdAt: false},
-            where: {jointAccountId: newDong.jointAccountId},
+            fields: { createdAt: false },
+            where: { jointAccountId: newDong.jointAccountId },
             include: [
               {
                 relation: 'jointAccountSubscribes',
@@ -235,9 +216,7 @@ export class DongsController {
     const selfUserRel = _.find(usersRels, (ur) => ur.type === 'self');
 
     if (usersRels.length !== allUsersRelsIdList.length) {
-      throw new HttpErrors.UnprocessableEntity(
-        this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang],
-      );
+      throw new HttpErrors.UnprocessableEntity(this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang]);
     }
 
     if (selfUserRel?.getId() === newDong.payerList[0].userRelId) {
@@ -253,12 +232,11 @@ export class DongsController {
       pong: newDong.pong,
       currency: newDong.currency,
       groupId: newDong.groupId,
+      jointAccountId: newDong.jointAccountId ?? undefined,
     });
 
     try {
-      const createdDong = await this.usersRepository
-        .dongs(this.userId)
-        .create(dong);
+      const createdDong = await this.usersRepository.dongs(this.userId).create(dong);
 
       payerList.forEach((item) => {
         item = _.assign(item, {
@@ -267,6 +245,7 @@ export class DongsController {
           createdAt: createdDong.createdAt,
           categoryId: createdDong.categoryId,
           currency: createdDong.currency,
+          jointAccountId: createdDong.jointAccountId,
         });
       });
 
@@ -277,37 +256,32 @@ export class DongsController {
           createdAt: createdDong.createdAt,
           categoryId: createdDong.categoryId,
           currency: createdDong.currency,
+          jointAccountId: createdDong.jointAccountId,
         });
       });
 
       // Store billlists in database
-      const createdPayerList = await this.payerListRepository.createAll(
-        payerList,
-      );
+      const createdPayerList = await this.payerListRepository.createAll(payerList);
       // Store payerLists in database
       const createdBillList = await this.billListRepository.createAll(billList);
 
-      const sendNotify = _.has(newDong, 'sendNotify')
-        ? newDong.sendNotify
-        : true;
+      const sendNotify = _.has(newDong, 'sendNotify') ? newDong.sendNotify : true;
 
       if (currentUserIsPayer && sendNotify) {
         for (const relation of exterUserRelsList) {
           const user = await this.usersRepository.findOne({
-            where: {phone: relation.phone},
-            include: [{relation: 'setting'}],
+            where: { phone: relation.phone },
+            include: [{ relation: 'setting' }],
           });
 
           // If relation is mutual, add to notification reciever list
           if (user && user.firebaseToken !== 'null') {
-            const foundMutualUsersRels = await this.usersRelsRepository.findOne(
-              {
-                where: {
-                  phone: currentUser.phone,
-                  userId: user.getId(),
-                },
+            const foundMutualUsersRels = await this.usersRelsRepository.findOne({
+              where: {
+                phone: currentUser.phone,
+                userId: user.getId(),
               },
-            );
+            });
 
             if (foundMutualUsersRels) {
               // Increament scoreFactor for every mutual friend contribute in dong
@@ -324,21 +298,15 @@ export class DongsController {
                 : 0;
 
               // Seperate thousands with "," for use in notification body
-              const notifyBodyDongAmount = this.numberWithCommas(
-                roundedDongAmount,
-              );
+              const notifyBodyDongAmount = this.numberWithCommas(roundedDongAmount);
 
               // Notification data payload
               const notifyData = new Notifications({
-                title: this.locMsg['DONGIP_NOTIFY_TITLE'][
-                  user.setting.language
-                ],
+                title: this.locMsg['DONGIP_NOTIFY_TITLE'][user.setting.language],
                 body: util.format(
                   this.locMsg['DONGIP_NOTIFY_BODY'][user.setting.language],
                   notifyBodyDongAmount,
-                  this.locMsg['CURRENCY'][user.setting.language][
-                    createdDong.currency
-                  ],
+                  this.locMsg['CURRENCY'][user.setting.language][createdDong.currency],
                   foundMutualUsersRels.name,
                 ),
                 desc: createdDong.desc ? createdDong.desc : '',
@@ -399,10 +367,7 @@ export class DongsController {
       createdDong.payerList = createdPayerList;
 
       if (currentUser.jointAccounts) {
-        if (
-          _.findIndex(billList, {userRelId: currentUser.usersRels[0].getId()}) >
-          -1
-        ) {
+        if (_.findIndex(billList, { userRelId: currentUser.usersRels[0].getId() }) > -1) {
           const userBill = _.find(createdBillList, {
             userRelId: currentUser.usersRels[0].getId(),
           });
@@ -448,10 +413,10 @@ export class DongsController {
   @del('/dongs/{dongId}', {
     summary: 'DELETE a Dong by dongId',
     security: OPERATION_SECURITY_SPEC,
-    responses: {'204': {description: 'No content'}},
+    responses: { '204': { description: 'No content' } },
   })
   async deleteDongsById(
-    @param.path.number('dongId', {required: true})
+    @param.path.number('dongId', { required: true })
     dongId: typeof Dongs.prototype.dongId,
   ): Promise<void> {
     // Delete Dong by dongId

@@ -15,14 +15,14 @@ import {
   PayerList,
   Categories,
   Groups,
-  Scores,
-} from '../models';
+  Scores, JointAccounts} from '../models';
 import {UsersRepository} from './users.repository';
 import {BillListRepository} from './bill-list.repository';
 import {PayerListRepository} from './payer-list.repository';
 import {CategoriesRepository} from './categories.repository';
 import {GroupsRepository} from './groups.repository';
 import {ScoresRepository} from './scores.repository';
+import {JointAccountsRepository} from './joint-accounts.repository';
 
 export class DongsRepository extends DefaultCrudRepository<
   Dongs,
@@ -59,6 +59,8 @@ export class DongsRepository extends DefaultCrudRepository<
     typeof Dongs.prototype.dongId
   >;
 
+  public readonly jointAccount: BelongsToAccessor<JointAccounts, typeof Dongs.prototype.dongId>;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
@@ -72,9 +74,11 @@ export class DongsRepository extends DefaultCrudRepository<
     @repository.getter('GroupsRepository')
     protected groupsRepositoryGetter: Getter<GroupsRepository>,
     @repository.getter('ScoresRepository')
-    protected scoresRepositoryGetter: Getter<ScoresRepository>,
+    protected scoresRepositoryGetter: Getter<ScoresRepository>, @repository.getter('JointAccountsRepository') protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
   ) {
     super(Dongs, dataSource);
+    this.jointAccount = this.createBelongsToAccessorFor('jointAccount', jointAccountsRepositoryGetter,);
+    this.registerInclusionResolver('jointAccount', this.jointAccount.inclusionResolver);
     this.scores = this.createHasManyRepositoryFactoryFor(
       'scores',
       scoresRepositoryGetter,

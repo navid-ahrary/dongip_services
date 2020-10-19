@@ -1,20 +1,14 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {
-  Entity,
-  model,
-  property,
-  belongsTo,
-  hasMany,
-  RelationType,
-} from '@loopback/repository';
+import { Entity, model, property, belongsTo, hasMany, RelationType } from '@loopback/repository';
 
-import {Users} from './users.model';
-import {Categories} from './categories.model';
-import {PayerList} from './payer-list.model';
-import {BillList} from './bill-list.model';
-import {Groups} from './groups.model';
-import {Scores} from './scores.model';
-import {CurrencyEnum} from './settings.model';
+import { Users } from './users.model';
+import { Categories } from './categories.model';
+import { PayerList } from './payer-list.model';
+import { BillList } from './bill-list.model';
+import { Groups } from './groups.model';
+import { Scores } from './scores.model';
+import { CurrencyEnum } from './settings.model';
+import { JointAccounts } from './joint-accounts.model';
 
 @model({
   name: 'dongs',
@@ -33,7 +27,15 @@ import {CurrencyEnum} from './settings.model';
         entity: 'categories',
         entityKey: 'id',
         foreignKey: 'categoryId',
-        onUpdate: 'no action',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+      fkDongsJointAccountId: {
+        name: 'fk_dongs_joint_account_id',
+        entity: 'joint_accounts',
+        entityKey: 'id',
+        foreignKey: 'jointAccountId',
+        onUpdate: 'cascade',
         onDelete: 'cascade',
       },
     },
@@ -55,7 +57,7 @@ export class Dongs extends Entity {
 
   @property({
     type: 'string',
-    jsonSchema: {maxLength: 255},
+    jsonSchema: { maxLength: 255 },
     mysql: {
       columnName: 'title',
       dataType: 'varchar',
@@ -67,7 +69,7 @@ export class Dongs extends Entity {
 
   @property({
     type: 'string',
-    jsonSchema: {maxLength: 255},
+    jsonSchema: { maxLength: 255 },
     mysql: {
       columnName: 'desc',
       dataType: 'varchar',
@@ -131,7 +133,7 @@ export class Dongs extends Entity {
     {
       type: 'Number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',
@@ -155,7 +157,7 @@ export class Dongs extends Entity {
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'category_id',
         dataType: 'mediumint unsigned',
@@ -178,7 +180,7 @@ export class Dongs extends Entity {
     },
     {
       type: 'number',
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'group_id',
         dataType: 'mediumint unsigned',
@@ -221,6 +223,28 @@ export class Dongs extends Entity {
     targetsMany: true,
   })
   scores: Scores[];
+
+  @belongsTo(
+    () => JointAccounts,
+    {
+      name: 'jointAccount',
+      keyFrom: 'jointAccountId',
+      keyTo: 'jointAccountId',
+      type: RelationType.belongsTo,
+      source: JointAccounts,
+      target: () => Dongs,
+    },
+    {
+      type: 'number',
+      index: { normal: true },
+      mysql: {
+        columnName: 'joint_account_id',
+        dataType: 'mediumint unsigned',
+        nullable: 'Y',
+      },
+    },
+  )
+  jointAccountId?: number;
 
   constructor(data?: Partial<Dongs>) {
     super(data);
