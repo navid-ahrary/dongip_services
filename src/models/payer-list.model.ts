@@ -1,16 +1,10 @@
-import {
-  Entity,
-  model,
-  property,
-  belongsTo,
-  RelationType,
-} from '@loopback/repository';
-import {Dongs} from './dongs.model';
-import {UsersRels} from './users-rels.model';
-import {Categories} from './categories.model';
-import {Users} from './users.model';
-import {CurrencyEnum} from './settings.model';
-import {JointAccounts} from './joint-accounts.model';
+import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
+import { Dongs } from './dongs.model';
+import { UsersRels } from './users-rels.model';
+import { Categories } from './categories.model';
+import { Users } from './users.model';
+import { CurrencyEnum } from './settings.model';
+import { JointAccounts } from './joint-accounts.model';
 
 @model({
   name: 'payer_list',
@@ -119,7 +113,7 @@ export class PayerList extends Entity {
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'dong_id',
         dataType: 'mediumint unsigned',
@@ -143,7 +137,7 @@ export class PayerList extends Entity {
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_rel_id',
         dataType: 'mediumint unsigned',
@@ -167,7 +161,7 @@ export class PayerList extends Entity {
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'category_id',
         dataType: 'mediumint unsigned',
@@ -191,7 +185,7 @@ export class PayerList extends Entity {
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',
@@ -202,8 +196,27 @@ export class PayerList extends Entity {
   )
   userId: number;
 
-  @belongsTo(() => JointAccounts)
-  jointAccountId: number;
+  @belongsTo(
+    () => JointAccounts,
+    {
+      name: 'jointAccount',
+      keyFrom: 'jointAccountId',
+      keyTo: 'jointAccountId',
+      type: RelationType.belongsTo,
+      source: JointAccounts,
+      target: () => PayerList,
+    },
+    {
+      type: 'number',
+      index: { normal: true },
+      mysql: {
+        columnName: 'joint_account_id',
+        dataType: 'mediumint unsigned',
+        nullable: 'Y',
+      },
+    },
+  )
+  jointAccountId?: number;
 
   constructor(data?: Partial<PayerList>) {
     super(data);
