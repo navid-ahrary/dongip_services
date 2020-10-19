@@ -1,26 +1,21 @@
-import {injectable, BindingScope, service, inject} from '@loopback/core';
-import {repository} from '@loopback/repository';
+import { injectable, BindingScope, service, inject } from '@loopback/core';
+import { repository } from '@loopback/repository';
 import util from 'util';
 import moment from 'moment';
 
-import {LocalizedMessages} from '../application';
-import {
-  Categories,
-  Dongs,
-  JointAccounts,
-  Notifications,
-  Users,
-} from '../models';
+import { LocalizedMessages } from '../application';
+import { Categories, Dongs, JointAccounts, Notifications, Users } from '../models';
 import {
   BillListRepository,
   CategoriesRepository,
   DongsRepository,
+  JointAccountsRepository,
   JointAccountSubscribesRepository,
   NotificationsRepository,
   UsersRelsRepository,
   UsersRepository,
 } from '../repositories';
-import {BatchMessage, FirebaseService} from './firebase.service';
+import { BatchMessage, FirebaseService } from './firebase.service';
 
 export interface Joint {
   title?: string;
@@ -34,14 +29,16 @@ export interface Joint {
   billListId: number;
 }
 
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({ scope: BindingScope.TRANSIENT })
 export class JointService {
   constructor(
-    @service(FirebaseService) public firebaserService: FirebaseService,
+    @service(FirebaseService) public firebaseService: FirebaseService,
     @repository(NotificationsRepository)
     public notifyRepo: NotificationsRepository,
     @repository(JointAccountSubscribesRepository)
     public jointAccSubscribeRepo: JointAccountSubscribesRepository,
+    @repository(JointAccountsRepository)
+    public jointAccountRepo: JointAccountsRepository,
     @repository(CategoriesRepository)
     public catgoryRepo: CategoriesRepository,
     @repository(UsersRepository) public userRepo: UsersRepository,
@@ -60,30 +57,30 @@ export class JointService {
     data: Joint,
   ) {
     const JAS = await this.jointAccSubscribeRepo.find({
-      where: {jointAccountId: jointAcountId, userId: {neq: currentUserId}},
+      where: { jointAccountId: jointAcountId, userId: { neq: currentUserId } },
       include: [
         {
           relation: 'user',
           scope: {
-            fields: {userId: true, firebaseToken: true, phone: true},
+            fields: { userId: true, firebaseToken: true, phone: true },
             include: [
               {
                 relation: 'setting',
                 scope: {
-                  fields: {userId: true, language: true, settingId: true},
+                  fields: { userId: true, language: true, settingId: true },
                 },
               },
               {
                 relation: 'categories',
                 scope: {
-                  where: {title: currentUserCategory.title},
+                  where: { title: currentUserCategory.title },
                 },
               },
               {
                 relation: 'usersRels',
                 scope: {
-                  fields: {userId: true, userRelId: true, name: true},
-                  where: {phone: currentUserPhone},
+                  fields: { userId: true, userRelId: true, name: true },
+                  where: { phone: currentUserPhone },
                 },
               },
             ],
@@ -92,7 +89,7 @@ export class JointService {
       ],
     });
 
-    const firebaseMessagesList: BatchMessage = [];
+    const createdNotifys: BatchMessage = [];
 
     for (const ja of JAS) {
       const cat = ja.user.categories
@@ -111,9 +108,7 @@ export class JointService {
         currency: data.currency,
       });
 
-      const savedDong = await this.userRepo
-        .dongs(ja.user.getId())
-        .create(dongEnt);
+      const savedDong = await this.userRepo.dongs(ja.user.getId()).create(dongEnt);
       await this.userRepo.billList(ja.user.getId()).create({
         categoryId: cat.getId(),
         dongId: savedDong.getId(),
@@ -124,9 +119,7 @@ export class JointService {
         createdAt: data.createdAt,
       });
 
-      const currency = this.locMsg['CURRENCY'][ja.user!.setting.language][
-        data.currency
-      ];
+      const currency = this.locMsg['CURRENCY'][ja.user!.setting.language][data.currency];
       const dongAmount = data.dongAmount;
 
       const notifyData = new Notifications({
@@ -150,7 +143,7 @@ export class JointService {
       });
       const createdNotify = await this.notifyRepo.create(notifyData);
 
-      firebaseMessagesList.push({
+      createdNotifys.push({
         token: ja.user!.firebaseToken!,
         notification: {
           title: createdNotify.title,
@@ -173,6 +166,91 @@ export class JointService {
       });
     }
 
-    await this.firebaserService.sendAllMessage(firebaseMessagesList);
+    await this.firebaseService.sendAllMessage(createdNotifys);
+  }
+
+  async delete(
+    userId: typeof Users.prototype.userId,
+    jointAccountId?: typeof JointAccounts.prototype.jointAccountId,
+  ) {
+    const notifyMessages: BatchMessage = [];
+    const currentUser = await this.userRepo.findById(userId, {
+      fields: { userId: true, phone: true },
+    });
+
+    const foundJA = await this.jointAccountRepo.find({
+      where: { userId: userId, jointAccountId: jointAccountId },
+      include: [
+        {
+          relation: 'jointAccountSubscribes',
+          scope: {
+            where: { userId: { neq: userId } },
+            include: [
+              {
+                relation: 'user',
+                scope: {
+                  fields: { userId: true, firebaseToken: true },
+                  include: [
+                    {
+                      relation: 'usersRels',
+                      scope: {
+                        fields: { userRelId: true, phone: true, userId: true, name: true },
+                        where: { phone: currentUser.phone },
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+    if (!foundJA.length) {
+      throw new Error('jointAccountId is not valid');
+    }
+
+    for (const ja of foundJA) {
+      const JASs = ja.jointAccountSubscribes;
+
+      for (const jas of JASs) {
+        const notifyData = new Notifications({
+          userId: jas.user.getId(),
+          title: util.format(
+            this.locMsg['DELETE_JOINT_NOTIFY_TITLE'][jas.user.setting.language],
+            ja.title,
+          ),
+          body: util.format(
+            this.locMsg['DELETE_JOINT_NOTIFY_BODY'][jas.user.setting.language],
+            jas.user.usersRels[0].name,
+          ),
+          type: 'jointAccount',
+          createdAt: moment().utc().toISOString(),
+          jointAccountId: jas.getId(),
+        });
+        const createdNotify = await this.notifyRepo.create(notifyData);
+
+        notifyMessages.push({
+          token: jas.user!.firebaseToken!,
+          notification: {
+            title: createdNotify.title,
+            body: createdNotify.body,
+          },
+          data: {
+            notifyId: createdNotify.getId().toString(),
+            title: createdNotify.title!,
+            body: createdNotify.body!,
+            desc: createdNotify.desc!,
+            createdAt: createdNotify.createdAt,
+            jointAccountId: createdNotify.jointAccountId.toString(),
+          },
+        });
+      }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.firebaseService.sendAllMessage(notifyMessages);
+
+    return this.userRepo.jointAccounts(userId).delete();
   }
 }

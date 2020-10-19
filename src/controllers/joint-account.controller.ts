@@ -1,11 +1,24 @@
-import {repository, DataObject} from '@loopback/repository';
-import {post, get, getModelSchemaRef, requestBody} from '@loopback/rest';
-import {intercept, inject} from '@loopback/core';
+import {repository, DataObject, CountSchema, Count} from '@loopback/repository';
+import {
+  post,
+  get,
+  getModelSchemaRef,
+  requestBody,
+  param,
+  del,
+  HttpErrors,
+} from '@loopback/rest';
+import {intercept, inject, service} from '@loopback/core';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 
-import {JointRequest, JointResponse, JointAccountSubscribes} from '../models';
+import {
+  JointRequest,
+  JointResponse,
+  JointAccountSubscribes,
+  JointAccounts,
+} from '../models';
 import {
   JointAccountsRepository,
   JointAccountSubscribesRepository,
@@ -14,7 +27,7 @@ import {
 } from '../repositories';
 import {ValidateUsersRelsInterceptor} from '../interceptors';
 import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {basicAuthorization} from '../services';
+import {basicAuthorization, JointService} from '../services';
 
 @authenticate('jwt.access')
 @authorize({allowedRoles: ['GOLD'], voters: [basicAuthorization]})
@@ -29,6 +42,7 @@ export class JointAccountController {
     @repository(UsersRelsRepository)
     protected usersRelsRepo: UsersRelsRepository,
     @repository(UsersRepository) protected usersRepo: UsersRepository,
+    @service(JointService) public jointService: JointService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {
     this.userId = +this.currentUserProfile[securityId];
@@ -158,5 +172,47 @@ export class JointAccountController {
     }
 
     return result;
+  }
+
+  @del('/joint-accounts/{jointAccountId}', {
+    summary: 'DELETE a JointAccount by jointAccountId',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '204': {
+        description: 'Groups DELETE success',
+      },
+    },
+  })
+  async deleteJointAccountById(
+    @param.path.number('jointAccountId', {required: true})
+    jointAccountId: typeof JointAccounts.prototype.jointAccountId,
+  ): Promise<void> {
+    try {
+      await this.jointService.delete(this.userId, jointAccountId);
+    } catch (err) {
+      throw new HttpErrors.UnprocessableEntity(err);
+    }
+  }
+
+  @del('/joint-accounts/', {
+    summary: 'DELETE all JointAccounts',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '200': {
+        description: 'Count DELETE JointAccounts',
+        content: {
+          'application/json': {
+            schema: CountSchema,
+          },
+        },
+      },
+    },
+  })
+  async deleteAllJointAccounts(): Promise<Count> {
+    try {
+      return await this.jointService.delete(this.userId);
+    } catch (err) {
+      throw new HttpErrors.UnprocessableEntity(err);
+    }
   }
 }

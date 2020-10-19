@@ -17,16 +17,14 @@ export type BatchMessage = Array<messaging.Message>;
 export interface FirebaseService {
   sendToDeviceMessage(
     firebaseToken: string | string[],
-    payload: messaging.MessagingPayload,
+    payload: MessagePayload,
     options?: messaging.MessagingOptions | undefined,
   ): void;
   sendMultiCastMessage(
     message: messaging.MulticastMessage,
     dryRun?: boolean,
   ): void;
-  sendAllMessage(
-    messages: Array<messaging.Message>,
-  ): Promise<messaging.BatchResponse>;
+  sendAllMessage(messages: BatchMessage): Promise<messaging.BatchResponse>;
 }
 
 @injectable({scope: BindingScope.SINGLETON})
@@ -111,7 +109,7 @@ export class FirebaseService {
 
   //send multi message to multi devices
   public async sendAllMessage(
-    messages: Array<messaging.Message>,
+    messages: BatchMessage,
   ): Promise<messaging.BatchResponse> {
     messages.forEach((msg) =>
       Object.assign(msg, {
