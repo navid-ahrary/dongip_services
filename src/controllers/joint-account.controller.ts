@@ -105,12 +105,10 @@ export class JointAccountController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       200: {
-        'application/json': {
-          description: 'Array of JointAccount',
-          content: {
-            'application/json': {
-              schema: { type: 'array', items: getModelSchemaRef(JointResponse) },
-            },
+        description: 'Array of JointAccount',
+        content: {
+          'application/json': {
+            schema: { type: 'array', items: getModelSchemaRef(JointResponse) },
           },
         },
       },
