@@ -163,11 +163,14 @@ export class JointAccountController {
 
   @del('/joint-accounts/{jointAccountId}', {
     summary: 'DELETE a JointAccount by jointAccountId',
-    description: 'Also delete all dongs belogs to',
+    description: 'Also delete all dongs belongs to',
     security: OPERATION_SECURITY_SPEC,
     responses: {
-      '204': {
-        description: 'Groups DELETE success',
+      204: {
+        description: 'JointAccount DELETE success',
+      },
+      422: {
+        description: 'JointAccounId is not valid',
       },
     },
   })
@@ -184,7 +187,7 @@ export class JointAccountController {
 
   @del('/joint-accounts/', {
     summary: 'DELETE all JointAccounts',
-    description: 'Also delete all dongs belogs to',
+    description: 'Also delete all dongs belongs to',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
