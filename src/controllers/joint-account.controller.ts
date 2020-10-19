@@ -1,36 +1,23 @@
-import {repository, DataObject, CountSchema, Count} from '@loopback/repository';
-import {
-  post,
-  get,
-  getModelSchemaRef,
-  requestBody,
-  param,
-  del,
-  HttpErrors,
-} from '@loopback/rest';
-import {intercept, inject, service} from '@loopback/core';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
+import { repository, DataObject, CountSchema, Count } from '@loopback/repository';
+import { post, get, getModelSchemaRef, requestBody, param, del, HttpErrors } from '@loopback/rest';
+import { intercept, inject, service } from '@loopback/core';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
 
-import {
-  JointRequest,
-  JointResponse,
-  JointAccountSubscribes,
-  JointAccounts,
-} from '../models';
+import { JointRequest, JointResponse, JointAccountSubscribes, JointAccounts } from '../models';
 import {
   JointAccountsRepository,
   JointAccountSubscribesRepository,
   UsersRelsRepository,
   UsersRepository,
 } from '../repositories';
-import {ValidateUsersRelsInterceptor} from '../interceptors';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {basicAuthorization, JointService} from '../services';
+import { ValidateUsersRelsInterceptor } from '../interceptors';
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
+import { basicAuthorization, JointService } from '../services';
 
 @authenticate('jwt.access')
-@authorize({allowedRoles: ['GOLD'], voters: [basicAuthorization]})
+@authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
 export class JointAccountController {
   private readonly userId: number;
 
@@ -55,7 +42,7 @@ export class JointAccountController {
       '200': {
         description: 'JointAccounts model instance',
         content: {
-          'application/json': {schema: getModelSchemaRef(JointResponse)},
+          'application/json': { schema: getModelSchemaRef(JointResponse) },
         },
       },
     },
@@ -88,20 +75,20 @@ export class JointAccountController {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.usersRelsRepo
       .find({
-        fields: {userId: true, phone: true},
+        fields: { userId: true, phone: true },
         where: {
           userId: this.userId,
-          userRelId: {inq: jointAccountsReq.userRelIds},
+          userRelId: { inq: jointAccountsReq.userRelIds },
         },
       })
       .then(async (urs) => {
         const users = await this.usersRepo.find({
-          where: {phone: {inq: urs.map((u) => u.phone)}},
+          where: { phone: { inq: urs.map((u) => u.phone) } },
         });
 
         const jsList: Array<DataObject<JointAccountSubscribes>> = [];
         for (const userId of users.map((u) => u.getId())) {
-          jsList.push({userId, jointAccountId: JA.jointAccountId});
+          jsList.push({ userId, jointAccountId: JA.jointAccountId });
         }
         await this.jointAccSubscribesRepo.createAll(jsList);
       });
@@ -122,7 +109,7 @@ export class JointAccountController {
           description: 'Array of JointAccount',
           content: {
             'application/json': {
-              schema: {type: 'array', items: getModelSchemaRef(JointResponse)},
+              schema: { type: 'array', items: getModelSchemaRef(JointResponse) },
             },
           },
         },
@@ -133,28 +120,28 @@ export class JointAccountController {
     const result: Array<JointResponse> = [];
 
     const jsas = await this.jointAccSubscribesRepo.find({
-      fields: {jointAccountId: true},
-      where: {userId: this.userId},
+      fields: { jointAccountId: true },
+      where: { userId: this.userId },
     });
 
     const jaIds = jsas.map((jsa) => jsa.jointAccountId);
 
     const JAs = await this.jointAccountsRepo.find({
-      fields: {userId: false},
-      where: {jointAccountId: {inq: jaIds}},
-      include: [{relation: 'jointAccountSubscribes'}],
+      fields: { userId: false },
+      where: { jointAccountId: { inq: jaIds } },
+      include: [{ relation: 'jointAccountSubscribes' }],
     });
 
     for (const ja of JAs) {
       const userRelIds: Array<number> = [];
       for (const jas of ja.jointAccountSubscribes) {
         const u = await this.usersRepo.findById(jas.userId, {
-          fields: {userId: true, phone: true},
+          fields: { userId: true, phone: true },
         });
 
         const userRel = await this.usersRelsRepo.findOne({
-          fields: {userRelId: true, userId: true, phone: true},
-          where: {userId: this.userId, phone: u.phone},
+          fields: { userRelId: true, userId: true, phone: true },
+          where: { userId: this.userId, phone: u.phone },
         });
 
         userRelIds.push(userRel?.getId());
@@ -176,6 +163,7 @@ export class JointAccountController {
 
   @del('/joint-accounts/{jointAccountId}', {
     summary: 'DELETE a JointAccount by jointAccountId',
+    description: 'Also delete all dongs belogs to',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -184,7 +172,7 @@ export class JointAccountController {
     },
   })
   async deleteJointAccountById(
-    @param.path.number('jointAccountId', {required: true})
+    @param.path.number('jointAccountId', { required: true })
     jointAccountId: typeof JointAccounts.prototype.jointAccountId,
   ): Promise<void> {
     try {
@@ -196,6 +184,7 @@ export class JointAccountController {
 
   @del('/joint-accounts/', {
     summary: 'DELETE all JointAccounts',
+    description: 'Also delete all dongs belogs to',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
