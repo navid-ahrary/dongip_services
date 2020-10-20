@@ -32,7 +32,7 @@ export class CronJobService extends CronJob {
   }
 
   private async sendReminderNotify() {
-    const nowUTC = moment().isDST() ? moment.utc() : moment.utc().add(1, 'h');
+    const nowUTC = moment.utc();
 
     const foundSettings = await this.settingsRepository.find({
       fields: { userId: true, language: true },
