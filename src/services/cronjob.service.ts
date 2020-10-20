@@ -1,15 +1,15 @@
-import {CronJob, cronJob} from '@loopback/cron';
-import {repository} from '@loopback/repository';
-import {service, BindingScope, inject} from '@loopback/core';
+import { CronJob, cronJob } from '@loopback/cron';
+import { repository } from '@loopback/repository';
+import { service, BindingScope, inject } from '@loopback/core';
 import moment from 'moment';
 import debug from 'debug';
 const log = debug('api:cronjob');
 
-import {SettingsRepository, UsersRepository} from '../repositories';
-import {FirebaseService, BatchMessage} from '../services';
-import {LocalizedMessages} from '../application';
+import { SettingsRepository, UsersRepository } from '../repositories';
+import { FirebaseService, BatchMessage } from '../services';
+import { LocalizedMessages } from '../application';
 
-@cronJob({scope: BindingScope.TRANSIENT})
+@cronJob({ scope: BindingScope.TRANSIENT })
 export class CronJobService extends CronJob {
   constructor(
     @repository(SettingsRepository)
@@ -22,10 +22,7 @@ export class CronJobService extends CronJob {
       name: 'reminderNotifyJob',
       onTick: async () => {
         // Run cronjob only on one instance in pm2
-        if (
-          process.env.NODE_APP_INSTANCE === undefined ||
-          process.env.NODE_APP_INSTANCE === '0'
-        ) {
+        if (process.env.NODE_APP_INSTANCE === undefined || process.env.NODE_APP_INSTANCE === '0') {
           await this.sendReminderNotify();
         }
       },
@@ -35,10 +32,10 @@ export class CronJobService extends CronJob {
   }
 
   private async sendReminderNotify() {
-    const nowUTC = moment.utc();
+    const nowUTC = moment().isDST() ? moment.utc() : moment.utc().add(1, 'h');
 
     const foundSettings = await this.settingsRepository.find({
-      fields: {userId: true, language: true},
+      fields: { userId: true, language: true },
       where: {
         scheduleNotify: true,
         scheduleTime: {
@@ -52,8 +49,8 @@ export class CronJobService extends CronJob {
         {
           relation: 'user',
           scope: {
-            fields: {userId: true, firebaseToken: true},
-            where: {firebaseToken: {neq: null}},
+            fields: { userId: true, firebaseToken: true },
+            where: { firebaseToken: { neq: null } },
           },
         },
       ],
@@ -69,7 +66,7 @@ export class CronJobService extends CronJob {
 
         firebaseMessages.push({
           token: setting.user.firebaseToken!,
-          notification: {title: notifyTitle, body: notifyBody},
+          notification: { title: notifyTitle, body: notifyBody },
           android: {
             notification: {
               clickAction: 'FLUTTER_NOTIFICATION_CLICK',
@@ -83,9 +80,7 @@ export class CronJobService extends CronJob {
     if (firebaseMessages.length) {
       await this.firebaseService.sendAllMessage(firebaseMessages);
 
-      log(
-        `Cronjob started at ${nowUTC}, ${firebaseMessages.length} notifications sent`,
-      );
+      log(`Cronjob started at ${nowUTC}, ${firebaseMessages.length} notifications sent`);
     }
   }
 }
