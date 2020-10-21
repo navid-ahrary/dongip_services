@@ -19,3 +19,4 @@ export * from './subscriptions.repository';
 export * from './joint-accounts.repository';
 export * from './joint-account-subscribes.repository';
 export * from './joint-bills.repository';
+export * from './joint-payers.repository';

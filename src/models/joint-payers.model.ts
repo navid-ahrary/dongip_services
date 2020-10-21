@@ -7,7 +7,7 @@ import { Users } from './users.model';
 import { Dongs } from './dongs.model';
 
 @model()
-export class JointBills extends Entity {
+export class JointPayers extends Entity {
   @property({
     type: 'Number',
     id: true,
@@ -74,7 +74,7 @@ export class JointBills extends Entity {
       keyTo: 'dongId',
       type: RelationType.belongsTo,
       source: Dongs,
-      target: () => JointBills,
+      target: () => JointPayers,
     },
     {
       type: 'Number',
@@ -98,7 +98,7 @@ export class JointBills extends Entity {
       keyTo: 'categoryId',
       type: RelationType.belongsTo,
       source: Categories,
-      target: () => JointBills,
+      target: () => JointPayers,
     },
     {
       type: 'number',
@@ -122,7 +122,7 @@ export class JointBills extends Entity {
       keyTo: 'userId',
       type: RelationType.belongsTo,
       source: Users,
-      target: () => JointBills,
+      target: () => JointPayers,
     },
     {
       type: 'number',
@@ -146,7 +146,7 @@ export class JointBills extends Entity {
       keyTo: 'jointAccountId',
       type: RelationType.belongsTo,
       source: JointAccounts,
-      target: () => JointBills,
+      target: () => JointPayers,
     },
     {
       type: 'number',
@@ -161,13 +161,13 @@ export class JointBills extends Entity {
   )
   jointAccountId: number;
 
-  constructor(data?: Partial<JointBills>) {
+  constructor(data?: Partial<JointPayers>) {
     super(data);
   }
 }
 
-export interface JointBillsRelations {
+export interface JointPayersRelations {
   // describe navigational properties here
 }
 
-export type JointBillsWithRelations = JointBills & JointBillsRelations;
+export type JointPayersWithRelations = JointPayers & JointPayersRelations;
