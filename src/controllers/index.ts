@@ -10,3 +10,5 @@ export * from './notifications.controller';
 export * from './budgets.controller';
 export * from './settings.controller';
 export * from './joint-account.controller';
+export * from './joint-bills-users.controller';
+export * from './joint-bills-joint-accounts.controller';

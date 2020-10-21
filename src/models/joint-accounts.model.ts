@@ -1,19 +1,12 @@
-import {
-  Entity,
-  model,
-  property,
-  belongsTo,
-  RelationType,
-  hasMany,
-} from '@loopback/repository';
-import {Users} from './users.model';
+import { Entity, model, property, belongsTo, RelationType, hasMany } from '@loopback/repository';
+import { Users } from './users.model';
 import {
   JointAccountSubscribes,
   JointAccountSubscribesWithRelations,
 } from './joint-account-subscribes.model';
-import {BillList, BillListWithRelations} from './bill-list.model';
-import {Dongs} from './dongs.model';
-import {PayerList} from './payer-list.model';
+import { BillList, BillListWithRelations } from './bill-list.model';
+import { Dongs } from './dongs.model';
+import { PayerList, PayerListWithRelations } from './payer-list.model';
 
 @model({
   name: 'joint_accounts',
@@ -94,7 +87,7 @@ export class JointAccounts extends Entity {
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',
@@ -112,13 +105,13 @@ export class JointAccounts extends Entity {
   })
   jointAccountSubscribes: JointAccountSubscribes[];
 
-  @hasMany(() => BillList, {keyTo: 'jointAccountId', keyFrom: 'jointAccountId'})
+  @hasMany(() => BillList, { keyTo: 'jointAccountId', keyFrom: 'jointAccountId' })
   billList: BillList[];
 
-  @hasMany(() => Dongs, {keyTo: 'jointAccountId'})
+  @hasMany(() => Dongs, { keyTo: 'jointAccountId' })
   dongs: Dongs[];
 
-  @hasMany(() => PayerList, {keyTo: 'jointAccountId'})
+  @hasMany(() => PayerList, { keyTo: 'jointAccountId' })
   payerLists: PayerList[];
 
   constructor(data?: Partial<JointAccounts>) {
@@ -127,8 +120,9 @@ export class JointAccounts extends Entity {
 }
 
 export interface JointAccountsRelations {
-  jointAccountSubscribes?: JointAccountSubscribesWithRelations[];
-  billList?: BillListWithRelations[];
+  jointAccountSubscribesWithRelations: JointAccountSubscribesWithRelations[];
+  billListWithRelations: BillListWithRelations[];
+  payerListWithRelations: PayerListWithRelations[];
 }
 
 export type JointAccountsWithRelations = JointAccounts & JointAccountsRelations;
