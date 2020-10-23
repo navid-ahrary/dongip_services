@@ -9,7 +9,7 @@ import {
   HttpErrors,
   RequestContext,
 } from '@loopback/rest';
-import { intercept, inject, service } from '@loopback/core';
+import { intercept, inject } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
@@ -199,26 +199,26 @@ export class JointAccountController {
     }
   }
 
-  @del('/joint-accounts/', {
-    summary: 'DELETE all JointAccounts',
-    description: 'Also delete all dongs belongs to',
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'Count DELETE JointAccounts',
-        content: {
-          'application/json': {
-            schema: CountSchema,
-          },
-        },
-      },
-    },
-  })
-  async deleteAllJointAccounts(): Promise<Count> {
-    try {
-      return await this.jointService.delete(this.userId);
-    } catch (err) {
-      throw new HttpErrors.UnprocessableEntity(err);
-    }
-  }
+  // @del('/joint-accounts/', {
+  //   summary: 'DELETE all JointAccounts',
+  //   description: 'Also delete all dongs belongs to',
+  //   security: OPERATION_SECURITY_SPEC,
+  //   responses: {
+  //     '200': {
+  //       description: 'Count DELETE JointAccounts',
+  //       content: {
+  //         'application/json': {
+  //           schema: CountSchema,
+  //         },
+  //       },
+  //     },
+  //   },
+  // })
+  // async deleteAllJointAccounts(): Promise<Count> {
+  //   try {
+  //     return await this.jointService.delete(this.userId);
+  //   } catch (err) {
+  //     throw new HttpErrors.UnprocessableEntity(err);
+  //   }
+  // }
 }

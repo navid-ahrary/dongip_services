@@ -33,7 +33,7 @@ import {
   JointPayersRepository,
 } from '../repositories';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
-import { FirebaseService, BatchMessage, JointService } from '../services';
+import { FirebaseService, BatchMessage } from '../services';
 import {
   ValidateGroupIdInterceptor,
   ValidateCategoryIdInterceptor,
@@ -66,7 +66,6 @@ export class DongsController {
     @repository(JointAccountSubscribesRepository)
     public jointAccSunRepository: JointAccountSubscribesRepository,
     @service(FirebaseService) private firebaseSerice: FirebaseService,
-    @service(JointService) protected jointService: JointService,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
     @inject.context() public ctx: RequestContext,
