@@ -206,6 +206,7 @@ export class JointService {
         },
       ],
     });
+
     if (!foundJA.length) {
       throw new Error('jointAccountId is not valid');
     }
@@ -213,39 +214,39 @@ export class JointService {
     for (const ja of foundJA) {
       const JASs = ja.jointAccountSubscribes;
 
-      for (const jas of JASs) {
-        const notifyData = new Notifications({
-          userId: jas.user.getId(),
-          title: util.format(
-            this.locMsg['DELETE_JOINT_NOTIFY_TITLE'][jas.user.setting.language],
-            ja.title,
-          ),
-          body: util.format(
-            this.locMsg['DELETE_JOINT_NOTIFY_BODY'][jas.user.setting.language],
-            jas.user.usersRels[0].name,
-          ),
-          type: 'jointAccount',
-          createdAt: moment().utc().toISOString(),
-          jointAccountId: jas.getId(),
-        });
-        const createdNotify = await this.notifyRepo.create(notifyData);
+      // for (const jas of JASs) {
+      //   const notifyData = new Notifications({
+      //     userId: jas.user.getId(),
+      //     title: util.format(
+      //       this.locMsg['DELETE_JOINT_NOTIFY_TITLE'][jas.user.setting.language],
+      //       ja.title,
+      //     ),
+      //     body: util.format(
+      //       this.locMsg['DELETE_JOINT_NOTIFY_BODY'][jas.user.setting.language],
+      //       jas.user.usersRels[0].name,
+      //     ),
+      //     type: 'jointAccount',
+      //     createdAt: moment().utc().toISOString(),
+      //     jointAccountId: jas.getId(),
+      //   });
+      //   const createdNotify = await this.notifyRepo.create(notifyData);
 
-        notifyMessages.push({
-          token: jas.user!.firebaseToken!,
-          notification: {
-            title: createdNotify.title,
-            body: createdNotify.body,
-          },
-          data: {
-            notifyId: createdNotify.getId().toString(),
-            title: createdNotify.title!,
-            body: createdNotify.body!,
-            desc: createdNotify.desc!,
-            createdAt: createdNotify.createdAt,
-            jointAccountId: createdNotify.jointAccountId.toString(),
-          },
-        });
-      }
+      //   notifyMessages.push({
+      //     token: jas.user!.firebaseToken!,
+      //     notification: {
+      //       title: createdNotify.title,
+      //       body: createdNotify.body,
+      //     },
+      //     data: {
+      //       notifyId: createdNotify.getId().toString(),
+      //       title: createdNotify.title!,
+      //       body: createdNotify.body!,
+      //       desc: createdNotify.desc!,
+      //       createdAt: createdNotify.createdAt,
+      //       jointAccountId: createdNotify.jointAccountId.toString(),
+      //     },
+      //   });
+      // }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises

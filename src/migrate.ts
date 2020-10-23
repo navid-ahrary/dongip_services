@@ -1,4 +1,4 @@
-import {MyApplication} from './application';
+import { MyApplication } from './application';
 
 export async function migrate(args: string[]) {
   const existingSchema = args.includes('--rebuild') ? 'drop' : 'alter';
@@ -24,6 +24,8 @@ export async function migrate(args: string[]) {
       'dongs',
       'payer_list',
       'bill_list',
+      'joint_bills',
+      'joint_payers',
       'scores',
       'budgets',
       'purchases',
