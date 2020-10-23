@@ -389,7 +389,6 @@ export class DongsController {
   async deleteDongsById(
     @param.path.number('dongId', { required: true }) dongId: typeof Dongs.prototype.dongId,
   ): Promise<void> {
-    // Delete Dong by dongId
     const countDeleted = await this.usersRepository.dongs(this.userId).delete({
       dongId: dongId,
     });

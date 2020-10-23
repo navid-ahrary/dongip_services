@@ -1,5 +1,14 @@
 import { repository, DataObject, CountSchema, Count } from '@loopback/repository';
-import { post, get, getModelSchemaRef, requestBody, param, del, HttpErrors } from '@loopback/rest';
+import {
+  post,
+  get,
+  getModelSchemaRef,
+  requestBody,
+  param,
+  del,
+  HttpErrors,
+  RequestContext,
+} from '@loopback/rest';
 import { intercept, inject, service } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
@@ -14,12 +23,14 @@ import {
 } from '../repositories';
 import { ValidateUsersRelsInterceptor } from '../interceptors';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
-import { basicAuthorization, JointService } from '../services';
+import { basicAuthorization } from '../services';
+import { LocalizedMessages } from '../application';
 
 @authenticate('jwt.access')
 @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
 export class JointAccountController {
   private readonly userId: number;
+  lang: string;
 
   constructor(
     @repository(JointAccountsRepository)
@@ -29,10 +40,12 @@ export class JointAccountController {
     @repository(UsersRelsRepository)
     protected usersRelsRepo: UsersRelsRepository,
     @repository(UsersRepository) protected usersRepo: UsersRepository,
-    @service(JointService) public jointService: JointService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @inject.context() public ctx: RequestContext,
   ) {
     this.userId = +this.currentUserProfile[securityId];
+    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
 
   @post('/joint-accounts', {
@@ -176,10 +189,13 @@ export class JointAccountController {
     @param.path.number('jointAccountId', { required: true })
     jointAccountId: typeof JointAccounts.prototype.jointAccountId,
   ): Promise<void> {
-    try {
-      await this.jointService.delete(this.userId, jointAccountId);
-    } catch (err) {
-      throw new HttpErrors.UnprocessableEntity(err);
+    const countDeleted = await this.usersRepo
+      .jointAccounts(this.userId)
+      .delete({ jointAccountId: jointAccountId });
+
+    if (countDeleted.count !== 1) {
+      const errMsg = this.locMsg['JOINT_NOT_VALID'][this.lang];
+      throw new HttpErrors.UnprocessableEntity(errMsg);
     }
   }
 

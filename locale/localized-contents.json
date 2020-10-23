@@ -103,6 +103,10 @@
     "fa": "برای ساخت گروه، بایستی دوستاتون هم شما رو دوست دنگیپشون بدونن. از %s در خواست کن که شما رو به دوستاش اضافه کنه",
     "en": "For Creating a group, your friend should you know as a Dongip friend also, ask %s to add you to friends' list"
   },
+  "JOINT_NOT_VALID": {
+    "fa": "گروه مورد نظر معتبر نیست",
+    "en": "Joint account is not valid"
+  },
   "DELETE_JOINT_NOTIFY_TITLE": {
     "fa": "حذف گروه %s",
     "en": "Delete %s Group"
