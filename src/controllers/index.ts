@@ -10,3 +10,6 @@ export * from './notifications.controller';
 export * from './budgets.controller';
 export * from './settings.controller';
 export * from './joint-account.controller';
+export * from './joint-accounts-dongs.controller';
+// export * from './dongs-joint-bills.controller';
+// export * from './dongs-joint-payers.controller';

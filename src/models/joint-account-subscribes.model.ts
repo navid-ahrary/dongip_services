@@ -1,16 +1,7 @@
-import {
-  Entity,
-  model,
-  property,
-  belongsTo,
-  RelationType,
-} from '@loopback/repository';
+import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
 
-import {
-  JointAccounts,
-  JointAccountsWithRelations,
-} from './joint-accounts.model';
-import {UsersWithRelations, Users} from './users.model';
+import { JointAccounts, JointAccountsWithRelations } from './joint-accounts.model';
+import { UsersWithRelations, Users } from './users.model';
 
 @model({
   name: 'joint_account_subscribes',
@@ -50,11 +41,18 @@ export class JointAccountSubscribes extends Entity {
 
   @belongsTo(
     () => JointAccounts,
-    {name: 'jointAccount', keyFrom: 'jointAccount', keyTo: 'jointAccount'},
+    {
+      name: 'jointAccount',
+      keyFrom: 'jointAccountId',
+      keyTo: 'jointAccountId',
+      type: RelationType.belongsTo,
+      source: JointAccounts,
+      target: () => JointAccountSubscribes,
+    },
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'joint_account_id',
         dataType: 'mediumint unsigned',
@@ -78,7 +76,7 @@ export class JointAccountSubscribes extends Entity {
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',

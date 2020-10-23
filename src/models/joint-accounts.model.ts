@@ -4,9 +4,7 @@ import {
   JointAccountSubscribes,
   JointAccountSubscribesWithRelations,
 } from './joint-account-subscribes.model';
-import { BillList, BillListWithRelations } from './bill-list.model';
 import { Dongs } from './dongs.model';
-import { PayerList, PayerListWithRelations } from './payer-list.model';
 
 @model({
   name: 'joint_accounts',
@@ -102,17 +100,15 @@ export class JointAccounts extends Entity {
     name: 'jointAccountSubscribes',
     keyTo: 'jointAccountId',
     keyFrom: 'jointAccountId',
+    targetsMany: true,
+    type: RelationType.hasMany,
+    source: JointAccounts,
+    target: () => JointAccountSubscribes,
   })
   jointAccountSubscribes: JointAccountSubscribes[];
 
-  @hasMany(() => BillList, { keyTo: 'jointAccountId', keyFrom: 'jointAccountId' })
-  billList: BillList[];
-
   @hasMany(() => Dongs, { keyTo: 'jointAccountId' })
   dongs: Dongs[];
-
-  @hasMany(() => PayerList, { keyTo: 'jointAccountId' })
-  payerLists: PayerList[];
 
   constructor(data?: Partial<JointAccounts>) {
     super(data);
@@ -120,9 +116,7 @@ export class JointAccounts extends Entity {
 }
 
 export interface JointAccountsRelations {
-  jointAccountSubscribesWithRelations: JointAccountSubscribesWithRelations[];
-  billListWithRelations: BillListWithRelations[];
-  payerListWithRelations: PayerListWithRelations[];
+  jointAccountSubscribes?: JointAccountSubscribesWithRelations[];
 }
 
 export type JointAccountsWithRelations = JointAccounts & JointAccountsRelations;
