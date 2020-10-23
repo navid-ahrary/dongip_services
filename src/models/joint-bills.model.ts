@@ -6,7 +6,7 @@ import { CurrencyEnum } from './settings.model';
 import { Users } from './users.model';
 import { Dongs } from './dongs.model';
 
-@model()
+@model({ name: 'joint_bills' })
 export class JointBills extends Entity {
   @property({
     type: 'Number',
@@ -63,13 +63,23 @@ export class JointBills extends Entity {
   })
   createdAt: string;
 
-  @property({ type: 'string', required: true })
-  nameOfUser: string;
+  @property({
+    type: 'string',
+    required: true,
+    jsonSchema: { maxLength: 50 },
+    mysql: {
+      columnName: 'name',
+      dataType: 'varchar',
+      dataLength: 50,
+      nullable: 'N',
+    },
+  })
+  name?: string;
 
   @belongsTo(
     () => Dongs,
     {
-      name: 'dongs',
+      name: 'dong',
       keyFrom: 'dongId',
       keyTo: 'dongId',
       type: RelationType.belongsTo,
@@ -93,7 +103,7 @@ export class JointBills extends Entity {
   @belongsTo(
     () => Categories,
     {
-      name: 'categories',
+      name: 'category',
       keyFrom: 'categoryId',
       keyTo: 'categoryId',
       type: RelationType.belongsTo,
@@ -117,7 +127,7 @@ export class JointBills extends Entity {
   @belongsTo(
     () => Users,
     {
-      name: 'users',
+      name: 'user',
       keyFrom: 'userId',
       keyTo: 'userId',
       type: RelationType.belongsTo,

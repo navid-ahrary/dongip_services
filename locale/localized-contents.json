@@ -92,12 +92,12 @@
     "en": "Amount %s %s from %s"
   },
   "DONGIP_IN_GROUP_NOTIFY_TITLE": {
-    "fa": "ثبت دنگ در گروه %s",
-    "en": "Dongip in Group %s"
+    "fa": "دنگیپ در گروه %s",
+    "en": "Dongip in %s group"
   },
   "DONGIP_IN_GROUP_NOTIFY_BODY": {
-    "fa": "دنگ جدیدی توسط %s در گروه %s ثبت شد",
-    "en": "A new Trnsaction has been submittd by %s in group %s"
+    "fa": "مبلغ %s %s توسط %s",
+    "en": "Amount %s %s by %s"
   },
   "JOINT_USER_REL_BI_ERR": {
     "fa": "برای ساخت گروه، بایستی دوستاتون هم شما رو دوست دنگیپشون بدونن. از %s در خواست کن که شما رو به دوستاش اضافه کنه",

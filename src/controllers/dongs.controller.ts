@@ -19,14 +19,7 @@ import _ from 'lodash';
 import util from 'util';
 import moment from 'moment';
 
-import {
-  Dongs,
-  PostDong,
-  Notifications,
-  JointAccountSubscribes,
-  JointAccountSubscribesWithRelations,
-  Users,
-} from '../models';
+import { Dongs, PostDong, Notifications, Users, JointBills, JointPayers } from '../models';
 import {
   UsersRepository,
   DongsRepository,
@@ -36,6 +29,8 @@ import {
   UsersRelsRepository,
   JointAccountsRepository,
   JointAccountSubscribesRepository,
+  JointBillsRepository,
+  JointPayersRepository,
 } from '../repositories';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { FirebaseService, BatchMessage, JointService } from '../services';
@@ -66,6 +61,8 @@ export class DongsController {
     @repository(PayerListRepository) public payerListRepository: PayerListRepository,
     @repository(BillListRepository) public billListRepository: BillListRepository,
     @repository(JointAccountsRepository) public jointAccRepository: JointAccountsRepository,
+    @repository(JointBillsRepository) public jointBillRepository: JointBillsRepository,
+    @repository(JointPayersRepository) public jointPayerRepository: JointPayersRepository,
     @repository(JointAccountSubscribesRepository)
     public jointAccSunRepository: JointAccountSubscribesRepository,
     @service(FirebaseService) private firebaseSerice: FirebaseService,
@@ -137,7 +134,6 @@ export class DongsController {
             desc: 'Dongip it',
             createdAt: moment.utc().toISOString(),
             categoryId: 1,
-            groupId: 12,
             jointAccountId: 1,
             pong: 80000,
             currency: 'IRR',
@@ -158,7 +154,6 @@ export class DongsController {
     const newDongScore = 50;
     const mutualFriendScore = 20;
 
-    let usersNamesObject;
     let mutualFactor = 0;
 
     delete newDong?.userId;
@@ -354,6 +349,7 @@ export class DongsController {
             }
           }
         }
+
         if (firebaseMessagesList.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           this.firebaseSerice.sendAllMessage(firebaseMessagesList);
@@ -372,7 +368,7 @@ export class DongsController {
 
       if (currentUser.jointAccounts?.length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.submitJoint(currentUser);
+        this.submitJoint(currentUser, createdDong);
       }
 
       return {
@@ -422,66 +418,152 @@ export class DongsController {
     return this.usersRepository.dongs(this.userId).delete();
   }
 
-  async submitJoint(currentUser: Users) {
-    const JASs = currentUser.jointAccounts![0].jointAccountSubscribes;
-    const currentUserCateg = currentUser.categories[0];
+  async submitJoint(currentUser: Users, savedDong: Partial<Dongs>) {
+    try {
+      const firebaseMessages: BatchMessage = [];
 
-    for (const JAS of JASs) {
-      const user = await this.usersRepository.findById(JAS.userId, {
-        fields: { userId: true, firebaseToken: true },
-        include: [
-          { relation: 'setting', scope: { fields: { userId: true, language: true } } },
-          {
-            relation: 'categories',
-            scope: { where: { title: currentUserCateg } },
+      const JA = currentUser.jointAccounts![0];
+      const JASs = currentUser.jointAccounts![0].jointAccountSubscribes;
+
+      const currentUserCateg = currentUser.categories[0];
+      const splittedCatgTitle = currentUserCateg.title
+        .split(' ')
+        .filter((v) => !['and', 'or', '&', ',', '.', ';', 'و', 'یا', '،', '-'].includes(v));
+
+      for (const JAS of JASs) {
+        const user = await this.usersRepository.findById(JAS.userId, {
+          fields: { userId: true, firebaseToken: true },
+          include: [
+            { relation: 'setting', scope: { fields: { userId: true, language: true } } },
+            {
+              relation: 'categories',
+              scope: {
+                limit: 1,
+                where: {
+                  or: [
+                    { title: splittedCatgTitle[0] },
+                    { title: splittedCatgTitle[1] ?? null },
+                    { title: splittedCatgTitle[2] ?? null },
+                  ],
+                },
+              },
+            },
+            { relation: 'usersRels', scope: { where: { phone: currentUser.phone } } },
+          ],
+        });
+
+        let catg = user.categories[0];
+        if (!catg) {
+          catg = await this.categoriesRepository.create({
+            userId: user.getId(),
+            title: currentUserCateg.title,
+            icon: currentUserCateg.icon,
+          });
+        }
+
+        const billers: Array<JointBills> = [];
+        for (const biller of savedDong.billList!) {
+          const relName = await this.usersRelsRepository.findOne({
+            fields: { userRelId: true, name: true, userId: true, type: true },
+            where: { userId: biller.userId },
+          });
+
+          billers.push(
+            new JointBills({
+              dongId: savedDong.dongId,
+              userId: user.getId(),
+              currency: savedDong.currency,
+              categoryId: catg.getId(),
+              createdAt: savedDong.createdAt,
+              dongAmount: biller.dongAmount,
+              jointAccountId: savedDong.jointAccountId,
+              name: relName!.name ?? user.usersRels[0].name,
+            }),
+          );
+        }
+
+        const payers: Array<JointPayers> = [];
+        for (const payer of savedDong.payerList!) {
+          const relName = await this.usersRelsRepository.findOne({
+            fields: { userRelId: true, name: true },
+            where: { userRelId: payer.userRelId },
+          });
+
+          payers.push(
+            new JointPayers({
+              dongId: savedDong.dongId,
+              userId: user.getId(),
+              currency: savedDong.currency,
+              categoryId: catg.getId(),
+              createdAt: savedDong.createdAt,
+              paidAmount: payer.paidAmount,
+              jointAccountId: savedDong.jointAccountId,
+              name: relName!.name ?? user.usersRels[0].name,
+            }),
+          );
+        }
+
+        const savedJointPayers = await this.jointPayerRepository.createAll(payers);
+        const savedJointBillers = await this.jointBillRepository.createAll(billers);
+
+        delete savedDong.billList;
+        delete savedDong.payerList;
+        _.assign(savedDong, { jointBillList: savedJointBillers, jointPayerList: savedJointPayers });
+
+        const firebaseToken = user.firebaseToken!;
+        const lang = user.setting.language;
+
+        const notifyData = new Notifications({
+          title: util.format(this.locMsg['DONGIP_IN_GROUP_NOTIFY_TITLE'][lang], JA.title),
+          body: util.format(
+            this.locMsg['DONGIP_IN_GROUP_NOTIFY_BODY'][lang],
+            this.numberWithCommas(savedDong.pong!),
+            this.locMsg['CURRENCY'][lang][savedDong.currency!],
+            user.usersRels[0].name,
+          ),
+          type: 'jointAccount',
+          categoryTitle: catg.title,
+          categoryIcon: catg.icon,
+          dongId: savedDong.dongId,
+          userRelId: user.usersRels[0].getId(),
+          createdAt: savedDong.createdAt,
+        });
+
+        const createdNotify = await this.usersRepository
+          .notifications(user.getId())
+          .create(notifyData);
+
+        firebaseMessages.push({
+          token: firebaseToken,
+          notification: {
+            title: notifyData.title,
+            body: notifyData.body,
           },
-        ],
-      });
-      let catg = user.categories[0];
-      if (!catg) {
-        catg = await this.categoriesRepository.create({
-          userId: user.getId(),
-          title: currentUserCateg.title,
-          icon: currentUserCateg.icon,
+          data: {
+            notifyId: createdNotify.getId().toString(),
+            dongId: notifyData.dongId!.toString(),
+            jointAccountId: JA.getId().toString(),
+            title: notifyData.title!,
+            body: notifyData.body!,
+            desc: notifyData.desc ?? '',
+            type: notifyData.type!,
+            categoryId: catg.getId().toString(),
+            categoryTitle: notifyData.categoryTitle!,
+            categoryIcon: notifyData.categoryIcon!,
+            userRelId: notifyData.userRelId!.toString(),
+            jointBills: JSON.stringify(savedJointBillers),
+            jointPayers: JSON.stringify(savedJointPayers),
+            dong: JSON.stringify(savedDong),
+            createdAt: moment(notifyData.createdAt).toISOString(),
+          },
         });
       }
 
-      const firebaseToken = user.firebaseToken!;
-      const lang = user.setting.language;
-
-      const notifyData = new Notifications({
-        title: util.format(this.locMsg['DONGIP_IN_GROUP_NOTIFY_TITLE'][lang]),
-        body: util.format(this.locMsg['DONGIP_IN_GROUP_NOTIFY_BODY'][lang]),
-        type: 'jointAccount',
-        categoryTitle: catg.title,
-        categoryIcon: catg.icon,
-        dongId: createdDong.getId(),
-        createdAt: createdDong.createdAt,
-      });
-
-      const createdNotify = await this.usersRepository
-        .notifications(user.getId())
-        .create(notifyData);
-      // Generate notification messages
-      firebaseMessagesList.push({
-        token: firebaseToken,
-        notification: {
-          title: notifyData.title,
-          body: notifyData.body,
-        },
-        data: {
-          notifyId: createdNotify.getId().toString(),
-          title: notifyData.title!,
-          body: notifyData.body!,
-          desc: notifyData.desc!,
-          type: notifyData.type!,
-          categoryTitle: notifyData.categoryTitle!,
-          categoryIcon: notifyData.categoryIcon!,
-          createdAt: notifyData.createdAt!,
-          userRelId: notifyData.userRelId!.toString(),
-          dongId: notifyData.dongId!.toString(),
-        },
-      });
+      if (firebaseMessages.length) {
+        await this.firebaseSerice.sendAllMessage(firebaseMessages);
+      }
+    } catch (err) {
+      console.error(err);
     }
   }
 }

@@ -1,10 +1,14 @@
 {
-  "editor.rulers": [80],
+  "editor.rulers": [
+    {
+      "column": 100,
+      "color": "#eb243571"
+    },
+  ],
   "editor.tabCompletion": "on",
   "editor.tabSize": 2,
   "editor.trimAutoWhitespace": true,
   "editor.formatOnSave": true,
-
   "files.exclude": {
     "**/.DS_Store": true,
     "**/.git": true,
@@ -26,5 +30,5 @@
 ],
 "prettier.packageManager": "yarn",
 "editor.fontSize": 13,
-"editor.fontFamily": "'IBM Plex Mono', 'IBM Plex Mono', IBM Plex Mono, 'IBM Plex Sans'"
+"editor.fontFamily": "'IBM Plex Mono', 'IBM Plex Mono', IBM Plex Mono, 'IBM Plex Sans'",
 }
