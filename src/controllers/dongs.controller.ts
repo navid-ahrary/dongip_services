@@ -197,7 +197,7 @@ export class DongsController {
           scope: {
             fields: { userRelId: true, userId: true, phone: true, type: true },
             where: {
-              or: [{ type: 'self' }, { userRelId: { inq: allUsersRelsIdList } }],
+              userRelId: { inq: allUsersRelsIdList },
             },
           },
         },
