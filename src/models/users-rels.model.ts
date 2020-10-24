@@ -9,9 +9,9 @@ import {
   hasMany,
 } from '@loopback/repository';
 
-import {Users} from './users.model';
-import {VirtualUsers} from './virtual-users.model';
-import {Budgets} from './budgets.model';
+import { Users } from './users.model';
+import { VirtualUsers } from './virtual-users.model';
+import { Budgets } from './budgets.model';
 
 @model({
   name: 'users_rels',
@@ -20,7 +20,7 @@ import {Budgets} from './budgets.model';
       'user_id&phone': {
         name: 'user_id&phone',
         columns: 'user_id, phone',
-        options: {unique: true},
+        options: { unique: true },
       },
     },
     foreignKeys: {
@@ -31,6 +31,14 @@ import {Budgets} from './budgets.model';
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
+      },
+      fkUsersRelsUsersRelsId: {
+        name: 'fk_users_rels_users_rels_id',
+        entity: 'users_rels',
+        entityKey: 'id',
+        foreignKey: 'mutualUserRelId',
+        onUpdate: 'cascade',
+        onDelete: 'set null',
       },
     },
   },
@@ -51,7 +59,7 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'string',
-    jsonSchema: {maxLength: 50},
+    jsonSchema: { maxLength: 50 },
     mysql: {
       columnName: 'name',
       dataType: 'varchar',
@@ -86,12 +94,12 @@ export class UsersRels extends Entity {
       nullable: 'N',
     },
   })
-  type: 'self' | 'unidirectional' | 'bidirectional' | 'virtual';
+  type: 'self' | 'external';
 
   @property({
     type: 'string',
-    index: {normal: true},
-    jsonSchema: {maxLength: 20},
+    index: { normal: true },
+    jsonSchema: { maxLength: 20 },
     mysql: {
       columnName: 'phone',
       dataType: 'varchar',
@@ -103,8 +111,8 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'string',
-    index: {normal: true},
-    jsonSchema: {maxLength: 100},
+    index: { normal: true },
+    jsonSchema: { maxLength: 100 },
     mysql: {
       columnName: 'email',
       dataType: 'varchar',
@@ -127,7 +135,7 @@ export class UsersRels extends Entity {
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',
@@ -141,7 +149,7 @@ export class UsersRels extends Entity {
     type: 'date',
     required: true,
     defaultFn: 'now',
-    mysql: {columnName: 'created_at', dataType: 'datetime', nullable: 'N'},
+    mysql: { columnName: 'created_at', dataType: 'datetime', nullable: 'N' },
   })
   createdAt: string;
 
@@ -149,7 +157,7 @@ export class UsersRels extends Entity {
     type: 'date',
     required: true,
     defaultFn: 'now',
-    mysql: {columnName: 'updated_at', dataType: 'datetime', nullable: 'N'},
+    mysql: { columnName: 'updated_at', dataType: 'datetime', nullable: 'N' },
   })
   updatedAt: string;
 
@@ -171,6 +179,22 @@ export class UsersRels extends Entity {
     type: RelationType.hasMany,
   })
   budgets: Budgets[];
+
+  @belongsTo(
+    () => UsersRels,
+    { type: RelationType.belongsTo },
+    {
+      type: 'number',
+      required: false,
+      index: { normal: true },
+      mysql: {
+        columnName: 'mutual_user_rel_id',
+        dataType: 'mediumint unsigned',
+        nullable: 'Y',
+      },
+    },
+  )
+  mutualUserRelId?: number;
 
   constructor(data?: Partial<UsersRels>) {
     super(data);

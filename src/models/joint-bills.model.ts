@@ -6,7 +6,45 @@ import { CurrencyEnum } from './settings.model';
 import { Users } from './users.model';
 import { Dongs } from './dongs.model';
 
-@model({ name: 'joint_bills' })
+@model({
+  name: 'joint_bills',
+  settings: {
+    foreignKeys: {
+      fkBillListUserId: {
+        name: 'fk_bill_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+      fkBillListCategoryId: {
+        name: 'fk_bill_category_id',
+        entity: 'categories',
+        entityKey: 'id',
+        foreignKey: 'categoryId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+      fkBillListDongId: {
+        name: 'fk_bill_dong_id',
+        entity: 'dongs',
+        entityKey: 'id',
+        foreignKey: 'dongId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+      fkBillListJointAccountId: {
+        name: 'fk_bill_joint_account_id',
+        entity: 'joint_accounts',
+        entityKey: 'id',
+        foreignKey: 'jointAccountId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+    },
+  },
+})
 export class JointBills extends Entity {
   @property({
     type: 'Number',

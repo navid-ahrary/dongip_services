@@ -24,7 +24,7 @@ import { JointAccounts } from './joint-accounts.model';
         entity: 'categories',
         entityKey: 'id',
         foreignKey: 'categoryId',
-        onUpdate: 'no action',
+        onUpdate: 'cascade',
         onDelete: 'cascade',
       },
       fkBillListDongId: {
@@ -32,7 +32,7 @@ import { JointAccounts } from './joint-accounts.model';
         entity: 'dongs',
         entityKey: 'id',
         foreignKey: 'dongId',
-        onUpdate: 'no action',
+        onUpdate: 'cascade',
         onDelete: 'cascade',
       },
       fkBillListUserRelId: {
@@ -40,7 +40,7 @@ import { JointAccounts } from './joint-accounts.model';
         entity: 'users_rels',
         entityKey: 'id',
         foreignKey: 'userRelId',
-        onUpdate: 'no action',
+        onUpdate: 'cascade',
         onDelete: 'cascade',
       },
     },

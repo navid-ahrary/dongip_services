@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import {repository} from '@loopback/repository';
+import { repository } from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -12,16 +12,16 @@ import {
   del,
   RequestContext,
 } from '@loopback/rest';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {authenticate} from '@loopback/authentication';
-import {inject, service, intercept} from '@loopback/core';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { authenticate } from '@loopback/authentication';
+import { inject, service, intercept } from '@loopback/core';
 
 import _ from 'lodash';
 import moment from 'moment';
 import util from 'util';
 
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {UsersRels, Users} from '../models';
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
+import { UsersRels, Users } from '../models';
 import {
   UsersRepository,
   VirtualUsersRepository,
@@ -30,19 +30,16 @@ import {
   GroupsRepository,
   DongsRepository,
 } from '../repositories';
-import {FirebaseService, PhoneNumberService} from '../services';
+import { FirebaseService, PhoneNumberService } from '../services';
 import {
   ValidatePhoneEmailInterceptor,
   FirebasetokenInterceptor,
   ValidateUsersRelsInterceptor,
 } from '../interceptors';
-import {LocalizedMessages} from '../application';
+import { LocalizedMessages } from '../application';
 
-@api({basePath: '/', paths: {}})
-@intercept(
-  ValidatePhoneEmailInterceptor.BINDING_KEY,
-  FirebasetokenInterceptor.BINDING_KEY,
-)
+@api({ basePath: '/', paths: {} })
+@intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, FirebasetokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class UsersRelsController {
   private readonly userId: number;
@@ -68,15 +65,9 @@ export class UsersRelsController {
     this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
 
-  private normalizePhonesList(
-    phonesList: string[],
-    refrenceRegionCode: string,
-  ): string[] {
+  private normalizePhonesList(phonesList: string[], refrenceRegionCode: string): string[] {
     phonesList.forEach((phone, index) => {
-      phonesList[index] = this.phoneNumberService.normalizeZeroPrefix(
-        phone,
-        refrenceRegionCode,
-      );
+      phonesList[index] = this.phoneNumberService.normalizeZeroPrefix(phone, refrenceRegionCode);
     });
     return phonesList;
   }
@@ -89,14 +80,17 @@ export class UsersRelsController {
         description: 'Array of UsersRels',
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(UsersRels)},
+            schema: {
+              type: 'array',
+              items: getModelSchemaRef(UsersRels, { exclude: ['mutualUserRelId'] }),
+            },
           },
         },
       },
     },
   })
   async find(): Promise<UsersRels[]> {
-    return this.usersRepository.usersRels(this.userId).find();
+    return this.usersRepository.usersRels(this.userId).find({ fields: { mutualUserRelId: false } });
   }
 
   @post('/users-rels', {
@@ -134,17 +128,15 @@ export class UsersRelsController {
       name: userRelReqBody.name,
       avatar: userRelReqBody.avatar,
       phone: userRelReqBody.phone,
-      type: 'unidirectional',
+      type: 'external',
     });
 
     // Check phone number is not user's
     const currentUser = await this.usersRepository.findById(this.userId, {
-      fields: {phone: true, avatar: true, name: true},
+      fields: { phone: true, avatar: true, name: true },
     });
     if (currentUser.phone === userRelReqBody.phone) {
-      throw new HttpErrors.UnprocessableEntity(
-        this.locMsg['YOURE_YOUR_FRIEND'][this.lang],
-      );
+      throw new HttpErrors.UnprocessableEntity(this.locMsg['YOURE_YOUR_FRIEND'][this.lang]);
     }
 
     // Create a UserRel belongs to current user
@@ -170,12 +162,12 @@ export class UsersRelsController {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.usersRepository
       .virtualUsers(this.userId)
-      .create({phone: userRelReqBody.phone, userRelId: createdUserRel.getId()});
+      .create({ phone: userRelReqBody.phone, userRelId: createdUserRel.getId() });
 
     const foundTargetUser = await this.usersRepository.findOne({
-      where: {phone: userRelReqBody.phone},
-      fields: {userId: true, firebaseToken: true, setting: true},
-      include: [{relation: 'setting'}],
+      where: { phone: userRelReqBody.phone },
+      fields: { userId: true, firebaseToken: true, setting: true },
+      include: [{ relation: 'setting' }],
     });
 
     if (foundTargetUser) {
@@ -186,8 +178,8 @@ export class UsersRelsController {
         let notifyType: string;
 
         const foundBiUserRel = await this.usersRelsRepository.findOne({
-          where: {userId: foundTargetUser.getId(), phone: currentUser.phone},
-          fields: {name: true},
+          where: { userId: foundTargetUser.getId(), phone: currentUser.phone },
+          fields: { userRelId: true, name: true },
         });
 
         if (!foundBiUserRel) {
@@ -196,38 +188,30 @@ export class UsersRelsController {
             foundTargetUser.setting.language
           ];
           notifyBody = util.format(
-            this.locMsg['NEW_USERS_RELS_NOTIFY_BODY'][
-              foundTargetUser.setting.language
-            ],
+            this.locMsg['NEW_USERS_RELS_NOTIFY_BODY'][foundTargetUser.setting.language],
             currentUser.name,
           );
         } else {
-          userRelObject.type = 'bidirectional';
-          createdUserRel.type = 'bidirectional';
-
           notifyType = 'biUserRel';
           notifyTitle = util.format(
-            this.locMsg['USERS_RELS_BACK_NOTIFY_TITLE'][
-              foundTargetUser.setting.language
-            ],
+            this.locMsg['USERS_RELS_BACK_NOTIFY_TITLE'][foundTargetUser.setting.language],
             foundBiUserRel.name,
           );
           notifyBody = util.format(
-            this.locMsg['USERS_RELS_BACK_NOTIFY_BODY'][
-              foundTargetUser.setting.language
-            ],
+            this.locMsg['USERS_RELS_BACK_NOTIFY_BODY'][foundTargetUser.setting.language],
             foundBiUserRel.name,
           );
 
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           this.usersRepository
             .usersRels(foundTargetUser.getId())
-            .patch({type: 'bidirectional'}, {phone: currentUser.phone});
+            .patch({ mutualUserRelId: createdUserRel.getId() }, { phone: currentUser.phone });
         }
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.usersRelsRepository.updateById(createdUserRel.getId(), {
           type: userRelObject.type,
+          mutualUserRelId: foundBiUserRel?.getId(),
         });
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -245,25 +229,22 @@ export class UsersRelsController {
             }),
           })
           .then(async (createdNotify) => {
-            await this.firebaseService.sendToDeviceMessage(
-              foundTargetUser.firebaseToken!,
-              {
-                notification: {
-                  title: notifyTitle,
-                  body: notifyBody,
-                  clickAction: 'FLUTTER_NOTIFICATION_CLICK',
-                },
-                data: {
-                  notifyId: createdNotify.getId().toString(),
-                  type: notifyType,
-                  title: notifyTitle,
-                  body: notifyBody,
-                  name: currentUser.name,
-                  phone: currentUser.phone!,
-                  avatar: currentUser.avatar,
-                },
+            await this.firebaseService.sendToDeviceMessage(foundTargetUser.firebaseToken!, {
+              notification: {
+                title: notifyTitle,
+                body: notifyBody,
+                clickAction: 'FLUTTER_NOTIFICATION_CLICK',
               },
-            );
+              data: {
+                notifyId: createdNotify.getId().toString(),
+                type: notifyType,
+                title: notifyTitle,
+                body: notifyBody,
+                name: currentUser.name,
+                phone: currentUser.phone!,
+                avatar: currentUser.avatar,
+              },
+            });
           });
       }
     }
@@ -283,7 +264,7 @@ export class UsersRelsController {
     },
   })
   async updateUsersRelsById(
-    @param.path.number('userRelId', {required: true, example: 30})
+    @param.path.number('userRelId', { required: true, example: 30 })
     userRelId: typeof UsersRels.prototype.userRelId,
     @requestBody({
       required: true,
@@ -291,7 +272,7 @@ export class UsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             partial: true,
-            exclude: ['userId', 'type', 'createdAt', 'updatedAt', 'email'],
+            exclude: ['userId', 'type', 'createdAt', 'updatedAt', 'email', 'mutualUserRelId'],
           }),
           examples: {
             someProps: {
@@ -318,18 +299,16 @@ export class UsersRelsController {
 
     try {
       // Patch UserRel
-      await this.usersRepository
-        .usersRels(this.userId)
-        .patch(patchUserRelReqBody, {
-          userRelId: userRelId,
-        });
+      await this.usersRepository.usersRels(this.userId).patch(patchUserRelReqBody, {
+        userRelId: userRelId,
+      });
 
       // Patch related VirtualUser entity
       const vu = _.pick(patchUserRelReqBody, ['phone']);
       if (vu.phone) {
         await this.usersRelsRepository
           .hasOneVirtualUser(userRelId)
-          .patch(vu, {userId: this.userId});
+          .patch(vu, { userId: this.userId });
       }
     } catch (err) {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
@@ -348,45 +327,41 @@ export class UsersRelsController {
     summary: 'Delete a UsersRels by id',
     security: OPERATION_SECURITY_SPEC,
     responses: {
-      '204': {description: 'UsersRels DELETE success - No Content'},
+      '204': { description: 'UsersRels DELETE success - No Content' },
     },
   })
   async deleteUsersRelsById(
-    @param.path.number('userRelId', {required: true, example: 36})
+    @param.path.number('userRelId', { required: true, example: 36 })
     userRelId: typeof UsersRels.prototype.userRelId,
   ): Promise<void> {
-    await this.usersRepository
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.usersRepository
       .usersRels(this.userId)
-      .delete({and: [{userRelId: userRelId}, {type: {neq: 'self'}}]});
+      .delete({ and: [{ userRelId: userRelId }, { type: { neq: 'self' } }] });
 
-    await this.usersRepository
-      .virtualUsers(this.userId)
-      .delete({userRelId: userRelId})
-      .catch(async (err) => {
-        throw new HttpErrors.NotImplemented(err.message);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.groupsRepository
+      .find({
+        where: { userId: this.userId },
+        fields: { groupId: true, userRelIds: true },
+      })
+      .then(async (foundGroupsUserRelIds) => {
+        for (const group of foundGroupsUserRelIds) {
+          if (group.userRelIds.includes(userRelId)) {
+            const updatedUserRelIds = _.remove(group.userRelIds, function (id) {
+              return id !== userRelId;
+            });
+            await this.groupsRepository.updateById(group.groupId, {
+              userRelIds: updatedUserRelIds,
+            });
+          }
+        }
       });
-
-    // Remove userRelId from Groups
-    const foundGroupsUserRelIds = await this.groupsRepository.find({
-      where: {userId: this.userId},
-      fields: {groupId: true, userRelIds: true},
-    });
-    for (const group of foundGroupsUserRelIds) {
-      if (group.userRelIds.includes(userRelId)) {
-        const updatedUserRelIds = _.remove(group.userRelIds, function (id) {
-          return id !== userRelId;
-        });
-        await this.groupsRepository.updateById(group.groupId, {
-          userRelIds: updatedUserRelIds,
-        });
-      }
-    }
   }
 
   @post('/users-rels/find-friends', {
     summary: 'Find friends with phone numbers',
-    description:
-      'Post array of phone numbers to know whom registered in dongip',
+    description: 'Post array of phone numbers to know whom registered in dongip',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -424,7 +399,7 @@ export class UsersRelsController {
           schema: {
             type: 'array',
             minItems: 1,
-            items: {type: 'string'},
+            items: { type: 'string' },
             nullable: false,
             additionalProperties: false,
             example: ['+989176502184', '+989387401240', '09197744814'],
@@ -436,52 +411,44 @@ export class UsersRelsController {
   ): Promise<Users[]> {
     let referenceRegionCode = '';
     const foundUser = await this.usersRepository.findById(this.userId, {
-      fields: {phone: true, region: true},
+      fields: { phone: true, region: true },
     });
 
     if (foundUser.region) {
       referenceRegionCode = foundUser.region;
     } else {
-      referenceRegionCode = this.phoneNumberService.getRegionCodeISO(
-        foundUser.phone!,
-      );
+      referenceRegionCode = this.phoneNumberService.getRegionCodeISO(foundUser.phone!);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepository.updateById(this.userId, {
         region: referenceRegionCode,
       });
     }
     // Normalize phone value to e.164 format
-    const normalizedPhonesList = this.normalizePhonesList(
-      phonesList,
-      referenceRegionCode,
-    );
+    const normalizedPhonesList = this.normalizePhonesList(phonesList, referenceRegionCode);
 
     return this.usersRepository.find({
       order: ['name ASC'],
-      fields: {name: true, phone: true, avatar: true},
-      where: {phone: {inq: normalizedPhonesList}},
+      fields: { name: true, phone: true, avatar: true },
+      where: { phone: { inq: normalizedPhonesList } },
     });
   }
 
   @del('/users-rels', {
     summary: "Delete all user's UsersRels ",
     security: OPERATION_SECURITY_SPEC,
-    responses: {'200': {description: 'Count deleted UsersRels'}},
+    responses: { '200': { description: 'Count deleted UsersRels' } },
   })
   async deleteAllUsersRels() {
     try {
       const countDeletedUsersRels = await this.usersRelsRepository.deleteAll({
-        type: {neq: 'self'},
+        type: { neq: 'self' },
         userId: this.userId,
       });
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.groupsRepository.deleteAll({userId: this.userId});
+      this.groupsRepository.deleteAll({ userId: this.userId });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.dongsRepository.updateAll(
-        {groupId: undefined},
-        {userId: this.userId},
-      );
+      this.dongsRepository.updateAll({ groupId: undefined }, { userId: this.userId });
 
       return countDeletedUsersRels;
     } catch (err) {

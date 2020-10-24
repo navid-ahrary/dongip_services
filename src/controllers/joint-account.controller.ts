@@ -1,4 +1,4 @@
-import { repository, DataObject, CountSchema, Count } from '@loopback/repository';
+import { repository, DataObject } from '@loopback/repository';
 import {
   post,
   get,
@@ -9,10 +9,12 @@ import {
   HttpErrors,
   RequestContext,
 } from '@loopback/rest';
-import { intercept, inject } from '@loopback/core';
+import { intercept, inject, service } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
+
+import util from 'util';
 
 import { JointRequest, JointResponse, JointAccountSubscribes, JointAccounts } from '../models';
 import {
@@ -23,7 +25,7 @@ import {
 } from '../repositories';
 import { ValidateUsersRelsInterceptor } from '../interceptors';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
-import { basicAuthorization } from '../services';
+import { basicAuthorization, BatchMessage, FirebaseService } from '../services';
 import { LocalizedMessages } from '../application';
 
 @authenticate('jwt.access')
@@ -42,6 +44,7 @@ export class JointAccountController {
     @repository(UsersRepository) protected usersRepo: UsersRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @service(FirebaseService) private firebaseSerice: FirebaseService,
     @inject.context() public ctx: RequestContext,
   ) {
     this.userId = +this.currentUserProfile[securityId];
@@ -79,11 +82,14 @@ export class JointAccountController {
     })
     jointAccountsReq: Omit<JointRequest, 'jointAccountsId'>,
   ): Promise<JointResponse> {
+    const firebaseMessages: BatchMessage = [];
     const JA = await this.jointAccountsRepo.create({
       userId: this.userId,
       title: jointAccountsReq.title,
       description: jointAccountsReq.description,
     });
+
+    const currentUser = await this.usersRepo.findById(this.userId);
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.usersRelsRepo
@@ -95,15 +101,49 @@ export class JointAccountController {
         },
       })
       .then(async (urs) => {
-        const users = await this.usersRepo.find({
-          where: { phone: { inq: urs.map((u) => u.phone) } },
-        });
-
         const jsList: Array<DataObject<JointAccountSubscribes>> = [];
-        for (const userId of users.map((u) => u.getId())) {
-          jsList.push({ userId, jointAccountId: JA.jointAccountId });
+
+        for (const ur of urs) {
+          const user = await this.usersRepo.findOne({
+            where: { phone: ur.phone },
+            include: [
+              { relation: 'usersRels', scope: { where: { phone: currentUser.phone } } },
+              { relation: 'setting' },
+            ],
+          });
+
+          jsList.push({ jointAccountId: JA.jointAccountId, userId: user!.getId() });
+
+          const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
+            jointAccountId: JA.getId(),
+            type: 'jointAccount',
+            title: util.format(
+              this.locMsg['NEW_JOINT_ACCOUNT_NOTIFY_TITLE'][user!.setting.language],
+            ),
+            body: util.format(
+              this.locMsg['NEW_JOINT_ACCOUNT_NOTIFY_BODY'][user!.setting.language],
+              user?.usersRels[0].name,
+              JA.title,
+            ),
+            createdAt: JA.createdAt,
+          });
+
+          firebaseMessages.push({
+            token: user!.firebaseToken!,
+            notification: {
+              title: savedNotify.title,
+              body: savedNotify.body,
+            },
+            data: {
+              title: savedNotify.title,
+              body: savedNotify.body,
+              jointAccountId: JA.getId().toString(),
+            },
+          });
         }
+
         await this.jointAccSubscribesRepo.createAll(jsList);
+        await this.firebaseSerice.sendAllMessage(firebaseMessages);
       });
 
     return {

@@ -7,20 +7,19 @@ import {
   Provider,
   ValueOrPromise,
 } from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import util from 'util';
-import _ from 'lodash';
+import { repository } from '@loopback/repository';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 
-import {UsersRelsRepository, UsersRepository} from '../repositories';
-import {HttpErrors, Request, RestBindings} from '@loopback/rest';
-import {LocalizedMessages} from '../application';
+import { UsersRelsRepository, UsersRepository } from '../repositories';
+import { HttpErrors, Request, RestBindings } from '@loopback/rest';
+import { LocalizedMessages } from '../application';
+import { sample } from 'lodash';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
  * `boot`
  */
-@bind({tags: {key: ValidateUsersRelsInterceptor.BINDING_KEY}})
+@bind({ tags: { key: ValidateUsersRelsInterceptor.BINDING_KEY } })
 export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidateUsersRelsInterceptor.name}`;
   private readonly userId: number;
@@ -51,10 +50,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
    * @param invocationCtx - Invocation context
    * @param next - A function to invoke next interceptor or the target method
    */
-  async intercept(
-    invocationCtx: InvocationContext,
-    next: () => ValueOrPromise<InvocationResult>,
-  ) {
+  async intercept(invocationCtx: InvocationContext, next: () => ValueOrPromise<InvocationResult>) {
     this.lang = this.req.headers['accept-language'] ?? 'fa';
 
     let errMsg: string;
@@ -65,7 +61,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
 
         const countUserRels = await this.usersRelsRepository.count({
           userId: this.userId,
-          userRelId: {inq: userRelIds},
+          userRelId: { inq: userRelIds },
         });
 
         if (countUserRels.count !== userRelIds.length) {
@@ -78,7 +74,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
 
           const countUserRels = await this.usersRelsRepository.count({
             userId: this.userId,
-            userRelId: {inq: userRelIds},
+            userRelId: { inq: userRelIds },
           });
 
           if (countUserRels.count !== userRelIds.length) {
@@ -95,7 +91,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
           where: {
             userRelId: userRelId,
             userId: this.userId,
-            type: {neq: 'self'},
+            type: { neq: 'self' },
           },
         });
 
@@ -106,67 +102,18 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
       } else if (invocationCtx.methodName === 'createJointAccount') {
         const userRelIds = invocationCtx.args[0].userRelIds;
 
-        const foundUrs = await this.usersRepository
-          .usersRels(this.userId)
-          .find({
-            fields: {
-              userRelId: true,
-              userId: true,
-              type: true,
-              name: true,
-              phone: true,
-            },
-            where: {
-              or: [
-                {userRelId: {inq: userRelIds}, userId: this.userId},
-                {type: 'self', userId: this.userId},
-              ],
-            },
-          });
-        const currentUserPhone = _.map(foundUrs, (ur) => {
-          if (ur.type === 'self') return ur.phone;
-        })[0];
+        const foundUrs = await this.usersRepository.usersRels(this.userId).find({
+          fields: { userRelId: true, mutualUserRelId: true },
+          where: {
+            userId: this.userId,
+            userRelId: { inq: userRelIds },
+            mutualUserRelId: { neq: null! },
+          },
+        });
 
         if (foundUrs.length !== userRelIds.length) {
           errMsg = this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang];
           throw new Error(errMsg);
-        }
-
-        for (const ur of foundUrs) {
-          if (ur.type === 'unidirectional') {
-            errMsg = util.format(
-              this.locMsg['JOINT_USER_REL_BI_ERR'][this.lang],
-              ur.name,
-            );
-            throw new Error(errMsg);
-            // Check user those using previous version
-          } else if (ur.type === 'virtual') {
-            const targetToCurrentRel = await this.usersRepository.findOne({
-              where: {phone: ur.phone},
-              include: [
-                {
-                  relation: 'usersRels',
-                  scope: {where: {phone: currentUserPhone}},
-                },
-              ],
-            });
-
-            if (targetToCurrentRel?.usersRels) {
-              await this.usersRelsRepository.updateAll(
-                {type: 'bidirectional'},
-                {
-                  or: [
-                    {userRelId: targetToCurrentRel.usersRels[0].getId()},
-                    {userRelId: ur.getId()},
-                  ],
-                },
-              );
-            } else {
-              await this.usersRelsRepository.updateById(ur.getId(), {
-                type: 'unidirectional',
-              });
-            }
-          }
         }
       }
     } catch (err) {

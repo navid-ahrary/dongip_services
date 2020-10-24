@@ -1,5 +1,5 @@
-import {inject, intercept, service} from '@loopback/core';
-import {repository, DataObject} from '@loopback/repository';
+import { inject, intercept, service } from '@loopback/core';
+import { repository, DataObject } from '@loopback/repository';
 import {
   requestBody,
   HttpErrors,
@@ -10,35 +10,22 @@ import {
   getModelSchemaRef,
   RequestContext,
 } from '@loopback/rest';
-import {
-  authenticate,
-  UserService,
-  TokenService,
-} from '@loopback/authentication';
-import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
+import { authenticate, UserService, TokenService } from '@loopback/authentication';
+import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
 
 import _ from 'lodash';
 import moment from 'moment';
 
-import {UserServiceBindings, TokenServiceBindings} from '../keys';
-import {UserPatchRequestBody} from './specs';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {
-  Users,
-  Credentials,
-  CompleteSignup,
-  Settings,
-  UsersRels,
-} from '../models';
-import {UsersRepository, LinksRepository} from '../repositories';
-import {
-  FirebasetokenInterceptor,
-  ValidatePhoneEmailInterceptor,
-} from '../interceptors';
-import {PhoneNumberService} from '../services';
-import {LocalizedMessages} from '../application';
+import { UserServiceBindings, TokenServiceBindings } from '../keys';
+import { UserPatchRequestBody } from './specs';
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
+import { Users, Credentials, CompleteSignup, Settings, UsersRels } from '../models';
+import { UsersRepository, LinksRepository } from '../repositories';
+import { FirebasetokenInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
+import { PhoneNumberService } from '../services';
+import { LocalizedMessages } from '../application';
 
-@api({basePath: '/', paths: {}})
+@api({ basePath: '/', paths: {} })
 @authenticate('jwt.access')
 export class UsersController {
   private readonly userId: number;
@@ -81,14 +68,11 @@ export class UsersController {
             schema: {
               type: 'object',
               properties: {
-                name: {type: 'string'},
+                name: { type: 'string' },
                 roles: {
                   type: 'array',
                   items: {
-                    oneOf: [
-                      {type: 'string', minItems: 1, maxItems: 5},
-                      {type: undefined},
-                    ],
+                    oneOf: [{ type: 'string', minItems: 1, maxItems: 5 }, { type: undefined }],
                   },
                 },
                 planId: {
@@ -103,16 +87,16 @@ export class UsersController {
                   type: 'string',
                   nullable: true,
                 },
-                registeredAt: {type: 'string'},
-                totalScores: {type: 'number'},
+                registeredAt: { type: 'string' },
+                totalScores: { type: 'number' },
                 externalLinks: {
                   type: 'object',
                   properties: {
-                    userRel: {type: 'string'},
-                    group: {type: 'string'},
-                    budget: {type: 'string'},
-                    addDong: {type: 'string'},
-                    category: {type: 'string'},
+                    userRel: { type: 'string' },
+                    group: { type: 'string' },
+                    budget: { type: 'string' },
+                    addDong: { type: 'string' },
+                    category: { type: 'string' },
                   },
                 },
               },
@@ -149,43 +133,41 @@ export class UsersController {
       include: [
         {
           relation: 'setting',
-          scope: {fields: {userId: true, language: true, currency: true}},
+          scope: { fields: { userId: true, language: true, currency: true } },
         },
         {
           relation: 'subscriptions',
           scope: {
             limit: 1,
-            fields: {userId: true, solTime: true, eolTime: true},
+            fields: { userId: true, solTime: true, eolTime: true },
             where: {
-              solTime: {lte: nowUTC.toISOString()},
-              eolTime: {gte: nowUTC.toISOString()},
+              solTime: { lte: nowUTC.toISOString() },
+              eolTime: { gte: nowUTC.toISOString() },
             },
           },
         },
       ],
     });
 
-    const hasSubs = foundUser.subscriptions
-      ? foundUser.subscriptions.length > 0
-      : false;
+    const hasSubs = foundUser.subscriptions ? foundUser.subscriptions.length > 0 : false;
 
     const roles = foundUser.roles;
 
     if (hasSubs && !roles.includes('GOLD')) {
       roles[roles.indexOf('BRONZE')] = 'GOLD';
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepository.updateById(this.userId, {roles: roles});
+      this.usersRepository.updateById(this.userId, { roles: roles });
     }
 
     if (!hasSubs && roles.includes('GOLD')) {
       roles[roles.indexOf('GOLD')] = 'BRONZE';
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepository.updateById(this.userId, {roles: roles});
+      this.usersRepository.updateById(this.userId, { roles: roles });
     }
 
     const foundLinks = await this.linkRepository.find();
 
-    const externalLinks: {[key: string]: string} = {};
+    const externalLinks: { [key: string]: string } = {};
     foundLinks.forEach((link) => {
       externalLinks[link.name] = link.url;
     });
@@ -204,10 +186,7 @@ export class UsersController {
     };
   }
 
-  @intercept(
-    FirebasetokenInterceptor.BINDING_KEY,
-    ValidatePhoneEmailInterceptor.BINDING_KEY,
-  )
+  @intercept(FirebasetokenInterceptor.BINDING_KEY, ValidatePhoneEmailInterceptor.BINDING_KEY)
   @patch('/users', {
     summary: "Update User's properties",
     description: 'Request body includes desired properties to update',
@@ -224,7 +203,7 @@ export class UsersController {
     if (updateUserReqBody.avatar) {
       await this.usersRepository
         .usersRels(this.userId)
-        .patch({avatar: updateUserReqBody.avatar}, {type: 'self'});
+        .patch({ avatar: updateUserReqBody.avatar }, { type: 'self' });
     }
 
     const patchUser: DataObject<Users> = {};
@@ -233,7 +212,7 @@ export class UsersController {
       const phone = updateUserReqBody.phone;
 
       const user = await this.usersRepository.findOne({
-        where: {userId: this.userId, phoneLocked: true},
+        where: { userId: this.userId, phoneLocked: true },
       });
 
       if (user) {
@@ -248,7 +227,7 @@ export class UsersController {
 
     if (updateUserReqBody.email) {
       const user = await this.usersRepository.findOne({
-        where: {userId: this.userId, emailLocked: true},
+        where: { userId: this.userId, emailLocked: true },
       });
 
       if (user) {
@@ -261,22 +240,16 @@ export class UsersController {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRepository
-      .usersRels(this.userId)
-      .patch(patchUser, {type: 'self'});
+    this.usersRepository.usersRels(this.userId).patch(patchUser, { type: 'self' });
 
-    return this.usersRepository
-      .updateById(this.userId, updateUserReqBody)
-      .catch((err) => {
-        if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          if (err.sqlMessage.endsWith("'users.username'")) {
-            throw new HttpErrors.Conflict(
-              this.locMsg['USERNAME_UNAVAILABLE'][this.lang],
-            );
-          }
+    return this.usersRepository.updateById(this.userId, updateUserReqBody).catch((err) => {
+      if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
+        if (err.sqlMessage.endsWith("'users.username'")) {
+          throw new HttpErrors.Conflict(this.locMsg['USERNAME_UNAVAILABLE'][this.lang]);
         }
-        throw new HttpErrors.NotAcceptable(err.message);
-      });
+      }
+      throw new HttpErrors.NotAcceptable(err.message);
+    });
   }
 
   @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
@@ -284,60 +257,50 @@ export class UsersController {
     summary: "Post essential user's properties for complete user signup",
     security: OPERATION_SECURITY_SPEC,
     responses: {
-      204: {description: 'no content'},
-      409: {description: 'Conflict phone or email'},
+      204: { description: 'no content' },
+      409: { description: 'Conflict phone or email' },
     },
   })
   async completeSignup(
     @requestBody({
       content: {
-        'application/json': {schema: getModelSchemaRef(CompleteSignup)},
+        'application/json': { schema: getModelSchemaRef(CompleteSignup) },
       },
     })
     cmpltSignBody: CompleteSignup,
   ): Promise<void> {
     try {
-      const userProps = _.pick(cmpltSignBody, [
-        'avatar',
-        'name',
-        'phone',
-        'email',
-      ]);
+      const userProps = _.pick(cmpltSignBody, ['avatar', 'name', 'phone', 'email']);
 
-      const settingProps: Partial<Settings> = _.pick(cmpltSignBody, [
-        'language',
-        'currency',
-      ]);
+      const settingProps: Partial<Settings> = _.pick(cmpltSignBody, ['language', 'currency']);
 
       const userRelProps: Partial<UsersRels> = {};
 
       if ('phone' in userProps) {
         const u = await this.usersRepository.findOne({
-          where: {userId: this.userId, phoneLocked: true},
+          where: { userId: this.userId, phoneLocked: true },
         });
 
         if (u) delete userProps.phone;
         else {
-          Object.assign(userProps, {phoneLocked: true});
+          Object.assign(userProps, { phoneLocked: true });
           userRelProps.phone = userProps.phone;
         }
       }
 
       if ('email' in userProps) {
         const u = await this.usersRepository.findOne({
-          where: {userId: this.userId, emailLocked: true},
+          where: { userId: this.userId, emailLocked: true },
         });
 
         if (u) delete userProps.email;
         else {
-          Object.assign(userProps, {emailLocked: true});
+          Object.assign(userProps, { emailLocked: true });
           userRelProps.email = userProps.email;
         }
       }
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepository
-        .usersRels(this.userId)
-        .patch(userRelProps, {type: 'self'});
+      this.usersRepository.usersRels(this.userId).patch(userRelProps, { type: 'self' });
 
       if (Object.keys(settingProps).length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -370,21 +333,19 @@ export class UsersController {
     summary: 'Check username availablity',
     security: OPERATION_SECURITY_SPEC,
     responses: {
-      '204': {description: 'Username is available [No content]'},
-      '409': {description: 'Username is taken'},
+      '204': { description: 'Username is available [No content]' },
+      '409': { description: 'Username is taken' },
     },
   })
   async findUsername(
-    @param.query.string('username', {required: true}) username: string,
+    @param.query.string('username', { required: true }) username: string,
   ): Promise<void> {
     const foundUsername = await this.usersRepository.count({
-      userId: {neq: this.userId},
+      userId: { neq: this.userId },
       username: username,
     });
 
     if (foundUsername.count)
-      throw new HttpErrors.Conflict(
-        this.locMsg['USERNAME_UNAVAILABLE'][this.lang],
-      );
+      throw new HttpErrors.Conflict(this.locMsg['USERNAME_UNAVAILABLE'][this.lang]);
   }
 }

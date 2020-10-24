@@ -1,5 +1,5 @@
-import {inject, service, intercept} from '@loopback/core';
-import {repository} from '@loopback/repository';
+import { inject, service, intercept } from '@loopback/core';
+import { repository } from '@loopback/repository';
 import {
   post,
   requestBody,
@@ -10,23 +10,15 @@ import {
   api,
   getModelSchemaRef,
 } from '@loopback/rest';
-import {
-  authenticate,
-  UserService,
-  TokenService,
-} from '@loopback/authentication';
-import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
+import { authenticate, UserService, TokenService } from '@loopback/authentication';
+import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
 
 import moment from 'moment';
 import _ from 'lodash';
 
-import {
-  PasswordHasherBindings,
-  UserServiceBindings,
-  TokenServiceBindings,
-} from '../keys';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {Users, Credentials, Verify, NewUser} from '../models';
+import { PasswordHasherBindings, UserServiceBindings, TokenServiceBindings } from '../keys';
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
+import { Users, Credentials, Verify, NewUser } from '../models';
 import {
   UsersRepository,
   BlacklistRepository,
@@ -42,17 +34,11 @@ import {
   PhoneNumberService,
   EmailService,
 } from '../services';
-import {
-  ValidatePasswordInterceptor,
-  ValidatePhoneEmailInterceptor,
-} from '../interceptors';
-import {LocalizedMessages, CategoriesSource} from '../application';
+import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
+import { LocalizedMessages, CategoriesSource } from '../application';
 
-@api({basePath: '/auth', paths: {}})
-@intercept(
-  ValidatePhoneEmailInterceptor.BINDING_KEY,
-  ValidatePasswordInterceptor.BINDING_KEY,
-)
+@api({ basePath: '/auth', paths: {} })
+@intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, ValidatePasswordInterceptor.BINDING_KEY)
 export class AuthController {
   lang: string;
 
@@ -112,11 +98,11 @@ export class AuthController {
             schema: {
               type: 'object',
               properties: {
-                status: {type: 'boolean'},
-                name: {type: 'string'},
-                avatar: {type: 'string'},
-                prefix: {type: 'string'},
-                verifyToken: {type: 'string'},
+                status: { type: 'boolean' },
+                name: { type: 'string' },
+                avatar: { type: 'string' },
+                prefix: { type: 'string' },
+                verifyToken: { type: 'string' },
               },
             },
           },
@@ -188,31 +174,24 @@ export class AuthController {
       (!_.has(verifyReqBody, 'phone') && !_.has(verifyReqBody, 'email')) ||
       (_.has(verifyReqBody, 'phone') && _.has(verifyReqBody, 'email'))
     ) {
-      throw new HttpErrors.UnprocessableEntity(
-        'Either Phone or email must be provided',
-      );
+      throw new HttpErrors.UnprocessableEntity('Either Phone or email must be provided');
     }
 
     const countRequstedVerifyCode = await this.verifyRepository.count({
-      or: [{phone: verifyReqBody.phone}, {email: verifyReqBody.email}],
+      or: [{ phone: verifyReqBody.phone }, { email: verifyReqBody.email }],
       loggedIn: false,
       loggedInAt: undefined,
       createdAt: {
-        between: [
-          nowUTC.subtract(durationLimit, 'minutes').toISOString(),
-          nowUTC.toISOString(),
-        ],
+        between: [nowUTC.subtract(durationLimit, 'minutes').toISOString(), nowUTC.toISOString()],
       },
     });
 
     if (countRequstedVerifyCode.count > 5) {
-      throw new HttpErrors.TooManyRequests(
-        this.locMsg['TOO_MANY_REQUEST'][this.lang],
-      );
+      throw new HttpErrors.TooManyRequests(this.locMsg['TOO_MANY_REQUEST'][this.lang]);
     }
 
     const user = await this.usersRepository.findOne({
-      where: {or: [{phone: verifyReqBody.phone}, {email: verifyReqBody.email}]},
+      where: { or: [{ phone: verifyReqBody.phone }, { email: verifyReqBody.email }] },
       fields: {
         name: true,
         avatar: true,
@@ -224,9 +203,7 @@ export class AuthController {
         phone: verifyReqBody.phone ? verifyReqBody.phone : undefined,
         email: verifyReqBody.email ? verifyReqBody.email : undefined,
         password: randomStr + randomCode,
-        smsSignature: verifyReqBody.smsSignature
-          ? verifyReqBody.smsSignature
-          : ' ',
+        smsSignature: verifyReqBody.smsSignature ? verifyReqBody.smsSignature : ' ',
         registered: user ? true : false,
         createdAt: nowUTC.toISOString(),
         region: verifyReqBody.phone
@@ -250,9 +227,7 @@ export class AuthController {
     };
 
     // Generate verify token
-    const verifyToken: string = await this.jwtService.generateToken(
-      userProfile,
-    );
+    const verifyToken: string = await this.jwtService.generateToken(userProfile);
 
     if (verifyReqBody.phone) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -280,9 +255,7 @@ export class AuthController {
         .sendSupportMail({
           subject: this.locMsg['VERFIY_EMAIL_SUBJECT'][this.lang],
           toAddress: verifyReqBody.email,
-          content: `${
-            this.locMsg['VERFIY_EMAIL_CONTENT'][this.lang]
-          } ${randomCode}`,
+          content: `${this.locMsg['VERFIY_EMAIL_CONTENT'][this.lang]} ${randomCode}`,
         })
         .then(async (res) => {
           await this.verifyRepository.updateById(createdVerify.getId(), {
@@ -314,12 +287,12 @@ export class AuthController {
             schema: {
               type: 'object',
               properties: {
-                userId: {type: 'number'},
-                phone: {type: 'string', nullable: true},
-                email: {type: 'string', nullable: true},
-                score: {type: 'number'},
-                accessToken: {type: 'string'},
-                refreshToken: {type: 'string'},
+                userId: { type: 'number' },
+                phone: { type: 'string', nullable: true },
+                email: { type: 'string', nullable: true },
+                score: { type: 'number' },
+                accessToken: { type: 'string' },
+                refreshToken: { type: 'string' },
               },
             },
             example: {
@@ -525,10 +498,7 @@ export class AuthController {
       userLanguage = newUser.language,
       userCurrency = newUser.currency;
 
-    const foundVerify = await this.verifySerivce.verifyCredentials(
-      verifyId,
-      newUser.password,
-    );
+    const foundVerify = await this.verifySerivce.verifyCredentials(verifyId, newUser.password);
 
     const countRegisteredUsers = await this.usersRepository.count();
     const roles = countRegisteredUsers.count < 1000 ? ['GOLD'] : ['BRONZE'];
@@ -561,29 +531,32 @@ export class AuthController {
         });
       }
 
-      const savedScore = await this.usersRepository
-        .scores(savedUser.getId())
-        .create({score: 50});
+      const savedScore = await this.usersRepository.scores(savedUser.getId()).create({ score: 50 });
 
       // Convert user object to a UserProfile object (reduced set of properties)
       const userProfile = this.userService.convertToUserProfile(savedUser);
       userProfile['aud'] = 'access';
 
-      const accessToken: string = await this.jwtService.generateToken(
-        userProfile,
-      );
+      const accessToken: string = await this.jwtService.generateToken(userProfile);
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepository.usersRels(savedUser.getId()).create({
-        type: 'self',
-        avatar: savedUser.avatar,
-        phone: foundVerify.phone ? foundVerify.phone : undefined,
-        email: foundVerify.email ? foundVerify.email : undefined,
-      });
+      this.usersRepository
+        .usersRels(savedUser.getId())
+        .create({
+          type: 'self',
+          avatar: savedUser.avatar,
+          phone: foundVerify.phone ?? undefined,
+          email: foundVerify.email ?? undefined,
+        })
+        .then(async (rel) => {
+          await this.usersRepository
+            .usersRels(savedUser.getId())
+            .patch({ mutualUserRelId: rel.getId() }, { userRelId: rel.getId() });
+        });
 
       const initCatList = this.catSrc[this.lang];
       initCatList.forEach((cat) => {
-        Object.assign(cat, {userId: savedUser.userId});
+        Object.assign(cat, { userId: savedUser.userId });
       });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.categoriesRepository.createAll(initCatList);
@@ -605,22 +578,14 @@ export class AuthController {
         userId: savedUser.getId(),
         planId: planId,
         solTime: roles.includes('GOLD') ? nowUTC.toISOString() : null,
-        eolTime: roles.includes('GOLD')
-          ? nowUTC.add(1, 'year').toISOString()
-          : null,
+        eolTime: roles.includes('GOLD') ? nowUTC.add(1, 'year').toISOString() : null,
         accessToken: accessToken,
         refreshToken: savedUser.refreshToken,
         totalScores: savedScore.score,
       };
     } catch (err) {
-      if (
-        err.errno === 1062 &&
-        err.code === 'ER_DUP_ENTRY' &&
-        err.sqlMessage.endsWith("'phone'")
-      ) {
-        throw new HttpErrors.Conflict(
-          this.locMsg['SINGUP_CONFILCT_PHONE'][this.lang],
-        );
+      if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY' && err.sqlMessage.endsWith("'phone'")) {
+        throw new HttpErrors.Conflict(this.locMsg['SINGUP_CONFILCT_PHONE'][this.lang]);
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
         throw new HttpErrors.NotAcceptable(err.message);
       } else {
@@ -630,8 +595,7 @@ export class AuthController {
   }
 
   @get('/access-token', {
-    summary:
-      'Get a new access token with provided refresh token - not implemented yet',
+    summary: 'Get a new access token with provided refresh token - not implemented yet',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -654,22 +618,19 @@ export class AuthController {
     );
 
     if (!isMatched) {
-      throw new HttpErrors.Unauthorized(
-        this.locMsg['REFRESH_TOKEN_NOT_MATCHED'][this.lang],
-      );
+      throw new HttpErrors.Unauthorized(this.locMsg['REFRESH_TOKEN_NOT_MATCHED'][this.lang]);
     }
 
     const userProfile = this.userService.convertToUserProfile(user);
     userProfile.aud = 'refresh';
     const accessToken = await this.jwtService.generateToken(userProfile);
 
-    return {accessToken};
+    return { accessToken };
   }
 
   @get('/logout', {
     summary: 'Logout from app',
-    description:
-      "Blacklist access token and remove user's firebase token property",
+    description: "Blacklist access token and remove user's firebase token property",
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -685,6 +646,6 @@ export class AuthController {
       token: this.ctx.request.headers['authorization']!.split(' ')[1],
     });
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRepository.updateById(userId, {firebaseToken: undefined});
+    this.usersRepository.updateById(userId, { firebaseToken: undefined });
   }
 }

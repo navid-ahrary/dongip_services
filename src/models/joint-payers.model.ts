@@ -6,7 +6,45 @@ import { CurrencyEnum } from './settings.model';
 import { Users } from './users.model';
 import { Dongs } from './dongs.model';
 
-@model({ name: 'joint_payers' })
+@model({
+  name: 'joint_payers',
+  settings: {
+    foreignKeys: {
+      fkPayerUserId: {
+        name: 'fk_Payer_user_id',
+        entity: 'users',
+        entityKey: 'id',
+        foreignKey: 'userId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+      fkPayerCategoryId: {
+        name: 'fk_Payer_category_id',
+        entity: 'categories',
+        entityKey: 'id',
+        foreignKey: 'categoryId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+      fkPayerDongId: {
+        name: 'fk_Payer_dong_id',
+        entity: 'dongs',
+        entityKey: 'id',
+        foreignKey: 'dongId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+      fkPayerJointAccountId: {
+        name: 'fk_Payer_joint_account_id',
+        entity: 'joint_accounts',
+        entityKey: 'id',
+        foreignKey: 'jointAccountId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+    },
+  },
+})
 export class JointPayers extends Entity {
   @property({
     type: 'Number',

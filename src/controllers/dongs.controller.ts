@@ -19,7 +19,15 @@ import _ from 'lodash';
 import util from 'util';
 import moment from 'moment';
 
-import { Dongs, PostDong, Notifications, Users, JointBills, JointPayers } from '../models';
+import {
+  Dongs,
+  PostDong,
+  Notifications,
+  Users,
+  JointBills,
+  JointPayers,
+  Categories,
+} from '../models';
 import {
   UsersRepository,
   DongsRepository,
@@ -98,7 +106,19 @@ export class DongsController {
   async findDongs(): Promise<Dongs[]> {
     return this.usersRepository.dongs(this.userId).find({
       order: ['createdAt DESC'],
-      include: [{ relation: 'payerList' }, { relation: 'billList' }],
+      include: [
+        { relation: 'payerList' },
+        { relation: 'billList' },
+        {
+          relation: 'jointAccount',
+          scope: {
+            include: [
+              { relation: 'jointBills', scope: { where: { userId: this.userId } } },
+              { relation: 'jointPayers', scope: { where: { userId: this.userId } } },
+            ],
+          },
+        },
+      ],
     });
   }
 
@@ -268,9 +288,12 @@ export class DongsController {
       const createdPayerList = await this.payerListRepository.createAll(payerList);
       const createdBillList = await this.billListRepository.createAll(billList);
 
+      createdDong.billList = createdBillList;
+      createdDong.payerList = createdPayerList;
+
       const sendNotify = _.has(newDong, 'sendNotify') ? newDong.sendNotify : true;
 
-      if (currentUserIsPayer && sendNotify) {
+      if (!currentUser.jointAccounts?.length && currentUserIsPayer && sendNotify) {
         for (const relation of exterUserRelsList) {
           const user = await this.usersRepository.findOne({
             where: { phone: relation.phone },
@@ -353,6 +376,10 @@ export class DongsController {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           this.firebaseSerice.sendAllMessage(firebaseMessagesList);
         }
+      } else if (currentUser.jointAccounts?.length) {
+        const copyCreatedDong = _.assign({}, createdDong);
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.submitJoint(currentUser, copyCreatedDong);
       }
 
       const calculatedScore = newDongScore + mutualFactor * mutualFriendScore;
@@ -361,14 +388,6 @@ export class DongsController {
         dongId: createdDong.getId(),
         score: calculatedScore,
       });
-
-      createdDong.billList = createdBillList;
-      createdDong.payerList = createdPayerList;
-
-      if (currentUser.jointAccounts?.length) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.submitJoint(currentUser, createdDong);
-      }
 
       return {
         ...createdDong,
@@ -418,6 +437,14 @@ export class DongsController {
 
   async submitJoint(currentUser: Users, savedDong: Partial<Dongs>) {
     try {
+      const billList = savedDong.billList!;
+      const payerList = savedDong.payerList!;
+
+      delete savedDong.billList;
+      delete savedDong.payerList;
+      delete savedDong.userId;
+      delete savedDong.dongId;
+
       const firebaseMessages: BatchMessage = [];
 
       const JA = currentUser.jointAccounts![0];
@@ -437,21 +464,17 @@ export class DongsController {
               relation: 'categories',
               scope: {
                 limit: 1,
-                where: {
-                  or: [
-                    { title: splittedCatgTitle[0] },
-                    { title: splittedCatgTitle[1] ?? null },
-                    { title: splittedCatgTitle[2] ?? null },
-                  ],
-                },
+                where: { title: { inq: splittedCatgTitle } },
               },
             },
             { relation: 'usersRels', scope: { where: { phone: currentUser.phone } } },
           ],
         });
 
-        let catg = user.categories[0];
-        if (!catg) {
+        let catg: Categories;
+        if (user.categories) {
+          catg = user.categories[0];
+        } else {
           catg = await this.categoriesRepository.create({
             userId: user.getId(),
             title: currentUserCateg.title,
@@ -459,8 +482,12 @@ export class DongsController {
           });
         }
 
+        savedDong.categoryId = catg.getId();
+
+        const createdDong = await this.usersRepository.dongs(user.getId()).create(savedDong);
+
         const billers: Array<JointBills> = [];
-        for (const biller of savedDong.billList!) {
+        for (const biller of billList) {
           const relName = await this.usersRelsRepository.findOne({
             fields: { userRelId: true, name: true, userId: true, type: true },
             where: { userId: biller.userId },
@@ -468,7 +495,7 @@ export class DongsController {
 
           billers.push(
             new JointBills({
-              dongId: savedDong.dongId,
+              dongId: createdDong.getId(),
               userId: user.getId(),
               currency: savedDong.currency,
               categoryId: catg.getId(),
@@ -481,7 +508,7 @@ export class DongsController {
         }
 
         const payers: Array<JointPayers> = [];
-        for (const payer of savedDong.payerList!) {
+        for (const payer of payerList) {
           const relName = await this.usersRelsRepository.findOne({
             fields: { userRelId: true, name: true },
             where: { userRelId: payer.userRelId },
@@ -489,7 +516,7 @@ export class DongsController {
 
           payers.push(
             new JointPayers({
-              dongId: savedDong.dongId,
+              dongId: createdDong.getId(),
               userId: user.getId(),
               currency: savedDong.currency,
               categoryId: catg.getId(),
@@ -504,9 +531,10 @@ export class DongsController {
         const savedJointPayers = await this.jointPayerRepository.createAll(payers);
         const savedJointBillers = await this.jointBillRepository.createAll(billers);
 
-        delete savedDong.billList;
-        delete savedDong.payerList;
-        _.assign(savedDong, { jointBillList: savedJointBillers, jointPayerList: savedJointPayers });
+        _.assign(createdDong, {
+          jointBillList: savedJointBillers,
+          jointPayerList: savedJointPayers,
+        });
 
         const firebaseToken = user.firebaseToken!;
         const lang = user.setting.language;
@@ -515,16 +543,16 @@ export class DongsController {
           title: util.format(this.locMsg['DONGIP_IN_GROUP_NOTIFY_TITLE'][lang], JA.title),
           body: util.format(
             this.locMsg['DONGIP_IN_GROUP_NOTIFY_BODY'][lang],
-            this.numberWithCommas(savedDong.pong!),
-            this.locMsg['CURRENCY'][lang][savedDong.currency!],
+            this.numberWithCommas(createdDong.pong!),
+            this.locMsg['CURRENCY'][lang][createdDong.currency!],
             user.usersRels[0].name,
           ),
           type: 'jointAccount',
           categoryTitle: catg.title,
           categoryIcon: catg.icon,
-          dongId: savedDong.dongId,
+          dongId: createdDong.dongId,
           userRelId: user.usersRels[0].getId(),
-          createdAt: savedDong.createdAt,
+          createdAt: createdDong.createdAt,
         });
 
         const createdNotify = await this.usersRepository
@@ -549,10 +577,9 @@ export class DongsController {
             categoryTitle: notifyData.categoryTitle!,
             categoryIcon: notifyData.categoryIcon!,
             userRelId: notifyData.userRelId!.toString(),
-            jointBills: JSON.stringify(savedJointBillers),
-            jointPayers: JSON.stringify(savedJointPayers),
-            dong: JSON.stringify(savedDong),
+            dong: JSON.stringify(createdDong),
             createdAt: moment(notifyData.createdAt).toISOString(),
+            silent: 'true',
           },
         });
       }
