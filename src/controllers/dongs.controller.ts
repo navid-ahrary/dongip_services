@@ -204,7 +204,7 @@ export class DongsController {
         {
           relation: 'jointAccounts',
           scope: {
-            where: { jointAccountId: newDong.jointAccountId },
+            where: { jointAccountId: newDong.jointAccountId ?? null },
             include: [
               {
                 relation: 'jointAccountSubscribes',
