@@ -240,7 +240,7 @@ export class JointAccountController {
       .delete({ jointAccountId: jointAccountId });
 
     if (countDeleted.count !== 1) {
-      const errMsg = this.locMsg['JOINT_NOT_VALID'][this.lang];
+      const errMsg = this.locMsg['JOINT_NOT_BELONG_USER'][this.lang];
       throw new HttpErrors.UnprocessableEntity(errMsg);
     }
   }

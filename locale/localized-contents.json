@@ -115,6 +115,10 @@
     "fa": "گروه مورد نظر معتبر نیست",
     "en": "Joint account is not valid"
   },
+  "JOINT_NOT_BELONG_USER": {
+    "fa": "شما ادمین گروه نیستید",
+    "en": "You are not admin of the group"
+  },
   "DELETE_JOINT_NOTIFY_TITLE": {
     "fa": "حذف گروه %s",
     "en": "Delete %s Group"
