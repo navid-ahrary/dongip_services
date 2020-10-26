@@ -109,15 +109,8 @@ export class DongsController {
       include: [
         { relation: 'payerList' },
         { relation: 'billList' },
-        {
-          relation: 'jointAccount',
-          scope: {
-            include: [
-              { relation: 'jointBills', scope: { where: { userId: this.userId } } },
-              { relation: 'jointPayers', scope: { where: { userId: this.userId } } },
-            ],
-          },
-        },
+        { relation: 'jointBills', scope: { where: { userId: this.userId } } },
+        { relation: 'jointPayers', scope: { where: { userId: this.userId } } },
       ],
     });
   }
