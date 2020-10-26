@@ -8,7 +8,7 @@ export class JointRequest extends Model {
     type: 'string',
     required: true,
     jsonSchema: {
-      maxLength: 20,
+      maxLength: 50,
     },
   })
   title: string;

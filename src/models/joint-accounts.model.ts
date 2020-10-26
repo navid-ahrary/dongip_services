@@ -40,7 +40,7 @@ export class JointAccounts extends Entity {
     required: true,
     mysql: {
       columnName: 'title',
-      dataLength: '20',
+      dataLength: '50',
       dataType: 'varchar',
       nullable: 'N',
     },
