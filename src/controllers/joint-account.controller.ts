@@ -89,7 +89,9 @@ export class JointAccountController {
       description: jointAccountsReq.description,
     });
 
-    const currentUser = await this.usersRepo.findById(this.userId);
+    const currentUser = await this.usersRepo.findById(this.userId, {
+      fields: { userId: true, phone: true },
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.usersRelsRepo
@@ -97,7 +99,6 @@ export class JointAccountController {
         fields: { userId: true, phone: true },
         where: {
           userId: this.userId,
-          type: { neq: 'self' },
           userRelId: { inq: jointAccountsReq.userRelIds },
         },
       })
@@ -115,34 +116,36 @@ export class JointAccountController {
 
           jsList.push({ jointAccountId: JA.jointAccountId, userId: user!.getId() });
 
-          const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
-            jointAccountId: JA.getId(),
-            type: 'jointAccount',
-            title: util.format(
-              this.locMsg['NEW_JOINT_ACCOUNT_NOTIFY_TITLE'][user!.setting.language],
-            ),
-            body: util.format(
-              this.locMsg['NEW_JOINT_ACCOUNT_NOTIFY_BODY'][user!.setting.language],
-              user?.usersRels[0].name,
-              JA.title,
-            ),
-            createdAt: JA.createdAt,
-          });
+          if (ur.type !== 'self') {
+            const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
+              jointAccountId: JA.getId(),
+              type: 'jointAccount',
+              title: util.format(
+                this.locMsg['NEW_JOINT_ACCOUNT_NOTIFY_TITLE'][user!.setting.language],
+              ),
+              body: util.format(
+                this.locMsg['NEW_JOINT_ACCOUNT_NOTIFY_BODY'][user!.setting.language],
+                user?.usersRels[0].name,
+                JA.title,
+              ),
+              createdAt: JA.createdAt,
+            });
 
-          firebaseMessages.push({
-            token: user!.firebaseToken!,
-            notification: {
-              title: savedNotify.title,
-              body: savedNotify.body,
-            },
-            data: {
-              notifyId: savedNotify.getId().toString(),
-              title: savedNotify.title,
-              body: savedNotify.body,
-              jointAccountId: JA.getId().toString(),
-              type: savedNotify.type,
-            },
-          });
+            firebaseMessages.push({
+              token: user!.firebaseToken!,
+              notification: {
+                title: savedNotify.title,
+                body: savedNotify.body,
+              },
+              data: {
+                notifyId: savedNotify.getId().toString(),
+                title: savedNotify.title,
+                body: savedNotify.body,
+                jointAccountId: JA.getId().toString(),
+                type: savedNotify.type,
+              },
+            });
+          }
         }
 
         await this.jointAccSubscribesRepo.createAll(jsList);
