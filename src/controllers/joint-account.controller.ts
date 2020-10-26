@@ -96,7 +96,7 @@ export class JointAccountController {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.usersRelsRepo
       .find({
-        fields: { userId: true, phone: true },
+        fields: { userId: true, phone: true, type: true },
         where: {
           userId: this.userId,
           userRelId: { inq: jointAccountsReq.userRelIds },
@@ -148,8 +148,8 @@ export class JointAccountController {
           }
         }
 
-        await this.jointAccSubscribesRepo.createAll(jsList);
         await this.firebaseSerice.sendAllMessage(firebaseMessages);
+        await this.jointAccSubscribesRepo.createAll(jsList);
       });
 
     return {
