@@ -97,6 +97,7 @@ export class JointAccountController {
         fields: { userId: true, phone: true },
         where: {
           userId: this.userId,
+          type: { neq: 'self' },
           userRelId: { inq: jointAccountsReq.userRelIds },
         },
       })
@@ -135,9 +136,11 @@ export class JointAccountController {
               body: savedNotify.body,
             },
             data: {
+              notifyId: savedNotify.getId().toString(),
               title: savedNotify.title,
               body: savedNotify.body,
               jointAccountId: JA.getId().toString(),
+              type: savedNotify.type,
             },
           });
         }
