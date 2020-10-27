@@ -29,8 +29,6 @@ import {
   UsersRelsRepository,
   JointAccountsRepository,
   JointAccountSubscribesRepository,
-  JointBillsRepository,
-  JointPayersRepository,
 } from '../repositories';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { FirebaseService, BatchMessage } from '../services';
@@ -61,8 +59,6 @@ export class DongsController {
     @repository(PayerListRepository) public payerListRepository: PayerListRepository,
     @repository(BillListRepository) public billListRepository: BillListRepository,
     @repository(JointAccountsRepository) public jointAccRepository: JointAccountsRepository,
-    @repository(JointBillsRepository) public jointBillRepository: JointBillsRepository,
-    @repository(JointPayersRepository) public jointPayerRepository: JointPayersRepository,
     @repository(JointAccountSubscribesRepository)
     public jointAccSunRepository: JointAccountSubscribesRepository,
     @service(FirebaseService) private firebaseSerice: FirebaseService,

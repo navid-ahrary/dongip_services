@@ -17,8 +17,6 @@ import {
   Groups,
   Scores,
   JointAccounts,
-  JointBills,
-  JointPayers,
 } from '../models';
 import { UsersRepository } from './users.repository';
 import { BillListRepository } from './bill-list.repository';
@@ -27,8 +25,6 @@ import { CategoriesRepository } from './categories.repository';
 import { GroupsRepository } from './groups.repository';
 import { ScoresRepository } from './scores.repository';
 import { JointAccountsRepository } from './joint-accounts.repository';
-import { JointBillsRepository } from './joint-bills.repository';
-import { JointPayersRepository } from './joint-payers.repository';
 
 export class DongsRepository extends DefaultCrudRepository<
   Dongs,
@@ -49,10 +45,6 @@ export class DongsRepository extends DefaultCrudRepository<
 
   public readonly jointAccount: BelongsToAccessor<JointAccounts, typeof Dongs.prototype.dongId>;
 
-  public readonly jointBills: HasManyRepositoryFactory<JointBills, typeof Dongs.prototype.dongId>;
-
-  public readonly jointPayers: HasManyRepositoryFactory<JointPayers, typeof Dongs.prototype.dongId>;
-
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('UsersRepository')
@@ -69,22 +61,8 @@ export class DongsRepository extends DefaultCrudRepository<
     protected scoresRepositoryGetter: Getter<ScoresRepository>,
     @repository.getter('JointAccountsRepository')
     protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
-    @repository.getter('JointBillsRepository')
-    protected jointBillsRepositoryGetter: Getter<JointBillsRepository>,
-    @repository.getter('JointPayersRepository')
-    protected jointPayersRepositoryGetter: Getter<JointPayersRepository>,
   ) {
     super(Dongs, dataSource);
-    this.jointPayers = this.createHasManyRepositoryFactoryFor(
-      'jointPayers',
-      jointPayersRepositoryGetter,
-    );
-    this.registerInclusionResolver('jointPayers', this.jointPayers.inclusionResolver);
-    this.jointBills = this.createHasManyRepositoryFactoryFor(
-      'jointBills',
-      jointBillsRepositoryGetter,
-    );
-    this.registerInclusionResolver('jointBills', this.jointBills.inclusionResolver);
     this.jointAccount = this.createBelongsToAccessorFor(
       'jointAccount',
       jointAccountsRepositoryGetter,

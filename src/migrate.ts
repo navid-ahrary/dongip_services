@@ -24,8 +24,6 @@ export async function migrate(args: string[]) {
       'dongs',
       'payer_list',
       'bill_list',
-      'joint_bills',
-      'joint_payers',
       'scores',
       'budgets',
       'purchases',

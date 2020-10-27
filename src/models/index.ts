@@ -25,5 +25,3 @@ export * from './joint-accounts.model';
 export * from './joint-account-subscribes.model';
 export * from './joint-request.model';
 export * from './joint-response.model';
-export * from './joint-bills.model';
-export * from './joint-payers.model';
