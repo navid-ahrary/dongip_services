@@ -19,15 +19,7 @@ import _ from 'lodash';
 import util from 'util';
 import moment from 'moment';
 
-import {
-  Dongs,
-  PostDong,
-  Notifications,
-  Users,
-  JointBills,
-  JointPayers,
-  Categories,
-} from '../models';
+import { Dongs, PostDong, Notifications, Users, Categories, PayerList, BillList } from '../models';
 import {
   UsersRepository,
   DongsRepository,
@@ -479,7 +471,7 @@ export class DongsController {
 
         const createdDong = await this.usersRepository.dongs(user.getId()).create(savedDong);
 
-        const billers: Array<JointBills> = [];
+        const billers: Array<BillList> = [];
         for (const biller of billList) {
           const relName = await this.usersRelsRepository.findOne({
             fields: { userRelId: true, name: true, userId: true, type: true },
@@ -487,7 +479,7 @@ export class DongsController {
           });
 
           billers.push(
-            new JointBills({
+            new BillList({
               dongId: createdDong.getId(),
               userId: user.getId(),
               currency: savedDong.currency,
@@ -495,12 +487,12 @@ export class DongsController {
               createdAt: savedDong.createdAt,
               dongAmount: biller.dongAmount,
               jointAccountId: savedDong.jointAccountId,
-              name: relName!.name ?? user.usersRels[0].name,
+              userRelName: relName!.name ?? user.usersRels[0].name,
             }),
           );
         }
 
-        const payers: Array<JointPayers> = [];
+        const payers: Array<PayerList> = [];
         for (const payer of payerList) {
           const relName = await this.usersRelsRepository.findOne({
             fields: { userRelId: true, name: true },
@@ -508,7 +500,7 @@ export class DongsController {
           });
 
           payers.push(
-            new JointPayers({
+            new PayerList({
               dongId: createdDong.getId(),
               userId: user.getId(),
               currency: savedDong.currency,
@@ -516,18 +508,15 @@ export class DongsController {
               createdAt: savedDong.createdAt,
               paidAmount: payer.paidAmount,
               jointAccountId: savedDong.jointAccountId,
-              name: relName!.name ?? user.usersRels[0].name,
+              userRelName: relName!.name ?? user.usersRels[0].name,
             }),
           );
         }
 
-        const savedJointPayers = await this.jointPayerRepository.createAll(payers);
-        const savedJointBillers = await this.jointBillRepository.createAll(billers);
-
-        _.assign(createdDong, {
-          jointBillList: savedJointBillers,
-          jointPayerList: savedJointPayers,
-        });
+        const savedPayers = await this.payerListRepository.createAll(payers);
+        createdDong.payerList = savedPayers;
+        const savedBills = await this.billListRepository.createAll(billers);
+        createdDong.billList = savedBills;
 
         const firebaseToken = user.firebaseToken!;
         const lang = user.setting.language;

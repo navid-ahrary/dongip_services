@@ -15,6 +15,9 @@ import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 
 import util from 'util';
+import moment from 'moment';
+import 'moment-timezone';
+import ct from 'countries-and-timezones';
 
 import { JointRequest, JointResponse, JointAccountSubscribes, JointAccounts } from '../models';
 import {
@@ -107,6 +110,7 @@ export class JointAccountController {
 
         for (const ur of urs) {
           const user = await this.usersRepo.findOne({
+            fields: { userId: true, firebaseToken: true, region: true },
             where: { phone: ur.phone },
             include: [
               { relation: 'usersRels', scope: { where: { phone: currentUser.phone } } },
@@ -117,6 +121,8 @@ export class JointAccountController {
           jsList.push({ jointAccountId: JA.jointAccountId, userId: user!.getId() });
 
           if (ur.type !== 'self') {
+            const timezone = ct.getTimezonesForCountry(user!.region!)[0].name;
+
             const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
               jointAccountId: JA.getId(),
               type: 'jointAccount',
@@ -128,7 +134,7 @@ export class JointAccountController {
                 user?.usersRels[0].name,
                 JA.title,
               ),
-              createdAt: JA.createdAt,
+              createdAt: moment.tz(timezone).format('YYYY-MM-DD HH:mm:ss'),
             });
 
             firebaseMessages.push({
@@ -143,6 +149,7 @@ export class JointAccountController {
                 body: savedNotify.body,
                 jointAccountId: JA.getId().toString(),
                 type: savedNotify.type,
+                silent: 'false',
               },
             });
           }

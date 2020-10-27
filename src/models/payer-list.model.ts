@@ -86,7 +86,7 @@ export class PayerList extends Entity {
       nullable: 'N',
     },
   })
-  currency: CurrencyEnum;
+  currency: string;
 
   @property({
     type: 'date',
@@ -136,17 +136,28 @@ export class PayerList extends Entity {
     },
     {
       type: 'number',
-      required: true,
       index: { normal: true },
       mysql: {
         columnName: 'user_rel_id',
         dataType: 'mediumint unsigned',
         dataLength: null,
-        nullable: 'N',
+        nullable: 'Y',
       },
     },
   )
-  userRelId: number;
+  userRelId?: number;
+
+  @property({
+    type: 'string',
+    jsonSchema: { maxLength: 50 },
+    mysql: {
+      columnName: 'user_rel_name',
+      dataType: 'varchar',
+      dataLength: 50,
+      nullable: 'Y',
+    },
+  })
+  userRelName?: string;
 
   @belongsTo(
     () => Categories,

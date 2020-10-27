@@ -9,8 +9,6 @@ import { Groups } from './groups.model';
 import { Scores } from './scores.model';
 import { CurrencyEnum } from './settings.model';
 import { JointAccounts } from './joint-accounts.model';
-import {JointBills} from './joint-bills.model';
-import {JointPayers} from './joint-payers.model';
 
 @model({
   name: 'dongs',
@@ -247,12 +245,6 @@ export class Dongs extends Entity {
     },
   )
   jointAccountId?: number;
-
-  @hasMany(() => JointBills, {keyTo: 'dongId'})
-  jointBills: JointBills[];
-
-  @hasMany(() => JointPayers, {keyTo: 'dongId'})
-  jointPayers: JointPayers[];
 
   constructor(data?: Partial<Dongs>) {
     super(data);
