@@ -94,12 +94,7 @@ export class DongsController {
   async findDongs(): Promise<Dongs[]> {
     return this.usersRepository.dongs(this.userId).find({
       order: ['createdAt DESC'],
-      include: [
-        { relation: 'payerList' },
-        { relation: 'billList' },
-        { relation: 'jointBills', scope: { where: { userId: this.userId } } },
-        { relation: 'jointPayers', scope: { where: { userId: this.userId } } },
-      ],
+      include: [{ relation: 'payerList' }, { relation: 'billList' }],
     });
   }
 
