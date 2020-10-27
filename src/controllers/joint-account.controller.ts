@@ -134,7 +134,7 @@ export class JointAccountController {
                 user?.usersRels[0].name,
                 JA.title,
               ),
-              createdAt: moment.tz(timezone).format('YYYY-MM-DD HH:mm:ss'),
+              createdAt: moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss'),
             });
 
             firebaseMessages.push({
