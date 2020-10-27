@@ -411,8 +411,10 @@ export class DongsController {
     return this.usersRepository.dongs(this.userId).delete();
   }
 
-  async submitJoint(currentUser: Users, savedDong: Partial<Dongs>) {
+  async submitJoint(currentUser: Users, dong: Partial<Dongs>) {
     try {
+      const savedDong = _.assign({}, dong);
+
       const billList = savedDong.billList!;
       const payerList = savedDong.payerList!;
 
@@ -440,7 +442,9 @@ export class DongsController {
               relation: 'categories',
               scope: {
                 limit: 1,
-                where: { title: { inq: splittedCatgTitle } },
+                where: {
+                  or: [{ title: currentUserCateg.title }, { title: { inq: splittedCatgTitle } }],
+                },
               },
             },
             { relation: 'usersRels', scope: { where: { phone: currentUser.phone } } },
@@ -504,10 +508,10 @@ export class DongsController {
           );
         }
 
-        const savedPayers = await this.payerListRepository.createAll(payers);
-        createdDong.payerList = savedPayers;
-        const savedBills = await this.billListRepository.createAll(billers);
-        createdDong.billList = savedBills;
+        const createdPayers = await this.payerListRepository.createAll(payers);
+        createdDong.payerList = createdPayers;
+        const createdBills = await this.billListRepository.createAll(billers);
+        createdDong.billList = createdBills;
 
         const firebaseToken = user.firebaseToken!;
         const lang = user.setting.language;
@@ -520,12 +524,13 @@ export class DongsController {
             this.locMsg['CURRENCY'][lang][createdDong.currency!],
             user.usersRels[0].name,
           ),
-          type: 'jointAccount',
+          type: 'dong-jointAccount',
           categoryTitle: catg.title,
           categoryIcon: catg.icon,
           dongId: createdDong.dongId,
           userRelId: user.usersRels[0].getId(),
           createdAt: createdDong.createdAt,
+          jointAccountId: createdDong.jointAccountId,
         });
 
         const createdNotify = await this.usersRepository

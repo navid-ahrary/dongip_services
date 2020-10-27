@@ -1,11 +1,5 @@
-import {
-  Entity,
-  model,
-  property,
-  belongsTo,
-  RelationType,
-} from '@loopback/repository';
-import {Users} from './users.model';
+import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
+import { Users } from './users.model';
 
 @model({
   name: 'notifications',
@@ -72,7 +66,7 @@ export class Notifications extends Entity {
 
   @property({
     type: 'string',
-    jsonSchema: {maxLength: 255},
+    jsonSchema: { maxLength: 255 },
     mysql: {
       columnName: 'desc',
       dataType: 'varchar',
@@ -171,7 +165,7 @@ export class Notifications extends Entity {
 
   @property({
     type: 'string',
-    jsonSchema: {minLength: 12, maxLength: 20},
+    jsonSchema: { minLength: 12, maxLength: 20 },
     mysql: {
       dataType: 'varchar',
       dataLength: 20,
@@ -225,7 +219,7 @@ export class Notifications extends Entity {
 
   @property({
     type: 'string',
-    jsonSchema: {maxLength: 10},
+    jsonSchema: { maxLength: 10 },
     mysql: {
       columnName: 'plan_id',
       dataType: 'varchar',
@@ -236,15 +230,15 @@ export class Notifications extends Entity {
   planId: string;
 
   @property({
-    type: 'string',
-    jsonSchema: {maxLength: 10},
+    type: 'number',
+    jsonSchema: { maxLength: 10 },
     mysql: {
       columnName: 'joint_account_id',
       dataType: 'mediumint unsigned',
       nullable: 'Y',
     },
   })
-  jointAccountId: string;
+  jointAccountId: number;
 
   @belongsTo(
     () => Users,
@@ -258,7 +252,7 @@ export class Notifications extends Entity {
     },
     {
       type: 'number',
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',
