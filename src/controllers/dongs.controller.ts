@@ -424,8 +424,6 @@ export class DongsController {
         where: { userId: { neq: currentUser.getId() }, jointAccountId: JA.getId() },
       });
 
-      console.log(JASs);
-
       const currentUserCateg = currentUser.categories[0];
       const splittedCatgTitle = currentUserCateg.title
         .split(' ')
