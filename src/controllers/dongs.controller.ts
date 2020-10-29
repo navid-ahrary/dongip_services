@@ -198,15 +198,9 @@ export class DongsController {
           },
         },
         {
-          relation: 'jointAccounts',
+          relation: 'jointAccountSubscribes',
           scope: {
             where: { jointAccountId: newDong.jointAccountId ?? null },
-            include: [
-              {
-                relation: 'jointAccountSubscribes',
-                scope: { where: { userId: { neq: this.userId } } },
-              },
-            ],
           },
         },
       ],
@@ -216,7 +210,7 @@ export class DongsController {
     const exterUserRelsList = _.filter(usersRels, (ur) => ur.type !== 'self');
     const selfUserRel = _.find(usersRels, (ur) => ur.type === 'self');
 
-    if (usersRels.length !== allUsersRelsIdList.length) {
+    if (usersRels?.length !== allUsersRelsIdList.length) {
       throw new HttpErrors.UnprocessableEntity(this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang]);
     }
 
@@ -269,7 +263,7 @@ export class DongsController {
 
       const sendNotify = _.has(newDong, 'sendNotify') ? newDong.sendNotify : true;
 
-      if (!currentUser.jointAccounts?.length && currentUserIsPayer && sendNotify) {
+      if (!currentUser.jointAccountSubscribes && currentUserIsPayer && sendNotify) {
         for (const relation of exterUserRelsList) {
           const user = await this.usersRepository.findOne({
             where: { phone: relation.phone },
@@ -352,10 +346,9 @@ export class DongsController {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           this.firebaseSerice.sendAllMessage(firebaseMessagesList);
         }
-      } else if (currentUser.jointAccounts?.length) {
-        const copyCreatedDong = _.assign({}, createdDong);
+      } else if (currentUser.jointAccountSubscribes && sendNotify) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.submitJoint(currentUser, copyCreatedDong);
+        this.submitJoint(currentUser, createdDong);
       }
 
       const calculatedScore = newDongScore + mutualFactor * mutualFriendScore;
@@ -414,6 +407,7 @@ export class DongsController {
   async submitJoint(currentUser: Users, dong: Partial<Dongs>) {
     try {
       const savedDong = _.assign({}, dong);
+      const firebaseMessages: BatchMessage = [];
 
       const billList = savedDong.billList!;
       const payerList = savedDong.payerList!;
@@ -423,10 +417,14 @@ export class DongsController {
       delete savedDong.userId;
       delete savedDong.dongId;
 
-      const firebaseMessages: BatchMessage = [];
+      const JA = await this.jointAccRepository.findById(
+        currentUser.jointAccountSubscribes[0].jointAccountId,
+      );
+      const JASs = await this.jointAccSunRepository.find({
+        where: { userId: { neq: currentUser.getId() }, jointAccountId: JA.getId() },
+      });
 
-      const JA = currentUser.jointAccounts![0];
-      const JASs = currentUser.jointAccounts![0].jointAccountSubscribes;
+      console.log(JASs);
 
       const currentUserCateg = currentUser.categories[0];
       const splittedCatgTitle = currentUserCateg.title
