@@ -437,7 +437,6 @@ export class DongsController {
             {
               relation: 'categories',
               scope: {
-                limit: 1,
                 where: {
                   or: [{ title: currentUserCateg.title }, { title: { inq: splittedCatgTitle } }],
                 },
