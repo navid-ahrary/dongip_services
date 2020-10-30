@@ -181,6 +181,7 @@ export class JointAccountController {
               ),
               body: util.format(
                 this.locMsg['NEW_JOINT_ACCOUNT_NOTIFY_BODY'][user!.setting.language],
+                user?.usersRels[0].name,
                 JA.title,
               ),
               createdAt: moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss'),

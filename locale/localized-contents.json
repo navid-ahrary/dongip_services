@@ -109,7 +109,7 @@
   },
   "NEW_JOINT_ACCOUNT_NOTIFY_BODY": {
     "fa": "%s شما رو به گروه %s اضافه کرد",
-    "en": "%s added you in % group"
+    "en": "%s added you in %s group"
   },
   "JOINT_NOT_VALID": {
     "fa": "گروه مورد نظر معتبر نیست",
