@@ -37,7 +37,7 @@ export class DongsRepository extends DefaultCrudRepository<
 
   public readonly payerList: HasManyRepositoryFactory<PayerList, typeof Dongs.prototype.dongId>;
 
-  public readonly categories: BelongsToAccessor<Categories, typeof Dongs.prototype.dongId>;
+  public readonly category: BelongsToAccessor<Categories, typeof Dongs.prototype.dongId>;
 
   public readonly group: BelongsToAccessor<Groups, typeof Dongs.prototype.dongId>;
 
@@ -73,8 +73,8 @@ export class DongsRepository extends DefaultCrudRepository<
     this.group = this.createBelongsToAccessorFor('group', groupsRepositoryGetter);
     this.registerInclusionResolver('group', this.group.inclusionResolver);
 
-    this.categories = this.createBelongsToAccessorFor('categories', categoryRepositoryGetter);
-    this.registerInclusionResolver('categories', this.categories.inclusionResolver);
+    this.category = this.createBelongsToAccessorFor('category', categoryRepositoryGetter);
+    this.registerInclusionResolver('category', this.category.inclusionResolver);
 
     this.payerList = this.createHasManyRepositoryFactoryFor('payerList', payerListRepositoryGetter);
     this.registerInclusionResolver('payerList', this.payerList.inclusionResolver);

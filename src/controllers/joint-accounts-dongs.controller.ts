@@ -55,8 +55,9 @@ export class JointAccountsDongsController {
                 relation: 'dongs',
                 scope: {
                   include: [
-                    { relation: 'jointBills', scope: { where: { userId: this.userId } } },
-                    { relation: 'jointPayers', scope: { where: { userId: this.userId } } },
+                    { relation: 'billList' },
+                    { relation: 'payerList' },
+                    { relation: 'category' },
                   ],
                 },
               },

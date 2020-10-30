@@ -147,7 +147,7 @@ export class Dongs extends Entity {
   @belongsTo(
     () => Categories,
     {
-      name: 'categories',
+      name: 'category',
       keyFrom: 'categoryId',
       keyTo: 'categoryId',
       source: Categories,
