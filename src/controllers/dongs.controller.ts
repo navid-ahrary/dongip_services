@@ -19,16 +19,7 @@ import _ from 'lodash';
 import util from 'util';
 import moment from 'moment';
 
-import {
-  Dongs,
-  PostDong,
-  Notifications,
-  Users,
-  Categories,
-  PayerList,
-  BillList,
-  DongsRelations,
-} from '../models';
+import { Dongs, PostDong, Notifications, Users, Categories, PayerList, BillList } from '../models';
 import {
   UsersRepository,
   DongsRepository,
