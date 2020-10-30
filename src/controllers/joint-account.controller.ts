@@ -172,6 +172,7 @@ export class JointAccountController {
 
           if (ur.type !== 'self') {
             const timezone = ct.getTimezonesForCountry(user!.region!)[0].name;
+            const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
             const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
               jointAccountId: JA.getId(),
@@ -184,7 +185,7 @@ export class JointAccountController {
                 user?.usersRels[0].name,
                 JA.title,
               ),
-              createdAt: moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss'),
+              createdAt: time,
             });
 
             firebaseMessages.push({
