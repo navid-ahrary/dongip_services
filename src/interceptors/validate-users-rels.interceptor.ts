@@ -13,7 +13,6 @@ import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { UsersRelsRepository, UsersRepository } from '../repositories';
 import { HttpErrors, Request, RestBindings } from '@loopback/rest';
 import { LocalizedMessages } from '../application';
-import { sample } from 'lodash';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -97,22 +96,6 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
 
         if (!foundUserRel) {
           errMsg = this.locMsg['USER_REL_NOT_VALID'][this.lang];
-          throw new Error(errMsg);
-        }
-      } else if (invocationCtx.methodName === 'createJointAccount') {
-        const userRelIds = invocationCtx.args[0].userRelIds;
-
-        const foundUrs = await this.usersRepository.usersRels(this.userId).find({
-          fields: { userRelId: true, mutualUserRelId: true },
-          where: {
-            userId: this.userId,
-            userRelId: { inq: userRelIds },
-            mutualUserRelId: { neq: null! },
-          },
-        });
-
-        if (foundUrs.length !== userRelIds.length) {
-          errMsg = this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang];
           throw new Error(errMsg);
         }
       }

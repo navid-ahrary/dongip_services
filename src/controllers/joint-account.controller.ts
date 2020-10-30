@@ -19,7 +19,13 @@ import moment from 'moment';
 import 'moment-timezone';
 import ct from 'countries-and-timezones';
 
-import { JointRequest, JointResponse, JointAccountSubscribes, JointAccounts } from '../models';
+import {
+  JointRequest,
+  JointResponse,
+  JointAccountSubscribes,
+  JointAccounts,
+  UsersRels,
+} from '../models';
 import {
   JointAccountsRepository,
   JointAccountSubscribesRepository,
@@ -32,7 +38,6 @@ import { basicAuthorization, BatchMessage, FirebaseService } from '../services';
 import { LocalizedMessages } from '../application';
 
 @authenticate('jwt.access')
-@authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
 export class JointAccountController {
   private readonly userId: number;
   lang: string;
@@ -54,6 +59,7 @@ export class JointAccountController {
     this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
 
+  @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
   @post('/joint-accounts', {
     summary: 'POST a new JointAccounts',
     security: OPERATION_SECURITY_SPEC,
@@ -83,17 +89,61 @@ export class JointAccountController {
         },
       },
     })
-    jointAccountsReq: Omit<JointRequest, 'jointAccountsId'>,
+    jointAccountsReq: JointRequest,
   ): Promise<JointResponse> {
     const firebaseMessages: BatchMessage = [];
+    const currentUser = await this.usersRepo.findById(this.userId, {
+      fields: { userId: true, phone: true },
+      include: [
+        {
+          relation: 'usersRels',
+          scope: {
+            where: { userRelId: { inq: jointAccountsReq.userRelIds } },
+          },
+        },
+      ],
+    });
+
+    const validRel: UsersRels[] = [];
+    const invalidRel: UsersRels[] = [];
+    currentUser.usersRels?.forEach((ur) => {
+      if (ur.mutualUserRelId !== null) validRel.push(ur);
+      else invalidRel.push(ur);
+    });
+
+    if (invalidRel) {
+      for (const rel of invalidRel) {
+        const targetPhone = rel?.phone;
+        const u = await this.usersRepo.findOne({
+          where: { phone: targetPhone },
+          include: [{ relation: 'usersRels', scope: { where: { phone: currentUser.phone } } }],
+        });
+        if (u?.usersRels) {
+          validRel.push(rel);
+
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          this.usersRelsRepo
+            .updateById(rel?.getId(), {
+              mutualUserRelId: u.usersRels[0].getId(),
+            })
+            .then(async () => {
+              await this.usersRelsRepo.updateById(u.usersRels[0].getId(), {
+                mutualUserRelId: rel?.getId(),
+              });
+            });
+        }
+      }
+    }
+
+    if (validRel?.length !== jointAccountsReq.userRelIds.length) {
+      const errMsg = this.locMsg['JOINT_USER_REL_BI_ERR'][this.lang];
+      throw new HttpErrors.UnprocessableEntity(errMsg);
+    }
+
     const JA = await this.jointAccountsRepo.create({
       userId: this.userId,
       title: jointAccountsReq.title,
       description: jointAccountsReq.description,
-    });
-
-    const currentUser = await this.usersRepo.findById(this.userId, {
-      fields: { userId: true, phone: true },
     });
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -159,11 +209,16 @@ export class JointAccountController {
         await this.jointAccSubscribesRepo.createAll(jsList);
       });
 
-    return {
+    return new JointResponse({
       jointAccountId: JA.getId(),
       createdAt: JA.createdAt,
-      ...jointAccountsReq,
-    };
+      title: jointAccountsReq.title,
+      description: jointAccountsReq.description,
+      userRels: currentUser.usersRels.map((ur) => {
+        return { userRelId: ur.getId(), name: ur.name, avatar: ur.avatar, type: ur.type };
+      }),
+      admin: true,
+    });
   }
 
   @get('/joint-accounts', {
@@ -183,32 +238,32 @@ export class JointAccountController {
   async getJointAccounts(): Promise<JointResponse[]> {
     const result: Array<JointResponse> = [];
 
-    const jsas = await this.jointAccSubscribesRepo.find({
-      fields: { jointAccountId: true },
-      where: { userId: this.userId },
-    });
+    const JSAs = await this.usersRepo.jointAccountSubscribes(this.userId).find();
 
-    const jaIds = jsas.map((jsa) => jsa.jointAccountId);
-
+    const jaIds = JSAs.map((jsa) => jsa.jointAccountId);
     const JAs = await this.jointAccountsRepo.find({
-      fields: { userId: false },
       where: { jointAccountId: { inq: jaIds } },
       include: [{ relation: 'jointAccountSubscribes' }],
     });
 
     for (const ja of JAs) {
-      const userRelIds: Array<number> = [];
+      const usersRels: typeof JointResponse.prototype.userRels = [];
+
       for (const jas of ja.jointAccountSubscribes) {
         const u = await this.usersRepo.findById(jas.userId, {
-          fields: { userId: true, phone: true },
+          fields: { userId: true, phone: true, name: true, avatar: true },
         });
 
         const userRel = await this.usersRelsRepo.findOne({
-          fields: { userRelId: true, userId: true, phone: true },
           where: { userId: this.userId, phone: u.phone },
         });
 
-        userRelIds.push(userRel?.getId());
+        usersRels.push({
+          userRelId: userRel?.getId(),
+          name: userRel?.name ?? u.name,
+          avatar: userRel?.avatar ?? u.avatar,
+          type: userRel?.type,
+        });
       }
 
       result.push(
@@ -216,8 +271,9 @@ export class JointAccountController {
           jointAccountId: ja.getId(),
           title: ja.title,
           description: ja.title,
-          userRelIds: userRelIds,
+          userRels: usersRels,
           createdAt: ja.createdAt,
+          admin: ja.userId === this.userId ? true : false,
         }),
       );
     }
