@@ -19,7 +19,16 @@ import _ from 'lodash';
 import util from 'util';
 import moment from 'moment';
 
-import { Dongs, PostDong, Notifications, Users, Categories, PayerList, BillList } from '../models';
+import {
+  Dongs,
+  PostDong,
+  Notifications,
+  Users,
+  Categories,
+  PayerList,
+  BillList,
+  DongsRelations,
+} from '../models';
 import {
   UsersRepository,
   DongsRepository,
@@ -94,7 +103,7 @@ export class DongsController {
   async findDongs(): Promise<Dongs[]> {
     return this.usersRepository.dongs(this.userId).find({
       order: ['createdAt DESC'],
-      include: [{ relation: 'payerList' }, { relation: 'billList' }],
+      include: [{ relation: 'payerList' }, { relation: 'billList' }, { relation: 'category' }],
     });
   }
 
