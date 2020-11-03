@@ -544,6 +544,7 @@ export class AuthController {
         .usersRels(savedUser.getId())
         .create({
           type: 'self',
+          name: savedUser.name,
           avatar: savedUser.avatar,
           phone: foundVerify.phone ?? undefined,
           email: foundVerify.email ?? undefined,

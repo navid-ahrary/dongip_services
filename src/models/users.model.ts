@@ -1,36 +1,26 @@
-import {
-  Entity,
-  model,
-  property,
-  hasMany,
-  RelationType,
-  hasOne,
-} from '@loopback/repository';
+import { Entity, model, property, hasMany, RelationType, hasOne } from '@loopback/repository';
 
-import {BillList} from './bill-list.model';
-import {PayerList} from './payer-list.model';
-import {VirtualUsers} from './virtual-users.model';
-import {Dongs} from './dongs.model';
-import {Categories} from './categories.model';
-import {UsersRels, UsersRelsWithRelations} from './users-rels.model';
-import {Scores} from './scores.model';
-import {Groups} from './groups.model';
-import {Messages} from './messages.model';
-import {Notifications} from './notifications.model';
-import {Budgets} from './budgets.model';
-import {Settings, SettingsWithRelations} from './settings.model';
-import {Purchases} from './purchases.model';
-import {Subscriptions, SubscriptionsWithRelations} from './subscriptions.model';
-import {
-  JointAccounts,
-  JointAccountsWithRelations,
-} from './joint-accounts.model';
+import { BillList } from './bill-list.model';
+import { PayerList } from './payer-list.model';
+import { VirtualUsers } from './virtual-users.model';
+import { Dongs } from './dongs.model';
+import { Categories } from './categories.model';
+import { UsersRels, UsersRelsWithRelations } from './users-rels.model';
+import { Scores } from './scores.model';
+import { Groups } from './groups.model';
+import { Messages } from './messages.model';
+import { Notifications } from './notifications.model';
+import { Budgets } from './budgets.model';
+import { Settings, SettingsWithRelations } from './settings.model';
+import { Purchases } from './purchases.model';
+import { Subscriptions, SubscriptionsWithRelations } from './subscriptions.model';
+import { JointAccounts, JointAccountsWithRelations } from './joint-accounts.model';
 import {
   JointAccountSubscribes,
   JointAccountSubscribesWithRelations,
 } from './joint-account-subscribes.model';
 
-@model({name: 'users'})
+@model({ name: 'users' })
 export class Users extends Entity {
   @property({
     type: 'number',
@@ -47,17 +37,17 @@ export class Users extends Entity {
 
   @property({
     type: 'string',
-    jsonSchema: {maxLength: 50},
-    index: {unique: true},
-    mysql: {dataType: 'varchar', dataLength: 50, nullable: 'Y'},
+    jsonSchema: { maxLength: 50 },
+    index: { unique: true },
+    mysql: { dataType: 'varchar', dataLength: 50, nullable: 'Y' },
   })
   username?: string;
 
   @property({
     type: 'string',
     required: false,
-    index: {unique: true},
-    jsonSchema: {maxLength: 20},
+    index: { unique: true },
+    jsonSchema: { maxLength: 20 },
     mysql: {
       columnName: 'phone',
       dataType: 'varchar',
@@ -70,8 +60,8 @@ export class Users extends Entity {
   @property({
     type: 'string',
     required: false,
-    index: {unique: true},
-    jsonSchema: {maxLength: 100},
+    index: { unique: true },
+    jsonSchema: { maxLength: 100 },
     mysql: {
       dataType: 'varchar',
       dataLength: 100,
@@ -83,11 +73,11 @@ export class Users extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {minLength: 3, maxLength: 30},
+    jsonSchema: { minLength: 3, maxLength: 50 },
     mysql: {
       columnName: 'name',
       dataType: 'varchar',
-      dataLength: 30,
+      dataLength: 50,
       nullable: 'N',
     },
   })
@@ -96,8 +86,8 @@ export class Users extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {minLength: 3, maxLength: 512},
-    mysql: {dataType: 'varchar', dataLength: 512, nullable: 'N'},
+    jsonSchema: { minLength: 3, maxLength: 512 },
+    mysql: { dataType: 'varchar', dataLength: 512, nullable: 'N' },
   })
   avatar: string;
 
@@ -163,7 +153,7 @@ export class Users extends Entity {
 
   @property({
     type: 'string',
-    jsonSchema: {minLength: 3, maxLength: 10},
+    jsonSchema: { minLength: 3, maxLength: 10 },
     mysql: {
       dataType: 'varchar',
       dataLength: 10,

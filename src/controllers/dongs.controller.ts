@@ -38,6 +38,7 @@ import {
   FirebasetokenInterceptor,
 } from '../interceptors';
 import { LocalizedMessages } from '../application';
+import { dongReqBody } from './specs';
 
 @model()
 class ResponseNewDong extends Dongs {
@@ -117,34 +118,7 @@ export class DongsController {
     },
   })
   async createDongs(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(PostDong, {
-            title: 'NewDongs',
-            optional: ['title', 'desc', 'groupId', 'jointAccountId', 'currency'],
-          }),
-          example: {
-            title: 'New dong',
-            desc: 'Dongip it',
-            createdAt: moment.utc().toISOString(),
-            categoryId: 1,
-            jointAccountId: 1,
-            pong: 80000,
-            currency: 'IRR',
-            sendNotify: true,
-            payerList: [{ userRelId: 1, paidAmount: 80000 }],
-            billList: [
-              { userRelId: 1, dongAmount: 20000 },
-              { userRelId: 2, dongAmount: 20000 },
-              { userRelId: 3, dongAmount: 20000 },
-              { userRelId: 4, dongAmount: 20000 },
-            ],
-          },
-        },
-      },
-    })
-    newDong: PostDong,
+    @requestBody(dongReqBody) newDong: PostDong,
   ): Promise<DataObject<ResponseNewDong>> {
     const newDongScore = 50;
     const mutualFriendScore = 20;
@@ -191,7 +165,13 @@ export class DongsController {
         {
           relation: 'usersRels',
           scope: {
-            fields: { userRelId: true, userId: true, phone: true, type: true },
+            fields: {
+              userRelId: true,
+              userId: true,
+              phone: true,
+              type: true,
+              mutualUserRelId: true,
+            },
             where: {
               userRelId: { inq: allUsersRelsIdList },
             },
@@ -431,7 +411,7 @@ export class DongsController {
 
       for (const JAS of JASs) {
         const user = await this.usersRepository.findById(JAS.userId, {
-          fields: { userId: true, firebaseToken: true },
+          fields: { userId: true, firebaseToken: true, name: true },
           include: [
             { relation: 'setting', scope: { fields: { userId: true, language: true } } },
             {
@@ -463,10 +443,19 @@ export class DongsController {
 
         const billers: Array<BillList> = [];
         for (const biller of billList) {
-          const relName = await this.usersRelsRepository.findOne({
-            fields: { userRelId: true, name: true, userId: true, type: true },
-            where: { userId: biller.userId },
+          const ur = _.find(currentUser.usersRels, (rel) => rel.getId() === biller.userRelId);
+
+          const mutualRel = await this.usersRelsRepository.findOne({
+            where: { userId: user.getId(), phone: ur!.phone },
           });
+
+          let target: Users | null;
+          if (!mutualRel) {
+            target = await this.usersRepository.findOne({
+              where: { phone: ur!.phone },
+              fields: { name: true },
+            });
+          }
 
           billers.push(
             new BillList({
@@ -477,17 +466,27 @@ export class DongsController {
               createdAt: savedDong.createdAt,
               dongAmount: biller.dongAmount,
               jointAccountId: savedDong.jointAccountId,
-              userRelName: relName!.name ?? user.usersRels[0].name,
+              userRelName: mutualRel?.name ?? target!.name,
+              userRelId: mutualRel?.getId(),
             }),
           );
         }
 
         const payers: Array<PayerList> = [];
         for (const payer of payerList) {
-          const relName = await this.usersRelsRepository.findOne({
-            fields: { userRelId: true, name: true },
-            where: { userRelId: payer.userRelId },
+          const ur = _.find(currentUser.usersRels, (rel) => rel.getId() === payer.userRelId);
+
+          const mutualRel = await this.usersRelsRepository.findOne({
+            where: { userId: user.getId(), phone: ur?.phone },
           });
+
+          let target: Users | null;
+          if (!mutualRel) {
+            target = await this.usersRepository.findOne({
+              where: { phone: ur!.phone },
+              fields: { name: true },
+            });
+          }
 
           payers.push(
             new PayerList({
@@ -498,7 +497,8 @@ export class DongsController {
               createdAt: savedDong.createdAt,
               paidAmount: payer.paidAmount,
               jointAccountId: savedDong.jointAccountId,
-              userRelName: relName!.name ?? user.usersRels[0].name,
+              userRelName: mutualRel!.name ?? target!.name,
+              userRelId: mutualRel?.getId(),
             }),
           );
         }
