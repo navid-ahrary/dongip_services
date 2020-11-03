@@ -57,6 +57,11 @@ export class PostDong extends Model {
   @property({
     type: 'number',
   })
+  jointAccountId?: typeof JointAccounts.prototype.jointAccountId;
+
+  @property({
+    type: 'number',
+  })
   groupId?: typeof Groups.prototype.groupId;
 
   @property({
