@@ -449,12 +449,14 @@ export class DongsController {
             where: { userId: user.getId(), phone: ur!.phone },
           });
 
-          let target: Users | null;
-          if (!mutualRel) {
-            target = await this.usersRepository.findOne({
+          let userRelName = mutualRel?.name;
+          if (!userRelName) {
+            const target = await this.usersRepository.findOne({
               where: { phone: ur!.phone },
               fields: { name: true },
             });
+
+            userRelName = target?.name;
           }
 
           billers.push(
@@ -466,7 +468,7 @@ export class DongsController {
               createdAt: savedDong.createdAt,
               dongAmount: biller.dongAmount,
               jointAccountId: savedDong.jointAccountId,
-              userRelName: mutualRel?.name ?? target!.name,
+              userRelName: userRelName,
               userRelId: mutualRel?.getId(),
             }),
           );
@@ -480,12 +482,14 @@ export class DongsController {
             where: { userId: user.getId(), phone: ur?.phone },
           });
 
-          let target: Users | null;
-          if (!mutualRel) {
-            target = await this.usersRepository.findOne({
+          let userRelName = mutualRel?.name;
+          if (!userRelName) {
+            const target = await this.usersRepository.findOne({
               where: { phone: ur!.phone },
               fields: { name: true },
             });
+
+            userRelName = target?.name;
           }
 
           payers.push(
@@ -497,7 +501,7 @@ export class DongsController {
               createdAt: savedDong.createdAt,
               paidAmount: payer.paidAmount,
               jointAccountId: savedDong.jointAccountId,
-              userRelName: mutualRel!.name ?? target!.name,
+              userRelName: userRelName,
               userRelId: mutualRel?.getId(),
             }),
           );
