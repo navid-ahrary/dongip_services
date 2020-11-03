@@ -20,8 +20,8 @@
     "en": "Too many requests, Wait for 5 minutes"
   },
   "VERFIY_EMAIL_SUBJECT": {
-    "fa": "دُنگیپ | کد ورود به اپلیکیشن",
-    "en": "Dongip | Login code"
+    "fa": "دُنگیپ | کد تایید",
+    "en": "Dongip | Confirmation Code"
   },
   "VERFIY_EMAIL_CONTENT": {
     "fa": "کد ورود",

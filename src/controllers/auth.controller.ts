@@ -13,6 +13,9 @@ import {
 import { authenticate, UserService, TokenService } from '@loopback/authentication';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
 
+import util from 'util';
+import path from 'path';
+import fs from 'fs';
 import moment from 'moment';
 import _ from 'lodash';
 
@@ -250,12 +253,19 @@ export class AuthController {
           console.error(err.message);
         });
     } else if (verifyReqBody.email) {
+      let mailContent = fs.readFileSync(
+        path.resolve(__dirname, '../../assets/confirmation_dongip_en.html'),
+        'utf-8',
+      );
+      mailContent = util.format(mailContent, randomCode.split('').join(' '));
+
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.emailService
         .sendSupportMail({
           subject: this.locMsg['VERFIY_EMAIL_SUBJECT'][this.lang],
           toAddress: verifyReqBody.email,
-          content: `${this.locMsg['VERFIY_EMAIL_CONTENT'][this.lang]} ${randomCode}`,
+          mailFormat: 'html',
+          content: mailContent,
         })
         .then(async (res) => {
           await this.verifyRepository.updateById(createdVerify.getId(), {

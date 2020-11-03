@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {BindingScope, injectable} from '@loopback/core';
+import { BindingScope, injectable } from '@loopback/core';
 
 import util from 'util';
 import axios from 'axios';
@@ -12,10 +12,7 @@ const supportClientId = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_ID;
 const supportClientSecret = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_SECRET;
 const supportAccountId = process.env.ZOHO_SUUPORT_ACCOUNT_ID;
 
-const supportMessageURL = util.format(
-  process.env.ZOHO_MESSAGE_SCOPE_URL,
-  supportAccountId,
-);
+const supportMessageURL = util.format(process.env.ZOHO_MESSAGE_SCOPE_URL, supportAccountId);
 const accountURL = process.env.ZOHO_ACCOUNT_SCOPE_URL;
 
 export interface MailOptions {
@@ -37,7 +34,7 @@ export interface SentEmail {
   };
 }
 
-@injectable({scope: BindingScope.SINGLETON})
+@injectable({ scope: BindingScope.SINGLETON })
 export class EmailService {
   constructor() {}
 
@@ -77,7 +74,6 @@ export class EmailService {
       },
       data: {
         encoding: 'UTF-8',
-        mailFormat: 'plaintext',
         fromAddress: supportEmail,
         ...mailOptions,
       },
