@@ -59,7 +59,7 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'string',
-    required: true,
+    // required: true,
     jsonSchema: { maxLength: 50 },
     mysql: {
       columnName: 'name',
@@ -68,7 +68,7 @@ export class UsersRels extends Entity {
       nullable: 'N',
     },
   })
-  name: string;
+  name?: string;
 
   @property({
     type: 'string',
