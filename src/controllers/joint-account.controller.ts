@@ -19,13 +19,7 @@ import moment from 'moment';
 import 'moment-timezone';
 import ct from 'countries-and-timezones';
 
-import {
-  JointRequest,
-  JointResponse,
-  JointAccountSubscribes,
-  JointAccounts,
-  UsersRels,
-} from '../models';
+import { JointRequest, JointResponse, JointAccountSubscribes, JointAccounts } from '../models';
 import {
   JointAccountsRepository,
   JointAccountSubscribesRepository,
@@ -103,42 +97,6 @@ export class JointAccountController {
         },
       ],
     });
-
-    const validRel: UsersRels[] = [];
-    const invalidRel: UsersRels[] = [];
-    currentUser.usersRels?.forEach((ur) => {
-      if (ur.mutualUserRelId !== null) validRel.push(ur);
-      else invalidRel.push(ur);
-    });
-
-    if (invalidRel) {
-      for (const rel of invalidRel) {
-        const targetPhone = rel?.phone;
-        const u = await this.usersRepo.findOne({
-          where: { phone: targetPhone },
-          include: [{ relation: 'usersRels', scope: { where: { phone: currentUser.phone } } }],
-        });
-        if (u?.usersRels) {
-          validRel.push(rel);
-
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          this.usersRelsRepo
-            .updateById(rel?.getId(), {
-              mutualUserRelId: u.usersRels[0].getId(),
-            })
-            .then(async () => {
-              await this.usersRelsRepo.updateById(u.usersRels[0].getId(), {
-                mutualUserRelId: rel?.getId(),
-              });
-            });
-        }
-      }
-    }
-
-    if (validRel?.length !== jointAccountsReq.userRelIds.length) {
-      const errMsg = this.locMsg['JOINT_USER_REL_BI_ERR'][this.lang];
-      throw new HttpErrors.UnprocessableEntity(errMsg);
-    }
 
     const JA = await this.jointAccountsRepo.create({
       userId: this.userId,
