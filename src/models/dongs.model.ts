@@ -36,7 +36,7 @@ import { JointAccounts } from './joint-accounts.model';
         entityKey: 'id',
         foreignKey: 'jointAccountId',
         onUpdate: 'cascade',
-        onDelete: 'cascade',
+        onDelete: 'set null',
       },
     },
   },

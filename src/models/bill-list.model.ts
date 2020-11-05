@@ -43,6 +43,14 @@ import { JointAccounts } from './joint-accounts.model';
         onUpdate: 'cascade',
         onDelete: 'cascade',
       },
+      fkBillListJointAccountId: {
+        name: 'fk_bill_joint_account_id',
+        entity: 'joint_accounts',
+        entityKey: 'id',
+        foreignKey: 'jointAccountId',
+        onUpdate: 'cascade',
+        onDelete: 'set null',
+      },
     },
   },
 })

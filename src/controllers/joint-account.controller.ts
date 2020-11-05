@@ -1,4 +1,4 @@
-import { repository, DataObject } from '@loopback/repository';
+import { repository, DataObject, Count, CountSchema } from '@loopback/repository';
 import {
   post,
   get,
@@ -26,7 +26,7 @@ import {
   UsersRelsRepository,
   UsersRepository,
 } from '../repositories';
-import { ValidateUsersRelsInterceptor } from '../interceptors';
+import { ValidateUsersRelsInterceptor, JointAccountsInterceptor } from '../interceptors';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { basicAuthorization, BatchMessage, FirebaseService } from '../services';
 import { LocalizedMessages } from '../application';
@@ -37,16 +37,14 @@ export class JointAccountController {
   lang: string;
 
   constructor(
-    @repository(JointAccountsRepository)
-    protected jointAccountsRepo: JointAccountsRepository,
+    @repository(JointAccountsRepository) protected jointAccountsRepo: JointAccountsRepository,
     @repository(JointAccountSubscribesRepository)
     protected jointAccSubscribesRepo: JointAccountSubscribesRepository,
-    @repository(UsersRelsRepository)
-    protected usersRelsRepo: UsersRelsRepository,
+    @repository(UsersRelsRepository) protected usersRelsRepo: UsersRelsRepository,
     @repository(UsersRepository) protected usersRepo: UsersRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
-    @service(FirebaseService) private firebaseSerice: FirebaseService,
+    @inject('application.localizedMessages') protected locMsg: LocalizedMessages,
+    @service(FirebaseService) protected firebaseSerice: FirebaseService,
     @inject.context() public ctx: RequestContext,
   ) {
     this.userId = +this.currentUserProfile[securityId];
@@ -267,26 +265,23 @@ export class JointAccountController {
     }
   }
 
-  // @del('/joint-accounts/', {
-  //   summary: 'DELETE all JointAccounts',
-  //   description: 'Also delete all dongs belongs to',
-  //   security: OPERATION_SECURITY_SPEC,
-  //   responses: {
-  //     '200': {
-  //       description: 'Count DELETE JointAccounts',
-  //       content: {
-  //         'application/json': {
-  //           schema: CountSchema,
-  //         },
-  //       },
-  //     },
-  //   },
-  // })
-  // async deleteAllJointAccounts(): Promise<Count> {
-  //   try {
-  //     return await this.jointService.delete(this.userId);
-  //   } catch (err) {
-  //     throw new HttpErrors.UnprocessableEntity(err);
-  //   }
-  // }
+  @intercept(JointAccountsInterceptor.BINDING_KEY)
+  @del('/joint-accounts/', {
+    summary: 'DELETE all JointAccounts',
+    description: 'Belongs Dongs will not be deleted',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '200': {
+        description: 'Count DELETE JointAccounts',
+        content: {
+          'application/json': {
+            schema: CountSchema,
+          },
+        },
+      },
+    },
+  })
+  async deleteAllJointAccounts(): Promise<Count> {
+    return this.usersRepo.jointAccounts(this.userId).delete();
+  }
 }

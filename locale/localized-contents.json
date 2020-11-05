@@ -120,12 +120,12 @@
     "en": "You are not admin of the group"
   },
   "DELETE_JOINT_NOTIFY_TITLE": {
-    "fa": "حذف گروه %s",
-    "en": "Delete %s Group"
+    "fa": "حذف گروه",
+    "en": "Deleted group"
   },
   "DELETE_JOINT_NOTIFY_BODY": {
-    "fa": "توسط %s حذف شد",
-    "en": "Has been deleted by %s"
+    "fa": "گروه %s توسط %s حذف شد",
+    "en": "Group %s has been deleted by %s"
   },
   "PLAN_ID": {
     "fa": {

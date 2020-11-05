@@ -7,17 +7,17 @@ import {
   Provider,
   ValueOrPromise,
 } from '@loopback/context';
-import {repository} from '@loopback/repository';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {CategoriesRepository, UsersRepository} from '../repositories';
-import {HttpErrors, Request, RestBindings} from '@loopback/rest';
-import {LocalizedMessages} from '../application';
+import { repository } from '@loopback/repository';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { CategoriesRepository, UsersRepository } from '../repositories';
+import { HttpErrors, Request, RestBindings } from '@loopback/rest';
+import { LocalizedMessages } from '../application';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
  * `boot`
  */
-@bind({tags: {key: ValidateCategoryIdInterceptor.BINDING_KEY}})
+@bind({ tags: { key: ValidateCategoryIdInterceptor.BINDING_KEY } })
 export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidateCategoryIdInterceptor.name}`;
   private readonly userId: number;
@@ -49,17 +49,14 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
    * @param invocationCtx - Invocation context
    * @param next - A function to invoke next interceptor or the target method
    */
-  async intercept(
-    invocationCtx: InvocationContext,
-    next: () => ValueOrPromise<InvocationResult>,
-  ) {
+  async intercept(invocationCtx: InvocationContext, next: () => ValueOrPromise<InvocationResult>) {
     this.lang = this.req.headers['accept-language'] ?? 'fa';
 
     if (invocationCtx.methodName === 'createDongs') {
       const categoryId = invocationCtx.args[0].categoryId;
 
       const curretnUserFoundCategory = await this.categoriesRepo.findOne({
-        where: {userId: this.userId, categoryId: categoryId},
+        where: { userId: this.userId, categoryId: categoryId },
       });
       // Validate categoryId
       if (!curretnUserFoundCategory) {
@@ -75,7 +72,7 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
       const categoryId = invocationCtx.args[0];
 
       const foundCategory = await this.categoriesRepo.findOne({
-        where: {categoryId: categoryId, userId: this.userId},
+        where: { categoryId: categoryId, userId: this.userId },
       });
 
       if (!foundCategory) {
