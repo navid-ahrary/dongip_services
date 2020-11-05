@@ -112,7 +112,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
 
               const savedNotify = await this.usersRepo.notifications(targetUser.getId()).create({
                 jointAccountId: JA.getId(),
-                type: 'jointAccount_deleted',
+                type: 'jointAccount',
                 title: util.format(
                   this.locMsg['DELETE_JOINT_NOTIFY_TITLE'][targetUser.setting.language],
                 ),
