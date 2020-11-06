@@ -127,6 +127,14 @@
     "fa": "گروه %s توسط %s حذف شد",
     "en": "Group %s has been deleted by %s"
   },
+  "LEAVE_JOINT_NOTIFY_TITLE": {
+    "fa": "ترک گروه",
+    "en": "Left group"
+  },
+  "LEAVE_JOINT_NOTIFY_BODY": {
+    "fa": "%s گروه %s را ترک کرد",
+    "en": "%s left from %s group"
+  },
   "PLAN_ID": {
     "fa": {
       "plan_gm1": "اشتراک طلایی ۱ ماهه دُنگیپ",

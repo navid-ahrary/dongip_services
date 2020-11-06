@@ -16,7 +16,12 @@ import moment from 'moment';
 import 'moment-timezone';
 import ct from 'countries-and-timezones';
 
-import { JointAccountsRepository, UsersRelsRepository, UsersRepository } from '../repositories';
+import {
+  JointAccountsRepository,
+  JointAccountSubscribesRepository,
+  UsersRelsRepository,
+  UsersRepository,
+} from '../repositories';
 import { BatchMessage, FirebaseService } from '../services';
 import { LocalizedMessages } from '../application';
 
@@ -33,6 +38,8 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
   constructor(
     @repository(UsersRepository) protected usersRepo: UsersRepository,
     @repository(JointAccountsRepository) protected jointAccountsRepo: JointAccountsRepository,
+    @repository(JointAccountSubscribesRepository)
+    protected jointAccSubscRepo: JointAccountSubscribesRepository,
     @repository(UsersRelsRepository) protected usersRelsRepo: UsersRelsRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @service(FirebaseService) private firebaseSerice: FirebaseService,
@@ -58,37 +65,36 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
    */
   async intercept(invocationCtx: InvocationContext, next: () => ValueOrPromise<InvocationResult>) {
     const methodName = invocationCtx.methodName;
-    const jointAccountId = invocationCtx.args[0];
     const firebaseMessages: BatchMessage = [];
 
     // eslint-disable-next-line no-useless-catch
     try {
-      const JAs = await this.jointAccountsRepo.find({
-        where: { userId: this.userId, jointAccountId: jointAccountId },
-        include: [
-          {
-            relation: 'jointAccountSubscribes',
-            scope: {
-              include: [
-                {
-                  relation: 'user',
-                  scope: {
-                    fields: { userId: true, phone: true, firebaseToken: true, region: true },
-                    include: [
-                      {
-                        relation: 'setting',
-                        scope: { fields: { userId: true, language: true } },
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      });
-
       if (methodName === 'deleteAllJointAccounts') {
+        // Joint accounts belong to current user
+        const JAs = await this.jointAccountsRepo.find({
+          where: { userId: this.userId, jointAccountId: invocationCtx.args[0] },
+          include: [
+            {
+              relation: 'jointAccountSubscribes',
+              scope: {
+                include: [
+                  {
+                    relation: 'user',
+                    scope: {
+                      fields: { userId: true, phone: true, firebaseToken: true, region: true },
+                      include: [
+                        {
+                          relation: 'setting',
+                          scope: { fields: { userId: true, language: true } },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        });
         if (JAs.length) {
           const currentUserJAS = _.find(
             JAs[0].jointAccountSubscribes,
@@ -140,6 +146,87 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
                 },
               });
             }
+          }
+        }
+
+        // Joint accounts than no belongs to current user
+        const JASs = await this.jointAccSubscRepo.find({
+          where: { userId: this.userId },
+          include: [
+            { relation: 'jointAccount', scope: { where: { userId: { neq: this.userId } } } },
+          ],
+        });
+
+        const JASsValid = JASs.filter((jass) => jass.jointAccount);
+        const jointIds = _.map(JASsValid, (jass) => jass.jointAccountId);
+
+        const joints = await this.jointAccountsRepo.find({
+          where: { jointAccountId: { inq: jointIds } },
+          include: [
+            {
+              relation: 'jointAccountSubscribes',
+              scope: {
+                where: { userId: { neq: this.userId } },
+                include: [
+                  {
+                    relation: 'user',
+                    scope: {
+                      fields: { userId: true, phone: true, firebaseToken: true, region: true },
+                      include: [
+                        {
+                          relation: 'setting',
+                          scope: { fields: { userId: true, language: true } },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        });
+
+        for (const j of joints) {
+          const subscribes = j.jointAccountSubscribes;
+
+          for (const sub of subscribes) {
+            const user = sub.user;
+            const setting = sub.user.setting;
+            const timezone = ct.getTimezonesForCountry(user.region!)[0].name;
+            const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+
+            const mutualRel = await this.usersRelsRepo.findOne({
+              fields: { name: true },
+              where: { userId: user.getId(), phone: user.phone },
+            });
+
+            const savedNotify = await this.usersRepo.notifications(user.getId()).create({
+              jointAccountId: j.getId(),
+              type: 'jointAccount',
+              title: util.format(this.locMsg['LEAVE_JOINT_NOTIFY_TITLE'][setting.language]),
+              body: util.format(
+                this.locMsg['LEAVE_JOINT_NOTIFY_BODY'][setting.language],
+                mutualRel!.name,
+                j.title,
+              ),
+              createdAt: time,
+            });
+
+            firebaseMessages.push({
+              token: user.firebaseToken!,
+              notification: {
+                title: savedNotify.title,
+                body: savedNotify.body,
+              },
+              data: {
+                notifyId: savedNotify.getId().toString(),
+                title: savedNotify.title,
+                body: savedNotify.body,
+                jointAccountId: j.getId().toString(),
+                type: savedNotify.type,
+                silent: 'false',
+              },
+            });
           }
         }
 

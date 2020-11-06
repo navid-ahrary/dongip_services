@@ -240,7 +240,7 @@ export class JointAccountController {
 
   @del('/joint-accounts/{jointAccountId}', {
     summary: 'DELETE a JointAccount by jointAccountId',
-    description: 'Also delete all dongs belongs to',
+    description: 'Belongs Dongs will not be deleted',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       204: {
@@ -271,17 +271,15 @@ export class JointAccountController {
     description: 'Belongs Dongs will not be deleted',
     security: OPERATION_SECURITY_SPEC,
     responses: {
-      '200': {
-        description: 'Count DELETE JointAccounts',
-        content: {
-          'application/json': {
-            schema: CountSchema,
-          },
-        },
+      '204': {
+        description: 'DELETE/LEFT JointAccounts ',
       },
     },
   })
-  async deleteAllJointAccounts(): Promise<Count> {
-    return this.usersRepo.jointAccounts(this.userId).delete();
+  async deleteAllJointAccounts(): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.usersRepo.jointAccountSubscribes(this.userId).delete();
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.usersRepo.jointAccounts(this.userId).delete();
   }
 }
