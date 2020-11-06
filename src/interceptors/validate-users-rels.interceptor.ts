@@ -136,6 +136,9 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
               await this.usersRelsRepository.updateById(mRel.getId(), {
                 mutualUserRelId: rel.getId(),
               });
+            } else {
+              errMsg = this.locMsg['JOINT_USER_REL_BI_ERR'][this.lang];
+              throw new Error(errMsg);
             }
           }
         }
