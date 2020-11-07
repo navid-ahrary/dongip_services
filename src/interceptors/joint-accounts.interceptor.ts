@@ -69,10 +69,11 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
 
     // eslint-disable-next-line no-useless-catch
     try {
-      if (methodName === 'deleteAllJointAccounts') {
+      if (methodName === 'deleteAllJointAccounts' || methodName === 'deleteJointAccountById') {
         // Joint accounts belong to current user
+        const jointId = invocationCtx.args[0];
         const JAs = await this.jointAccountsRepo.find({
-          where: { userId: this.userId, jointAccountId: invocationCtx.args[0] },
+          where: { userId: this.userId, jointAccountId: jointId },
           include: [
             {
               relation: 'jointAccountSubscribes',
@@ -95,7 +96,8 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
             },
           ],
         });
-        if (JAs.length) {
+
+        if (JAs.length && JAs[0].jointAccountSubscribes) {
           const currentUserJAS = _.find(
             JAs[0].jointAccountSubscribes,
             (jass) => jass.userId === this.userId,
@@ -151,7 +153,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
 
         // Joint accounts than no belongs to current user
         const JASs = await this.jointAccSubscRepo.find({
-          where: { userId: this.userId },
+          where: { userId: this.userId, jointAccountId: jointId },
           include: [
             { relation: 'jointAccount', scope: { where: { userId: { neq: this.userId } } } },
           ],

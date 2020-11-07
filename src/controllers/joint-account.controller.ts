@@ -1,4 +1,4 @@
-import { repository, DataObject, Count, CountSchema } from '@loopback/repository';
+import { repository, DataObject } from '@loopback/repository';
 import {
   post,
   get,
@@ -6,7 +6,6 @@ import {
   requestBody,
   param,
   del,
-  HttpErrors,
   RequestContext,
 } from '@loopback/rest';
 import { intercept, inject, service } from '@loopback/core';
@@ -238,6 +237,7 @@ export class JointAccountController {
     return result;
   }
 
+  @intercept(JointAccountsInterceptor.BINDING_KEY)
   @del('/joint-accounts/{jointAccountId}', {
     summary: 'DELETE a JointAccount by jointAccountId',
     description: 'Belongs Dongs will not be deleted',
@@ -255,13 +255,13 @@ export class JointAccountController {
     @param.path.number('jointAccountId', { required: true })
     jointAccountId: typeof JointAccounts.prototype.jointAccountId,
   ): Promise<void> {
-    const countDeleted = await this.usersRepo
-      .jointAccounts(this.userId)
-      .delete({ jointAccountId: jointAccountId });
-
-    if (countDeleted.count !== 1) {
-      const errMsg = this.locMsg['JOINT_NOT_BELONG_USER'][this.lang];
-      throw new HttpErrors.UnprocessableEntity(errMsg);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepo.jointAccounts(this.userId).delete({ jointAccountId: jointAccountId });
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepo.jointAccountSubscribes(this.userId).delete({ jointAccountId: jointAccountId });
+    } catch (err) {
+      console.error(err);
     }
   }
 
@@ -277,9 +277,13 @@ export class JointAccountController {
     },
   })
   async deleteAllJointAccounts(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRepo.jointAccountSubscribes(this.userId).delete();
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRepo.jointAccounts(this.userId).delete();
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepo.jointAccountSubscribes(this.userId).delete();
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepo.jointAccounts(this.userId).delete();
+    } catch (err) {
+      console.error(err);
+    }
   }
 }
