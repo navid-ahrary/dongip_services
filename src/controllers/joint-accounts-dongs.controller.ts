@@ -8,8 +8,11 @@ import { Dongs } from '../models';
 import { LocalizedMessages } from '../application';
 import { JointAccountsRepository, JointAccountSubscribesRepository } from '../repositories';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
+import { basicAuthorization } from '../services';
+import { authorize } from '@loopback/authorization';
 
 @authenticate('jwt.access')
+@authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
 export class JointAccountsDongsController {
   private readonly userId: number;
   lang: string;
