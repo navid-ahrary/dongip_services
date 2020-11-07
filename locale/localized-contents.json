@@ -45,7 +45,7 @@
   },
   "REFRESH_TOKEN_NOT_MATCHED": {
     "fa": "توکن معتبر نیست",
-    "en": “Token is invalid"
+    "en": "Token is invalid"
   },
   "CONFLICT_CATEGORY_NAME": {
     "fa": "اسم دسته بندی تکراریه. یه اسم دیگه انتخاب کن",
@@ -53,7 +53,7 @@
   },
   "SOME_USERS_RELS_NOT_VALID": {
     "fa": "خطا در دوستی ها",
-    "en": "Error in friendship”
+    "en": "Error in friendship"
   },
   "USER_REL_NOT_VALID": {
     "fa": "خطا در پردازش دوستی",
@@ -85,7 +85,7 @@
   },
   "DONGIP_NOTIFY_TITLE": {
     "fa": "دُنگیپ شدی",
-    "en": "New Expense”
+    "en": "New Expense"
   },
   "DONGIP_NOTIFY_BODY": {
     "fa": "مبلغ %s %s توسط %s",
@@ -93,7 +93,7 @@
   },
   "DONGIP_IN_GROUP_NOTIFY_TITLE": {
     "fa": "دُنگیپ در گروه %s",
-    "en": “Expense in %s group"
+    "en": "Expense in %s group"
   },
   "DONGIP_IN_GROUP_NOTIFY_BODY": {
     "fa": "مبلغ %s %s توسط %s",
@@ -201,7 +201,7 @@
   },
   "DAILY_NOTIFY_TITLE": {
     "fa": "وقتشه حساب کتاب‌هاتو دُنگیپ کنی",
-    "en": "It's time to submit your expenses”
+    "en": "It's time to submit your expenses"
   },
   "DAILY_NOTIFY_BODY": {
     "fa": "امروز چه هزینه‌هایی داشتی ؟",

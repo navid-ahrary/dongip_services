@@ -1,6 +1,5 @@
 {
-  "fa": [
-    {
+  "fa": [{
       "title": "آرایشی و بهداشتی",
       "icon": "assets/images/icons/shopping/ic_normal_shopping_22.png"
     },
@@ -200,7 +199,6 @@
     {
       "title": "Cafe",
       "icon": "assets/images/icons/food/ic_normal_food_03.png"
-    },
-
+    }
   ]
 }
