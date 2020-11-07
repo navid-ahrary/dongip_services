@@ -32,20 +32,20 @@
     "en": "Either phone or email must be provided"
   },
   "SINGUP_CONFILCT_PHONE": {
-    "fa": "این شماره موبایل قبلن ثبت نام شده است. اگر متعلق به شماست، از طریق گزینه «ورود با موبایل» به اپ وارد شوید",
+    "fa": "این شماره موبایل قبلا ثبت نام شده است. اگر متعلق به شماست، از طریق گزینه «ورود با موبایل» به اپ وارد شوید",
     "en": "This phone number is already registered. If belongs to you, login with your phone number."
   },
   "COMPLETE_SIGNUP_CONFILICT_PHONE": {
-    "fa": "این شماره موبایل قبلن ثبت نام شده است",
+    "fa": "این شماره موبایل قبلا ثبت نام شده است",
     "en": "This phone number is already registered."
   },
   "COMPLETE_SIGNUP_CONFILICT_EMAIL": {
-    "fa": "این ایمیل قبلن ثبت نام شده است",
-    "en": "A user with this email address is already registerd."
+    "fa": "این ایمیل قبلا ثبت نام شده است",
+    "en": "A user with this email address is already registered."
   },
   "REFRESH_TOKEN_NOT_MATCHED": {
-    "fa": "رفرش توکن معتبر نیست",
-    "en": "Refresh token is not valid"
+    "fa": "توکن معتبر نیست",
+    "en": “Token is invalid"
   },
   "CONFLICT_CATEGORY_NAME": {
     "fa": "اسم دسته بندی تکراریه. یه اسم دیگه انتخاب کن",
@@ -53,54 +53,54 @@
   },
   "SOME_USERS_RELS_NOT_VALID": {
     "fa": "خطا در دوستی ها",
-    "en": "Error in friends' list"
+    "en": "Error in friendship”
   },
   "USER_REL_NOT_VALID": {
     "fa": "خطا در پردازش دوستی",
-    "en": "Friendship is not valid"
+    "en": "Friendship is invalid"
   },
   "GROUP_NOT_VALID": {
     "fa": "گروه مورد نظر معتبر نیست",
-    "en": "Group is not valid"
+    "en": "Group is invalid"
   },
   "BUDGET_NOT_VALID": {
     "fa": "بودجه مورد نظر معتبر نیست",
-    "en": "Budget is not valid"
+    "en": "Budget is invalid"
   },
   "DONG_NOT_VALID": {
     "fa": "دنگ مورد نظر معتبر نیست",
-    "en": "Dong is not valid"
+    "en": "Dong is invalid"
   },
   "CATEGORY_NOT_VALID": {
     "fa": "دسته بندی مورد نظر معتبر نیست",
-    "en": "Category is not valid"
+    "en": "Category is invalid"
   },
   "PHONE_NOT_VALID": {
     "fa": "شماره موبایل وارد شده معتبر نیست",
-    "en": "Phone number is not valid"
+    "en": "Phone number is invalid"
   },
   "EMAIL_NOT_VALID": {
     "fa": "آدرس ایمیل وارد شده معتبر نیست",
-    "en": "Email address is not valid"
+    "en": "Email address is invalid"
   },
   "DONGIP_NOTIFY_TITLE": {
-    "fa": "دنگیپ شدی",
-    "en": "New transaction"
+    "fa": "دُنگیپ شدی",
+    "en": "New Expense”
   },
   "DONGIP_NOTIFY_BODY": {
     "fa": "مبلغ %s %s توسط %s",
-    "en": "Amount %s %s from %s"
+    "en": "%s %s by %s"
   },
   "DONGIP_IN_GROUP_NOTIFY_TITLE": {
-    "fa": "دنگیپ در گروه %s",
-    "en": "Dongip in %s group"
+    "fa": "دُنگیپ در گروه %s",
+    "en": “Expense in %s group"
   },
   "DONGIP_IN_GROUP_NOTIFY_BODY": {
     "fa": "مبلغ %s %s توسط %s",
-    "en": "Amount %s %s by %s"
+    "en": "%s %s by %s"
   },
   "JOINT_USER_REL_BI_ERR": {
-    "fa": "برای همگام سازی حسابها، دوستاتون هم باید شما رو دوست دنگیپشون بدونن",
+    "fa": "برای همگام سازی حسابها، دوستاتون هم باید شما رو دوست دُنگیپشون بدونن",
     "en": "For Syncing bills, your friends should you know as a Dongip friend also"
   },
   "NEW_JOINT_ACCOUNT_NOTIFY_TITLE": {
@@ -113,11 +113,11 @@
   },
   "JOINT_NOT_VALID": {
     "fa": "گروه مورد نظر معتبر نیست",
-    "en": "Joint account is not valid"
+    "en": "Joint account is invalid"
   },
   "JOINT_NOT_BELONG_USER": {
-    "fa": "شما ادمین گروه نیستید",
-    "en": "You are not admin of the group"
+    "fa": "شما مدیر گروه نیستید",
+    "en": "You aren’t admin of the group"
   },
   "DELETE_JOINT_NOTIFY_TITLE": {
     "fa": "حذف گروه",
@@ -153,11 +153,11 @@
   },
   "CAFEBAZAAR_PURCHASE_NOT_VALID": {
     "fa": "متاسفانه خرید انجام شده به تایید کافه‌بازار نرسید. جهت رفع هرگونه ابهام یا مغایرت، با پشتیبانی دُنگیپ تماس بگیرید",
-    "en": "This purchase is not valid by Cafebazaar, contact Dongip's support"
+    "en": "This purchase is not valid by CafeBazaar, contact Dongip's support"
   },
   "CAFEBAZAAR_PURCHASE_DROPED": {
     "fa": "متاسفانه خرید انجام شده از سمت کافه‌بازار برگشت خورده‌است. هزینه پرداخت شده حداکثر تا ۲۴ ساعت آینده به حسابتان واریز می‌شود جهت رفع هرگونه ابهام یا مغایرت، با پشتیبانی دُنگیپ تماس بگیرید",
-    "en": "This purchase is droped by Cafebazaar. contact Dongip's support"
+    "en": "This purchase is dropped by CafeBazaar. contact Dongip's support"
   },
   "TICKET_RESPONSE": {
     "fa": "پاسخ به تیکت",
@@ -169,27 +169,27 @@
   },
   "USERS_RELS_CONFILICT_PHONE": {
     "fa": "این شماره تو لیست دوستهات وجود داره",
-    "en": "This phone number already exists in you friend list"
+    "en": "This phone number already exists in your friend list"
   },
   "NEW_USERS_RELS_NOTIFY_TITLE": {
     "fa": "دوستی جدید",
     "en": "New friend"
   },
   "NEW_USERS_RELS_NOTIFY_BODY": {
-    "fa": "%s شما رو دوست دنگیپش میدونه. اگه میخایی حساب های بین تون همگام سازی شن، با لمس این پیام به دوستهات اضافه ش کن",
-    "en": "%s knows you as a Dongip friend. If you like to sync your bills, tap on this message and add to your friends' list"
+    "fa": "%s شما رو دوست دُنگیپش میدونه. اگه میخایی حساب های بین تون همگام سازی شن، با لمس این پیام به دوستهات اضافه ش کن",
+    "en": "%s added you. If you like to sync your bills, tap on this message and add to your friends"
   },
   "USERS_RELS_BACK_NOTIFY_TITLE": {
     "fa": "همگام سازی حساب ها با %s",
     "en": "Sync with %s"
   },
   "USERS_RELS_BACK_NOTIFY_BODY": {
-    "fa": "%s هم شما رو دوست دنگیپش میدونه. از این به بعد حساب های بین تون همگام سازی میشن",
-    "en": "%s knows you as a Dongip friend. From now on, your transactions will be synced"
+    "fa": "%s هم شما رو دوست دُنگیپش میدونه. از این به بعد حساب های بین تون همگام سازی میشن",
+    "en": "%s added you. From now on, your expenses will be synced"
   },
   "USERNAME_UNAVAILABLE": {
     "fa": "یوزرنیم در دسترس نیست",
-    "en": "Username is not available"
+    "en": "Username isn’t available"
   },
   "BUDGET_SELECT_ITEM": {
     "fa": "فقط یکی از آیتم ها رو میشه بودجه بندی کرد",
@@ -197,14 +197,14 @@
   },
   "PASSWORD_LENGTH": {
     "fa": "طول رمز باید ۶ کاراکتر باشد",
-    "en": "Password length should be atleast 6 character"
+    "en": "Password length should be at least 6 character"
   },
   "DAILY_NOTIFY_TITLE": {
     "fa": "وقتشه حساب کتاب‌هاتو دُنگیپ کنی",
-    "en": "It's time to submit your transactions"
+    "en": "It's time to submit your expenses”
   },
   "DAILY_NOTIFY_BODY": {
     "fa": "امروز چه هزینه‌هایی داشتی ؟",
-    "en": "What did you spend today ?"
+    "en": "What did you spend today?"
   }
 }

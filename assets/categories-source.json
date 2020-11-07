@@ -1,15 +1,16 @@
 {
-  "fa": [{
+  "fa": [
+    {
       "title": "آرایشی و بهداشتی",
       "icon": "assets/images/icons/shopping/ic_normal_shopping_22.png"
     },
     {
       "title": "آموزش",
-      "icon": "assets/images/icons/education/ic_category_education_normal.png"
+      "icon": "assets/images/icons/education/ic_normal_education_01.png"
     },
     {
       "title": "اجاره خونه",
-      "icon": "assets/images/icons/education/ic_normal_education_01.png"
+      "icon": "assets/images/icons/furniture/ic_normal_furniture_18.png"
     },
     {
       "title": "اینترنت",
@@ -25,7 +26,7 @@
     },
     {
       "title": "بیمه",
-      "icon": "assets/images/icons/medical/3-min.png"
+      "icon": "assets/images/icons/medical/ic_normal_medical_09.png"
     },
     {
       "title": "تاکسی",
@@ -53,7 +54,7 @@
     },
     {
       "title": "حیوان خانگی",
-      "icon": "assets/images/icons/personal/4-min.png"
+      "icon": "assets/images/icons/personal/ic_normal_personal_08.png"
     },
     {
       "title": "خانواده",
@@ -65,19 +66,15 @@
     },
     {
       "title": "دخانیات",
-      "icon": "assets/images/icons/personal/ic_category_cigarette_normal.png"
+      "icon": "assets/images/icons/personal/ic_normal_personal_05.png"
     },
     {
       "title": "رستوران",
-      "icon": "assets/images/icons/food/ic_category_food_normal.png"
+      "icon": "assets/images/icons/food/ic_normal_food_20.png"
     },
     {
       "title": "سرگرمی",
-      "icon": "assets/images/icons/entertainment/ic_category_entertainment_normal.png"
-    },
-    {
-      "title": "سوخت",
-      "icon": "assets/images/icons/transportation/ic_normal_transportation_01.png"
+      "icon": "assets/images/icons/entertainment/ic_normal_entertainment_01.png"
     },
     {
       "title": "سینما و تئاتر",
@@ -122,10 +119,6 @@
     },
     {
       "title": "Education",
-      "icon": "assets/images/icons/education/ic_category_education_normal.png"
-    },
-    {
-      "title": "Rent",
       "icon": "assets/images/icons/education/ic_normal_education_01.png"
     },
     {
@@ -137,12 +130,12 @@
       "icon": "assets/images/icons/transportation/ic_normal_transportation_01.png"
     },
     {
-      "title": "Sanitation & Health",
+      "title": "Health",
       "icon": "assets/images/icons/medical/ic_normal_medical_04.png"
     },
     {
       "title": "Insurance",
-      "icon": "assets/images/icons/medical/3-min.png"
+      "icon": "assets/images/icons/medical/ic_normal_medical_09.png"
     },
     {
       "title": "Taxi",
@@ -153,10 +146,6 @@
       "icon": "assets/images/icons/income/ic_normal_income_03.png"
     },
     {
-      "title": "Repairs",
-      "icon": "assets/images/icons/furniture/ic_normal_furniture_12.png"
-    },
-    {
       "title": "Fitness",
       "icon": "assets/images/icons/fitness/ic_normal_fitness_01.png"
     },
@@ -165,12 +154,8 @@
       "icon": "assets/images/icons/electronic/ic_normal_electronics_06.png"
     },
     {
-      "title": "Driving offenses",
-      "icon": "assets/images/icons/transportation/ic_normal_transportation_04.png"
-    },
-    {
       "title": "Pet",
-      "icon": "assets/images/icons/personal/4-min.png"
+      "icon": "assets/images/icons/personal/ic_normal_personal_08.png"
     },
     {
       "title": "Family",
@@ -181,23 +166,15 @@
       "icon": "assets/images/icons/shopping/ic_normal_shopping_01.png"
     },
     {
-      "title": "Tobacco",
-      "icon": "assets/images/icons/personal/ic_category_cigarette_normal.png"
-    },
-    {
-      "title": "Restaurant",
-      "icon": "assets/images/icons/food/ic_category_food_normal.png"
+      "title": "Smoking",
+      "icon": "assets/images/icons/personal/ic_normal_personal_05.png"
     },
     {
       "title": "Entertainment",
-      "icon": "assets/images/icons/entertainment/ic_category_entertainment_normal.png"
+      "icon": "assets/images/icons/entertainment/ic_normal_entertainment_01.png"
     },
     {
-      "title": "Fuel",
-      "icon": "assets/images/icons/transportation/ic_normal_transportation_01.png"
-    },
-    {
-      "title": "Cinema & theater",
+      "title": "Cinema",
       "icon": "assets/images/icons/entertainment/ic_normal_entertainment_02.png"
     },
     {
@@ -205,11 +182,7 @@
       "icon": "assets/images/icons/personal/ic_normal_personal_02.png"
     },
     {
-      "title": "Installment",
-      "icon": "assets/images/icons/personal/ic_normal_personal_02.png"
-    },
-    {
-      "title": "Travels",
+      "title": "Travel",
       "icon": "assets/images/icons/transportation/ic_normal_transportation_14.png"
     },
     {
@@ -217,7 +190,7 @@
       "icon": "assets/images/icons/income/ic_normal_income_02.png"
     },
     {
-      "title": "Art & Music",
+      "title": "Art",
       "icon": "assets/images/icons/education/ic_normal_education_05.png"
     },
     {
@@ -228,9 +201,6 @@
       "title": "Cafe",
       "icon": "assets/images/icons/food/ic_normal_food_03.png"
     },
-    {
-      "title": "Flowers & Plants",
-      "icon": "assets/images/icons/furniture/ic_normal_furniture_04.png"
-    }
+
   ]
 }
