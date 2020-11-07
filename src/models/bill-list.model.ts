@@ -40,7 +40,7 @@ import { JointAccounts } from './joint-accounts.model';
         entity: 'users_rels',
         entityKey: 'id',
         foreignKey: 'userRelId',
-        onUpdate: 'cascade',
+        onUpdate: 'set null',
         onDelete: 'cascade',
       },
       fkBillListJointAccountId: {
