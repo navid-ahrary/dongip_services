@@ -174,6 +174,7 @@ export class DongsController {
               phone: true,
               type: true,
               mutualUserRelId: true,
+              name: true,
             },
             where: {
               userRelId: { inq: allUsersRelsIdList },
@@ -224,6 +225,7 @@ export class DongsController {
           categoryId: createdDong.categoryId,
           currency: createdDong.currency,
           jointAccountId: createdDong.jointAccountId,
+          userRelName: _.find(usersRels, (rel) => rel.getId() === item.userRelId)?.name,
         });
       });
 
@@ -235,6 +237,7 @@ export class DongsController {
           categoryId: createdDong.categoryId,
           currency: createdDong.currency,
           jointAccountId: createdDong.jointAccountId,
+          userRelName: _.find(usersRels, (rel) => rel.getId() === item.userRelId)?.name,
         });
       });
 
