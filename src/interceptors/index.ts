@@ -5,5 +5,4 @@ export * from './validate-password.interceptor';
 export * from './validate-users-rels.interceptor';
 export * from './validate-group-id.interceptor';
 export * from './validate-budget.interceptor';
-export * from './validate-gold-user.interceptor';
 export * from './joint-accounts.interceptor';
