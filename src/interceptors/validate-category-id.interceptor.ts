@@ -63,6 +63,8 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
         const errMessage = this.locMsg['CATEGORY_NOT_VALID'][this.lang];
         throw new HttpErrors.UnprocessableEntity(errMessage);
       }
+
+      Object.assign(invocationCtx.args[0], { category: curretnUserFoundCategory });
     } else if (
       invocationCtx.methodName === 'deleteCategoriesById' ||
       invocationCtx.methodName === 'patchCategoriesById' ||

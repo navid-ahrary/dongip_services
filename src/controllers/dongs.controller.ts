@@ -44,6 +44,8 @@ import { dongReqBody } from './specs';
 class ResponseNewDong extends Dongs {
   @property({ type: 'number' })
   score: number;
+
+  @property() category: Categories;
 }
 @intercept(ValidateGroupIdInterceptor.BINDING_KEY, FirebasetokenInterceptor.BINDING_KEY)
 @api({ basePath: '/', paths: {} })
@@ -122,6 +124,7 @@ export class DongsController {
   ): Promise<DataObject<ResponseNewDong>> {
     const newDongScore = 50;
     const mutualFriendScore = 20;
+    const category = _.pick(newDong, 'category');
 
     let mutualFactor = 0;
 
@@ -340,6 +343,7 @@ export class DongsController {
 
       return {
         ...createdDong,
+        ...category,
         score: calculatedScore,
       };
     } catch (err) {
