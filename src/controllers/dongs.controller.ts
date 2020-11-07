@@ -254,7 +254,7 @@ export class DongsController {
           });
 
           // If relation is mutual, add to notification reciever list
-          if (user?.firebaseToken !== 'null') {
+          if (user?.firebaseToken) {
             const foundMutualUsersRels = await this.usersRelsRepository.findOne({
               where: {
                 phone: currentUser.phone,
