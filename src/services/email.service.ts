@@ -10,7 +10,7 @@ const supportEmail = process.env.ZOHO_SUPPORT_MAIL_ADDRESS;
 const supportRefreshToken = process.env.ZOHO_SUPPRT_ACCOUNT_REFRESH_TOKEN;
 const supportClientId = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_ID;
 const supportClientSecret = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_SECRET;
-const supportAccountId = process.env.ZOHO_SUUPORT_ACCOUNT_ID;
+const supportAccountId = process.env.ZOHO_SUPPORT_ACCOUNT_ID;
 
 const supportMessageURL = util.format(process.env.ZOHO_MESSAGE_SCOPE_URL, supportAccountId);
 const accountURL = process.env.ZOHO_ACCOUNT_SCOPE_URL;
