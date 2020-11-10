@@ -324,7 +324,19 @@ export class JointAccountController {
                       relation: 'setting',
                       scope: { fields: { userId: true, language: true } },
                     },
-                    { relation: 'usersRels', scope: { where: { phone: this.phone } } },
+                    {
+                      relation: 'usersRels',
+                      scope: {
+                        fields: {
+                          userRelId: true,
+                          mutualUserRelId: true,
+                          userId: true,
+                          phone: true,
+                          name: true,
+                        },
+                        where: { phone: this.phone },
+                      },
+                    },
                   ],
                 },
               },
@@ -337,6 +349,7 @@ export class JointAccountController {
     if (!JA) {
       throw new HttpErrors.UnprocessableEntity(this.locMsg['JOINT_NOT_VALID'][this.lang]);
     }
+
     const JASs = JA.jointAccountSubscribes;
     const currentUsers = _.map(JASs, (jass) => jass.user);
 
@@ -353,27 +366,39 @@ export class JointAccountController {
       });
       const desiredUsersPhones: string[] = _.map(desiredUsersRels, (rel) => rel.phone);
 
-      const diffUsersPhones: string[] = _.difference(currentUsersPhones, desiredUsersPhones);
+      const deletedUserPhones: string[] = _.difference(currentUsersPhones, desiredUsersPhones);
+      const addedUserPhones: string[] = _.difference(desiredUsersPhones, currentUsersPhones);
 
-      const deletedUserPhones: string[] = _.filter(diffUsersPhones, (phone) =>
-        _.includes(currentUsersPhones, phone),
-      );
-      const deletedUsers = await this.usersRepo.find({
-        fields: { userId: true, region: true, firebaseToken: true, phone: true },
-        where: { phone: { inq: deletedUserPhones } },
-      });
-
-      const addedUserPhones: string[] = _.filter(diffUsersPhones, (phone) =>
-        _.includes(desiredUsersPhones, phone),
+      const deletedUsers = _.filter(currentUsers, (user) =>
+        _.includes(deletedUserPhones, user.phone!),
       );
       const addedUsers = await this.usersRepo.find({
         fields: { userId: true, region: true, firebaseToken: true, phone: true },
         where: { phone: { inq: addedUserPhones } },
       });
+      const fixedUsers = _.filter(
+        currentUsers,
+        (user) => !_.includes(deletedUserPhones, user.phone),
+      );
+
+      const deletedUsersIds = _.map(deletedUsers, (user) => user.userId);
+      await this.jointAccountsRepo
+        .jointAccountSubscribes(jointAccountId)
+        .delete({ userId: { inq: deletedUsersIds } });
 
       const addedUsersIds = _.map(addedUsers, (user) => user.userId);
-      const deletedUsersIds = _.map(deletedUsers, (user) => user.userId);
-      const fixedUsers = _.filter(currentUsers, (user) => !_.includes(diffUsersPhones, user.phone));
+      const jointSubs: JointAccountSubscribes[] = [];
+      addedUsersIds.forEach((id) => {
+        jointSubs.push(
+          new JointAccountSubscribes({
+            userId: id,
+            jointAccountId: jointAccountId,
+          }),
+        );
+      });
+      if (jointSubs.length) {
+        const createdJoint = await this.jointAccSubscribesRepo.createAll(jointSubs);
+      }
     }
   }
 }

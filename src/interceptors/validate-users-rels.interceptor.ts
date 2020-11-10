@@ -103,45 +103,47 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         invocationCtx.methodName === 'updateJointById'
       ) {
         const userRelIds: number[] = invocationCtx.args[0].userRelIds;
-        const user = await this.usersRepository.findById(this.userId, {
-          fields: { userId: true, phone: true },
-          include: [
-            {
-              relation: 'usersRels',
-              scope: {
-                fields: { userId: true, userRelId: true, mutualUserRelId: true, phone: true },
-                where: { userRelId: { inq: userRelIds } },
+        if (userRelIds) {
+          const user = await this.usersRepository.findById(this.userId, {
+            fields: { userId: true, phone: true },
+            include: [
+              {
+                relation: 'usersRels',
+                scope: {
+                  fields: { userId: true, userRelId: true, mutualUserRelId: true, phone: true },
+                  where: { userRelId: { inq: userRelIds } },
+                },
               },
-            },
-          ],
-        });
+            ],
+          });
 
-        if (user.usersRels?.length !== userRelIds.length) {
-          errMsg = this.locMsg['JOINT_USER_REL_BI_ERR'][this.lang];
-          throw new Error(errMsg);
-        }
+          if (user.usersRels?.length !== userRelIds.length) {
+            errMsg = this.locMsg['JOINT_USER_REL_BI_ERR'][this.lang];
+            throw new Error(errMsg);
+          }
 
-        const invalidRels = user.usersRels.filter((rel) => rel.mutualUserRelId === null);
-        if (invalidRels.length) {
-          for (const rel of invalidRels) {
-            const phone = rel.phone;
-            const targetUserWithRel = await this.usersRepository.findOne({
-              fields: { userId: true, phone: true },
-              where: { phone: phone },
-              include: [{ relation: 'usersRels', scope: { where: { phone: user.phone } } }],
-            });
-
-            if (targetUserWithRel?.usersRels) {
-              const mRel = targetUserWithRel.usersRels[0];
-              await this.usersRelsRepository.updateById(rel.getId(), {
-                mutualUserRelId: mRel.getId(),
+          const invalidRels = user.usersRels.filter((rel) => rel.mutualUserRelId === null);
+          if (invalidRels.length) {
+            for (const rel of invalidRels) {
+              const phone = rel.phone;
+              const targetUserWithRel = await this.usersRepository.findOne({
+                fields: { userId: true, phone: true },
+                where: { phone: phone },
+                include: [{ relation: 'usersRels', scope: { where: { phone: user.phone } } }],
               });
-              await this.usersRelsRepository.updateById(mRel.getId(), {
-                mutualUserRelId: rel.getId(),
-              });
-            } else {
-              errMsg = this.locMsg['JOINT_USER_REL_BI_ERR'][this.lang];
-              throw new Error(errMsg);
+
+              if (targetUserWithRel?.usersRels) {
+                const mRel = targetUserWithRel.usersRels[0];
+                await this.usersRelsRepository.updateById(rel.getId(), {
+                  mutualUserRelId: mRel.getId(),
+                });
+                await this.usersRelsRepository.updateById(mRel.getId(), {
+                  mutualUserRelId: rel.getId(),
+                });
+              } else {
+                errMsg = this.locMsg['JOINT_USER_REL_BI_ERR'][this.lang];
+                throw new Error(errMsg);
+              }
             }
           }
         }
