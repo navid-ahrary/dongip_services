@@ -45,7 +45,14 @@ export class JWTService implements TokenService {
       if (decryptedToken.aud === 'access') {
         const userId = +decryptedToken.sub;
         const user = await this.usersRepository.findById(userId, {
-          fields: { userId: true, phone: true, name: true, email: true, region: true },
+          fields: {
+            userId: true,
+            phone: true,
+            name: true,
+            email: true,
+            region: true,
+            firebaseToken: true,
+          },
         });
 
         if (!user) throw new Error('User is not exists');
@@ -55,6 +62,7 @@ export class JWTService implements TokenService {
           email: user.email,
           name: user.name,
           region: user.region,
+          firebaseToken: user.firebaseToken,
         });
       }
 
