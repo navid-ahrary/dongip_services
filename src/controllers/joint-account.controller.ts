@@ -21,7 +21,7 @@ import _ from 'lodash';
 import 'moment-timezone';
 import ct from 'countries-and-timezones';
 
-import { JointRequest, JointResponse, JointAccountSubscribes } from '../models';
+import { JointRequest, JointResponse, JointAccountSubscribes, UsersRels } from '../models';
 import {
   JointAccountsRepository,
   JointAccountSubscribesRepository,
@@ -301,7 +301,6 @@ export class JointAccountController {
           schema: getModelSchemaRef(JointRequest, {
             title: 'PatchJointAccounts',
             partial: true,
-            optional: ['description', 'title', 'userRelIds'],
           }),
         },
       },
@@ -309,66 +308,72 @@ export class JointAccountController {
     patchReqBody: JointRequest,
     @param.path.number('jointAccountId', { required: true }) jointAccountId: number,
   ) {
+    const JA = await this.jointAccountsRepo.findOne({
+      where: { jointAccountId: jointAccountId, userId: this.userId },
+      include: [
+        {
+          relation: 'jointAccountSubscribes',
+          scope: {
+            include: [
+              {
+                relation: 'user',
+                scope: {
+                  fields: { userId: true, region: true, phone: true, firebaseToken: true },
+                  include: [
+                    {
+                      relation: 'setting',
+                      scope: { fields: { userId: true, language: true } },
+                    },
+                    { relation: 'usersRels', scope: { where: { phone: this.phone } } },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    if (!JA) {
+      throw new HttpErrors.UnprocessableEntity(this.locMsg['JOINT_NOT_VALID'][this.lang]);
+    }
+    const JASs = JA.jointAccountSubscribes;
+    const currentUsers = _.map(JASs, (jass) => jass.user);
+
     const props = _.pick(patchReqBody, ['title', 'description']);
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.usersRepo.jointAccounts(this.userId).patch(props, { jointAccountId: jointAccountId });
 
     if (_.has(patchReqBody, 'userRelIds')) {
-      const JA = await this.jointAccountsRepo.findOne({
-        where: { jointAccountId: jointAccountId, userId: this.userId },
-        include: [
-          {
-            relation: 'jointAccounts',
-            scope: {
-              where: { jointAccountId: jointAccountId },
-              include: [
-                {
-                  relation: 'jointAccountSubscribes',
-                  scope: {
-                    include: [
-                      {
-                        relation: 'user',
-                        scope: {
-                          fields: { userId: true, region: true, phone: true, firebaseToken: true },
-                          include: [
-                            {
-                              relation: 'setting',
-                              scope: { fields: { userId: true, language: true } },
-                            },
-                            { relation: 'usersRels', scope: { where: { phone: this.phone } } },
-                          ],
-                        },
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        ],
+      const currentUsersPhones: string[] = _.map(currentUsers, (user) => user.phone!);
+
+      const desiredUsersRels = await this.usersRepo.usersRels(this.userId).find({
+        fields: { userId: true, userRelId: true, phone: true },
+        where: { userRelId: { inq: patchReqBody.userRelIds } },
+      });
+      const desiredUsersPhones: string[] = _.map(desiredUsersRels, (rel) => rel.phone);
+
+      const diffUsersPhones: string[] = _.difference(currentUsersPhones, desiredUsersPhones);
+
+      const deletedUserPhones: string[] = _.filter(diffUsersPhones, (phone) =>
+        _.includes(currentUsersPhones, phone),
+      );
+      const deletedUsers = await this.usersRepo.find({
+        fields: { userId: true, region: true, firebaseToken: true, phone: true },
+        where: { phone: { inq: deletedUserPhones } },
       });
 
-      if (!JA) {
-        throw new HttpErrors.UnprocessableEntity(this.locMsg['JOINT_NOT_VALID'][this.lang]);
-      }
+      const addedUserPhones: string[] = _.filter(diffUsersPhones, (phone) =>
+        _.includes(desiredUsersPhones, phone),
+      );
+      const addedUsers = await this.usersRepo.find({
+        fields: { userId: true, region: true, firebaseToken: true, phone: true },
+        where: { phone: { inq: addedUserPhones } },
+      });
 
-      const JASs = JA.jointAccountSubscribes;
-
-      const phones = _.map(JASs, (jass) => jass.user.phone!);
-      const jointUserRels = await this.usersRepo
-        .usersRels(this.userId)
-        .find({ where: { phone: { inq: phones } } });
-
-      const userRelIds = patchReqBody.userRelIds;
-      const desiredUsersRels = await this.usersRepo
-        .usersRels(this.userId)
-        .find({ where: { userRelId: { inq: userRelIds } } });
-
-      const diffUserRels = _.difference(jointUserRels, desiredUsersRels);
-
-      for (const JAS of JASs) {
-        const user = JAS.user;
-      }
+      const addedUsersIds = _.map(addedUsers, (user) => user.userId);
+      const deletedUsersIds = _.map(deletedUsers, (user) => user.userId);
+      const fixedUsers = _.filter(currentUsers, (user) => !_.includes(diffUsersPhones, user.phone));
     }
   }
 }
