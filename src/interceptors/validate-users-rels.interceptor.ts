@@ -98,7 +98,10 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
           errMsg = this.locMsg['USER_REL_NOT_VALID'][this.lang];
           throw new Error(errMsg);
         }
-      } else if (invocationCtx.methodName === 'createJointAccount') {
+      } else if (
+        invocationCtx.methodName === 'createJointAccount' ||
+        invocationCtx.methodName === 'updateJointById'
+      ) {
         const userRelIds: number[] = invocationCtx.args[0].userRelIds;
         const user = await this.usersRepository.findById(this.userId, {
           fields: { userId: true, phone: true },

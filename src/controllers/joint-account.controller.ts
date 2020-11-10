@@ -7,6 +7,8 @@ import {
   param,
   del,
   RequestContext,
+  patch,
+  HttpErrors,
 } from '@loopback/rest';
 import { intercept, inject, service } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
@@ -15,10 +17,11 @@ import { authorize } from '@loopback/authorization';
 
 import util from 'util';
 import moment from 'moment';
+import _ from 'lodash';
 import 'moment-timezone';
 import ct from 'countries-and-timezones';
 
-import { JointRequest, JointResponse, JointAccountSubscribes, JointAccounts } from '../models';
+import { JointRequest, JointResponse, JointAccountSubscribes } from '../models';
 import {
   JointAccountsRepository,
   JointAccountSubscribesRepository,
@@ -30,27 +33,30 @@ import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { basicAuthorization, BatchMessage, FirebaseService } from '../services';
 import { LocalizedMessages } from '../application';
 
+@intercept(ValidateUsersRelsInterceptor.BINDING_KEY, JointAccountsInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
+@authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
 export class JointAccountController {
   private readonly userId: number;
+  private readonly phone: string;
   lang: string;
 
   constructor(
-    @repository(JointAccountsRepository) protected jointAccountsRepo: JointAccountsRepository,
+    @inject.context() public ctx: RequestContext,
     @repository(JointAccountSubscribesRepository)
     protected jointAccSubscribesRepo: JointAccountSubscribesRepository,
-    @repository(UsersRelsRepository) protected usersRelsRepo: UsersRelsRepository,
     @repository(UsersRepository) protected usersRepo: UsersRepository,
+    @service(FirebaseService) protected firebaseSerice: FirebaseService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
     @inject('application.localizedMessages') protected locMsg: LocalizedMessages,
-    @service(FirebaseService) protected firebaseSerice: FirebaseService,
-    @inject.context() public ctx: RequestContext,
+    @repository(UsersRelsRepository) protected usersRelsRepo: UsersRelsRepository,
+    @repository(JointAccountsRepository) protected jointAccountsRepo: JointAccountsRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
+    this.phone = this.currentUserProfile.phone;
     this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
 
-  @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
   @post('/joint-accounts', {
     summary: 'POST a new JointAccounts',
     security: OPERATION_SECURITY_SPEC,
@@ -63,7 +69,6 @@ export class JointAccountController {
       },
     },
   })
-  @intercept(ValidateUsersRelsInterceptor.BINDING_KEY)
   async createJointAccount(
     @requestBody({
       content: {
@@ -237,7 +242,6 @@ export class JointAccountController {
     return result;
   }
 
-  @intercept(JointAccountsInterceptor.BINDING_KEY)
   @del('/joint-accounts/{jointAccountId}', {
     summary: 'DELETE a JointAccount by jointAccountId',
     description: 'Belongs Dongs will not be deleted',
@@ -252,8 +256,7 @@ export class JointAccountController {
     },
   })
   async deleteJointAccountById(
-    @param.path.number('jointAccountId', { required: true })
-    jointAccountId: typeof JointAccounts.prototype.jointAccountId,
+    @param.path.number('jointAccountId', { required: true }) jointAccountId: number,
   ): Promise<void> {
     try {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -265,9 +268,8 @@ export class JointAccountController {
     }
   }
 
-  @intercept(JointAccountsInterceptor.BINDING_KEY)
   @del('/joint-accounts/', {
-    summary: 'DELETE all JointAccounts',
+    summary: 'Delete and left from all JointAccounts',
     description: 'Belongs Dongs will not be deleted',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -284,6 +286,89 @@ export class JointAccountController {
       this.usersRepo.jointAccounts(this.userId).delete();
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  @patch('joint-accounts/{jointAccountId}', {
+    summary: 'Update a JointAccount by jointAccountId. Just admin can update',
+    security: OPERATION_SECURITY_SPEC,
+    responses: { '204': { description: 'No content' } },
+  })
+  async updateJointById(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(JointRequest, {
+            title: 'PatchJointAccounts',
+            partial: true,
+            optional: ['description', 'title', 'userRelIds'],
+          }),
+        },
+      },
+    })
+    patchReqBody: JointRequest,
+    @param.path.number('jointAccountId', { required: true }) jointAccountId: number,
+  ) {
+    const props = _.pick(patchReqBody, ['title', 'description']);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.usersRepo.jointAccounts(this.userId).patch(props, { jointAccountId: jointAccountId });
+
+    if (_.has(patchReqBody, 'userRelIds')) {
+      const JA = await this.jointAccountsRepo.findOne({
+        where: { jointAccountId: jointAccountId, userId: this.userId },
+        include: [
+          {
+            relation: 'jointAccounts',
+            scope: {
+              where: { jointAccountId: jointAccountId },
+              include: [
+                {
+                  relation: 'jointAccountSubscribes',
+                  scope: {
+                    include: [
+                      {
+                        relation: 'user',
+                        scope: {
+                          fields: { userId: true, region: true, phone: true, firebaseToken: true },
+                          include: [
+                            {
+                              relation: 'setting',
+                              scope: { fields: { userId: true, language: true } },
+                            },
+                            { relation: 'usersRels', scope: { where: { phone: this.phone } } },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      });
+
+      if (!JA) {
+        throw new HttpErrors.UnprocessableEntity(this.locMsg['JOINT_NOT_VALID'][this.lang]);
+      }
+
+      const JASs = JA.jointAccountSubscribes;
+
+      const phones = _.map(JASs, (jass) => jass.user.phone!);
+      const jointUserRels = await this.usersRepo
+        .usersRels(this.userId)
+        .find({ where: { phone: { inq: phones } } });
+
+      const userRelIds = patchReqBody.userRelIds;
+      const desiredUsersRels = await this.usersRepo
+        .usersRels(this.userId)
+        .find({ where: { userRelId: { inq: userRelIds } } });
+
+      const diffUserRels = _.difference(jointUserRels, desiredUsersRels);
+
+      for (const JAS of JASs) {
+        const user = JAS.user;
+      }
     }
   }
 }
