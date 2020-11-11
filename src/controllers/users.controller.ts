@@ -276,7 +276,7 @@ export class UsersController {
 
       const userRelProps: Partial<UsersRels> = {};
 
-      if ('phone' in userProps) {
+      if (_.has(userProps, 'phone')) {
         const u = await this.usersRepository.findOne({
           where: { userId: this.userId, phoneLocked: true },
         });
@@ -288,7 +288,7 @@ export class UsersController {
         }
       }
 
-      if ('email' in userProps) {
+      if (_.has(userProps, 'email')) {
         const u = await this.usersRepository.findOne({
           where: { userId: this.userId, emailLocked: true },
         });
@@ -300,11 +300,11 @@ export class UsersController {
         }
       }
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepository.usersRels(this.userId).patch(userRelProps, { type: 'self' });
+      await this.usersRepository.usersRels(this.userId).patch(userRelProps, { type: 'self' });
 
       if (Object.keys(settingProps).length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.usersRepository.setting(this.userId).patch(settingProps);
+        await this.usersRepository.setting(this.userId).patch(settingProps);
       }
 
       if (Object.keys(userProps).length) {
