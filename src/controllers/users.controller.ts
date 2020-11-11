@@ -271,10 +271,8 @@ export class UsersController {
   ): Promise<void> {
     try {
       const userProps = _.pick(cmpltSignBody, ['avatar', 'name', 'phone', 'email']);
-
       const settingProps: Partial<Settings> = _.pick(cmpltSignBody, ['language', 'currency']);
-
-      const userRelProps: Partial<UsersRels> = {};
+      const userRelProps: Partial<UsersRels> = _.pick(cmpltSignBody, ['avatar', 'name']);
 
       if (_.has(userProps, 'phone')) {
         const u = await this.usersRepository.findOne({
@@ -299,11 +297,9 @@ export class UsersController {
           userRelProps.email = userProps.email;
         }
       }
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       await this.usersRepository.usersRels(this.userId).patch(userRelProps, { type: 'self' });
 
       if (Object.keys(settingProps).length) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         await this.usersRepository.setting(this.userId).patch(settingProps);
       }
 
