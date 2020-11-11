@@ -201,9 +201,7 @@ export class UsersController {
     @requestBody(UserPatchRequestBody) updateUserReqBody: Omit<Users, '_key'>,
   ): Promise<void> {
     if (updateUserReqBody.avatar) {
-      await this.usersRepository
-        .usersRels(this.userId)
-        .patch({ avatar: updateUserReqBody.avatar }, { type: 'self' });
+      await this.usersRepository.usersRels(this.userId).patch(updateUserReqBody, { type: 'self' });
     }
 
     const patchUser: DataObject<Users> = {};
@@ -234,13 +232,12 @@ export class UsersController {
         delete updateUserReqBody.email;
       } else {
         updateUserReqBody.emailLocked = true;
-
         patchUser.email = updateUserReqBody.email;
       }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRepository.usersRels(this.userId).patch(patchUser, { type: 'self' });
+    // // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    // this.usersRepository.usersRels(this.userId).patch(patchUser, { type: 'self' });
 
     return this.usersRepository.updateById(this.userId, updateUserReqBody).catch((err) => {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
