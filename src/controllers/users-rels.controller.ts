@@ -310,6 +310,17 @@ export class UsersRelsController {
           .hasOneVirtualUser(userRelId)
           .patch(vu, { userId: this.userId });
       }
+
+      if (_.has(patchUserRelReqBody, 'name')) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository
+          .billList(this.userId)
+          .patch({ userRelName: patchUserRelReqBody.name }, { userRelId: userRelId });
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository
+          .payerList(this.userId)
+          .patch({ userRelName: patchUserRelReqBody.name }, { userRelId: userRelId });
+      }
     } catch (err) {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         if (err.sqlMessage.endsWith("'user_id&phone'")) {
