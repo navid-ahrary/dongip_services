@@ -304,7 +304,7 @@ export class DongsController {
 
               // Generate notification messages
               firebaseMessagesList.push({
-                token: user!.firebaseToken!,
+                token: user!.firebaseToken ?? '',
                 notification: {
                   title: notifyData.title,
                   body: notifyData.body,
@@ -519,7 +519,7 @@ export class DongsController {
         const createdBills = await this.billListRepository.createAll(billers);
         createdDong.billList = createdBills;
 
-        const firebaseToken = user.firebaseToken!;
+        const firebaseToken = user.firebaseToken ?? '';
         const lang = user.setting.language;
 
         const notifyData = new Notifications({

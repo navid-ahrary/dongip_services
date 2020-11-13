@@ -100,7 +100,7 @@
     "en": "%s %s by %s"
   },
   "JOINT_USER_REL_BI_ERR": {
-    "fa": "برای همگام سازی حسابها، دوستاتون هم باید شما رو دوست دُنگیپشون بدونن",
+    "fa": "برای همگام سازی حسابها، دوستاتون هم باید با شما دوست باشن",
     "en": "For Syncing bills, your friends should you know as a Dongip friend also"
   },
   "NEW_JOINT_ACCOUNT_NOTIFY_TITLE": {
@@ -110,6 +110,26 @@
   "NEW_JOINT_ACCOUNT_NOTIFY_BODY": {
     "fa": "%s شما رو به گروه %s اضافه کرد",
     "en": "%s added you in %s group"
+  },
+  "DELETE_YOU_JOINT_ACCOUNT_NOTIFY_BODY": {
+    "fa": "%s شما رو از گروه %s حذف کرد",
+    "en": "%s removed you in %s group"
+  },
+  "UPDATE_JOINT_ACCOUNT_NOTIFY_TITLE": {
+    "fa": "گروه %s",
+    "en": "%s group"
+  },
+  "UPDATE_TITLE_JOINT_ACCOUNT_NOTIFY_BODY": {
+    "fa": "اسم گروه به %s تغییر یافت",
+    "en": "Group title has been changed to %s"
+  },
+  "ADD_MEMBERS_JOINT_ACCOUNT_NOTIFY_BODY": {
+    "fa": "%s به گروه پیوست",
+    "en": "%s joined to group"
+  },
+  "DELETE_MEMBERS_JOINT_ACCOUNT_NOTIFY_BODY": {
+    "fa": "%s از گروه حذف شد",
+    "en": "%s has been removed from group"
   },
   "JOINT_NOT_VALID": {
     "fa": "گروه مورد نظر معتبر نیست",
@@ -205,6 +225,6 @@
   },
   "DAILY_NOTIFY_BODY": {
     "fa": "امروز چه هزینه‌هایی داشتی ؟",
-    "en": "What did you spend today?"
+    "en": "What did you spend today ?"
   }
 }
