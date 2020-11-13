@@ -7,6 +7,8 @@ import {
   param,
   del,
   RequestContext,
+  patch,
+  HttpErrors,
 } from '@loopback/rest';
 import { intercept, inject, service } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
@@ -15,10 +17,16 @@ import { authorize } from '@loopback/authorization';
 
 import util from 'util';
 import moment from 'moment';
+import _ from 'lodash';
 import 'moment-timezone';
 import ct from 'countries-and-timezones';
 
-import { JointRequest, JointResponse, JointAccountSubscribes, JointAccounts } from '../models';
+import {
+  JointRequest,
+  JointResponse,
+  JointAccountSubscribes,
+  JointAccountsWithRelations,
+} from '../models';
 import {
   JointAccountsRepository,
   JointAccountSubscribesRepository,
@@ -30,27 +38,30 @@ import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { basicAuthorization, BatchMessage, FirebaseService } from '../services';
 import { LocalizedMessages } from '../application';
 
+@intercept(ValidateUsersRelsInterceptor.BINDING_KEY, JointAccountsInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
+@authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
 export class JointAccountController {
   private readonly userId: number;
+  private readonly phone: string;
   lang: string;
 
   constructor(
-    @repository(JointAccountsRepository) protected jointAccountsRepo: JointAccountsRepository,
+    @inject.context() public ctx: RequestContext,
     @repository(JointAccountSubscribesRepository)
     protected jointAccSubscribesRepo: JointAccountSubscribesRepository,
-    @repository(UsersRelsRepository) protected usersRelsRepo: UsersRelsRepository,
     @repository(UsersRepository) protected usersRepo: UsersRepository,
+    @service(FirebaseService) protected firebaseSerice: FirebaseService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
     @inject('application.localizedMessages') protected locMsg: LocalizedMessages,
-    @service(FirebaseService) protected firebaseSerice: FirebaseService,
-    @inject.context() public ctx: RequestContext,
+    @repository(UsersRelsRepository) protected usersRelsRepo: UsersRelsRepository,
+    @repository(JointAccountsRepository) protected jointAccountsRepo: JointAccountsRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
+    this.phone = this.currentUserProfile.phone;
     this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
 
-  @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
   @post('/joint-accounts', {
     summary: 'POST a new JointAccounts',
     security: OPERATION_SECURITY_SPEC,
@@ -63,7 +74,6 @@ export class JointAccountController {
       },
     },
   })
-  @intercept(ValidateUsersRelsInterceptor.BINDING_KEY)
   async createJointAccount(
     @requestBody({
       content: {
@@ -144,7 +154,7 @@ export class JointAccountController {
             });
 
             firebaseMessages.push({
-              token: user!.firebaseToken!,
+              token: user!.firebaseToken ?? '',
               notification: {
                 title: savedNotify.title,
                 body: savedNotify.body,
@@ -237,7 +247,6 @@ export class JointAccountController {
     return result;
   }
 
-  @intercept(JointAccountsInterceptor.BINDING_KEY)
   @del('/joint-accounts/{jointAccountId}', {
     summary: 'DELETE a JointAccount by jointAccountId',
     description: 'Belongs Dongs will not be deleted',
@@ -252,8 +261,7 @@ export class JointAccountController {
     },
   })
   async deleteJointAccountById(
-    @param.path.number('jointAccountId', { required: true })
-    jointAccountId: typeof JointAccounts.prototype.jointAccountId,
+    @param.path.number('jointAccountId', { required: true }) jointAccountId: number,
   ): Promise<void> {
     try {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -265,9 +273,8 @@ export class JointAccountController {
     }
   }
 
-  @intercept(JointAccountsInterceptor.BINDING_KEY)
   @del('/joint-accounts/', {
-    summary: 'DELETE all JointAccounts',
+    summary: 'Delete and left from all JointAccounts',
     description: 'Belongs Dongs will not be deleted',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -286,4 +293,462 @@ export class JointAccountController {
       console.error(err);
     }
   }
+
+  @patch('joint-accounts/{jointAccountId}', {
+    summary: 'Update a JointAccount by jointAccountId. Just admin can update',
+    security: OPERATION_SECURITY_SPEC,
+    responses: { '204': { description: 'No content' } },
+  })
+  async updateJointById(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(JointRequest, {
+            title: 'PatchJointAccounts',
+            partial: true,
+          }),
+        },
+      },
+    })
+    patchReqBody: JointRequest,
+    @param.path.number('jointAccountId', { required: true }) jointAccountId: number,
+  ) {
+    const JA = await this.jointAccountsRepo.findOne({
+      where: { jointAccountId: jointAccountId, userId: this.userId },
+      include: [
+        {
+          relation: 'jointAccountSubscribes',
+          scope: {
+            include: [
+              {
+                relation: 'user',
+                scope: {
+                  fields: {
+                    userId: true,
+                    region: true,
+                    phone: true,
+                    firebaseToken: true,
+                    name: true,
+                  },
+                  include: [
+                    {
+                      relation: 'setting',
+                      scope: { fields: { userId: true, language: true } },
+                    },
+                    {
+                      relation: 'usersRels',
+                      scope: {
+                        fields: {
+                          userRelId: true,
+                          mutualUserRelId: true,
+                          userId: true,
+                          phone: true,
+                          name: true,
+                        },
+                        where: { phone: this.phone },
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    if (!JA) {
+      throw new HttpErrors.UnprocessableEntity(this.locMsg['JOINT_NOT_VALID'][this.lang]);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.performPatch(JA, patchReqBody);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  async performPatch(JA: JointAccountsWithRelations, patchReqBody: JointRequest) {
+    const notifyMsgs: BatchMessage = [];
+
+    const jointAccountId = JA.getId();
+    const JASs = JA.jointAccountSubscribes;
+    const currentUsers = _.map(JASs, (jass) => jass.user);
+
+    const props = _.pick(patchReqBody, ['title', 'description']);
+    if (_.has(props, 'title')) {
+      await this.usersRepo
+        .jointAccounts(this.userId)
+        .patch(props, { jointAccountId: jointAccountId });
+
+      // Notify for joint memebers instead of current user
+      for (const user of currentUsers.filter((u) => u.userId !== this.userId)) {
+        const timezone = ct.getTimezonesForCountry(user.region!)[0].name;
+        const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+
+        const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
+          jointAccountId: JA.getId(),
+          type: 'jointAccount',
+          title: util.format(
+            this.locMsg['UPDATE_JOINT_ACCOUNT_NOTIFY_TITLE'][user.setting.language],
+            JA.title,
+          ),
+          body: util.format(
+            this.locMsg['UPDATE_TITLE_JOINT_ACCOUNT_NOTIFY_BODY'][user.setting.language],
+            props.title,
+          ),
+          createdAt: time,
+        });
+
+        notifyMsgs.push({
+          token: user.firebaseToken ?? '',
+          notification: {
+            title: savedNotify.title,
+            body: savedNotify.body,
+          },
+          data: {
+            notifyId: savedNotify.getId().toString(),
+            title: savedNotify.title,
+            body: savedNotify.body,
+            jointAccountId: JA.getId().toString(),
+            type: savedNotify.type,
+            silent: 'false',
+          },
+        });
+      }
+    }
+
+    if (_.has(patchReqBody, 'userRelIds')) {
+      const currentUsersPhones: string[] = _.map(currentUsers, (user) => user.phone!);
+
+      const desiredUsersRels = await this.usersRepo.usersRels(this.userId).find({
+        fields: { userId: true, userRelId: true, phone: true, name: true },
+        where: { userRelId: { inq: patchReqBody.userRelIds } },
+      });
+      const desiredUsersPhones: string[] = _.map(desiredUsersRels, (rel) => rel.phone);
+
+      const deletedUserPhones: string[] = _.difference(currentUsersPhones, desiredUsersPhones);
+      const addedUserPhones: string[] = _.difference(desiredUsersPhones, currentUsersPhones);
+
+      const deletedUsers = _.filter(currentUsers, (user) =>
+        _.includes(deletedUserPhones, user.phone!),
+      );
+      const addedUsers = await this.usersRepo.find({
+        fields: { userId: true, region: true, firebaseToken: true, phone: true, name: true },
+        where: { phone: { inq: addedUserPhones } },
+        include: [{ relation: 'setting' }],
+      });
+      const fixedUsers = _.filter(
+        currentUsers,
+        (user) => !_.includes(deletedUserPhones, user.phone),
+      );
+
+      const deletedUsersIds = _.map(deletedUsers, (user) => user.userId);
+      await this.jointAccountsRepo
+        .jointAccountSubscribes(jointAccountId)
+        .delete({ userId: { inq: deletedUsersIds } });
+
+      const addedUsersIds = _.map(addedUsers, (user) => user.userId);
+      const jointSubs: JointAccountSubscribes[] = [];
+      addedUsersIds.forEach((id) => {
+        jointSubs.push(
+          new JointAccountSubscribes({
+            userId: id,
+            jointAccountId: jointAccountId,
+          }),
+        );
+      });
+      if (jointSubs.length) {
+        await this.jointAccSubscribesRepo.createAll(jointSubs);
+      }
+
+      // Notify for joint memebers except current user
+      for (const user of fixedUsers.filter((u) => u.userId !== this.userId)) {
+        const timezone = ct.getTimezonesForCountry(user.region!)[0].name;
+        const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+
+        for (const aUser of addedUsers) {
+          const targetRel = await this.usersRelsRepo.findOne({
+            fields: { userId: true, name: true },
+            where: { userId: user.getId(), phone: aUser.phone },
+          });
+          const savedNotify = await this.usersRepo.notifications(user.getId()).create({
+            jointAccountId: JA.getId(),
+            type: 'jointAccount',
+            title: util.format(
+              this.locMsg['UPDATE_JOINT_ACCOUNT_NOTIFY_TITLE'][user.setting.language],
+              props.title ?? JA.title,
+            ),
+            body: util.format(
+              this.locMsg['ADD_MEMBERS_JOINT_ACCOUNT_NOTIFY_BODY'][user.setting.language],
+              targetRel?.name ?? aUser.name,
+            ),
+            createdAt: time,
+          });
+
+          notifyMsgs.push({
+            token: user.firebaseToken ?? '',
+            notification: {
+              title: savedNotify.title,
+              body: savedNotify.body,
+            },
+            data: {
+              notifyId: savedNotify.getId().toString(),
+              title: savedNotify.title,
+              body: savedNotify.body,
+              jointAccountId: JA.getId().toString(),
+              type: savedNotify.type,
+              silent: 'false',
+            },
+          });
+        }
+
+        for (const dUser of deletedUsers) {
+          const targetRel = await this.usersRelsRepo.findOne({
+            fields: { userId: true, name: true },
+            where: { userId: user.getId(), phone: dUser.phone },
+          });
+          const savedNotify = await this.usersRepo.notifications(user.getId()).create({
+            jointAccountId: JA.getId(),
+            type: 'jointAccount',
+            title: util.format(
+              this.locMsg['UPDATE_JOINT_ACCOUNT_NOTIFY_TITLE'][user.setting.language],
+              props.title ?? JA.title,
+            ),
+            body: util.format(
+              this.locMsg['DELETE_MEMBERS_JOINT_ACCOUNT_NOTIFY_BODY'][user.setting.language],
+              targetRel?.name ?? dUser.name,
+            ),
+            createdAt: time,
+          });
+
+          notifyMsgs.push({
+            token: user.firebaseToken ?? '',
+            notification: {
+              title: savedNotify.title,
+              body: savedNotify.body,
+            },
+            data: {
+              notifyId: savedNotify.getId().toString(),
+              title: savedNotify.title,
+              body: savedNotify.body,
+              jointAccountId: JA.getId().toString(),
+              type: savedNotify.type,
+              silent: 'false',
+            },
+          });
+        }
+      }
+
+      // Notify to added user
+      for (const user of addedUsers) {
+        const timezone = ct.getTimezonesForCountry(user.region!)[0].name;
+        const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+
+        const targetRel = await this.usersRelsRepo.findOne({
+          fields: { userId: true, name: true },
+          where: { userId: user.getId(), phone: this.phone },
+        });
+        const savedNotify = await this.usersRepo.notifications(user.getId()).create({
+          jointAccountId: JA.getId(),
+          type: 'jointAccount',
+          title: util.format(
+            this.locMsg['UPDATE_JOINT_ACCOUNT_NOTIFY_TITLE'][user.setting.language],
+            props.title ?? JA.title,
+          ),
+          body: util.format(
+            this.locMsg['NEW_JOINT_ACCOUNT_NOTIFY_BODY'][user.setting.language],
+            targetRel?.name,
+            props.title ?? JA.title,
+          ),
+          createdAt: time,
+        });
+
+        notifyMsgs.push({
+          token: user.firebaseToken ?? '',
+          notification: {
+            title: savedNotify.title,
+            body: savedNotify.body,
+          },
+          data: {
+            notifyId: savedNotify.getId().toString(),
+            title: savedNotify.title,
+            body: savedNotify.body,
+            jointAccountId: JA.getId().toString(),
+            type: savedNotify.type,
+            silent: 'false',
+          },
+        });
+      }
+
+      // Notify to deleted user
+      for (const user of deletedUsers) {
+        const timezone = ct.getTimezonesForCountry(user.region!)[0].name;
+        const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+
+        const targetRel = await this.usersRelsRepo.findOne({
+          fields: { userId: true, name: true },
+          where: { userId: user.getId(), phone: this.phone },
+        });
+        const savedNotify = await this.usersRepo.notifications(user.getId()).create({
+          jointAccountId: JA.getId(),
+          type: 'jointAccount',
+          title: util.format(
+            this.locMsg['UPDATE_JOINT_ACCOUNT_NOTIFY_TITLE'][user.setting.language],
+            props.title ?? JA.title,
+          ),
+          body: util.format(
+            this.locMsg['DELETE_YOU_JOINT_ACCOUNT_NOTIFY_BODY'][user.setting.language],
+            targetRel?.name,
+            JA.title,
+          ),
+          createdAt: time,
+        });
+
+        notifyMsgs.push({
+          token: user.firebaseToken ?? '',
+          notification: {
+            title: savedNotify.title,
+            body: savedNotify.body,
+          },
+          data: {
+            notifyId: savedNotify.getId().toString(),
+            title: savedNotify.title,
+            body: savedNotify.body,
+            jointAccountId: JA.getId().toString(),
+            type: savedNotify.type,
+            silent: 'false',
+          },
+        });
+      }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    if (notifyMsgs.length) this.firebaseSerice.sendAllMessage(notifyMsgs);
+  }
+
+  // @patch('/joint-account/{jointAccountId}/delete/{userRelId}', { responses: { 204: '' } })
+  // async deleteRelFromJointAccount() {}
+
+  // @patch('/joint-account/{jointAccountId}/add/{userRelId}', {
+  //   security: OPERATION_SECURITY_SPEC,
+  //   responses: { 200: '' },
+  // })
+  // async addRelFromJointAccount(
+  //   @param.path.number('jointAccountId', { required: true }) jointAccountId: number,
+  //   @param.path.number('userRelId', { required: true }) userRelId: number,
+  // ) {
+  //   const notifyMsgs: BatchMessage = [];
+  //   const JA = await this.jointAccountsRepo.findOne({
+  //     where: { jointAccountId: jointAccountId, userId: this.userId },
+  //     include: [
+  //       {
+  //         relation: 'jointAccountSubscribes',
+  //         scope: {
+  //           include: [
+  //             {
+  //               relation: 'user',
+  //               scope: {
+  //                 fields: { userId: true, region: true, phone: true, firebaseToken: true },
+  //                 include: [
+  //                   {
+  //                     relation: 'setting',
+  //                     scope: { fields: { userId: true, language: true } },
+  //                   },
+  //                   {
+  //                     relation: 'usersRels',
+  //                     scope: {
+  //                       fields: {
+  //                         userRelId: true,
+  //                         mutualUserRelId: true,
+  //                         userId: true,
+  //                         phone: true,
+  //                         name: true,
+  //                       },
+  //                       where: { phone: this.phone },
+  //                     },
+  //                   },
+  //                 ],
+  //               },
+  //             },
+  //           ],
+  //         },
+  //       },
+  //     ],
+  //   });
+
+  //   if (!JA) {
+  //     throw new HttpErrors.UnprocessableEntity(this.locMsg['JOINT_NOT_VALID'][this.lang]);
+  //   }
+
+  //   const JASs = JA.jointAccountSubscribes;
+  //   const currentUsers = _.map(JASs, (jass) => jass.user);
+
+  //   const userRel = await this.usersRelsRepo.findOne({
+  //     fields: { mutualUserRelId: true, phone: true },
+  //     where: { userId: this.userId, userRelId: userRelId },
+  //   });
+
+  //   const targetUser = await this.usersRepo.findOne({
+  //     fields: { userId: true, region: true, phone: true },
+  //     where: { phone: userRel?.phone },
+  //     include: [
+  //       {
+  //         relation: 'usersRels',
+  //         scope: {
+  //           where: { userRelId: userRel?.mutualUserRelId },
+  //           fields: { userId: true, name: true, phone: true },
+  //         },
+  //       },
+  //       { relation: 'setting', scope: { fields: { language: true, userId: true } } },
+  //     ],
+  //   });
+
+  //   const jointSub = new JointAccountSubscribes({
+  //     userId: targetUser?.getId(),
+  //     jointAccountId: jointAccountId,
+  //   });
+  //   await this.jointAccSubscribesRepo.create(jointSub);
+
+  //   // Notify for joint memebers instead of current user
+  //   for (const user of currentUsers.filter((u) => u.userId !== this.userId)) {
+  //     const timezone = ct.getTimezonesForCountry(user.region!)[0].name;
+  //     const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+
+  //     const targetRel = await this.usersRelsRepo.findOne({
+  //       fields: { userId: true, name: true },
+  //       where: { userId: user.getId(), phone: targetUser!.phone },
+  //     });
+  //     const savedNotify = await this.usersRepo.notifications(user.getId()).create({
+  //       jointAccountId: JA.getId(),
+  //       type: 'jointAccount',
+  //       title: util.format(
+  //         this.locMsg['UPDATE_JOINT_ACCOUNT_NOTIFY_TITLE'][user.setting.language],
+  //         JA.title,
+  //       ),
+  //       body: util.format(
+  //         this.locMsg['ADD_MEMBERS_JOINT_ACCOUNT_NOTIFY_BODY'][user.setting.language],
+  //         targetRel?.name ?? targetUser!.name,
+  //       ),
+  //       createdAt: time,
+  //     });
+
+  //     notifyMsgs.push({
+  //       token: user.firebaseToken ?? '',
+  //       notification: {
+  //         title: savedNotify.title,
+  //         body: savedNotify.body,
+  //       },
+  //       data: {
+  //         notifyId: savedNotify.getId().toString(),
+  //         title: savedNotify.title,
+  //         body: savedNotify.body,
+  //         jointAccountId: JA.getId().toString(),
+  //         type: savedNotify.type,
+  //         silent: 'false',
+  //       },
+  //     });
+  //   }
+
+  //   // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  //   if (notifyMsgs.length) this.firebaseSerice.sendAllMessage(notifyMsgs);
+  // }
 }

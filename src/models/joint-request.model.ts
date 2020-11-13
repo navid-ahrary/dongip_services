@@ -26,7 +26,7 @@ export class JointRequest extends Model {
     jsonSchema: {
       type: 'array',
       uniqueItems: true,
-      minItems: 2,
+      minItems: 1,
       items: { type: 'number', minimum: 1 },
     },
   })

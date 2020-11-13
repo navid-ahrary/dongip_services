@@ -229,7 +229,8 @@ export class UsersRelsController {
             }),
           })
           .then(async (createdNotify) => {
-            await this.firebaseService.sendToDeviceMessage(foundTargetUser.firebaseToken!, {
+            const token = foundTargetUser.firebaseToken ?? '';
+            await this.firebaseService.sendToDeviceMessage(token, {
               notification: {
                 title: notifyTitle,
                 body: notifyBody,
