@@ -1,27 +1,18 @@
-import {repository, Count, CountSchema} from '@loopback/repository';
-import {
-  param,
-  get,
-  getModelSchemaRef,
-  patch,
-  del,
-  requestBody,
-  api,
-  post,
-} from '@loopback/rest';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {inject, intercept} from '@loopback/core';
-import {authenticate} from '@loopback/authentication';
+import { repository, Count, CountSchema } from '@loopback/repository';
+import { param, get, getModelSchemaRef, patch, del, requestBody, api, post } from '@loopback/rest';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { inject, intercept } from '@loopback/core';
+import { authenticate } from '@loopback/authentication';
 
 import moment from 'moment';
 
-import {Budgets} from '../models';
-import {BudgetsRepository} from '../repositories';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {ValidateBudgetIdInterceptor} from '../interceptors';
+import { Budgets } from '../models';
+import { BudgetsRepository } from '../repositories';
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
+import { ValidateBudgetIdInterceptor } from '../interceptors';
 
 @authenticate('jwt.access')
-@api({basePath: '/', paths: {}})
+@api({ basePath: '/', paths: {} })
 @intercept(ValidateBudgetIdInterceptor.BINDING_KEY)
 export class BudgetsController {
   private readonly userId: number;
@@ -35,8 +26,7 @@ export class BudgetsController {
 
   @get('/budgets/', {
     summary: 'GET all Budgets',
-    description:
-      'Budgets belongs to [Group, Category, UserRel] are included too',
+    description: 'Budgets belongs to [Group, Category, UserRel] are included too',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -45,7 +35,7 @@ export class BudgetsController {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(Budgets, {includeRelations: false}),
+              items: getModelSchemaRef(Budgets, { includeRelations: false }),
             },
           },
         },
@@ -53,7 +43,7 @@ export class BudgetsController {
     },
   })
   async findBudgets(): Promise<Budgets[]> {
-    return this.budgetsRepository.find({where: {userId: this.userId}});
+    return this.budgetsRepository.find({ where: { userId: this.userId } });
   }
 
   @post('/budgets/', {
@@ -64,7 +54,7 @@ export class BudgetsController {
         description: 'Budgets model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Budgets, {includeRelations: false}),
+            schema: getModelSchemaRef(Budgets, { includeRelations: false }),
           },
         },
       },
@@ -106,9 +96,9 @@ export class BudgetsController {
                 endDate: moment().add(3, 'm'),
               },
             },
-            GroupBudget: {
+            JointAccountBudget: {
               value: {
-                title: 'My Group Budget',
+                title: 'My Joint Budget',
                 budgetAmount: 700000,
                 currency: 'USD',
                 userRelId: 0,
@@ -124,23 +114,22 @@ export class BudgetsController {
     })
     newBudget: Omit<Budgets, 'budgetId'>,
   ): Promise<Budgets> {
-    return this.budgetsRepository.create({...newBudget, userId: this.userId});
+    return this.budgetsRepository.create({ ...newBudget, userId: this.userId });
   }
 
   @patch('/budgets/{budgetId}', {
     summary: 'PATCH a Budget by budgetId',
-    description:
-      'Budgets belongs to [Group, Category, UserRel] are included too ',
+    description: 'Budgets belongs to [Group, Category, UserRel] are included too ',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'Budgets PATCH success. No content',
       },
-      '422': {description: 'Failure, budgetId is unprocessable'},
+      '422': { description: 'Failure, budgetId is unprocessable' },
     },
   })
   async updateBudgetsById(
-    @param.path.number('budgetId', {required: true, example: 1})
+    @param.path.number('budgetId', { required: true, example: 1 })
     budgetId: typeof Budgets.prototype.budgetId,
     @requestBody({
       description: 'Just desired properties',
@@ -199,18 +188,17 @@ export class BudgetsController {
 
   @del('/budgets/{budgetId}', {
     summary: 'DELETE a Budget by budgetId',
-    description:
-      'Budgets belongs to [Group, Category, UserRel] are included too ',
+    description: 'Budgets belongs to [Group, Category, UserRel] are included too ',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'Budgets DELETE success. No content',
       },
-      '422': {description: 'Failure, budgetId is unprocessable'},
+      '422': { description: 'Failure, budgetId is unprocessable' },
     },
   })
   async deleteBudgetsById(
-    @param.path.number('budgetId', {required: true, example: 1})
+    @param.path.number('budgetId', { required: true, example: 1 })
     budgetId: typeof Budgets.prototype.budgetId,
   ): Promise<void> {
     await this.budgetsRepository.deleteById(budgetId);
@@ -218,8 +206,7 @@ export class BudgetsController {
 
   @del('/budgets/', {
     summary: 'DELETE all Budgets ',
-    description:
-      'Budgets belongs to [Group, Category, UserRel] are included too ',
+    description: 'Budgets belongs to [Group, Category, UserRel] are included too ',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -233,6 +220,6 @@ export class BudgetsController {
     },
   })
   async deleteAllBudgets(): Promise<Count> {
-    return this.budgetsRepository.deleteAll({userId: this.userId});
+    return this.budgetsRepository.deleteAll({ userId: this.userId });
   }
 }

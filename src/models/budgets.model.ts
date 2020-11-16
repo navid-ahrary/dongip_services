@@ -1,16 +1,10 @@
-import {
-  Entity,
-  model,
-  property,
-  belongsTo,
-  RelationType,
-} from '@loopback/repository';
+import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
 
-import {Users} from './users.model';
-import {Categories} from './categories.model';
-import {UsersRels} from './users-rels.model';
-import {Groups} from './groups.model';
-import {CurrencyEnum} from './settings.model';
+import { Users } from './users.model';
+import { Categories } from './categories.model';
+import { UsersRels } from './users-rels.model';
+import { Groups } from './groups.model';
+import { CurrencyEnum } from './settings.model';
 
 @model({
   name: 'budgets',
@@ -32,11 +26,11 @@ import {CurrencyEnum} from './settings.model';
         onUpdate: 'no action',
         onDelete: 'cascade',
       },
-      fkBudgetsGroupId: {
-        name: 'fk_budgets_group_id',
-        entity: 'groups',
+      fkBudgetsJointAccountId: {
+        name: 'fk_budgets_joint_account_id',
+        entity: 'joint_accounts',
         entityKey: 'id',
-        foreignKey: 'groupId',
+        foreignKey: 'jointAccountId',
         onUpdate: 'no action',
         onDelete: 'cascade',
       },
@@ -67,8 +61,8 @@ export class Budgets extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {minLength: 1, maxLength: 50},
-    mysql: {dataType: 'varchar', dataLength: 50, nullable: 'N'},
+    jsonSchema: { minLength: 1, maxLength: 50 },
+    mysql: { dataType: 'varchar', dataLength: 50, nullable: 'N' },
   })
   title: string;
 
@@ -104,7 +98,7 @@ export class Budgets extends Entity {
   @property({
     type: 'number',
     required: false,
-    mysql: {dataType: 'mediumint', nullable: 'N'},
+    mysql: { dataType: 'mediumint', nullable: 'N' },
   })
   date: number;
 
@@ -140,7 +134,7 @@ export class Budgets extends Entity {
     },
     {
       type: ['null', 'number'],
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'category_id',
         dataType: 'mediumint unsigned',
@@ -163,7 +157,7 @@ export class Budgets extends Entity {
     },
     {
       type: ['null', 'number'],
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_rel_id',
         dataType: 'mediumint unsigned',
@@ -186,16 +180,16 @@ export class Budgets extends Entity {
     },
     {
       type: ['null', 'number'],
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
-        columnName: 'group_id',
+        columnName: 'joint_account_id',
         dataType: 'mediumint unsigned',
         dataLength: null,
         nullable: 'Y',
       },
     },
   )
-  groupId?: number;
+  jointAccountId?: number;
 
   @belongsTo(
     () => Users,
@@ -209,7 +203,7 @@ export class Budgets extends Entity {
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',
