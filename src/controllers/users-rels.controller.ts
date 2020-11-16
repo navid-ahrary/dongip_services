@@ -229,7 +229,8 @@ export class UsersRelsController {
             }),
           })
           .then(async (createdNotify) => {
-            await this.firebaseService.sendToDeviceMessage(foundTargetUser.firebaseToken!, {
+            const token = foundTargetUser.firebaseToken ?? '';
+            await this.firebaseService.sendToDeviceMessage(token, {
               notification: {
                 title: notifyTitle,
                 body: notifyBody,
@@ -309,6 +310,17 @@ export class UsersRelsController {
         await this.usersRelsRepository
           .hasOneVirtualUser(userRelId)
           .patch(vu, { userId: this.userId });
+      }
+
+      if (_.has(patchUserRelReqBody, 'name')) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository
+          .billList(this.userId)
+          .patch({ userRelName: patchUserRelReqBody.name }, { userRelId: userRelId });
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository
+          .payerList(this.userId)
+          .patch({ userRelName: patchUserRelReqBody.name }, { userRelId: userRelId });
       }
     } catch (err) {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {

@@ -201,9 +201,7 @@ export class UsersController {
     @requestBody(UserPatchRequestBody) updateUserReqBody: Omit<Users, '_key'>,
   ): Promise<void> {
     if (updateUserReqBody.avatar) {
-      await this.usersRepository
-        .usersRels(this.userId)
-        .patch({ avatar: updateUserReqBody.avatar }, { type: 'self' });
+      await this.usersRepository.usersRels(this.userId).patch(updateUserReqBody, { type: 'self' });
     }
 
     const patchUser: DataObject<Users> = {};
@@ -234,13 +232,12 @@ export class UsersController {
         delete updateUserReqBody.email;
       } else {
         updateUserReqBody.emailLocked = true;
-
         patchUser.email = updateUserReqBody.email;
       }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRepository.usersRels(this.userId).patch(patchUser, { type: 'self' });
+    // // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    // this.usersRepository.usersRels(this.userId).patch(patchUser, { type: 'self' });
 
     return this.usersRepository.updateById(this.userId, updateUserReqBody).catch((err) => {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
@@ -271,10 +268,8 @@ export class UsersController {
   ): Promise<void> {
     try {
       const userProps = _.pick(cmpltSignBody, ['avatar', 'name', 'phone', 'email']);
-
       const settingProps: Partial<Settings> = _.pick(cmpltSignBody, ['language', 'currency']);
-
-      const userRelProps: Partial<UsersRels> = {};
+      const userRelProps: Partial<UsersRels> = _.pick(cmpltSignBody, ['avatar', 'name']);
 
       if (_.has(userProps, 'phone')) {
         const u = await this.usersRepository.findOne({
@@ -299,11 +294,9 @@ export class UsersController {
           userRelProps.email = userProps.email;
         }
       }
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       await this.usersRepository.usersRels(this.userId).patch(userRelProps, { type: 'self' });
 
       if (Object.keys(settingProps).length) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         await this.usersRepository.setting(this.userId).patch(settingProps);
       }
 
