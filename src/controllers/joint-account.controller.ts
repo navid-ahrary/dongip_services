@@ -101,69 +101,65 @@ export class JointAccountController {
       description: jointAccountsReq.description,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRelsRepo
-      .find({
-        fields: { userId: true, phone: true, type: true },
-        where: {
-          userId: this.userId,
-          userRelId: { inq: jointAccountsReq.userRelIds },
-        },
-      })
-      .then(async (urs) => {
-        const jsList: Array<DataObject<JointAccountSubscribes>> = [];
+    const urs = await this.usersRelsRepo.find({
+      fields: { userId: true, phone: true, type: true },
+      where: {
+        userId: this.userId,
+        userRelId: { inq: jointAccountsReq.userRelIds },
+      },
+    });
+    const jsList: Array<DataObject<JointAccountSubscribes>> = [];
 
-        for (const ur of urs) {
-          const user = await this.usersRepo.findOne({
-            fields: { userId: true, firebaseToken: true, region: true },
-            where: { phone: ur.phone },
-            include: [
-              { relation: 'usersRels', scope: { where: { phone: currentUser.phone } } },
-              { relation: 'setting' },
-            ],
-          });
-
-          jsList.push({ jointAccountId: JA.jointAccountId, userId: user!.getId() });
-
-          if (ur.type !== 'self') {
-            const timezone = ct.getTimezonesForCountry(user!.region!)[0].name;
-            const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
-
-            const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
-              jointAccountId: JA.getId(),
-              type: 'jointAccount',
-              title: util.format(
-                this.locMsg['NEW_JOINT_ACCOUNT_NOTIFY_TITLE'][user!.setting.language],
-              ),
-              body: util.format(
-                this.locMsg['NEW_JOINT_ACCOUNT_NOTIFY_BODY'][user!.setting.language],
-                user?.usersRels[0].name,
-                JA.title,
-              ),
-              createdAt: time,
-            });
-
-            firebaseMessages.push({
-              token: user!.firebaseToken!,
-              notification: {
-                title: savedNotify.title,
-                body: savedNotify.body,
-              },
-              data: {
-                notifyId: savedNotify.getId().toString(),
-                title: savedNotify.title,
-                body: savedNotify.body,
-                jointAccountId: JA.getId().toString(),
-                type: savedNotify.type,
-                silent: 'false',
-              },
-            });
-          }
-        }
-
-        await this.firebaseSerice.sendAllMessage(firebaseMessages);
-        await this.jointAccSubscribesRepo.createAll(jsList);
+    for (const ur of urs) {
+      const user = await this.usersRepo.findOne({
+        fields: { userId: true, firebaseToken: true, region: true },
+        where: { phone: ur.phone },
+        include: [
+          { relation: 'usersRels', scope: { where: { phone: currentUser.phone } } },
+          { relation: 'setting' },
+        ],
       });
+
+      jsList.push({ jointAccountId: JA.jointAccountId, userId: user!.getId() });
+
+      if (ur.type !== 'self') {
+        const timezone = ct.getTimezonesForCountry(user!.region!)[0].name;
+        const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+
+        const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
+          jointAccountId: JA.getId(),
+          type: 'jointAccount',
+          title: util.format(this.locMsg['NEW_JOINT_ACCOUNT_NOTIFY_TITLE'][user!.setting.language]),
+          body: util.format(
+            this.locMsg['NEW_JOINT_ACCOUNT_NOTIFY_BODY'][user!.setting.language],
+            user?.usersRels[0].name,
+            JA.title,
+          ),
+          createdAt: time,
+        });
+
+        firebaseMessages.push({
+          token: user!.firebaseToken!,
+          notification: {
+            title: savedNotify.title,
+            body: savedNotify.body,
+          },
+          data: {
+            notifyId: savedNotify.getId().toString(),
+            title: savedNotify.title,
+            body: savedNotify.body,
+            jointAccountId: JA.getId().toString(),
+            type: savedNotify.type,
+            silent: 'false',
+          },
+        });
+      }
+    }
+
+    await this.jointAccSubscribesRepo.createAll(jsList);
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.firebaseSerice.sendAllMessage(firebaseMessages);
 
     return new JointResponse({
       jointAccountId: JA.getId(),
