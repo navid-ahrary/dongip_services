@@ -14,7 +14,7 @@ import { HttpErrors, Request, RestBindings } from '@loopback/rest';
 import {
   BudgetsRepository,
   CategoriesRepository,
-  GroupsRepository,
+  JointAccountsRepository,
   UsersRelsRepository,
 } from '../repositories';
 import { Budgets } from '../models';
@@ -34,7 +34,7 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
     @repository(BudgetsRepository) public budgetsRepo: BudgetsRepository,
     @repository(CategoriesRepository)
     public categoriessRepo: CategoriesRepository,
-    @repository(GroupsRepository) public groupsRepo: GroupsRepository,
+    @repository(JointAccountsRepository) public joitAccRepo: JointAccountsRepository,
     @repository(UsersRelsRepository) public usersRelsRepo: UsersRelsRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @inject(RestBindings.Http.REQUEST) private req: Request,
@@ -127,10 +127,13 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
         throw new HttpErrors.UnprocessableEntity(errMsg);
       }
 
-      const foundأGroup = await this.groupsRepo.findOne({
-        where: { userId: this.userId, groupId: entity.jointAccountId },
+      const JA = await this.joitAccRepo.findOne({
+        where: { jointAccountId: entity.jointAccountId },
+        include: [
+          { relation: 'jointAccountSubscribes', scope: { where: { userId: this.userId } } },
+        ],
       });
-      if (!foundأGroup) {
+      if (!JA?.jointAccountSubscribes) {
         errMsg = this.locMsg['GROUP_NOT_VALID'][this.lang];
         throw new HttpErrors.UnprocessableEntity(errMsg);
       }

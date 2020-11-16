@@ -7,7 +7,6 @@ import { Dongs } from './dongs.model';
 import { Categories } from './categories.model';
 import { UsersRels, UsersRelsWithRelations } from './users-rels.model';
 import { Scores } from './scores.model';
-import { Groups } from './groups.model';
 import { Messages } from './messages.model';
 import { Notifications } from './notifications.model';
 import { Budgets } from './budgets.model';
@@ -273,17 +272,6 @@ export class Users extends Entity {
     targetsMany: true,
   })
   scores: Scores[];
-
-  @hasMany(() => Groups, {
-    type: RelationType.hasMany,
-    keyTo: 'userId',
-    keyFrom: 'userId',
-    name: 'groups',
-    source: Users,
-    target: () => Groups,
-    targetsMany: true,
-  })
-  groups: Groups[];
 
   @hasMany(() => Messages, {
     type: RelationType.hasMany,

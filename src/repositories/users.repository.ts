@@ -4,9 +4,9 @@ import {
   DefaultCrudRepository,
   HasOneRepositoryFactory,
 } from '@loopback/repository';
-import {inject, Getter} from '@loopback/core';
+import { inject, Getter } from '@loopback/core';
 
-import {MysqlDataSource} from '../datasources';
+import { MysqlDataSource } from '../datasources';
 import {
   Users,
   VirtualUsers,
@@ -16,7 +16,6 @@ import {
   BillList,
   PayerList,
   Scores,
-  Groups,
   Messages,
   Notifications,
   Budgets,
@@ -26,91 +25,52 @@ import {
   JointAccounts,
   JointAccountSubscribes,
 } from '../models';
-import {BillListRepository} from './bill-list.repository';
-import {PayerListRepository} from './payer-list.repository';
-import {ScoresRepository} from './scores.repository';
-import {GroupsRepository} from './groups.repository';
-import {MessagesRepository} from './messages.repository';
-import {NotificationsRepository} from './notifications.repository';
-import {BudgetsRepository} from './budgets.repository';
-import {SettingsRepository} from './settings.repository';
-import {PurchasesRepository} from './purchases.repository';
-import {SubscriptionsRepository} from './subscriptions.repository';
-import {VirtualUsersRepository} from './virtual-users.repository';
-import {DongsRepository} from './dongs.repository';
-import {CategoriesRepository} from './categories.repository';
-import {UsersRelsRepository} from './users-rels.repository';
-import {JointAccountsRepository} from './joint-accounts.repository';
-import {JointAccountSubscribesRepository} from './joint-account-subscribes.repository';
+import { BillListRepository } from './bill-list.repository';
+import { PayerListRepository } from './payer-list.repository';
+import { ScoresRepository } from './scores.repository';
+import { MessagesRepository } from './messages.repository';
+import { NotificationsRepository } from './notifications.repository';
+import { BudgetsRepository } from './budgets.repository';
+import { SettingsRepository } from './settings.repository';
+import { PurchasesRepository } from './purchases.repository';
+import { SubscriptionsRepository } from './subscriptions.repository';
+import { VirtualUsersRepository } from './virtual-users.repository';
+import { DongsRepository } from './dongs.repository';
+import { CategoriesRepository } from './categories.repository';
+import { UsersRelsRepository } from './users-rels.repository';
+import { JointAccountsRepository } from './joint-accounts.repository';
+import { JointAccountSubscribesRepository } from './joint-account-subscribes.repository';
 
-export class UsersRepository extends DefaultCrudRepository<
-  Users,
-  typeof Users.prototype.userId
-> {
+export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.prototype.userId> {
   public readonly virtualUsers: HasManyRepositoryFactory<
     VirtualUsers,
     typeof Users.prototype.userId
   >;
 
-  public readonly dongs: HasManyRepositoryFactory<
-    Dongs,
-    typeof Users.prototype.userId
-  >;
+  public readonly dongs: HasManyRepositoryFactory<Dongs, typeof Users.prototype.userId>;
 
-  public readonly categories: HasManyRepositoryFactory<
-    Categories,
-    typeof Users.prototype.userId
-  >;
+  public readonly categories: HasManyRepositoryFactory<Categories, typeof Users.prototype.userId>;
 
-  public readonly usersRels: HasManyRepositoryFactory<
-    UsersRels,
-    typeof Users.prototype.userId
-  >;
+  public readonly usersRels: HasManyRepositoryFactory<UsersRels, typeof Users.prototype.userId>;
 
-  public readonly billList: HasManyRepositoryFactory<
-    BillList,
-    typeof Users.prototype.userId
-  >;
+  public readonly billList: HasManyRepositoryFactory<BillList, typeof Users.prototype.userId>;
 
-  public readonly payerList: HasManyRepositoryFactory<
-    PayerList,
-    typeof Users.prototype.userId
-  >;
+  public readonly payerList: HasManyRepositoryFactory<PayerList, typeof Users.prototype.userId>;
 
-  public readonly scores: HasManyRepositoryFactory<
-    Scores,
-    typeof Users.prototype.userId
-  >;
+  public readonly scores: HasManyRepositoryFactory<Scores, typeof Users.prototype.userId>;
 
-  public readonly groups: HasManyRepositoryFactory<
-    Groups,
-    typeof Users.prototype.userId
-  >;
-
-  public readonly messages: HasManyRepositoryFactory<
-    Messages,
-    typeof Users.prototype.userId
-  >;
+  public readonly messages: HasManyRepositoryFactory<Messages, typeof Users.prototype.userId>;
 
   public readonly notifications: HasManyRepositoryFactory<
     Notifications,
     typeof Users.prototype.userId
   >;
 
-  public readonly budgets: HasManyRepositoryFactory<
-    Budgets,
-    typeof Users.prototype.userId
-  >;
+  public readonly budgets: HasManyRepositoryFactory<Budgets, typeof Users.prototype.userId>;
 
-  public readonly setting: HasOneRepositoryFactory<
-    Settings,
-    typeof Users.prototype.userId
-  >;
+  public readonly setting: HasOneRepositoryFactory<Settings, typeof Users.prototype.userId>;
 
-  public readonly purchases: HasManyRepositoryFactory<
-    Purchases,
-    typeof Users.prototype.userId
-  >;
+  public readonly purchases: HasManyRepositoryFactory<Purchases, typeof Users.prototype.userId>;
 
   public readonly subscriptions: HasManyRepositoryFactory<
     Subscriptions,
@@ -143,8 +103,6 @@ export class UsersRepository extends DefaultCrudRepository<
     protected payerListRepositoryGetter: Getter<PayerListRepository>,
     @repository.getter('ScoresRepository')
     protected scoresRepositoryGetter: Getter<ScoresRepository>,
-    @repository.getter('GroupsRepository')
-    protected groupsRepositoryGetter: Getter<GroupsRepository>,
     @repository.getter('MessagesRepository')
     protected messagesRepositoryGetter: Getter<MessagesRepository>,
     @repository.getter('NotificationsRepository')
@@ -160,9 +118,7 @@ export class UsersRepository extends DefaultCrudRepository<
     @repository.getter('JointAccountsRepository')
     protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
     @repository.getter('JointAccountSubscribesRepository')
-    protected jointAccountSubscribesRepositoryGetter: Getter<
-      JointAccountSubscribesRepository
-    >,
+    protected jointAccountSubscribesRepositoryGetter: Getter<JointAccountSubscribesRepository>,
   ) {
     super(Users, dataSource);
 
@@ -179,115 +135,58 @@ export class UsersRepository extends DefaultCrudRepository<
       'jointAccounts',
       jointAccountsRepositoryGetter,
     );
-    this.registerInclusionResolver(
-      'jointAccounts',
-      this.jointAccounts.inclusionResolver,
-    );
+    this.registerInclusionResolver('jointAccounts', this.jointAccounts.inclusionResolver);
 
     this.subscriptions = this.createHasManyRepositoryFactoryFor(
       'subscriptions',
       subscriptionsRepositoryGetter,
     );
-    this.registerInclusionResolver(
-      'subscriptions',
-      this.subscriptions.inclusionResolver,
-    );
+    this.registerInclusionResolver('subscriptions', this.subscriptions.inclusionResolver);
 
-    this.purchases = this.createHasManyRepositoryFactoryFor(
-      'purchases',
-      purchasesRepositoryGetter,
-    );
-    this.registerInclusionResolver(
-      'purchases',
-      this.purchases.inclusionResolver,
-    );
+    this.purchases = this.createHasManyRepositoryFactoryFor('purchases', purchasesRepositoryGetter);
+    this.registerInclusionResolver('purchases', this.purchases.inclusionResolver);
 
-    this.setting = this.createHasOneRepositoryFactoryFor(
-      'setting',
-      settingsRepositoryGetter,
-    );
+    this.setting = this.createHasOneRepositoryFactoryFor('setting', settingsRepositoryGetter);
     this.registerInclusionResolver('setting', this.setting.inclusionResolver);
 
-    this.budgets = this.createHasManyRepositoryFactoryFor(
-      'budgets',
-      budgetsRepositoryGetter,
-    );
+    this.budgets = this.createHasManyRepositoryFactoryFor('budgets', budgetsRepositoryGetter);
     this.registerInclusionResolver('budgets', this.budgets.inclusionResolver);
 
     this.notifications = this.createHasManyRepositoryFactoryFor(
       'notifications',
       notificationsRepositoryGetter,
     );
-    this.registerInclusionResolver(
-      'notifications',
-      this.notifications.inclusionResolver,
-    );
+    this.registerInclusionResolver('notifications', this.notifications.inclusionResolver);
 
-    this.messages = this.createHasManyRepositoryFactoryFor(
-      'messages',
-      messagesRepositoryGetter,
-    );
+    this.messages = this.createHasManyRepositoryFactoryFor('messages', messagesRepositoryGetter);
     this.registerInclusionResolver('messages', this.messages.inclusionResolver);
 
-    this.groups = this.createHasManyRepositoryFactoryFor(
-      'groups',
-      groupsRepositoryGetter,
-    );
-    this.registerInclusionResolver('groups', this.groups.inclusionResolver);
-
-    this.scores = this.createHasManyRepositoryFactoryFor(
-      'scores',
-      scoresRepositoryGetter,
-    );
+    this.scores = this.createHasManyRepositoryFactoryFor('scores', scoresRepositoryGetter);
     this.registerInclusionResolver('scores', this.scores.inclusionResolver);
 
-    this.payerList = this.createHasManyRepositoryFactoryFor(
-      'payerList',
-      payerListRepositoryGetter,
-    );
-    this.registerInclusionResolver(
-      'payerList',
-      this.payerList.inclusionResolver,
-    );
+    this.payerList = this.createHasManyRepositoryFactoryFor('payerList', payerListRepositoryGetter);
+    this.registerInclusionResolver('payerList', this.payerList.inclusionResolver);
 
-    this.billList = this.createHasManyRepositoryFactoryFor(
-      'billList',
-      billListRepositoryGetter,
-    );
+    this.billList = this.createHasManyRepositoryFactoryFor('billList', billListRepositoryGetter);
     this.registerInclusionResolver('billList', this.billList.inclusionResolver);
 
-    this.usersRels = this.createHasManyRepositoryFactoryFor(
-      'usersRels',
-      usersRelsRepositoryGetter,
-    );
+    this.usersRels = this.createHasManyRepositoryFactoryFor('usersRels', usersRelsRepositoryGetter);
 
-    this.registerInclusionResolver(
-      'usersRels',
-      this.usersRels.inclusionResolver,
-    );
+    this.registerInclusionResolver('usersRels', this.usersRels.inclusionResolver);
 
     this.categories = this.createHasManyRepositoryFactoryFor(
       'categories',
       categoryRepositoryGetter,
     );
-    this.registerInclusionResolver(
-      'categories',
-      this.categories.inclusionResolver,
-    );
+    this.registerInclusionResolver('categories', this.categories.inclusionResolver);
 
-    this.dongs = this.createHasManyRepositoryFactoryFor(
-      'dongs',
-      dongsRepositoryGetter,
-    );
+    this.dongs = this.createHasManyRepositoryFactoryFor('dongs', dongsRepositoryGetter);
     this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
 
     this.virtualUsers = this.createHasManyRepositoryFactoryFor(
       'virtualUsers',
       virtualUsersRepositoryGetter,
     );
-    this.registerInclusionResolver(
-      'virtualUsers',
-      this.virtualUsers.inclusionResolver,
-    );
+    this.registerInclusionResolver('virtualUsers', this.virtualUsers.inclusionResolver);
   }
 }

@@ -27,7 +27,6 @@ import {
   VirtualUsersRepository,
   BlacklistRepository,
   UsersRelsRepository,
-  GroupsRepository,
   DongsRepository,
 } from '../repositories';
 import { FirebaseService, PhoneNumberService } from '../services';
@@ -47,7 +46,6 @@ export class UsersRelsController {
 
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(GroupsRepository) public groupsRepository: GroupsRepository,
     @repository(DongsRepository) public dongsRepository: DongsRepository,
     @repository(VirtualUsersRepository)
     public virtualUsersRepository: VirtualUsersRepository,
@@ -350,25 +348,6 @@ export class UsersRelsController {
     this.usersRepository
       .usersRels(this.userId)
       .delete({ and: [{ userRelId: userRelId }, { type: { neq: 'self' } }] });
-
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.groupsRepository
-      .find({
-        where: { userId: this.userId },
-        fields: { groupId: true, userRelIds: true },
-      })
-      .then(async (foundGroupsUserRelIds) => {
-        for (const group of foundGroupsUserRelIds) {
-          if (group.userRelIds.includes(userRelId)) {
-            const updatedUserRelIds = _.remove(group.userRelIds, function (id) {
-              return id !== userRelId;
-            });
-            await this.groupsRepository.updateById(group.groupId, {
-              userRelIds: updatedUserRelIds,
-            });
-          }
-        }
-      });
   }
 
   @post('/users-rels/find-friends', {
@@ -458,9 +437,7 @@ export class UsersRelsController {
       });
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.groupsRepository.deleteAll({ userId: this.userId });
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.dongsRepository.updateAll({ groupId: undefined }, { userId: this.userId });
+      this.dongsRepository.updateAll({ jointAccountId: undefined }, { userId: this.userId });
 
       return countDeletedUsersRels;
     } catch (err) {

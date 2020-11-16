@@ -5,7 +5,6 @@ import { Users } from './users.model';
 import { Categories } from './categories.model';
 import { PayerList } from './payer-list.model';
 import { BillList } from './bill-list.model';
-import { Groups } from './groups.model';
 import { Scores } from './scores.model';
 import { CurrencyEnum } from './settings.model';
 import { JointAccounts } from './joint-accounts.model';
@@ -167,29 +166,6 @@ export class Dongs extends Entity {
     },
   )
   categoryId: number;
-
-  @belongsTo(
-    () => Groups,
-    {
-      name: 'group',
-      keyFrom: 'groupId',
-      keyTo: 'groupId',
-      source: Groups,
-      target: () => Dongs,
-      type: RelationType.belongsTo,
-    },
-    {
-      type: 'number',
-      index: { normal: true },
-      mysql: {
-        columnName: 'group_id',
-        dataType: 'mediumint unsigned',
-        dataLength: null,
-        nullable: 'Y',
-      },
-    },
-  )
-  groupId?: number;
 
   @hasMany(() => BillList, {
     name: 'billList',

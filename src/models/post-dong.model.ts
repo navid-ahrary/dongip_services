@@ -6,7 +6,6 @@ import { CurrencyEnum } from './settings.model';
 import { JointAccounts } from './joint-accounts.model';
 import { Dongs } from './dongs.model';
 import { Users } from './users.model';
-import { Groups } from './groups.model';
 
 @model()
 export class PostDong extends Model {
@@ -58,11 +57,6 @@ export class PostDong extends Model {
     type: 'number',
   })
   jointAccountId?: typeof JointAccounts.prototype.jointAccountId;
-
-  @property({
-    type: 'number',
-  })
-  groupId?: typeof Groups.prototype.groupId;
 
   @property({
     type: 'string',

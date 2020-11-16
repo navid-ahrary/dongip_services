@@ -3,8 +3,8 @@ import { Entity, model, property, belongsTo, RelationType } from '@loopback/repo
 import { Users } from './users.model';
 import { Categories } from './categories.model';
 import { UsersRels } from './users-rels.model';
-import { Groups } from './groups.model';
 import { CurrencyEnum } from './settings.model';
+import { JointAccounts } from './joint-accounts.model';
 
 @model({
   name: 'budgets',
@@ -169,12 +169,12 @@ export class Budgets extends Entity {
   userRelId?: number;
 
   @belongsTo(
-    () => Groups,
+    () => JointAccounts,
     {
-      keyFrom: 'groupId',
-      keyTo: 'groupId',
-      name: 'group',
-      source: Groups,
+      keyFrom: 'jointAccountId',
+      keyTo: 'jointAccountId',
+      name: 'jointAccount',
+      source: JointAccounts,
       target: () => Budgets,
       type: RelationType.belongsTo,
     },

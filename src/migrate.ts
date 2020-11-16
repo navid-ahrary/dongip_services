@@ -16,7 +16,6 @@ export async function migrate(args: string[]) {
       'settings',
       'messages',
       'categories',
-      'groups',
       'users_rels',
       'virtual_users',
       'joint_accounts',

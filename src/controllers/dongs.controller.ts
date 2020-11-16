@@ -32,11 +32,7 @@ import {
 } from '../repositories';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { FirebaseService, BatchMessage } from '../services';
-import {
-  ValidateGroupIdInterceptor,
-  ValidateCategoryIdInterceptor,
-  FirebasetokenInterceptor,
-} from '../interceptors';
+import { ValidateCategoryIdInterceptor, FirebasetokenInterceptor } from '../interceptors';
 import { LocalizedMessages } from '../application';
 import { dongReqBody } from './specs';
 
@@ -47,7 +43,7 @@ class ResponseNewDong extends Dongs {
 
   @property() category: Categories;
 }
-@intercept(ValidateGroupIdInterceptor.BINDING_KEY, FirebasetokenInterceptor.BINDING_KEY)
+@intercept(FirebasetokenInterceptor.BINDING_KEY)
 @api({ basePath: '/', paths: {} })
 @authenticate('jwt.access')
 export class DongsController {
@@ -210,7 +206,6 @@ export class DongsController {
       desc: newDong.desc,
       pong: newDong.pong,
       currency: newDong.currency,
-      groupId: newDong.groupId,
       jointAccountId: newDong.jointAccountId ?? undefined,
     });
 

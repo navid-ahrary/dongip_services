@@ -10,7 +10,6 @@ export * from './verify.model';
 export * from './bill-list.model';
 export * from './payer-list.model';
 export * from './scores.model';
-export * from './groups.model';
 export * from './messages.model';
 export * from './notifications.model';
 export * from './budgets.model';

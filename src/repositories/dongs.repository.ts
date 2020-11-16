@@ -14,7 +14,6 @@ import {
   BillList,
   PayerList,
   Categories,
-  Groups,
   Scores,
   JointAccounts,
 } from '../models';
@@ -22,7 +21,6 @@ import { UsersRepository } from './users.repository';
 import { BillListRepository } from './bill-list.repository';
 import { PayerListRepository } from './payer-list.repository';
 import { CategoriesRepository } from './categories.repository';
-import { GroupsRepository } from './groups.repository';
 import { ScoresRepository } from './scores.repository';
 import { JointAccountsRepository } from './joint-accounts.repository';
 
@@ -39,8 +37,6 @@ export class DongsRepository extends DefaultCrudRepository<
 
   public readonly category: BelongsToAccessor<Categories, typeof Dongs.prototype.dongId>;
 
-  public readonly group: BelongsToAccessor<Groups, typeof Dongs.prototype.dongId>;
-
   public readonly scores: HasManyRepositoryFactory<Scores, typeof Dongs.prototype.dongId>;
 
   public readonly jointAccount: BelongsToAccessor<JointAccounts, typeof Dongs.prototype.dongId>;
@@ -55,8 +51,6 @@ export class DongsRepository extends DefaultCrudRepository<
     protected billListRepositoryGetter: Getter<BillListRepository>,
     @repository.getter('PayerListRepository')
     protected payerListRepositoryGetter: Getter<PayerListRepository>,
-    @repository.getter('GroupsRepository')
-    protected groupsRepositoryGetter: Getter<GroupsRepository>,
     @repository.getter('ScoresRepository')
     protected scoresRepositoryGetter: Getter<ScoresRepository>,
     @repository.getter('JointAccountsRepository')
@@ -70,8 +64,6 @@ export class DongsRepository extends DefaultCrudRepository<
     this.registerInclusionResolver('jointAccount', this.jointAccount.inclusionResolver);
     this.scores = this.createHasManyRepositoryFactoryFor('scores', scoresRepositoryGetter);
     this.registerInclusionResolver('scores', this.scores.inclusionResolver);
-    this.group = this.createBelongsToAccessorFor('group', groupsRepositoryGetter);
-    this.registerInclusionResolver('group', this.group.inclusionResolver);
 
     this.category = this.createBelongsToAccessorFor('category', categoryRepositoryGetter);
     this.registerInclusionResolver('category', this.category.inclusionResolver);

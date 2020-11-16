@@ -6,7 +6,7 @@ export const dongReqBody: RequestBodyObject = {
     'application/json': {
       schema: getModelSchemaRef(PostDong, {
         title: 'NewDongs',
-        optional: ['title', 'desc', 'groupId', 'currency'],
+        optional: ['title', 'desc', 'jointAccountId', 'currency'],
       }),
       example: {
         title: 'New dong',
