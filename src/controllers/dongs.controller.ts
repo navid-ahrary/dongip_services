@@ -562,7 +562,7 @@ export class DongsController {
             categoryIcon: notifyData.categoryIcon!,
             userRelId: notifyData.userRelId!.toString(),
             createdAt: moment(notifyData.createdAt).toISOString(),
-            silent: 'true',
+            silent: 'false',
           },
         });
       }
