@@ -59,10 +59,6 @@
     "fa": "خطا در پردازش دوستی",
     "en": "Friendship is invalid"
   },
-  "GROUP_NOT_VALID": {
-    "fa": "گروه مورد نظر معتبر نیست",
-    "en": "Group is invalid"
-  },
   "BUDGET_NOT_VALID": {
     "fa": "بودجه مورد نظر معتبر نیست",
     "en": "Budget is invalid"
@@ -131,9 +127,21 @@
     "fa": "%s از گروه حذف شد",
     "en": "%s has been removed from group"
   },
+  "JOINT_ADMIN_DELETE_DONG_ERROR": {
+    "fa": "این دنگ متعلق گروه %s است. فقط ادمین گروه می تواند دنگ را حذف کند",
+    "en": "This expense belongs to %s group, Just admin can remove dong of the group"
+  },
+  "DELETE_DONG_BELONG_TO_JOINT_TITLE": {
+    "fa": "دنگ حذف شد",
+    "en": "An expense has been removed"
+  },
+  "DELETE_DONG_BELONG_TO_JOINT_BODY": {
+    "fa": "دنگ متعلق به گروه %s توسط %s حذف شد",
+    "en": "An expense belongs to %s group has been removed by %s"
+  },
   "JOINT_NOT_VALID": {
     "fa": "گروه مورد نظر معتبر نیست",
-    "en": "Joint account is invalid"
+    "en": "Group is invalid"
   },
   "JOINT_NOT_BELONG_USER": {
     "fa": "شما مدیر گروه نیستید",

@@ -32,7 +32,11 @@ import {
 } from '../repositories';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { FirebaseService, BatchMessage } from '../services';
-import { ValidateCategoryIdInterceptor, FirebasetokenInterceptor } from '../interceptors';
+import {
+  ValidateCategoryIdInterceptor,
+  FirebasetokenInterceptor,
+  JointAccountsInterceptor,
+} from '../interceptors';
 import { LocalizedMessages } from '../application';
 import { dongReqBody } from './specs';
 
@@ -83,7 +87,10 @@ export class DongsController {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(Dongs, { includeRelations: false }),
+              items: getModelSchemaRef(Dongs, {
+                includeRelations: false,
+                exclude: ['originDongId'],
+              }),
             },
           },
         },
@@ -92,6 +99,7 @@ export class DongsController {
   })
   async findDongs(): Promise<Dongs[]> {
     return this.usersRepository.dongs(this.userId).find({
+      fields: { originDongId: false },
       order: ['createdAt DESC'],
       include: [{ relation: 'payerList' }, { relation: 'billList' }, { relation: 'category' }],
     });
@@ -192,6 +200,9 @@ export class DongsController {
 
     if (usersRels?.length !== allUsersRelsIdList.length) {
       throw new HttpErrors.UnprocessableEntity(this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang]);
+    }
+    if (newDong.jointAccountId && !currentUser.jointAccountSubscribes) {
+      throw new HttpErrors.UnprocessableEntity(this.locMsg['JOINT_NOT_VALID'][this.lang]);
     }
 
     if (selfUserRel?.getId() === newDong.payerList[0].userRelId) {
@@ -327,7 +338,7 @@ export class DongsController {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           this.firebaseSerice.sendAllMessage(firebaseMessagesList);
         }
-      } else if (currentUser.jointAccountSubscribes && sendNotify) {
+      } else if (currentUser.jointAccountSubscribes) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.submitJoint(currentUser, createdDong);
       }
@@ -350,6 +361,7 @@ export class DongsController {
     }
   }
 
+  @intercept(JointAccountsInterceptor.BINDING_KEY)
   @del('/dongs/{dongId}', {
     summary: 'DELETE a Dong by dongId',
     security: OPERATION_SECURITY_SPEC,
@@ -358,14 +370,7 @@ export class DongsController {
   async deleteDongsById(
     @param.path.number('dongId', { required: true }) dongId: typeof Dongs.prototype.dongId,
   ): Promise<void> {
-    const countDeleted = await this.usersRepository.dongs(this.userId).delete({
-      dongId: dongId,
-    });
-
-    if (countDeleted.count !== 1) {
-      const errMsg = this.locMsg['DONG_NOT_VALID'][this.lang];
-      throw new HttpErrors.UnprocessableEntity(errMsg);
-    }
+    await this.dongRepository.deleteById(dongId);
   }
 
   @del('/dongs/', {
@@ -383,14 +388,14 @@ export class DongsController {
     },
   })
   async deleteAllDongs() {
-    return this.usersRepository.dongs(this.userId).delete();
+    return this.usersRepository.dongs(this.userId).delete({ originDongId: null! });
   }
 
   async submitJoint(currentUser: Users, dong: Partial<Dongs>) {
     try {
-      const savedDong = _.assign({}, dong);
       const firebaseMessages: BatchMessage = [];
 
+      const savedDong = _.assign({}, { ...dong, originDongId: dong.dongId });
       const billList = savedDong.billList!;
       const payerList = savedDong.payerList!;
 
@@ -556,7 +561,6 @@ export class DongsController {
             categoryTitle: notifyData.categoryTitle!,
             categoryIcon: notifyData.categoryIcon!,
             userRelId: notifyData.userRelId!.toString(),
-            dong: JSON.stringify(createdDong),
             createdAt: moment(notifyData.createdAt).toISOString(),
             silent: 'true',
           },

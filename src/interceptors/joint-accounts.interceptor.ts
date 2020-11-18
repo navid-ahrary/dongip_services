@@ -17,13 +17,15 @@ import 'moment-timezone';
 import ct from 'countries-and-timezones';
 
 import {
+  DongsRepository,
   JointAccountsRepository,
   JointAccountSubscribesRepository,
   UsersRelsRepository,
   UsersRepository,
 } from '../repositories';
-import { BatchMessage, FirebaseService } from '../services';
+import { BatchMessage, FirebaseService, PhoneNumberService } from '../services';
 import { LocalizedMessages } from '../application';
+import { HttpErrors, RestBindings, Request } from '@loopback/rest';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -33,19 +35,24 @@ import { LocalizedMessages } from '../application';
 export class JointAccountsInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${JointAccountsInterceptor.name}`;
   private readonly userId: number;
+  private readonly phone: string;
   lang: string;
 
   constructor(
     @repository(UsersRepository) protected usersRepo: UsersRepository,
+    @repository(DongsRepository) protected dongRepo: DongsRepository,
     @repository(JointAccountsRepository) protected jointAccountsRepo: JointAccountsRepository,
     @repository(JointAccountSubscribesRepository)
     protected jointAccSubscRepo: JointAccountSubscribesRepository,
     @repository(UsersRelsRepository) protected usersRelsRepo: UsersRelsRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @service(FirebaseService) private firebaseSerice: FirebaseService,
+    @service(PhoneNumberService) private phoneNumService: PhoneNumberService,
     @inject('application.localizedMessages') protected locMsg: LocalizedMessages,
+    @inject(RestBindings.Http.REQUEST) private req: Request,
   ) {
     this.userId = +this.currentUserProfile[securityId];
+    this.phone = this.currentUserProfile.phone;
   }
 
   /**
@@ -64,10 +71,10 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
    * @param next - A function to invoke next interceptor or the target method
    */
   async intercept(invocationCtx: InvocationContext, next: () => ValueOrPromise<InvocationResult>) {
+    this.lang = this.req.headers['accept-language'] ?? 'fa';
     const methodName = invocationCtx.methodName;
     const firebaseMessages: BatchMessage = [];
 
-    // eslint-disable-next-line no-useless-catch
     try {
       if (methodName === 'deleteAllJointAccounts' || methodName === 'deleteJointAccountById') {
         // Joint accounts belong to current user
@@ -237,12 +244,124 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
           this.firebaseSerice.sendAllMessage(firebaseMessages);
         }
       }
+
+      if (methodName === 'deleteDongsById') {
+        const dongId = invocationCtx.args[0];
+        const foundDong = await this.dongRepo.findOne({
+          fields: { dongId: true, originDongId: true, userId: true, jointAccountId: true },
+          where: { dongId: dongId, userId: this.userId },
+          include: [
+            {
+              relation: 'jointAccount',
+              scope: {
+                include: [
+                  {
+                    relation: 'jointAccountSubscribes',
+                    scope: {
+                      include: [
+                        {
+                          relation: 'user',
+                          scope: {
+                            fields: {
+                              userId: true,
+                              phone: true,
+                              firebaseToken: true,
+                              region: true,
+                            },
+                            where: { userId: { neq: this.userId } },
+                            include: [
+                              {
+                                relation: 'setting',
+                                scope: { fields: { userId: true, language: true } },
+                              },
+                              {
+                                relation: 'usersRels',
+                                scope: {
+                                  where: { phone: this.phone, type: 'external' },
+                                },
+                              },
+                            ],
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        });
+
+        const jointAcc = foundDong?.jointAccount;
+
+        if (!foundDong) {
+          throw this.locMsg['DONG_NOT_VALID'][this.lang];
+        } else if (jointAcc && jointAcc?.userId !== this.userId) {
+          throw util.format(
+            this.locMsg['JOINT_ADMIN_DELETE_DONG_ERROR'][this.lang],
+            jointAcc!.title,
+          );
+        }
+
+        const result = await next();
+
+        if (jointAcc) {
+          if (foundDong.originDongId) await this.dongRepo.deleteById(foundDong.originDongId);
+
+          const jointAccountSubs = jointAcc.jointAccountSubscribes;
+          const users = _.map(jointAccountSubs, (j) => j.user);
+          _.remove(users, (user) => typeof user !== 'object');
+
+          for (const user of users) {
+            const timezone = ct.getTimezonesForCountry(
+              user.region ?? this.phoneNumService.getRegionCodeISO(user.phone!),
+            )[0].name;
+            const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+
+            const savedNotify = await this.usersRepo.notifications(user.getId()).create({
+              dongId: dongId,
+              jointAccountId: jointAcc!.getId(),
+              type: 'jointAccount',
+              title: util.format(
+                this.locMsg['DELETE_DONG_BELONG_TO_JOINT_TITLE'][user.setting.language],
+              ),
+              body: util.format(
+                this.locMsg['DELETE_DONG_BELONG_TO_JOINT_BODY'][user.setting.language],
+                jointAcc.title,
+                user.usersRels[0].name,
+              ),
+              createdAt: time,
+            });
+
+            firebaseMessages.push({
+              token: user.firebaseToken ?? '',
+              notification: {
+                title: savedNotify.title,
+                body: savedNotify.body,
+              },
+              data: {
+                notifyId: savedNotify.getId().toString(),
+                title: savedNotify.title,
+                body: savedNotify.body,
+                jointAccountId: jointAcc.getId().toString(),
+                type: savedNotify.type,
+                silent: 'false',
+              },
+            });
+          }
+
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          if (firebaseMessages.length) this.firebaseSerice.sendAllMessage(firebaseMessages);
+        }
+
+        return result;
+      }
+
       const result = await next();
-      // Add post-invocation logic here
       return result;
     } catch (err) {
-      console.error(err);
-      throw err;
+      console.error('Error:', err);
+      throw new HttpErrors.UnprocessableEntity(err);
     }
   }
 }
