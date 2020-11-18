@@ -66,8 +66,8 @@ export class JointAccounts extends Entity {
     mysql: {
       columnName: 'created_at',
       dataType: 'timestamp',
-      default: 'now',
       nullable: 'N',
+      default: 'now',
     },
   })
   createdAt: string;

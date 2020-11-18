@@ -88,6 +88,14 @@ export class PostDong extends Model {
     dongAmount: number;
   }[];
 
+  @property({
+    type: 'boolean',
+    required: false,
+    default: true,
+    jsonSchema: { default: true },
+  })
+  includeBudget: boolean;
+
   constructor(data?: Partial<PostDong>) {
     super(data);
   }
