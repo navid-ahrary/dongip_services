@@ -8,7 +8,7 @@ import { BillList } from './bill-list.model';
 import { Groups } from './groups.model';
 import { Scores } from './scores.model';
 import { CurrencyEnum } from './settings.model';
-import { JointAccounts } from './joint-accounts.model';
+import { JointAccounts, JointAccountsWithRelations } from './joint-accounts.model';
 
 @model({
   name: 'dongs',
@@ -37,6 +37,14 @@ import { JointAccounts } from './joint-accounts.model';
         foreignKey: 'jointAccountId',
         onUpdate: 'cascade',
         onDelete: 'set null',
+      },
+      fkDongsDongId: {
+        name: 'fk_dongs_dong_id',
+        entity: 'dongs',
+        entityKey: 'id',
+        foreignKey: 'originDongId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
       },
     },
   },
@@ -246,11 +254,24 @@ export class Dongs extends Entity {
   )
   jointAccountId?: number;
 
+  @property({
+    type: 'number',
+    index: { normal: true },
+    mysql: {
+      columnName: 'origin_dong_id',
+      dataType: 'mediumint unsigned',
+      nullable: 'Y',
+    },
+  })
+  originDongId?: number;
+
   constructor(data?: Partial<Dongs>) {
     super(data);
   }
 }
 
-export interface DongsRelations {}
+export interface DongsRelations {
+  jointAccount?: JointAccountsWithRelations;
+}
 
 export type DongsWithRelations = Dongs & DongsRelations;

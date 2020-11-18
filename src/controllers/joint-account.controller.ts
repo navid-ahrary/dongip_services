@@ -35,7 +35,7 @@ import {
 } from '../repositories';
 import { ValidateUsersRelsInterceptor, JointAccountsInterceptor } from '../interceptors';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
-import { basicAuthorization, BatchMessage, FirebaseService } from '../services';
+import { basicAuthorization, BatchMessage, FirebaseService, PhoneNumberService } from '../services';
 import { LocalizedMessages } from '../application';
 
 @intercept(ValidateUsersRelsInterceptor.BINDING_KEY, JointAccountsInterceptor.BINDING_KEY)
@@ -53,6 +53,7 @@ export class JointAccountController {
     @repository(UsersRepository) protected usersRepo: UsersRepository,
     @service(FirebaseService) protected firebaseSerice: FirebaseService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @service(PhoneNumberService) private phoneNumService: PhoneNumberService,
     @inject('application.localizedMessages') protected locMsg: LocalizedMessages,
     @repository(UsersRelsRepository) protected usersRelsRepo: UsersRelsRepository,
     @repository(JointAccountsRepository) protected jointAccountsRepo: JointAccountsRepository,
@@ -136,7 +137,9 @@ export class JointAccountController {
           jsList.push({ jointAccountId: JA.jointAccountId, userId: user!.getId() });
 
           if (ur.type !== 'self') {
-            const timezone = ct.getTimezonesForCountry(user!.region!)[0].name;
+            const timezone = ct.getTimezonesForCountry(
+              user!.region ?? this.phoneNumService.getRegionCodeISO(user!.phone!),
+            )[0].name;
             const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
             const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
