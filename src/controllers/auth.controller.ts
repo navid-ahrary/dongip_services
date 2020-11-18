@@ -522,9 +522,9 @@ export class AuthController {
         emailLocked: foundVerify.email ? true : false,
         name: newUser.name,
         avatar: newUser.avatar,
-        region: foundVerify.region ? foundVerify.region : undefined,
+        region: foundVerify.region ?? undefined,
         roles: roles,
-        firebaseToken: firebaseToken ? firebaseToken : undefined,
+        firebaseToken: firebaseToken ?? undefined,
         userAgent: this.ctx.request.headers['user-agent'],
         platform: this.ctx.request.headers['platform']
           ? this.ctx.request.headers['platform'].toString().toLowerCase()

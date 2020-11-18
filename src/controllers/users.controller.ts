@@ -34,10 +34,8 @@ export class UsersController {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(LinksRepository) public linkRepository: LinksRepository,
-    @inject(UserServiceBindings.USER_SERVICE)
-    public userService: UserService<Users, Credentials>,
-    @inject(TokenServiceBindings.TOKEN_SERVICE)
-    public jwtService: TokenService,
+    @inject(UserServiceBindings.USER_SERVICE) public userService: UserService<Users, Credentials>,
+    @inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
     @inject.context() public ctx: RequestContext,
@@ -267,7 +265,7 @@ export class UsersController {
     cmpltSignBody: CompleteSignup,
   ): Promise<void> {
     try {
-      const userProps = _.pick(cmpltSignBody, ['avatar', 'name', 'phone', 'email']);
+      const userProps: Partial<Users> = _.pick(cmpltSignBody, ['avatar', 'name', 'phone', 'email']);
       const settingProps: Partial<Settings> = _.pick(cmpltSignBody, ['language', 'currency']);
       const userRelProps: Partial<UsersRels> = _.pick(cmpltSignBody, ['avatar', 'name']);
 
@@ -280,6 +278,7 @@ export class UsersController {
         else {
           Object.assign(userProps, { phoneLocked: true });
           userRelProps.phone = userProps.phone;
+          userProps.region = this.phoneNumService.getRegionCodeISO(userProps.phone!);
         }
       }
 
