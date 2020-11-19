@@ -321,7 +321,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
             const savedNotify = await this.usersRepo.notifications(user.getId()).create({
               dongId: dongId,
               jointAccountId: jointAcc!.getId(),
-              type: 'jointAccount',
+              type: 'dong-jointAccount',
               title: util.format(
                 this.locMsg['DELETE_DONG_BELONG_TO_JOINT_TITLE'][user.setting.language],
               ),
