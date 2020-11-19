@@ -297,7 +297,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
         if (!foundDong) {
           throw this.locMsg['DONG_NOT_VALID'][this.lang];
         } else if (jointAcc && jointAcc.userId !== this.userId) {
-          if (!foundDong.originDongId) {
+          if (foundDong.originDongId) {
             throw util.format(
               this.locMsg['JOINT_ADMIN_DELETE_DONG_ERROR'][this.lang],
               jointAcc.title,
