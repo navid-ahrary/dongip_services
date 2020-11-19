@@ -294,8 +294,6 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
 
         const jointAcc = foundDong?.jointAccount;
 
-        console.log(foundDong);
-
         if (!foundDong) {
           throw this.locMsg['DONG_NOT_VALID'][this.lang];
         } else if (
