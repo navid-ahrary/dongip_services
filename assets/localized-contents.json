@@ -1,0 +1,238 @@
+{
+  "CURRENCY": {
+    "fa": {
+      "IRR": "﷼",
+      "IRT": "تومان",
+      "USD": "دلار",
+      "EUR": "یورو",
+      "AED": "د.إ"
+    },
+    "en": {
+      "IRR": "Rials",
+      "IRT": "Tomans",
+      "USD": "$",
+      "EUR": "€",
+      "AED": "Dhs"
+    }
+  },
+  "TOO_MANY_REQUEST": {
+    "fa": "تعداد در خواست هاینان بیش از حد مجاز است. ۵ دقیقه منتظر بمانید",
+    "en": "Too many requests, Wait for 5 minutes"
+  },
+  "VERFIY_EMAIL_SUBJECT": {
+    "fa": "دُنگیپ | کد تایید",
+    "en": "Dongip | Confirmation Code"
+  },
+  "VERFIY_EMAIL_CONTENT": {
+    "fa": "کد ورود",
+    "en": "Login code"
+  },
+  "PHONE_OR_EMAIL_NOT_PROVIDED": {
+    "fa": "شماره موبایل یا ایمیل را وارد کنید",
+    "en": "Either phone or email must be provided"
+  },
+  "SINGUP_CONFILCT_PHONE": {
+    "fa": "این شماره موبایل قبلا ثبت نام شده است. اگر متعلق به شماست، از طریق گزینه «ورود با موبایل» به اپ وارد شوید",
+    "en": "This phone number is already registered. If belongs to you, login with your phone number."
+  },
+  "COMPLETE_SIGNUP_CONFILICT_PHONE": {
+    "fa": "این شماره موبایل قبلا ثبت نام شده است",
+    "en": "This phone number is already registered."
+  },
+  "COMPLETE_SIGNUP_CONFILICT_EMAIL": {
+    "fa": "این ایمیل قبلا ثبت نام شده است",
+    "en": "A user with this email address is already registered."
+  },
+  "REFRESH_TOKEN_NOT_MATCHED": {
+    "fa": "توکن معتبر نیست",
+    "en": "Token is invalid"
+  },
+  "CONFLICT_CATEGORY_NAME": {
+    "fa": "اسم دسته بندی تکراریه. یه اسم دیگه انتخاب کن",
+    "en": "Category name exists, try something else"
+  },
+  "SOME_USERS_RELS_NOT_VALID": {
+    "fa": "خطا در دوستی ها",
+    "en": "Error in friendship"
+  },
+  "USER_REL_NOT_VALID": {
+    "fa": "خطا در پردازش دوستی",
+    "en": "Friendship is invalid"
+  },
+  "BUDGET_NOT_VALID": {
+    "fa": "بودجه مورد نظر معتبر نیست",
+    "en": "Budget is invalid"
+  },
+  "DONG_NOT_VALID": {
+    "fa": "دنگ مورد نظر معتبر نیست",
+    "en": "Dong is invalid"
+  },
+  "CATEGORY_NOT_VALID": {
+    "fa": "دسته بندی مورد نظر معتبر نیست",
+    "en": "Category is invalid"
+  },
+  "PHONE_NOT_VALID": {
+    "fa": "شماره موبایل وارد شده معتبر نیست",
+    "en": "Phone number is invalid"
+  },
+  "EMAIL_NOT_VALID": {
+    "fa": "آدرس ایمیل وارد شده معتبر نیست",
+    "en": "Email address is invalid"
+  },
+  "DONGIP_NOTIFY_TITLE": {
+    "fa": "دُنگیپ شدی",
+    "en": "New Expense"
+  },
+  "DONGIP_NOTIFY_BODY": {
+    "fa": "مبلغ %s %s توسط %s",
+    "en": "%s %s by %s"
+  },
+  "DONGIP_IN_GROUP_NOTIFY_TITLE": {
+    "fa": "دُنگیپ در گروه %s",
+    "en": "Expense in %s group"
+  },
+  "DONGIP_IN_GROUP_NOTIFY_BODY": {
+    "fa": "مبلغ %s %s توسط %s",
+    "en": "%s %s by %s"
+  },
+  "JOINT_USER_REL_BI_ERR": {
+    "fa": "برای همگام سازی حسابها، دوستاتون هم باید با شما دوست باشن",
+    "en": "For Syncing bills, your friends should you know as a Dongip friend also"
+  },
+  "NEW_JOINT_ACCOUNT_NOTIFY_TITLE": {
+    "fa": "گروه جدید",
+    "en": "New Group"
+  },
+  "NEW_JOINT_ACCOUNT_NOTIFY_BODY": {
+    "fa": "%s شما رو به گروه %s اضافه کرد",
+    "en": "%s added you in %s group"
+  },
+  "DELETE_YOU_JOINT_ACCOUNT_NOTIFY_BODY": {
+    "fa": "%s شما رو از گروه %s حذف کرد",
+    "en": "%s removed you in %s group"
+  },
+  "UPDATE_JOINT_ACCOUNT_NOTIFY_TITLE": {
+    "fa": "گروه %s",
+    "en": "%s group"
+  },
+  "UPDATE_TITLE_JOINT_ACCOUNT_NOTIFY_BODY": {
+    "fa": "اسم گروه به %s تغییر یافت",
+    "en": "Group title has been changed to %s"
+  },
+  "ADD_MEMBERS_JOINT_ACCOUNT_NOTIFY_BODY": {
+    "fa": "%s به گروه پیوست",
+    "en": "%s joined to group"
+  },
+  "DELETE_MEMBERS_JOINT_ACCOUNT_NOTIFY_BODY": {
+    "fa": "%s از گروه حذف شد",
+    "en": "%s has been removed from group"
+  },
+  "JOINT_ADMIN_DELETE_DONG_ERROR": {
+    "fa": "این دنگ متعلق گروه %s است. فقط ادمین گروه می تواند دنگ را حذف کند",
+    "en": "This expense belongs to %s group, Just admin can remove dong of the group"
+  },
+  "DELETE_DONG_BELONG_TO_JOINT_TITLE": {
+    "fa": "دنگ حذف شد",
+    "en": "An expense has been removed"
+  },
+  "DELETE_DONG_BELONG_TO_JOINT_BODY": {
+    "fa": "دنگ متعلق به گروه %s توسط %s حذف شد",
+    "en": "An expense belongs to %s group has been removed by %s"
+  },
+  "JOINT_NOT_VALID": {
+    "fa": "گروه مورد نظر معتبر نیست",
+    "en": "Group is invalid"
+  },
+  "JOINT_NOT_BELONG_USER": {
+    "fa": "شما مدیر گروه نیستید",
+    "en": "You aren’t admin of the group"
+  },
+  "DELETE_JOINT_NOTIFY_TITLE": {
+    "fa": "حذف گروه",
+    "en": "Deleted group"
+  },
+  "DELETE_JOINT_NOTIFY_BODY": {
+    "fa": "گروه %s توسط %s حذف شد",
+    "en": "Group %s has been deleted by %s"
+  },
+  "LEAVE_JOINT_NOTIFY_TITLE": {
+    "fa": "ترک گروه",
+    "en": "Left group"
+  },
+  "LEAVE_JOINT_NOTIFY_BODY": {
+    "fa": "%s گروه %s را ترک کرد",
+    "en": "%s left from %s group"
+  },
+  "PLAN_ID": {
+    "fa": {
+      "plan_gm1": "اشتراک طلایی ۱ ماهه دُنگیپ",
+      "plan_gm6": "اشتراک طلایی ۶ ماهه دُنگیپ",
+      "plan_gy1": "اشتراک طلایی ۱ ساله دُنگیپ"
+    },
+    "en": {
+      "plan_gm1": "Dongip 1 month premium subscription",
+      "plan_gm6": "Dongip 6 months premium subscription",
+      "plan_gy1": "Dongip 1 year premium subscription"
+    }
+  },
+  "SUBSCRIPTION_NOTIFY_BODY": {
+    "fa": "شما مشترک طلایی دُنگیپ هستید. تمام امکانات اپلیکیشن در اختیار شماست",
+    "en": "You are a premium user now. Enjoy Extra features."
+  },
+  "CAFEBAZAAR_PURCHASE_NOT_VALID": {
+    "fa": "متاسفانه خرید انجام شده به تایید کافه‌بازار نرسید. جهت رفع هرگونه ابهام یا مغایرت، با پشتیبانی دُنگیپ تماس بگیرید",
+    "en": "This purchase is not valid by CafeBazaar, contact Dongip's support"
+  },
+  "CAFEBAZAAR_PURCHASE_DROPED": {
+    "fa": "متاسفانه خرید انجام شده از سمت کافه‌بازار برگشت خورده‌است. هزینه پرداخت شده حداکثر تا ۲۴ ساعت آینده به حسابتان واریز می‌شود جهت رفع هرگونه ابهام یا مغایرت، با پشتیبانی دُنگیپ تماس بگیرید",
+    "en": "This purchase is dropped by CafeBazaar. contact Dongip's support"
+  },
+  "TICKET_RESPONSE": {
+    "fa": "پاسخ به تیکت",
+    "en": "Respond to ticket"
+  },
+  "YOURE_YOUR_FRIEND": {
+    "fa": ":) تو بهترین دوست خودتی",
+    "en": "You are your BFF :)"
+  },
+  "USERS_RELS_CONFILICT_PHONE": {
+    "fa": "این شماره تو لیست دوستهات وجود داره",
+    "en": "This phone number already exists in your friend list"
+  },
+  "NEW_USERS_RELS_NOTIFY_TITLE": {
+    "fa": "دوستی جدید",
+    "en": "New friend"
+  },
+  "NEW_USERS_RELS_NOTIFY_BODY": {
+    "fa": "%s شما رو دوست دُنگیپش میدونه. اگه میخایی حساب های بین تون همگام سازی شن، با لمس این پیام به دوستهات اضافه ش کن",
+    "en": "%s added you. If you like to sync your bills, tap on this message and add to your friends"
+  },
+  "USERS_RELS_BACK_NOTIFY_TITLE": {
+    "fa": "همگام سازی حساب ها با %s",
+    "en": "Sync with %s"
+  },
+  "USERS_RELS_BACK_NOTIFY_BODY": {
+    "fa": "%s هم شما رو دوست دُنگیپش میدونه. از این به بعد حساب های بین تون همگام سازی میشن",
+    "en": "%s added you. From now on, your expenses will be synced"
+  },
+  "USERNAME_UNAVAILABLE": {
+    "fa": "یوزرنیم در دسترس نیست",
+    "en": "Username isn’t available"
+  },
+  "BUDGET_SELECT_ITEM": {
+    "fa": "فقط یکی از آیتم ها رو میشه بودجه بندی کرد",
+    "en": "Only one item allowed"
+  },
+  "PASSWORD_LENGTH": {
+    "fa": "طول رمز باید ۶ کاراکتر باشد",
+    "en": "Password length should be at least 6 character"
+  },
+  "DAILY_NOTIFY_TITLE": {
+    "fa": "وقتشه حساب کتاب‌هاتو دُنگیپ کنی",
+    "en": "It's time to submit your expenses"
+  },
+  "DAILY_NOTIFY_BODY": {
+    "fa": "امروز چه هزینه‌هایی داشتی ؟",
+    "en": "What did you spend today ?"
+  }
+}
