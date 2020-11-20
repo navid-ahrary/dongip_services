@@ -129,7 +129,7 @@ export class DongsController {
     const newDongScore = 50;
     const mutualFriendScore = 20;
     const category = _.pick(newDong, 'category');
-
+    console.log(newDong);
     let mutualFactor = 0;
 
     delete newDong?.userId;
@@ -209,6 +209,8 @@ export class DongsController {
       currentUserIsPayer = true;
     }
 
+    if (newDong.includeBudget === null) newDong.includeBudget = true;
+
     // Create a Dongs objcet
     const dong = new Dongs({
       title: newDong.title,
@@ -218,7 +220,7 @@ export class DongsController {
       pong: newDong.pong,
       currency: newDong.currency,
       jointAccountId: newDong.jointAccountId ?? undefined,
-      includeBudget: newDong.includeBudget,
+      includeBudget: newDong.includeBudget !== null ? newDong.includeBudget : undefined,
     });
 
     try {

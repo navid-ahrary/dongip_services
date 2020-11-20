@@ -89,12 +89,12 @@ export class PostDong extends Model {
   }[];
 
   @property({
-    type: 'boolean',
+    type: 'any',
+    jsonSchema: { anyOf: [{ type: 'null' }, { type: 'boolean' }] },
     required: false,
     default: true,
-    jsonSchema: { default: true },
   })
-  includeBudget?: boolean;
+  includeBudget?: boolean | null;
 
   constructor(data?: Partial<PostDong>) {
     super(data);

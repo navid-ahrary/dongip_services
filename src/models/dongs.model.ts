@@ -253,7 +253,7 @@ export class Dongs extends Entity {
       default: 1,
     },
   })
-  includeBudget: boolean;
+  includeBudget: boolean | null;
 
   constructor(data?: Partial<Dongs>) {
     super(data);
