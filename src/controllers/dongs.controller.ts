@@ -129,7 +129,7 @@ export class DongsController {
     const newDongScore = 50;
     const mutualFriendScore = 20;
     const category = _.pick(newDong, 'category');
-    console.log(newDong);
+
     let mutualFactor = 0;
 
     delete newDong?.userId;

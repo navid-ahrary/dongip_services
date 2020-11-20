@@ -1,4 +1,4 @@
-import {inject} from '@loopback/context';
+import { inject } from '@loopback/context';
 import {
   FindRoute,
   InvokeMethod,
@@ -15,7 +15,7 @@ import {
   AUTHENTICATION_STRATEGY_NOT_FOUND,
   USER_PROFILE_NOT_FOUND,
 } from '@loopback/authentication';
-import {ExpressRequestHandler, InvokeMiddleware} from '@loopback/express';
+import { ExpressRequestHandler, InvokeMiddleware } from '@loopback/express';
 import helmet from 'helmet'; // For security
 import morgan from 'morgan'; // For http access logging
 
@@ -30,7 +30,7 @@ const middlewareList: ExpressRequestHandler[] = [
     frameguard: true,
     expectCt: true,
   }), // options fixed and can not be changed a runtime
-  morgan('combined', {immediate: true}),
+  morgan('combined', { immediate: true }),
 ];
 
 export class MyAuthenticationSequence implements SequenceHandler {
@@ -56,7 +56,7 @@ export class MyAuthenticationSequence implements SequenceHandler {
     @inject(SequenceActions.INVOKE_METHOD) protected invoke: InvokeMethod,
     @inject(SequenceActions.SEND) public send: Send,
     @inject(SequenceActions.REJECT) public reject: Reject,
-    @inject(SequenceActions.INVOKE_MIDDLEWARE, {optional: true})
+    @inject(SequenceActions.INVOKE_MIDDLEWARE, { optional: true })
     public invokeMiddleware: InvokeMiddleware = () => true,
     @inject(AuthenticationBindings.AUTH_ACTION)
     protected authenticationRequest: AuthenticateFn,
@@ -64,7 +64,7 @@ export class MyAuthenticationSequence implements SequenceHandler {
 
   async handle(context: RequestContext) {
     try {
-      const {request, response} = context;
+      const { request, response } = context;
       // `this.invokeMiddleware` is an injected function to invoke a list of
       // Express middleware handler functions
       const finished = await this.invokeMiddleware(context, middlewareList);
@@ -84,11 +84,10 @@ export class MyAuthenticationSequence implements SequenceHandler {
       const result = await this.invoke(route, args);
       this.send(response, result);
     } catch (err) {
-      if (
-        err.code === AUTHENTICATION_STRATEGY_NOT_FOUND ||
-        err.code === USER_PROFILE_NOT_FOUND
-      ) {
-        Object.assign(err, {statusCode: 401 /* Unauthorized */});
+      console.error(`${new Date()}: ${err}`);
+
+      if (err.code === AUTHENTICATION_STRATEGY_NOT_FOUND || err.code === USER_PROFILE_NOT_FOUND) {
+        Object.assign(err, { statusCode: 401 /* Unauthorized */ });
       }
 
       this.reject(context, err);
