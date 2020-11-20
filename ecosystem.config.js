@@ -6,7 +6,7 @@ module.exports = {
     script: "./index.js",
     instances: "max",
     exec_mode: "cluster",
-    watch: true,
+    watch: false,
     log_date_format: "YYYY-MM-DD HH:mm:ss",
     env: {
       NODE_ENV: "development"

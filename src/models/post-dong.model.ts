@@ -94,7 +94,7 @@ export class PostDong extends Model {
     default: true,
     jsonSchema: { default: true },
   })
-  includeBudget: boolean;
+  includeBudget?: boolean;
 
   constructor(data?: Partial<PostDong>) {
     super(data);

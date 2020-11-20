@@ -296,11 +296,13 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
 
         if (!foundDong) {
           throw this.locMsg['DONG_NOT_VALID'][this.lang];
-        } else if (jointAcc && jointAcc?.userId !== this.userId) {
-          throw util.format(
-            this.locMsg['JOINT_ADMIN_DELETE_DONG_ERROR'][this.lang],
-            jointAcc!.title,
-          );
+        } else if (jointAcc && jointAcc.userId !== this.userId) {
+          if (foundDong.originDongId) {
+            throw util.format(
+              this.locMsg['JOINT_ADMIN_DELETE_DONG_ERROR'][this.lang],
+              jointAcc.title,
+            );
+          }
         }
 
         const result = await next();
@@ -321,7 +323,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
             const savedNotify = await this.usersRepo.notifications(user.getId()).create({
               dongId: dongId,
               jointAccountId: jointAcc!.getId(),
-              type: 'jointAccount',
+              type: 'dong-jointAccount',
               title: util.format(
                 this.locMsg['DELETE_DONG_BELONG_TO_JOINT_TITLE'][user.setting.language],
               ),

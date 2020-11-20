@@ -218,6 +218,7 @@ export class DongsController {
       pong: newDong.pong,
       currency: newDong.currency,
       jointAccountId: newDong.jointAccountId ?? undefined,
+      includeBudget: newDong.includeBudget,
     });
 
     try {
