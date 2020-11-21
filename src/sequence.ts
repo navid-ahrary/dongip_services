@@ -84,7 +84,7 @@ export class MyAuthenticationSequence implements SequenceHandler {
       const result = await this.invoke(route, args);
       this.send(response, result);
     } catch (err) {
-      console.error(`${new Date()}: ${err}`);
+      console.error(`${new Date()}: ${JSON.stringify(err)}`);
 
       if (err.code === AUTHENTICATION_STRATEGY_NOT_FOUND || err.code === USER_PROFILE_NOT_FOUND) {
         Object.assign(err, { statusCode: 401 /* Unauthorized */ });
