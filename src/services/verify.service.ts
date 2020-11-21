@@ -1,32 +1,29 @@
-import {BindingScope, injectable} from '@loopback/core';
-import {HttpErrors} from '@loopback/rest';
-import {repository} from '@loopback/repository';
+import { BindingScope, inject, injectable } from '@loopback/core';
+import { RequestContext } from '@loopback/rest';
+import { repository } from '@loopback/repository';
 
-import {VerifyRepository} from '../repositories';
-import {Verify} from '../models';
+import { VerifyRepository } from '../repositories';
+import { Verify } from '../models';
 
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({ scope: BindingScope.TRANSIENT })
 export class VerifyService {
-  constructor(
-    @repository(VerifyRepository) public verifyRepository: VerifyRepository,
-  ) {}
+  lang: string;
 
-  public async verifyCredentials(
-    verifyId: number,
-    password: string,
-  ): Promise<Verify> {
+  constructor(
+    @inject.context() public ctx: RequestContext,
+    @repository(VerifyRepository) public verifyRepository: VerifyRepository,
+  ) {
+    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
+  }
+
+  public async verifyCredentials(verifyId: number, password: string): Promise<Verify> {
     const foundVerify = await this.verifyRepository.findOne({
-      where: {verifyId: verifyId},
+      where: { verifyId: verifyId, password: password },
     });
 
     if (!foundVerify) {
-      console.error('برای شماره موبایل شما کدی ارسال نشده');
-      throw new HttpErrors.NotFound('برای شماره موبایل شما کدی ارسال نشده');
-    }
-
-    if (password !== foundVerify.password) {
-      console.error('کد وارد شده اشتباهه');
-      throw new HttpErrors.UnprocessableEntity('کد وارد شده اشتباهه');
+      console.error(new Date(), 'Wrong Verify Code');
+      throw new Error('WRONG_VERIFY_CODE');
     }
 
     return foundVerify;

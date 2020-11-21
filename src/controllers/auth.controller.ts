@@ -412,9 +412,10 @@ export class AuthController {
         refreshToken: user.refreshToken,
         totalScores: scores,
       };
-    } catch (_err) {
-      console.log(_err);
-      throw new HttpErrors.UnprocessableEntity(_err.message);
+    } catch (err) {
+      console.log(err);
+      const errMsg = this.locMsg[err.message][this.lang];
+      throw new HttpErrors.UnprocessableEntity(errMsg);
     }
   }
 

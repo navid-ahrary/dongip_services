@@ -19,6 +19,10 @@
     "fa": "تعداد در خواست هاینان بیش از حد مجاز است. ۵ دقیقه منتظر بمانید",
     "en": "Too many requests, Wait for 5 minutes"
   },
+  "WRONG_VERIFY_CODE": {
+    "fa": "کد اشتباه است",
+    "en": "Wrong code"
+  },
   "VERFIY_EMAIL_SUBJECT": {
     "fa": "Dongip | Confirmation Code",
     "en": "Dongip | Confirmation Code"
