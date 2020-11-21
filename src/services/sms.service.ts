@@ -61,7 +61,6 @@ export class SmsService {
   public async sendSms(
     token1: string,
     receptor: string,
-    lang: string,
     token2?: string,
   ): Promise<KavenegarResponse> {
     receptor = this.phoneNumService.formatForSendSMSFromIran(receptor);
@@ -69,7 +68,7 @@ export class SmsService {
     const sms: VerifyLookupSMS = {
       token: token1,
       token2: token2 ? token2 : undefined,
-      template: lang === 'fa' ? faTemplate : enTemplate,
+      template: faTemplate,
       type: this.LOOKUP_TYPE,
       receptor: receptor,
     };
