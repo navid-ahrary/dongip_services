@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {BindingScope, injectable, service} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {config} from 'dotenv';
+import { BindingScope, injectable, service } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import { config } from 'dotenv';
 config();
 
 const Kavenegar = require('kavenegar');
 
-import {VerifyRepository} from '../repositories';
-import {PhoneNumberService} from './phone-number.service';
+import { VerifyRepository } from '../repositories';
+import { PhoneNumberService } from './phone-number.service';
+
+const faTemplate = process.env.SMS_TEMPLATE_FA!;
+const enTemplate = process.env.SMS_TEMPLATE_EN!;
 
 export interface VerifyLookupSMS {
   token: string;
@@ -31,9 +34,8 @@ export interface KavenegarResponse {
   };
 }
 
-@injectable({scope: BindingScope.SINGLETON})
+@injectable({ scope: BindingScope.SINGLETON })
 export class SmsService {
-  private readonly SMS_TEMPLATE = process.env.SMS_TEMPLATE;
   private readonly LOOKUP_TYPE = 'sms';
 
   constructor(
@@ -59,6 +61,7 @@ export class SmsService {
   public async sendSms(
     token1: string,
     receptor: string,
+    lang: string,
     token2?: string,
   ): Promise<KavenegarResponse> {
     receptor = this.phoneNumService.formatForSendSMSFromIran(receptor);
@@ -66,7 +69,7 @@ export class SmsService {
     const sms: VerifyLookupSMS = {
       token: token1,
       token2: token2 ? token2 : undefined,
-      template: String(this.SMS_TEMPLATE),
+      template: lang === 'fa' ? faTemplate : enTemplate,
       type: this.LOOKUP_TYPE,
       receptor: receptor,
     };
