@@ -624,11 +624,9 @@ export class JointAccountController {
     if (notifyMsgs.length) this.firebaseSerice.sendAllMessage(notifyMsgs);
   }
 
-  @del('groups/', {
-    responses: {
-      security: OPERATION_SECURITY_SPEC,
-      responses: { '204': { description: 'No content' } },
-    },
+  @del('/groups/', {
+    security: OPERATION_SECURITY_SPEC,
+    responses: { '204': { description: 'No content' } },
   })
   del() {}
 
