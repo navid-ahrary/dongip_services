@@ -235,7 +235,7 @@ export class AuthController {
     if (verifyReqBody.phone) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.smsService
-        .sendSms(randomCode, verifyReqBody.phone, verifyReqBody.smsSignature)
+        .sendSms(randomCode, verifyReqBody.phone, this.lang, verifyReqBody.smsSignature)
         .then(async (res) => {
           await this.verifyRepository.updateById(createdVerify.getId(), {
             kavenegarMessageId: res.body.messageid,

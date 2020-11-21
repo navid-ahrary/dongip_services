@@ -49,7 +49,7 @@ export class SmsService {
   }
 
   private validateEnvVars() {
-    if (!process.env.SMS_TEMPLATE) {
+    if (!process.env.SMS_TEMPLATE_FA || !process.env.SMS_TEMPLATE_EN) {
       throw new Error('SMS template is not provided');
     }
 
@@ -61,6 +61,7 @@ export class SmsService {
   public async sendSms(
     token1: string,
     receptor: string,
+    lang: string,
     token2?: string,
   ): Promise<KavenegarResponse> {
     receptor = this.phoneNumService.formatForSendSMSFromIran(receptor);
@@ -68,7 +69,7 @@ export class SmsService {
     const sms: VerifyLookupSMS = {
       token: token1,
       token2: token2 ? token2 : undefined,
-      template: faTemplate,
+      template: lang === 'fa' ? faTemplate : enTemplate,
       type: this.LOOKUP_TYPE,
       receptor: receptor,
     };
