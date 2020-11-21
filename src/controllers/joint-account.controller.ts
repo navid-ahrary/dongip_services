@@ -624,6 +624,12 @@ export class JointAccountController {
     if (notifyMsgs.length) this.firebaseSerice.sendAllMessage(notifyMsgs);
   }
 
+  @del('/groups/', {
+    security: OPERATION_SECURITY_SPEC,
+    responses: { '204': { description: 'No content' } },
+  })
+  del() {}
+
   // @patch('/joint-account/{jointAccountId}/delete/{userRelId}', { responses: { 204: '' } })
   // async deleteRelFromJointAccount() {}
 
