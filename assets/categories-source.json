@@ -1,204 +1,284 @@
 {
   "fa": [{
+      "id": 1,
       "title": "آرایشی و بهداشتی",
       "icon": "assets/images/icons/shopping/ic_normal_shopping_22.png"
     },
     {
+      "id": 2,
       "title": "آموزش",
       "icon": "assets/images/icons/education/ic_normal_education_01.png"
     },
     {
+      "id": 3,
       "title": "اجاره خونه",
       "icon": "assets/images/icons/furniture/ic_normal_furniture_18.png"
     },
     {
+      "id": 4,
       "title": "اینترنت",
       "icon": "assets/images/icons/electronic/ic_normal_electronics_01.png"
     },
     {
+      "id": 5,
       "title": "بنزین",
       "icon": "assets/images/icons/transportation/ic_normal_transportation_01.png"
     },
     {
+      "id": 6,
       "title": "بهداشت و سلامت",
       "icon": "assets/images/icons/medical/ic_normal_medical_04.png"
     },
     {
+      "id": 7,
       "title": "بیمه",
       "icon": "assets/images/icons/medical/ic_normal_medical_09.png"
     },
     {
+      "id": 8,
       "title": "تاکسی",
       "icon": "assets/images/icons/transportation/ic_normal_transportation_13.png"
     },
     {
+      "id": 9,
       "title": "تسویه حساب",
       "icon": "assets/images/icons/income/ic_normal_income_03.png"
     },
     {
+      "id": 10,
       "title": "تعمیرات",
       "icon": "assets/images/icons/furniture/ic_normal_furniture_12.png"
     },
     {
+      "id": 11,
       "title": "تناسب اندام",
       "icon": "assets/images/icons/fitness/ic_normal_fitness_01.png"
     },
     {
+      "id": 12,
       "title": "تکنولوژی",
       "icon": "assets/images/icons/electronic/ic_normal_electronics_06.png"
     },
     {
+      "id": 13,
       "title": "جرائم رانندگی",
       "icon": "assets/images/icons/transportation/ic_normal_transportation_04.png"
     },
     {
+      "id": 14,
       "title": "حیوان خانگی",
       "icon": "assets/images/icons/personal/ic_normal_personal_08.png"
     },
     {
+      "id": 15,
       "title": "خانواده",
       "icon": "assets/images/icons/family/ic_normal_family_01.png"
     },
     {
+      "id": 16,
       "title": "خرید خانه",
       "icon": "assets/images/icons/shopping/ic_normal_shopping_01.png"
     },
     {
+      "id": 17,
       "title": "دخانیات",
       "icon": "assets/images/icons/personal/ic_normal_personal_05.png"
     },
     {
+      "id": 18,
       "title": "رستوران",
       "icon": "assets/images/icons/food/ic_normal_food_20.png"
     },
     {
+      "id": 19,
       "title": "سرگرمی",
       "icon": "assets/images/icons/entertainment/ic_normal_entertainment_01.png"
     },
     {
+      "id": 20,
       "title": "سینما و تئاتر",
       "icon": "assets/images/icons/entertainment/ic_normal_entertainment_02.png"
     },
     {
+      "id": 21,
       "title": "قبض",
       "icon": "assets/images/icons/personal/ic_normal_personal_02.png"
     },
     {
+      "id": 22,
       "title": "قسط",
       "icon": "assets/images/icons/personal/ic_normal_personal_02.png"
     },
     {
+      "id": 23,
       "title": "مسافرت",
       "icon": "assets/images/icons/transportation/ic_normal_transportation_14.png"
     },
     {
+      "id": 24,
       "title": "نقدی",
       "icon": "assets/images/icons/income/ic_normal_income_02.png"
     },
     {
+      "id": 25,
       "title": "هنر و موسیقی",
       "icon": "assets/images/icons/education/ic_normal_education_05.png"
     },
     {
+      "id": 26,
       "title": "پیک نیک",
       "icon": "assets/images/icons/life/ic_normal_life_02.png"
     },
     {
+      "id": 27,
       "title": "کافه",
       "icon": "assets/images/icons/food/ic_normal_food_03.png"
     },
     {
+      "id": 28,
       "title": "گل و گیاه",
       "icon": "assets/images/icons/furniture/ic_normal_furniture_04.png"
     }
   ],
   "en": [{
+      "id": 1,
       "title": "Cosmetics",
       "icon": "assets/images/icons/shopping/ic_normal_shopping_22.png"
     },
     {
+      "id": 2,
       "title": "Education",
       "icon": "assets/images/icons/education/ic_normal_education_01.png"
     },
     {
+      "id": 3,
+      "title": "Rent",
+      "icon": "assets/images/icons/furniture/ic_normal_furniture_18.png"
+    },
+    {
+      "id": 4,
       "title": "Internet",
       "icon": "assets/images/icons/electronic/ic_normal_electronics_01.png"
     },
     {
+      "id": 5,
       "title": "Gas",
       "icon": "assets/images/icons/transportation/ic_normal_transportation_01.png"
     },
     {
+      "id": 6,
       "title": "Health",
       "icon": "assets/images/icons/medical/ic_normal_medical_04.png"
     },
     {
+      "id": 7,
       "title": "Insurance",
       "icon": "assets/images/icons/medical/ic_normal_medical_09.png"
     },
     {
+      "id": 8,
       "title": "Taxi",
       "icon": "assets/images/icons/transportation/ic_normal_transportation_13.png"
     },
     {
+      "id": 9,
       "title": "Settle up",
       "icon": "assets/images/icons/income/ic_normal_income_03.png"
     },
     {
+      "id": 10,
+      "title": "Maintenance",
+      "icon": "assets/images/icons/furniture/ic_normal_furniture_12.png"
+    },
+    {
+      "id": 11,
       "title": "Fitness",
       "icon": "assets/images/icons/fitness/ic_normal_fitness_01.png"
     },
     {
+      "id": 12,
       "title": "Technology",
       "icon": "assets/images/icons/electronic/ic_normal_electronics_06.png"
     },
     {
+      "id": 13,
+      "title": "Driving offenses",
+      "icon": "assets/images/icons/transportation/ic_normal_transportation_04.png"
+    },
+    {
+      "id": 14,
       "title": "Pet",
       "icon": "assets/images/icons/personal/ic_normal_personal_08.png"
     },
     {
+      "id": 15,
       "title": "Family",
       "icon": "assets/images/icons/family/ic_normal_family_01.png"
     },
     {
+      "id": 16,
       "title": "Shopping",
       "icon": "assets/images/icons/shopping/ic_normal_shopping_01.png"
     },
     {
+      "id": 17,
       "title": "Smoking",
       "icon": "assets/images/icons/personal/ic_normal_personal_05.png"
     },
     {
+      "id": 18,
+      "title": "Restaurant",
+      "icon": "assets/images/icons/food/ic_normal_food_20.png"
+    },
+    {
+      "id": 19,
       "title": "Entertainment",
       "icon": "assets/images/icons/entertainment/ic_normal_entertainment_01.png"
     },
     {
-      "title": "Cinema",
+      "id": 20,
+      "title": "Cinema & Theater",
       "icon": "assets/images/icons/entertainment/ic_normal_entertainment_02.png"
     },
     {
+      "id": 21,
       "title": "Receipt",
       "icon": "assets/images/icons/personal/ic_normal_personal_02.png"
     },
     {
+      "id": 22,
+      "title": "Installment",
+      "icon": "assets/images/icons/personal/ic_normal_personal_02.png"
+    },
+    {
+      "id": 23,
       "title": "Travel",
       "icon": "assets/images/icons/transportation/ic_normal_transportation_14.png"
     },
     {
+      "id": 24,
       "title": "Cash",
       "icon": "assets/images/icons/income/ic_normal_income_02.png"
     },
     {
-      "title": "Art",
+      "id": 25,
+      "title": "Art & Music",
       "icon": "assets/images/icons/education/ic_normal_education_05.png"
     },
     {
+      "id": 26,
       "title": "Picnic",
       "icon": "assets/images/icons/life/ic_normal_life_02.png"
     },
     {
+      "id": 27,
       "title": "Cafe",
       "icon": "assets/images/icons/food/ic_normal_food_03.png"
+    },
+    {
+      "id": 28,
+      "title": "Floriculture",
+      "icon": "assets/images/icons/furniture/ic_normal_furniture_04.png"
     }
   ]
 }

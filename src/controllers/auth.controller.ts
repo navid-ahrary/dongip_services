@@ -1,5 +1,5 @@
 import { inject, service, intercept } from '@loopback/core';
-import { repository } from '@loopback/repository';
+import { DataObject, repository } from '@loopback/repository';
 import {
   post,
   requestBody,
@@ -21,7 +21,7 @@ import _ from 'lodash';
 
 import { PasswordHasherBindings, UserServiceBindings, TokenServiceBindings } from '../keys';
 import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
-import { Users, Credentials, Verify, NewUser } from '../models';
+import { Users, Credentials, Verify, NewUser, Categories } from '../models';
 import {
   UsersRepository,
   BlacklistRepository,
@@ -566,20 +566,19 @@ export class AuthController {
             .patch({ mutualUserRelId: rel.getId() }, { userRelId: rel.getId() });
         });
 
-      const initCatList = this.catSrc[this.lang];
-      initCatList.forEach((cat) => {
-        Object.assign(cat, { userId: savedUser.userId });
+      const categoriesList = this.catSrc[this.lang];
+      const initCatList: DataObject<Categories>[] = [];
+      _.forEach(categoriesList, (cat) => {
+        initCatList.push({ userId: savedUser.userId, icon: cat.icon, title: cat.title });
       });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.categoriesRepository.createAll(initCatList);
-
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.settingsRepository.create({
         userId: savedUser.userId,
         language: userLanguage,
         currency: userCurrency,
       });
-
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.verifyRepository.updateById(verifyId, {
         loggedIn: true,

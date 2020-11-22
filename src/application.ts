@@ -1,30 +1,23 @@
-import {BootMixin} from '@loopback/boot';
-import {
-  ApplicationConfig,
-  BindingKey,
-  createBindingFromClass,
-} from '@loopback/core';
-import {
-  RestExplorerBindings,
-  RestExplorerComponent,
-} from '@loopback/rest-explorer';
-import {RepositoryMixin} from '@loopback/repository';
-import {RestApplication} from '@loopback/rest';
-import {ServiceMixin} from '@loopback/service-proxy';
-import {registerAuthenticationStrategy} from '@loopback/authentication';
+import { BootMixin } from '@loopback/boot';
+import { ApplicationConfig, BindingKey, createBindingFromClass } from '@loopback/core';
+import { RestExplorerBindings, RestExplorerComponent } from '@loopback/rest-explorer';
+import { RepositoryMixin } from '@loopback/repository';
+import { RestApplication } from '@loopback/rest';
+import { ServiceMixin } from '@loopback/service-proxy';
+import { registerAuthenticationStrategy } from '@loopback/authentication';
 import {
   AuthorizationDecision,
   AuthorizationOptions,
   AuthorizationComponent,
   AuthorizationBindings,
 } from '@loopback/authorization';
-import {MetricsComponent, MetricsBindings} from '@loopback/extension-metrics';
-import {HealthComponent, HealthBindings} from '@loopback/extension-health';
-import {CronComponent} from '@loopback/cron';
+import { MetricsComponent, MetricsBindings } from '@loopback/extension-metrics';
+import { HealthComponent, HealthBindings } from '@loopback/extension-health';
+import { CronComponent } from '@loopback/cron';
 import path from 'path';
 
-import {MyAuthenticationSequence} from './sequence';
-import {UserAuthenticationComponent} from './components/user.authentication';
+import { MyAuthenticationSequence } from './sequence';
+import { UserAuthenticationComponent } from './components/user.authentication';
 import {
   JWTVerifyAutehticationStrategy,
   JWTAccessAutehticationStrategy,
@@ -36,13 +29,8 @@ import {
   PasswordHasherBindings,
   UserServiceBindings,
 } from './keys';
-import {
-  JWTService,
-  BcryptHasher,
-  MyUserService,
-  CronJobService,
-} from './services';
-import {SECURITY_SCHEME_SPEC} from './utils/security-specs';
+import { JWTService, BcryptHasher, MyUserService, CronJobService } from './services';
+import { SECURITY_SCHEME_SPEC } from './utils/security-specs';
 
 /**
  * Information from package.json
@@ -66,16 +54,14 @@ export interface SubscriptionSpec {
       id: string;
       name: string;
       grade: string;
-      duration: {unit: 'month' | 'months' | 'year'; amount: number};
-      regular: {[currency: string]: number};
-      sale: {[currency: string]: number};
+      duration: { unit: 'month' | 'months' | 'year'; amount: number };
+      regular: { [currency: string]: number };
+      sale: { [currency: string]: number };
       onSale: boolean;
     };
   };
 }
-export const SubscriptionSpec = BindingKey.create<SubscriptionSpec>(
-  'application.subscriptionSpec',
-);
+export const SubscriptionSpec = BindingKey.create<SubscriptionSpec>('application.subscriptionSpec');
 const subsSpec: SubscriptionSpec = require('../assets/subscription-specs.json');
 
 export interface LocalizedMessages {
@@ -90,7 +76,7 @@ export const LocalizedMessages = BindingKey.create<LocalizedMessages>(
 const localizedMessages: LocalizedMessages = require('../locale/localized-contents.json');
 
 export interface CategoriesSource {
-  [language: string]: Array<{title: string; icon: string}>;
+  [language: string]: Array<{ id: number; title: string; icon: string }>;
 }
 
 export const CategoriesSourceList = BindingKey.create<CategoriesSource>(
@@ -98,14 +84,12 @@ export const CategoriesSourceList = BindingKey.create<CategoriesSource>(
 );
 const categoriesSourceList: CategoriesSource = require('../assets/categories-source.json');
 
-export class MyApplication extends BootMixin(
-  ServiceMixin(RepositoryMixin(RestApplication)),
-) {
+export class MyApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestApplication))) {
   hashRound: number;
 
   constructor(
     options: ApplicationConfig = {
-      shutdown: {signals: ['SIGTERM'], gracePeriod: 1000},
+      shutdown: { signals: ['SIGTERM'], gracePeriod: 1000 },
     },
   ) {
     super(options);
@@ -126,7 +110,7 @@ export class MyApplication extends BootMixin(
       components: {
         securitySchemes: SECURITY_SCHEME_SPEC,
       },
-      servers: [{url: '/', description: 'API Gateway'}],
+      servers: [{ url: '/', description: 'API Gateway' }],
     });
 
     this.hashRound = +process.env.HASH_ROUND!;
@@ -181,8 +165,8 @@ export class MyApplication extends BootMixin(
   setupBinding(): void {
     // Configure metric component
     this.configure(MetricsBindings.COMPONENT).to({
-      endpoint: {basePath: '/metrics', disabled: false},
-      defaultMetrics: {timeout: 10000, disabled: false},
+      endpoint: { basePath: '/metrics', disabled: false },
+      defaultMetrics: { timeout: 10000, disabled: false },
     });
 
     // Configure health checking configuration
@@ -205,12 +189,8 @@ export class MyApplication extends BootMixin(
     // Bind categories source lists
     this.bind(CategoriesSourceList).to(categoriesSourceList);
 
-    this.bind(TokenServiceBindings.TOKEN_SECRET).to(
-      TokenServiceConstants.TOKEN_SECRET_VALUE!,
-    );
-    this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(
-      TokenServiceConstants.JWT_TOKEN_ALGORITHM,
-    );
+    this.bind(TokenServiceBindings.TOKEN_SECRET).to(TokenServiceConstants.TOKEN_SECRET_VALUE!);
+    this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(TokenServiceConstants.JWT_TOKEN_ALGORITHM);
     this.bind(TokenServiceBindings.VERIFY_TOKEN_EXPIRES_IN).to(
       TokenServiceConstants.VERIFY_TOKEN_EXPIRES_IN_VALUE,
     );
