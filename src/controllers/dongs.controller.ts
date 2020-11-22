@@ -37,7 +37,7 @@ import {
   FirebasetokenInterceptor,
   JointAccountsInterceptor,
 } from '../interceptors';
-import { LocalizedMessages } from '../application';
+import { CategoriesSource, LocalizedMessages } from '../application';
 import { dongReqBody } from './specs';
 
 @model()
@@ -67,6 +67,8 @@ export class DongsController {
     @service(FirebaseService) private firebaseSerice: FirebaseService,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @inject('application.categoriesSourceList') public catSrc: CategoriesSource,
+
     @inject.context() public ctx: RequestContext,
   ) {
     this.userId = +this.currentUserProfile[securityId];
@@ -415,9 +417,25 @@ export class DongsController {
       });
 
       const currentUserCateg = currentUser.categories[0];
-      const splittedCatgTitle = currentUserCateg.title
-        .split(' ')
-        .filter((v) => !['and', 'or', '&', ',', '.', ';', 'و', 'یا', '،', '-'].includes(v));
+      const catsFa = this.catSrc['fa'];
+      const catsEn = this.catSrc['en'];
+      let splittedCatgTitle: string[] = [];
+      const cFa = _.find(catsFa, (c) => c.title === currentUserCateg.title);
+      if (cFa) {
+        const titleEn = _.find(catsEn, (c) => c.id === cFa.id)?.title ?? '';
+        splittedCatgTitle.push(titleEn);
+      }
+      const cEn = _.find(catsEn, (c) => c.title === currentUserCateg.title);
+      if (cEn) {
+        const titleFa = _.find(catsFa, (c) => c.id === cEn.id)?.title ?? '';
+        splittedCatgTitle.push(titleFa);
+      }
+      splittedCatgTitle = _.concat(
+        splittedCatgTitle,
+        currentUserCateg.title
+          .split(' ')
+          .filter((v) => !['and', 'or', '&', ',', '.', ';', 'و', 'یا', '،', '-'].includes(v)),
+      );
 
       for (const JAS of JASs) {
         const user = await this.usersRepository.findById(JAS.userId, {

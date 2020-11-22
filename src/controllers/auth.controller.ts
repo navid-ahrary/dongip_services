@@ -567,9 +567,11 @@ export class AuthController {
         });
 
       const categoriesList = this.catSrc[this.lang];
-      const initCatList: DataObject<Categories>[] = [];
+      const initCatList: Categories[] = [];
       _.forEach(categoriesList, (cat) => {
-        initCatList.push({ userId: savedUser.userId, icon: cat.icon, title: cat.title });
+        initCatList.push(
+          new Categories({ userId: savedUser.userId, icon: cat.icon, title: cat.title }),
+        );
       });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.categoriesRepository.createAll(initCatList);
