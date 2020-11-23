@@ -1,15 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import {BindingScope, injectable} from '@loopback/core';
-import {
-  messaging,
-  initializeApp,
-  credential,
-  ServiceAccount,
-} from 'firebase-admin';
-import {HttpErrors} from '@loopback/rest';
-
-import {config} from 'dotenv';
-config();
+import { BindingScope, injectable } from '@loopback/core';
+import { messaging, initializeApp, credential, ServiceAccount } from 'firebase-admin';
+import { HttpErrors } from '@loopback/rest';
 
 export type MessagePayload = messaging.MessagingPayload;
 export type BatchMessage = Array<messaging.Message>;
@@ -20,23 +12,24 @@ export interface FirebaseService {
     payload: MessagePayload,
     options?: messaging.MessagingOptions | undefined,
   ): void;
-  sendMultiCastMessage(
-    message: messaging.MulticastMessage,
-    dryRun?: boolean,
-  ): void;
+  sendMultiCastMessage(message: messaging.MulticastMessage, dryRun?: boolean): void;
   sendAllMessage(messages: BatchMessage): Promise<messaging.BatchResponse>;
 }
 
-@injectable({scope: BindingScope.SINGLETON})
+@injectable({ scope: BindingScope.SINGLETON })
 export class FirebaseService {
-  private serviceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
   constructor() {
-    this.initializeApp(this.serviceAccount);
+    this.initializeApp();
   }
 
-  private initializeApp(serviceAccount: ServiceAccount) {
+  private initializeApp() {
+    const serviceAccount: ServiceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
     initializeApp({
-      credential: credential.cert(serviceAccount),
+      credential: credential.cert({
+        clientEmail: serviceAccount.clientEmail,
+        privateKey: serviceAccount.privateKey,
+        projectId: serviceAccount.projectId,
+      }),
       databaseURL: process.env.GOOGLE_APPLICATION_DATABASEURL,
     });
   }
@@ -47,11 +40,9 @@ export class FirebaseService {
     payload: messaging.MessagingPayload,
     options?: messaging.MessagingOptions | undefined,
   ): Promise<messaging.MessagingDevicesResponse> {
-    const response = await messaging().sendToDevice(
-      firebaseToken,
-      payload,
-      options,
-    );
+    Object.assign(payload.notification, { clickAction: 'FLUTTER_NOTIFICATION_CLICK' });
+
+    const response = await messaging().sendToDevice(firebaseToken, payload, options);
 
     if (response.successCount) {
       console.log(`Sucessfully sent notification: ${JSON.stringify(response)}`);
@@ -65,19 +56,11 @@ export class FirebaseService {
   }
 
   // send a message to multi devices
-  public async sendMultiCastMessage(
-    message: messaging.MulticastMessage,
-    dryRun?: boolean,
-  ) {
+  public async sendMultiCastMessage(message: messaging.MulticastMessage, dryRun?: boolean) {
     Object.assign(message, {
       // Android options
       android: {
-        notification: {clickAction: 'FLUTTER_NOTIFICATION_CLICK'},
-      },
-      // iOS options
-      apns: {
-        payload: {},
-        fcmOptions: {},
+        notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
       },
     });
 
@@ -93,32 +76,21 @@ export class FirebaseService {
             }
           });
           console.warn(`List of tokens that caused failure ${failedTokens}`);
-          throw new HttpErrors.NotImplemented(
-            `List of tokens that caused failure ${failedTokens}`,
-          );
+          throw new HttpErrors.NotImplemented(`List of tokens that caused failure ${failedTokens}`);
         }
         console.log(`Successfully sent notifications, ${_response}`);
       })
       .catch(function (_error) {
         console.warn(`Error sending notifications, ${_error}`);
-        throw new HttpErrors.NotImplemented(
-          `Error sending notifications, ${_error}`,
-        );
+        throw new HttpErrors.NotImplemented(`Error sending notifications, ${_error}`);
       });
   }
 
   //send multi message to multi devices
-  public async sendAllMessage(
-    messages: BatchMessage,
-  ): Promise<messaging.BatchResponse> {
+  public async sendAllMessage(messages: BatchMessage): Promise<messaging.BatchResponse> {
     messages.forEach((msg) =>
-      Object.assign(msg, {
-        // Android options
-        android: {
-          notification: {clickAction: 'FLUTTER_NOTIFICATION_CLICK'},
-        },
-        // iOS options
-        apns: {},
+      Object.assign(msg.android, {
+        notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
       }),
     );
     const response = await messaging()
@@ -129,9 +101,7 @@ export class FirebaseService {
       });
 
     if (response.successCount) {
-      console.log(
-        `Successfully sent notifications, ${JSON.stringify(response)}`,
-      );
+      console.log(`Successfully sent notifications, ${JSON.stringify(response)}`);
     } else if (response.failureCount) {
       console.warn(`Failed sent notifications: ${JSON.stringify(response)}`);
     } else {

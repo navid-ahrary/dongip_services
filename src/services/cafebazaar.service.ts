@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {BindingScope, injectable} from '@loopback/core';
+import { BindingScope, injectable } from '@loopback/core';
 import axios from 'axios';
 import qs from 'qs';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 export interface AccessTokenResponse {
   access_token: string;
@@ -20,9 +17,7 @@ export interface ValidPurchaseResponse {
   developerPayload?: string;
   purchaseTime?: number;
   error?: 'not_found' | 'invalid_value';
-  error_description?:
-    | 'The requested purchase is not found!'
-    | 'Product is not found.';
+  error_description?: 'The requested purchase is not found!' | 'Product is not found.';
 }
 
 export interface Purchase {
@@ -30,7 +25,7 @@ export interface Purchase {
   purchaseToken: string;
 }
 
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({ scope: BindingScope.TRANSIENT })
 export class CafebazaarService {
   private readonly packageName = process.env.CAFEBAZAAR_PACKAGE_NAME;
   private readonly refreshToken = process.env.CAFEBAZAAR_REFRESH_TOKEN;
@@ -66,9 +61,7 @@ export class CafebazaarService {
     }
   }
 
-  public async getPurchaseState(
-    args: Purchase,
-  ): Promise<ValidPurchaseResponse> {
+  public async getPurchaseState(args: Purchase): Promise<ValidPurchaseResponse> {
     try {
       const data = await this.getAccessToken();
 
@@ -78,7 +71,7 @@ export class CafebazaarService {
 
       const result = await axios({
         method: 'GET',
-        headers: {Authorization: data.access_token},
+        headers: { Authorization: data.access_token },
         url: this.baseURL + apiPath,
       });
 

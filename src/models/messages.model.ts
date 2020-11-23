@@ -1,5 +1,5 @@
-import {Entity, model, property, belongsTo} from '@loopback/repository';
-import {Users} from './users.model';
+import { Entity, model, property, belongsTo } from '@loopback/repository';
+import { Users } from './users.model';
 
 @model({
   name: 'messages',
@@ -32,8 +32,8 @@ export class Messages extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {minLength: 1, maxLength: 5000},
-    mysql: {dataType: 'varchar', dataLength: 5000, nullable: 'N'},
+    jsonSchema: { minLength: 1, maxLength: 5000 },
+    mysql: { dataType: 'varchar', dataLength: 5000, nullable: 'N' },
   })
   message: string;
 
@@ -64,10 +64,12 @@ export class Messages extends Entity {
   @property({
     type: 'date',
     required: true,
+    defaultFn: 'now',
     mysql: {
       columnName: 'created_at',
       dataType: 'datetime',
       dataLength: null,
+      default: 'now',
       nullable: 'N',
     },
   })
@@ -85,7 +87,7 @@ export class Messages extends Entity {
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',

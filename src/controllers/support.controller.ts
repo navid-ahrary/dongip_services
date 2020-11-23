@@ -5,25 +5,26 @@ import {
   param,
   post,
   requestBody,
-  HttpErrors,
   RequestContext,
+  HttpErrors,
 } from '@loopback/rest';
-import {authorize} from '@loopback/authorization';
-import {authenticate} from '@loopback/authentication';
-import {repository, Filter} from '@loopback/repository';
-import {inject, service} from '@loopback/core';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-
+import { authorize } from '@loopback/authorization';
+import { authenticate } from '@loopback/authentication';
+import { repository, Filter } from '@loopback/repository';
+import { inject, service } from '@loopback/core';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import moment from 'moment';
+import ct from 'countries-and-timezones';
+import 'moment-timezone';
 
-import {Messages, Users} from '../models';
-import {basicAuthorization, FirebaseService, MessagePayload} from '../services';
-import {MessagesRepository, UsersRepository} from '../repositories';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {LocalizedMessages} from '../application';
+import { Messages, Notifications, Users } from '../models';
+import { basicAuthorization, FirebaseService, MessagePayload } from '../services';
+import { MessagesRepository, UsersRepository } from '../repositories';
+import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
+import { LocalizedMessages } from '../application';
 
-@api({basePath: '/support/', paths: {}})
-@authorize({allowedRoles: ['GOD'], voters: [basicAuthorization]})
+@api({ basePath: '/support/', paths: {} })
+@authorize({ allowedRoles: ['GOD'], voters: [basicAuthorization] })
 @authenticate('jwt.access')
 export class SupportController {
   private readonly userId: number;
@@ -40,7 +41,6 @@ export class SupportController {
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-
     this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
 
@@ -96,20 +96,14 @@ export class SupportController {
     },
   })
   async responseToMessage(
-    @param.path.number('targetUserId', {required: true})
+    @param.path.number('targetUserId', { required: true })
     targetUserId: typeof Users.prototype.userId,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(Messages, {
             title: 'NewMessage',
-            exclude: [
-              'messageId',
-              'userId',
-              'createdAt',
-              'isQuestion',
-              'isAnswer',
-            ],
+            exclude: ['messageId', 'userId', 'createdAt', 'isQuestion', 'isAnswer'],
             includeRelations: false,
           }),
           example: {
@@ -120,38 +114,54 @@ export class SupportController {
     })
     newMessage: Omit<Messages, 'messageId'>,
   ): Promise<Messages> {
-    const foundTargetUser = await this.usersRepository.findById(targetUserId, {
-      fields: {firebaseToken: true},
-    });
-    if (
-      foundTargetUser.firebaseToken &&
-      foundTargetUser.firebaseToken !== 'null'
-    ) {
+    try {
+      const foundTargetUser = await this.usersRepository.findById(targetUserId, {
+        fields: { userId: true, firebaseToken: true, region: true },
+        include: [{ relation: 'setting', scope: { fields: { userId: true, language: true } } }],
+      });
+
+      const token = foundTargetUser.firebaseToken ?? '';
+      const lang = foundTargetUser.setting.language;
+      const region = foundTargetUser.region;
+      const timezone = ct.getTimezonesForCountry(region!)[0].name;
+      const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+
       const createdMessage = await this.messagesRepository.create({
         message: newMessage.message,
-        createdAt: moment.utc().toISOString(),
         userId: targetUserId,
         isQuestion: false,
         isAnswer: true,
       });
 
+      const notifyData = new Notifications({
+        title: this.locMsg['TICKET_RESPONSE'][lang],
+        body: newMessage.message,
+        type: 'supportMessage',
+        createdAt: time,
+      });
+      const createdNotify = await this.usersRepository
+        .notifications(targetUserId)
+        .create(notifyData);
+
       const notifyMessage: MessagePayload = {
         notification: {
-          title: this.locMsg['TICKET_RESPONSE'][this.lang],
-          body: newMessage.message.toString(),
-          clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+          title: createdNotify.title,
+          body: createdNotify.body,
+        },
+        data: {
+          notifyId: createdNotify.getId().toString(),
+          title: notifyData.title,
+          body: notifyData.body,
+          type: notifyData.type,
+          createdAt: notifyData.createdAt,
         },
       };
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.firebaseService.sendToDeviceMessage(
-        foundTargetUser.firebaseToken,
-        notifyMessage,
-      );
+      this.firebaseService.sendToDeviceMessage(token, notifyMessage);
       return createdMessage;
-    } else {
-      throw new HttpErrors.NotImplemented(
-        'User firebase token is not provided',
-      );
+    } catch (err) {
+      console.error(err);
+      throw new HttpErrors.NotImplemented(JSON.stringify(err));
     }
   }
 }

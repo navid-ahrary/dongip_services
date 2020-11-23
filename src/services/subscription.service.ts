@@ -1,15 +1,13 @@
-import {BindingScope, inject, injectable} from '@loopback/core';
-import {repository} from '@loopback/repository';
+import { BindingScope, inject, injectable } from '@loopback/core';
+import { repository } from '@loopback/repository';
 
 import moment from 'moment';
-import dotenv from 'dotenv';
-dotenv.config();
 
-import {UsersRepository, SubscriptionsRepository} from '../repositories';
-import {SubscriptionSpec} from '../application';
-import {Users, Subscriptions} from '../models';
+import { UsersRepository, SubscriptionsRepository } from '../repositories';
+import { SubscriptionSpec } from '../application';
+import { Users, Subscriptions } from '../models';
 
-@injectable({scope: BindingScope.SINGLETON})
+@injectable({ scope: BindingScope.SINGLETON })
 export class SubscriptionService {
   constructor(
     @repository(UsersRepository) protected usersRepo: UsersRepository,
@@ -41,7 +39,7 @@ export class SubscriptionService {
       limit: 1,
       where: {
         userId: userId,
-        eolTime: {gte: moment.utc().toISOString()},
+        eolTime: { gte: moment.utc().toISOString() },
       },
     });
     // If user has a subscription, new plan'll start from subscriptino's eol
@@ -49,24 +47,18 @@ export class SubscriptionService {
       const lastEOL = lastSubs.eolTime;
 
       sol = moment(lastEOL).utc().toISOString();
-      eol = moment(lastEOL)
-        .utc()
-        .add(durationAmount, durationUnit)
-        .toISOString();
+      eol = moment(lastEOL).utc().add(durationAmount, durationUnit).toISOString();
     } else {
       sol = moment(purchaseTime).utc().toISOString();
-      eol = moment(purchaseTime)
-        .utc()
-        .add(durationAmount, durationUnit)
-        .toISOString();
+      eol = moment(purchaseTime).utc().add(durationAmount, durationUnit).toISOString();
     }
 
     const subs = await this.usersRepo
       .subscriptions(userId)
-      .create({planId: planId, solTime: sol, eolTime: eol});
+      .create({ planId: planId, solTime: sol, eolTime: eol });
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRepo.updateById(userId, {roles: ['GOLD']});
+    this.usersRepo.updateById(userId, { roles: ['GOLD'] });
 
     return subs;
   }

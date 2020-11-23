@@ -15,6 +15,7 @@ import { MetricsComponent, MetricsBindings } from '@loopback/extension-metrics';
 import { HealthComponent, HealthBindings } from '@loopback/extension-health';
 import { CronComponent } from '@loopback/cron';
 import path from 'path';
+import dotenv from 'dotenv';
 
 import { MyAuthenticationSequence } from './sequence';
 import { UserAuthenticationComponent } from './components/user.authentication';
@@ -92,6 +93,8 @@ export class MyApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestAp
       shutdown: { signals: ['SIGTERM'], gracePeriod: 1000 },
     },
   ) {
+    dotenv.config();
+
     super(options);
 
     this.api({

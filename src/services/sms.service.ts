@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { BindingScope, injectable, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
-import { config } from 'dotenv';
-config();
 
 const Kavenegar = require('kavenegar');
 

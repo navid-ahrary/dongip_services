@@ -3,8 +3,6 @@ import { BindingScope, injectable } from '@loopback/core';
 
 import util from 'util';
 import axios from 'axios';
-import dotenv from 'dotenv';
-dotenv.config();
 
 const supportEmail = process.env.ZOHO_SUPPORT_MAIL_ADDRESS;
 const supportRefreshToken = process.env.ZOHO_SUPPRT_ACCOUNT_REFRESH_TOKEN;
