@@ -12,7 +12,7 @@ import { basicAuthorization } from '../services';
 import { authorize } from '@loopback/authorization';
 
 @authenticate('jwt.access')
-@authorize({ allowedRoles: ['GOLD', 'GOD'], voters: [basicAuthorization] })
+@authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
 export class JointAccountsDongsController {
   private readonly userId: number;
   lang: string;
