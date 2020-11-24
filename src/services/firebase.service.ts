@@ -89,8 +89,12 @@ export class FirebaseService {
   //send multi message to multi devices
   public async sendAllMessage(messages: BatchMessage): Promise<messaging.BatchResponse> {
     messages.forEach((msg) =>
-      Object.assign(msg.android, {
-        notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
+      Object.assign(msg, {
+        android: {
+          notification: {
+            clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+          },
+        },
       }),
     );
     const response = await messaging()
