@@ -1,10 +1,10 @@
-import {model, property} from '@loopback/repository';
-import {Users} from './users.model';
-import {LanguageEnum, CurrencyEnum} from './settings.model';
+import { model, property } from '@loopback/repository';
+import { Users } from './users.model';
+import { LanguageEnum, CurrencyEnum } from './settings.model';
 
 @model()
 export class NewUser extends Users {
-  @property({type: 'string', required: true, length: 9}) password: string;
+  @property({ type: 'string', required: true, length: 9 }) password: string;
 
   @property({
     type: 'string',
@@ -29,6 +29,14 @@ export class NewUser extends Users {
     },
   })
   currency?: CurrencyEnum;
+
+  @property({
+    type: 'string',
+    required: false,
+    default: '000000',
+    jsonSchema: { default: '000000' },
+  })
+  referralCode: string;
 }
 
 export interface NewUserRelations {

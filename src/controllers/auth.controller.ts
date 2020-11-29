@@ -1,5 +1,5 @@
 import { inject, service, intercept } from '@loopback/core';
-import { DataObject, repository } from '@loopback/repository';
+import { repository } from '@loopback/repository';
 import {
   post,
   requestBody,
@@ -223,13 +223,11 @@ export class AuthController {
         throw new HttpErrors.NotAcceptable(err.message);
       });
 
-    // create userProfile
     const userProfile = {
       [securityId]: createdVerify.getId().toString(),
       aud: 'verify',
     };
 
-    // Generate verify token
     const verifyToken: string = await this.jwtService.generateToken(userProfile);
 
     if (verifyReqBody.phone) {
@@ -477,7 +475,7 @@ export class AuthController {
               'phoneLocked',
               'emailLocked',
             ],
-            optional: ['username', 'currency', 'language', 'phone'],
+            optional: ['username', 'currency', 'language', 'phone', 'referralCode'],
           }),
           example: {
             phone: '+989171234567',
@@ -487,6 +485,7 @@ export class AuthController {
             currency: 'IRR',
             avatar: '/assets/avatar/avatar_1.png',
             password: 'DNG123456',
+            referralCode: '123456',
           },
         },
       },
