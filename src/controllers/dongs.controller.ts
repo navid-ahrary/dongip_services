@@ -366,36 +366,6 @@ export class DongsController {
     }
   }
 
-  @intercept(JointAccountsInterceptor.BINDING_KEY)
-  @del('/dongs/{dongId}', {
-    summary: 'DELETE a Dong by dongId',
-    security: OPERATION_SECURITY_SPEC,
-    responses: { '204': { description: 'No content' } },
-  })
-  async deleteDongsById(
-    @param.path.number('dongId', { required: true }) dongId: typeof Dongs.prototype.dongId,
-  ): Promise<void> {
-    await this.dongRepository.deleteById(dongId);
-  }
-
-  @del('/dongs/', {
-    summary: 'DELETE all Dongs ',
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'Count DELETE Dongs',
-        content: {
-          'application/json': {
-            schema: CountSchema,
-          },
-        },
-      },
-    },
-  })
-  async deleteAllDongs() {
-    return this.usersRepository.dongs(this.userId).delete({ originDongId: null! });
-  }
-
   async submitJoint(currentUser: Users, dong: Partial<Dongs>) {
     try {
       const firebaseMessages: BatchMessage = [];
@@ -594,5 +564,35 @@ export class DongsController {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  @intercept(JointAccountsInterceptor.BINDING_KEY)
+  @del('/dongs/{dongId}', {
+    summary: 'DELETE a Dong by dongId',
+    security: OPERATION_SECURITY_SPEC,
+    responses: { '204': { description: 'No content' } },
+  })
+  async deleteDongsById(
+    @param.path.number('dongId', { required: true }) dongId: typeof Dongs.prototype.dongId,
+  ): Promise<void> {
+    await this.dongRepository.deleteById(dongId);
+  }
+
+  @del('/dongs/', {
+    summary: 'DELETE all Dongs ',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '200': {
+        description: 'Count DELETE Dongs',
+        content: {
+          'application/json': {
+            schema: CountSchema,
+          },
+        },
+      },
+    },
+  })
+  async deleteAllDongs() {
+    return this.usersRepository.dongs(this.userId).delete();
   }
 }
