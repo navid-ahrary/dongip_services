@@ -52,13 +52,6 @@ export class JointResponse extends Model {
     type?: typeof UsersRels.prototype.type;
   }[];
 
-  @property({
-    type: 'boolean',
-    default: true,
-    jsonSchema: { default: true },
-  })
-  includeBill: boolean;
-
   constructor(data?: Partial<JointResponse>) {
     super(data);
   }
