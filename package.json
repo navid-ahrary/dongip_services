@@ -11,6 +11,7 @@
     "node": ">=10.16.3"
   },
   "scripts": {
+    "pull": "git pull origin master",
     "build": "lb-tsc",
     "build:watch": "lb-tsc --watch",
     "clean": "lb-clean dist *.tsbuildinfo",
@@ -29,10 +30,12 @@
     "docker :run": "docker run -p 8080:8080 -d dongip_services",
     "migrate": "node ./dist/migrate",
     "prestart": "yarn run build",
-    "start": "nodemon -r source-map-support/register .",
-    "deploy": "pm2 start ecosystem.config.js --env production",
+    "start": "pm2 start ecosystem.config.js --env production",
+    "restart": "pm2 restart ecosystem.config.js --env production",
+    "reload": "pm2 reload ecosystem.config.js --env production --update-env",
     "stop": "pm2 stop ecosystem.config.js --env production",
-    "prepublishOnly": "yarn run test"
+    "prepublishOnly": "yarn run test",
+    "deploy": "yarn pull ; yarn build ; yarn migrate ; yarn reload"
   },
   "repository": {
     "type": "git",
