@@ -86,6 +86,7 @@ export class JointAccountController {
           example: {
             title: 'family',
             description: 'Share credit card, me and wife',
+            includeBill: true,
             userRelIds: [1, 11],
           },
         },
@@ -110,6 +111,7 @@ export class JointAccountController {
       userId: this.userId,
       title: jointAccountsReq.title,
       description: jointAccountsReq.description,
+      includeBill: jointAccountsReq.includeBill,
     });
 
     const urs = await this.usersRelsRepo.find({
@@ -177,10 +179,11 @@ export class JointAccountController {
       createdAt: JA.createdAt,
       title: jointAccountsReq.title,
       description: jointAccountsReq.description,
+      admin: true,
+      includeBill: jointAccountsReq.includeBill,
       userRels: currentUser.usersRels.map((ur) => {
         return { userRelId: ur.getId(), name: ur.name, avatar: ur.avatar, type: ur.type };
       }),
-      admin: true,
     });
   }
 
@@ -237,6 +240,7 @@ export class JointAccountController {
           userRels: usersRels,
           createdAt: ja.createdAt,
           admin: ja.userId === this.userId ? true : false,
+          includeBill: ja.includeBill,
         }),
       );
     }

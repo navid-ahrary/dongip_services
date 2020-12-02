@@ -72,6 +72,19 @@ export class JointAccounts extends Entity {
   })
   createdAt: string;
 
+  @property({
+    type: 'boolean',
+    default: true,
+    mysql: {
+      columnName: 'include_bill',
+      dataType: 'tinyint',
+      dataLength: 1,
+      nullable: 'N',
+      default: '1',
+    },
+  })
+  includeBill: boolean;
+
   @belongsTo(
     () => Users,
     {
