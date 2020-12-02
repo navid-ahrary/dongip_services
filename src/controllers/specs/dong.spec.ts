@@ -18,6 +18,7 @@ export const dongReqBody: RequestBodyObject = {
         currency: 'IRR',
         sendNotify: true,
         includeBudget: true,
+        includeBill: true,
         payerList: [{ userRelId: 1, paidAmount: 40000 }],
         billList: [
           { userRelId: 1, dongAmount: 20000 },

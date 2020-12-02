@@ -223,6 +223,7 @@ export class DongsController {
       currency: newDong.currency,
       jointAccountId: newDong.jointAccountId ?? undefined,
       includeBudget: newDong.includeBudget !== null ? newDong.includeBudget : undefined,
+      includeBill: newDong.includeBill,
     });
 
     try {
@@ -361,8 +362,7 @@ export class DongsController {
         score: calculatedScore,
       };
     } catch (err) {
-      console.error(err);
-      throw new HttpErrors.UnprocessableEntity(err.message);
+      throw new HttpErrors.UnprocessableEntity(err);
     }
   }
 
