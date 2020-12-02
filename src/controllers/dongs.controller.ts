@@ -575,9 +575,10 @@ export class DongsController {
   async deleteDongsById(
     @param.path.number('dongId', { required: true }) dongId: typeof Dongs.prototype.dongId,
   ): Promise<void> {
-    await this.dongRepository.deleteById(dongId);
+    return this.dongRepository.deleteById(dongId);
   }
 
+  @intercept(JointAccountsInterceptor.BINDING_KEY)
   @del('/dongs/', {
     summary: 'DELETE all Dongs ',
     security: OPERATION_SECURITY_SPEC,
@@ -593,6 +594,6 @@ export class DongsController {
     },
   })
   async deleteAllDongs() {
-    return this.usersRepository.dongs(this.userId).delete();
+    return this.usersRepository.dongs(this.userId).delete({ originDongId: null! });
   }
 }

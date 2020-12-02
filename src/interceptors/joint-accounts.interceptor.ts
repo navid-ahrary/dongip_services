@@ -247,7 +247,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
 
       if (methodName === 'deleteDongsById') {
         const dongId = invocationCtx.args[0];
-        const foundDong = await this.dongRepo.findOne({
+        const foundDongs = await this.dongRepo.find({
           fields: { dongId: true, originDongId: true, userId: true, jointAccountId: true },
           where: { dongId: dongId, userId: this.userId },
           include: [
@@ -291,6 +291,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
             },
           ],
         });
+        const foundDong = foundDongs[0];
 
         const jointAcc = foundDong?.jointAccount;
 
@@ -355,6 +356,110 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           if (firebaseMessages.length) this.firebaseSerice.sendAllMessage(firebaseMessages);
         }
+
+        return result;
+      }
+
+      if (methodName === 'deleteAllDongs') {
+        const foundDongsInJoint = await this.dongRepo.find({
+          fields: { dongId: true, originDongId: true, userId: true, jointAccountId: true },
+          where: { userId: this.userId, originDongId: null!, jointAccountId: { neq: null! } },
+          include: [
+            {
+              relation: 'jointAccount',
+              scope: {
+                include: [
+                  {
+                    relation: 'jointAccountSubscribes',
+                    scope: {
+                      include: [
+                        {
+                          relation: 'user',
+                          scope: {
+                            fields: {
+                              userId: true,
+                              phone: true,
+                              firebaseToken: true,
+                              region: true,
+                            },
+                            where: { userId: { neq: this.userId } },
+                            include: [
+                              {
+                                relation: 'setting',
+                                scope: { fields: { userId: true, language: true } },
+                              },
+                              {
+                                relation: 'usersRels',
+                                scope: {
+                                  where: { phone: this.phone, type: 'external' },
+                                },
+                              },
+                            ],
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        });
+
+        const result = await next();
+
+        for (const foundDong of foundDongsInJoint) {
+          const jointAcc = foundDong.jointAccount!;
+          const dongId = foundDong.getId();
+
+          if (foundDong.originDongId) await this.dongRepo.deleteById(foundDong.originDongId);
+
+          const jointAccountSubs = jointAcc.jointAccountSubscribes;
+          const users = _.map(jointAccountSubs, (j) => j.user);
+          _.remove(users, (user) => typeof user !== 'object');
+
+          for (const user of users) {
+            const timezone = ct.getTimezonesForCountry(
+              user.region ?? this.phoneNumService.getRegionCodeISO(user.phone!),
+            )[0].name;
+
+            const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+
+            const savedNotify = await this.usersRepo.notifications(user.getId()).create({
+              dongId: dongId,
+              jointAccountId: jointAcc!.getId(),
+              type: 'dong-jointAccount',
+              title: util.format(
+                this.locMsg['DELETE_DONG_BELONG_TO_JOINT_TITLE'][user.setting.language],
+              ),
+              body: util.format(
+                this.locMsg['DELETE_DONG_BELONG_TO_JOINT_BODY'][user.setting.language],
+                jointAcc.title,
+                user.usersRels[0].name,
+              ),
+              createdAt: time,
+            });
+
+            firebaseMessages.push({
+              token: user.firebaseToken ?? '',
+              notification: {
+                title: savedNotify.title,
+                body: savedNotify.body,
+              },
+              data: {
+                notifyId: savedNotify.getId().toString(),
+                title: savedNotify.title,
+                body: savedNotify.body,
+                jointAccountId: jointAcc.getId().toString(),
+                type: savedNotify.type,
+                silent: 'false',
+              },
+            });
+          }
+        }
+
+        //  eslint-disable-next-line @typescript-eslint/no-floating-promises
+        if (firebaseMessages.length) this.firebaseSerice.sendAllMessage(firebaseMessages);
 
         return result;
       }
