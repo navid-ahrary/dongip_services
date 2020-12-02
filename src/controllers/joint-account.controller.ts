@@ -28,6 +28,7 @@ import {
   JointAccountsWithRelations,
 } from '../models';
 import {
+  DongsRepository,
   JointAccountsRepository,
   JointAccountSubscribesRepository,
   UsersRelsRepository,
@@ -56,6 +57,7 @@ export class JointAccountController {
     @service(PhoneNumberService) private phoneNumService: PhoneNumberService,
     @inject('application.localizedMessages') protected locMsg: LocalizedMessages,
     @repository(UsersRelsRepository) protected usersRelsRepo: UsersRelsRepository,
+    @repository(DongsRepository) protected dongRepo: DongsRepository,
     @repository(JointAccountsRepository) protected jointAccountsRepo: JointAccountsRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
@@ -444,6 +446,12 @@ export class JointAccountController {
       await this.jointAccountsRepo
         .jointAccountSubscribes(jointAccountId)
         .delete({ userId: { inq: deletedUsersIds } });
+      if (deletedUsers.length) {
+        await this.dongRepo.updateAll(
+          { jointAccountId: undefined },
+          { userId: { inq: deletedUsersIds }, jointAccountId: jointAccountId },
+        );
+      }
 
       const addedUsersIds = _.map(addedUsers, (user) => user.userId);
       const jointSubs: JointAccountSubscribes[] = [];
