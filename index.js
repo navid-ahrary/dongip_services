@@ -1,5 +1,4 @@
 const application = require('./dist');
-require('dotenv').config()
 
 if (require.main === module) {
   const config = {

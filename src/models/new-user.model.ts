@@ -29,14 +29,6 @@ export class NewUser extends Users {
     },
   })
   currency?: CurrencyEnum;
-
-  @property({
-    type: 'string',
-    required: false,
-    default: '000000',
-    jsonSchema: { default: '000000' },
-  })
-  referralCode: string;
 }
 
 export interface NewUserRelations {

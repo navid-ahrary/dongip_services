@@ -58,8 +58,7 @@ export class MyAuthenticationSequence implements SequenceHandler {
     @inject(SequenceActions.REJECT) public reject: Reject,
     @inject(SequenceActions.INVOKE_MIDDLEWARE, { optional: true })
     public invokeMiddleware: InvokeMiddleware = () => true,
-    @inject(AuthenticationBindings.AUTH_ACTION)
-    protected authenticationRequest: AuthenticateFn,
+    @inject(AuthenticationBindings.AUTH_ACTION) protected authenticationRequest: AuthenticateFn,
   ) {}
 
   async handle(context: RequestContext) {

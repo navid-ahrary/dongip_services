@@ -1,8 +1,5 @@
-import {inject, lifeCycleObserver, LifeCycleObserver} from '@loopback/core';
-import {juggler} from '@loopback/repository';
-
-import dotenv from 'dotenv';
-dotenv.config();
+import { inject, lifeCycleObserver, LifeCycleObserver } from '@loopback/core';
+import { juggler } from '@loopback/repository';
 
 const config = {
   name: 'Mysql',
@@ -18,13 +15,12 @@ const config = {
 };
 
 @lifeCycleObserver('datasource')
-export class MysqlDataSource extends juggler.DataSource
-  implements LifeCycleObserver {
+export class MysqlDataSource extends juggler.DataSource implements LifeCycleObserver {
   static dataSourceName = 'Mysql';
   static readonly defaultConfig = config;
 
   constructor(
-    @inject('datasources.config.Mysql', {optional: true})
+    @inject('datasources.config.Mysql', { optional: true })
     dsConfig: object = config,
   ) {
     super(dsConfig);

@@ -1,17 +1,17 @@
-import {Model, model, property} from '@loopback/repository';
-import {CurrencyEnum, LanguageEnum} from './settings.model';
+import { Model, model, property } from '@loopback/repository';
+import { CurrencyEnum, LanguageEnum } from './settings.model';
 
 @model()
 export class CompleteSignup extends Model {
   @property({
     type: 'string',
-    jsonSchema: {minLength: 3, maxLength: 30},
+    jsonSchema: { minLength: 3, maxLength: 30 },
   })
   name?: string;
 
   @property({
     type: 'string',
-    jsonSchema: {minLength: 3, maxLength: 512},
+    jsonSchema: { minLength: 3, maxLength: 512 },
   })
   avatar?: string;
 
@@ -39,7 +39,7 @@ export class CompleteSignup extends Model {
 
   @property({
     type: 'string',
-    jsonSchema: {minLength: 10, maxLength: 20},
+    jsonSchema: { minLength: 10, maxLength: 20 },
   })
   phone?: string;
 
@@ -51,14 +51,17 @@ export class CompleteSignup extends Model {
   })
   email?: string;
 
+  @property({
+    type: 'string',
+    required: false,
+  })
+  referralCode?: string;
+
   constructor(data?: Partial<CompleteSignup>) {
     super(data);
   }
 }
 
-export interface CompleteSignupRelations {
-  // describe navigational properties here
-}
+export interface CompleteSignupRelations {}
 
-export type CompleteSignupWithRelations = CompleteSignup &
-  CompleteSignupRelations;
+export type CompleteSignupWithRelations = CompleteSignup & CompleteSignupRelations;

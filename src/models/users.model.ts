@@ -196,6 +196,18 @@ export class Users extends Entity {
   })
   emailLocked?: boolean;
 
+  @property({
+    type: 'string',
+    required: false,
+    mysql: {
+      columnName: 'referral_code',
+      dataType: 'varchar',
+      dataLength: 10,
+      nullable: 'Y',
+    },
+  })
+  referralCode?: string;
+
   @hasMany(() => VirtualUsers, {
     name: 'virtualUsers',
     keyTo: 'userId',

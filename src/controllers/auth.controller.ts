@@ -475,7 +475,7 @@ export class AuthController {
               'phoneLocked',
               'emailLocked',
             ],
-            optional: ['username', 'currency', 'language', 'phone', 'referralCode'],
+            optional: ['username', 'currency', 'language', 'phone'],
           }),
           example: {
             phone: '+989171234567',
@@ -485,7 +485,6 @@ export class AuthController {
             currency: 'IRR',
             avatar: '/assets/avatar/avatar_1.png',
             password: 'DNG123456',
-            referralCode: '123456',
           },
         },
       },

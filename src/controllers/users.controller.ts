@@ -259,13 +259,30 @@ export class UsersController {
   async completeSignup(
     @requestBody({
       content: {
-        'application/json': { schema: getModelSchemaRef(CompleteSignup) },
+        'application/json': {
+          schema: getModelSchemaRef(CompleteSignup),
+          example: {
+            name: 'Dongip',
+            avatar: '/assets/avatar/avatar_1.png',
+            language: 'fa',
+            currency: 'IRR',
+            phone: '+989171234567',
+            email: 'dongip.app@dongip.ir',
+            referralCode: '123456',
+          },
+        },
       },
     })
     cmpltSignBody: CompleteSignup,
   ): Promise<void> {
     try {
-      const userProps: Partial<Users> = _.pick(cmpltSignBody, ['avatar', 'name', 'phone', 'email']);
+      const userProps: Partial<Users> = _.pick(cmpltSignBody, [
+        'avatar',
+        'name',
+        'phone',
+        'email',
+        'referralCode',
+      ]);
       const settingProps: Partial<Settings> = _.pick(cmpltSignBody, ['language', 'currency']);
       const userRelProps: Partial<UsersRels> = _.pick(cmpltSignBody, ['avatar', 'name']);
 
@@ -276,7 +293,7 @@ export class UsersController {
 
         if (u) delete userProps.phone;
         else {
-          Object.assign(userProps, { phoneLocked: true });
+          _.assign(userProps, { phoneLocked: true });
           userRelProps.phone = userProps.phone;
           userProps.region = this.phoneNumService.getRegionCodeISO(userProps.phone!);
         }
@@ -289,17 +306,17 @@ export class UsersController {
 
         if (u) delete userProps.email;
         else {
-          Object.assign(userProps, { emailLocked: true });
+          _.assign(userProps, { emailLocked: true });
           userRelProps.email = userProps.email;
         }
       }
       await this.usersRepository.usersRels(this.userId).patch(userRelProps, { type: 'self' });
 
-      if (Object.keys(settingProps).length) {
+      if (_.keys(settingProps).length) {
         await this.usersRepository.setting(this.userId).patch(settingProps);
       }
 
-      if (Object.keys(userProps).length) {
+      if (_.keys(userProps).length) {
         await this.usersRepository.updateById(this.userId, userProps);
       }
     } catch (err) {
