@@ -1,15 +1,15 @@
-import {inject} from '@loopback/core';
-import {Count, repository} from '@loopback/repository';
-import {get, getModelSchemaRef, requestBody, api, patch} from '@loopback/rest';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {authenticate} from '@loopback/authentication';
+import { inject } from '@loopback/core';
+import { Count, repository } from '@loopback/repository';
+import { get, getModelSchemaRef, requestBody, api, patch } from '@loopback/rest';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 
-import {Settings} from '../models';
-import {SettingsRepository, UsersRepository} from '../repositories';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
+import { Settings } from '../models';
+import { SettingsRepository, UsersRepository } from '../repositories';
 
 @authenticate('jwt.access')
-@api({basePath: '/', paths: {}})
+@api({ basePath: '/', paths: {} })
 export class SettingsController {
   readonly userId: number;
 
@@ -30,7 +30,7 @@ export class SettingsController {
         description: 'Settings model instances',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Settings, {includeRelations: false}),
+            schema: getModelSchemaRef(Settings, { includeRelations: false }),
           },
         },
       },

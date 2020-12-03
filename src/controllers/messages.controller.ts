@@ -1,14 +1,14 @@
-import {repository} from '@loopback/repository';
-import {post, get, getModelSchemaRef, requestBody, api} from '@loopback/rest';
-import {inject} from '@loopback/core';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {authenticate} from '@loopback/authentication';
+import { repository } from '@loopback/repository';
+import { post, get, getModelSchemaRef, requestBody, api } from '@loopback/rest';
+import { inject } from '@loopback/core';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 
-import {Messages} from '../models';
-import {UsersRepository, MessagesRepository} from '../repositories';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
+import { Messages } from '../models';
+import { UsersRepository, MessagesRepository } from '../repositories';
 
-@api({basePath: '/', paths: {}})
+@api({ basePath: '/', paths: {} })
 @authenticate('jwt.access')
 export class MessagesController {
   private readonly userId: number;
@@ -42,13 +42,7 @@ export class MessagesController {
         'application/json': {
           schema: getModelSchemaRef(Messages, {
             title: 'NewMessage',
-            exclude: [
-              'messageId',
-              'userId',
-              'createdAt',
-              'isQuestion',
-              'isAnswer',
-            ],
+            exclude: ['messageId', 'userId', 'createdAt', 'isQuestion', 'isAnswer'],
             includeRelations: false,
           }),
           example: {
@@ -78,7 +72,7 @@ export class MessagesController {
         description: 'Array of Messages model instances',
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(Messages)},
+            schema: { type: 'array', items: getModelSchemaRef(Messages) },
           },
         },
       },
@@ -87,7 +81,7 @@ export class MessagesController {
   async findMessages(): Promise<Messages[]> {
     return this.messagesRepository.find({
       order: ['createdAt ASC'],
-      where: {userId: this.userId},
+      where: { userId: this.userId },
     });
   }
 }

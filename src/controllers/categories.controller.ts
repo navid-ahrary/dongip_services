@@ -1,4 +1,4 @@
-import {repository} from '@loopback/repository';
+import { repository } from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -7,35 +7,28 @@ import {
   post,
   requestBody,
   HttpErrors,
-  api,
   del,
   RequestContext,
 } from '@loopback/rest';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {authenticate} from '@loopback/authentication';
-import {inject, intercept} from '@loopback/core';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
+import { inject, intercept } from '@loopback/core';
 
-import {Categories} from '../models';
-import {UsersRepository, CategoriesRepository} from '../repositories';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
-import {
-  FirebasetokenInterceptor,
-  ValidateCategoryIdInterceptor,
-} from '../interceptors';
-import {LocalizedMessages} from '../application';
+import { Categories } from '../models';
+import { UsersRepository, CategoriesRepository } from '../repositories';
+import { FirebasetokenInterceptor, ValidateCategoryIdInterceptor } from '../interceptors';
+import { LocalizedMessages } from '../application';
 
-@intercept(
-  FirebasetokenInterceptor.BINDING_KEY,
-  ValidateCategoryIdInterceptor.BINDING_KEY,
-)
+@intercept(FirebasetokenInterceptor.BINDING_KEY, ValidateCategoryIdInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
-@api({basePath: '/', paths: {}})
 export class CategoriesController {
-  userId: number;
+  private readonly userId: number;
   lang: string;
 
   constructor(
-    @repository(UsersRepository) protected usersRepository: UsersRepository,
+    @repository(UsersRepository)
+    protected usersRepository: UsersRepository,
     @repository(CategoriesRepository)
     protected categoryRepository: CategoriesRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
@@ -43,7 +36,6 @@ export class CategoriesController {
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-
     this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
 
@@ -55,7 +47,7 @@ export class CategoriesController {
         description: "Array of Categories's belonging to Users",
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(Categories)},
+            schema: { type: 'array', items: getModelSchemaRef(Categories) },
           },
         },
       },
@@ -103,9 +95,7 @@ export class CategoriesController {
       .catch((err) => {
         // Duplicate title error handling
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          throw new HttpErrors.Conflict(
-            this.locMsg['CONFLICT_CATEGORY_NAME'][this.lang],
-          );
+          throw new HttpErrors.Conflict(this.locMsg['CONFLICT_CATEGORY_NAME'][this.lang]);
         } else {
           throw new HttpErrors.NotAcceptable(err);
         }
@@ -119,14 +109,14 @@ export class CategoriesController {
     description: 'Just desired properties place in request body',
     security: OPERATION_SECURITY_SPEC,
     responses: {
-      '204': {description: 'Category PATCH success, no content'},
+      '204': { description: 'Category PATCH success, no content' },
       '422': {
         description: 'Categories DELETE failure, User has not this categoryId',
       },
     },
   })
   async patchCategoriesById(
-    @param.path.number('categoryId', {required: true})
+    @param.path.number('categoryId', { required: true })
     categoryId: typeof Categories.prototype.categoryId,
     @requestBody({
       content: {
@@ -157,7 +147,7 @@ export class CategoriesController {
   ): Promise<void> {
     await this.usersRepository
       .categories(this.userId)
-      .patch(category, {categoryId: categoryId})
+      .patch(category, { categoryId: categoryId })
       .then((result) => {
         if (!result.count) {
           const errMsg = this.locMsg['CATEGORY_NOT_VALID'][this.lang];
@@ -178,14 +168,14 @@ export class CategoriesController {
     summary: 'DELETE a Category by id',
     security: OPERATION_SECURITY_SPEC,
     responses: {
-      '204': {description: 'Caregories DELETE success, no content'},
+      '204': { description: 'Caregories DELETE success, no content' },
       '422': {
         description: 'Categories DELETE failure, User has not this categoryId',
       },
     },
   })
   async deleteCategoriesById(
-    @param.path.number('categoryId', {required: true, allowEmptyValue: false})
+    @param.path.number('categoryId', { required: true, allowEmptyValue: false })
     categoryId: typeof Categories.prototype.categoryId,
   ): Promise<void> {
     return this.categoryRepository.deleteById(categoryId);
@@ -194,7 +184,7 @@ export class CategoriesController {
   @del('/categories', {
     summary: "Delete all user's Categories ",
     security: OPERATION_SECURITY_SPEC,
-    responses: {'200': {description: 'Count deleted Categories'}},
+    responses: { '200': { description: 'Count deleted Categories' } },
   })
   async deleteAllCategories() {
     return this.usersRepository.categories(this.userId).delete();

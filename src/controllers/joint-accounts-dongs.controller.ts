@@ -1,13 +1,13 @@
-import { authenticate } from '@loopback/authentication';
 import { inject } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { get, getModelSchemaRef, HttpErrors, param, RequestContext } from '@loopback/rest';
+import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 
 import { Dongs } from '../models';
 import { LocalizedMessages } from '../application';
 import { JointAccountsRepository, JointAccountSubscribesRepository } from '../repositories';
-import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { basicAuthorization } from '../services';
 import { authorize } from '@loopback/authorization';
 

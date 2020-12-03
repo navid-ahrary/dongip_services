@@ -11,6 +11,7 @@ import {
   RequestContext,
 } from '@loopback/rest';
 import { authenticate, UserService, TokenService } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
 
 import _ from 'lodash';
@@ -18,7 +19,6 @@ import moment from 'moment';
 
 import { UserServiceBindings, TokenServiceBindings } from '../keys';
 import { UserPatchRequestBody } from './specs';
-import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { Users, Credentials, CompleteSignup, Settings, UsersRels } from '../models';
 import { UsersRepository, LinksRepository } from '../repositories';
 import { FirebasetokenInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';

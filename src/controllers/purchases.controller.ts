@@ -1,4 +1,4 @@
-import {repository} from '@loopback/repository';
+import { repository } from '@loopback/repository';
 import {
   param,
   HttpErrors,
@@ -8,15 +8,15 @@ import {
   RequestContext,
   requestBody,
 } from '@loopback/rest';
-import {service, inject} from '@loopback/core';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {authenticate} from '@loopback/authentication';
+import { service, inject } from '@loopback/core';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 
 import moment from 'moment';
 import isemail from 'isemail';
 
-import {PurchasesRepository, UsersRepository} from '../repositories';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
+import { PurchasesRepository, UsersRepository } from '../repositories';
 import {
   CafebazaarService,
   SubscriptionService,
@@ -25,10 +25,10 @@ import {
   WoocommerceService,
   PhoneNumberService,
 } from '../services';
-import {Purchases, Subscriptions, Users, InappPurchase} from '../models';
-import {SubscriptionSpec, LocalizedMessages} from '../application';
+import { Purchases, Subscriptions, Users, InappPurchase } from '../models';
+import { SubscriptionSpec, LocalizedMessages } from '../application';
 
-@api({basePath: '/'})
+@api({ basePath: '/' })
 export class PurchasesController {
   constructor(
     @repository(PurchasesRepository) public purchasesRepo: PurchasesRepository,
@@ -42,13 +42,10 @@ export class PurchasesController {
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {}
 
-  async sendNotification(
-    userId: typeof Users.prototype.userId,
-    subscription: Subscriptions,
-  ) {
+  async sendNotification(userId: typeof Users.prototype.userId, subscription: Subscriptions) {
     const user = await this.usersRepo.findById(userId, {
-      fields: {firebaseToken: true, userId: true, setting: true},
-      include: [{relation: 'setting'}],
+      fields: { firebaseToken: true, userId: true, setting: true },
+      include: [{ relation: 'setting' }],
     });
 
     const lang = user.setting.language;
@@ -78,10 +75,7 @@ export class PurchasesController {
       },
     };
 
-    await this.firebaseService.sendToDeviceMessage(
-      user.firebaseToken!,
-      notifyPayload,
-    );
+    await this.firebaseService.sendToDeviceMessage(user.firebaseToken!, notifyPayload);
   }
 
   @authenticate('jwt.access')
@@ -92,7 +86,7 @@ export class PurchasesController {
       201: {
         description: 'Subscription model',
         content: {
-          'application/json': {schema: getModelSchemaRef(Subscriptions)},
+          'application/json': { schema: getModelSchemaRef(Subscriptions) },
         },
       },
       409: {
@@ -136,11 +130,7 @@ export class PurchasesController {
       }
     }
 
-    return this.subsService.performSubscription(
-      userId,
-      inappPurchBody.planId,
-      purchaseUTCTime,
-    );
+    return this.subsService.performSubscription(userId, inappPurchBody.planId, purchaseUTCTime);
   }
 
   @authenticate('jwt.access')
@@ -150,7 +140,7 @@ export class PurchasesController {
     responses: {
       200: {
         description: 'Purchase model instance',
-        content: {'application/json': {schema: getModelSchemaRef(Purchases)}},
+        content: { 'application/json': { schema: getModelSchemaRef(Purchases) } },
       },
       422: {
         description: 'Purchase is not valid',
@@ -165,17 +155,17 @@ export class PurchasesController {
         enum: ['plan_gm1', 'plan_gm6', 'plan_gy1'],
       },
       examples: {
-        oneMonth: {value: 'plan_gm1'},
-        sixMonths: {value: 'plan_gm6'},
-        oneYear: {value: 'plan_gy1'},
+        oneMonth: { value: 'plan_gm1' },
+        sixMonths: { value: 'plan_gm6' },
+        oneYear: { value: 'plan_gy1' },
       },
     })
     planId: string,
     @param.query.string('purchaseOrigin', {
       description: 'Purchase origin',
       required: true,
-      schema: {enum: ['cafebazaar']},
-      examples: {cafebazaar: {value: 'cafebazaar'}},
+      schema: { enum: ['cafebazaar'] },
+      examples: { cafebazaar: { value: 'cafebazaar' } },
     })
     purchaseOrigin: string,
     @param.query.string('purchaseToken', {
@@ -202,8 +192,7 @@ export class PurchasesController {
 
       if (
         (purchaseStatus.error === 'not_found' &&
-          purchaseStatus.error_description ===
-            'The requested purchase is not found!') ||
+          purchaseStatus.error_description === 'The requested purchase is not found!') ||
         (purchaseStatus.error === 'invalid_value' &&
           purchaseStatus.error_description === 'Product is not found.')
       ) {
@@ -215,11 +204,9 @@ export class PurchasesController {
         purchaseTime = moment(purchaseStatus.purchaseTime).utc();
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.subsService
-          .performSubscription(userId, planId, purchaseTime)
-          .then(async (subs) => {
-            await this.sendNotification(userId, subs);
-          });
+        this.subsService.performSubscription(userId, planId, purchaseTime).then(async (subs) => {
+          await this.sendNotification(userId, subs);
+        });
 
         const purchaseEnt = new Purchases({
           userId: userId,
@@ -248,15 +235,15 @@ export class PurchasesController {
   @post('/purchases/in-site/validate/', {
     summary: 'Validate in-site subscription purchase',
     responses: {
-      204: {description: 'no content'},
-      422: {description: 'Purchase is not valid'},
+      204: { description: 'no content' },
+      422: { description: 'Purchase is not valid' },
     },
   })
   async vaildateInsitePurchase(
     @param.query.string('orderId', {
       description: 'Woocommerce order id',
       required: true,
-      schema: {type: 'number'},
+      schema: { type: 'number' },
       example: 468,
     })
     orderId: number,
@@ -281,24 +268,22 @@ export class PurchasesController {
           identiyValue = this.phoneNumSerice.convertToE164Format(identiyValue);
 
           user = await this.usersRepo.findOne({
-            where: {phone: identiyValue},
+            where: { phone: identiyValue },
           });
         } else if (isEmail) {
           identiyValue = this.phoneNumSerice.convertToE164Format(identiyValue);
 
           user = await this.usersRepo.findOne({
-            where: {email: identiyValue},
+            where: { email: identiyValue },
           });
         } else if (identiyValue.startsWith('0')) {
           identiyValue = this.phoneNumSerice.normalizeZeroPrefix(identiyValue);
 
           user = await this.usersRepo.findOne({
-            where: {phone: identiyValue},
+            where: { phone: identiyValue },
           });
         } else {
-          throw new Error(
-            `${order['billing']['phone']} is not a valid phone or email address`,
-          );
+          throw new Error(`${order['billing']['phone']} is not a valid phone or email address`);
         }
 
         if (user) {

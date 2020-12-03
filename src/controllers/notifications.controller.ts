@@ -1,14 +1,14 @@
-import {Filter, repository} from '@loopback/repository';
-import {get, getModelSchemaRef, param, api} from '@loopback/rest';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {authenticate} from '@loopback/authentication';
+import { Filter, repository } from '@loopback/repository';
+import { get, getModelSchemaRef, param, api } from '@loopback/rest';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 
-import {inject} from '@loopback/core';
-import {Notifications} from '../models';
-import {UsersRepository} from '../repositories';
-import {OPERATION_SECURITY_SPEC} from '../utils/security-specs';
+import { inject } from '@loopback/core';
+import { Notifications } from '../models';
+import { UsersRepository } from '../repositories';
 
-@api({basePath: '/', paths: {}})
+@api({ basePath: '/', paths: {} })
 @authenticate('jwt.access')
 export class NotificationsController {
   private readonly userId: number;

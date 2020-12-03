@@ -3,12 +3,12 @@ import { param, get, getModelSchemaRef, patch, del, requestBody, api, post } fro
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { inject, intercept } from '@loopback/core';
 import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 
 import moment from 'moment';
 
 import { Budgets } from '../models';
 import { BudgetsRepository } from '../repositories';
-import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { ValidateBudgetIdInterceptor } from '../interceptors';
 
 @authenticate('jwt.access')

@@ -14,6 +14,7 @@ import { intercept, inject, service } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 
 import util from 'util';
 import moment from 'moment';
@@ -35,7 +36,6 @@ import {
   UsersRepository,
 } from '../repositories';
 import { ValidateUsersRelsInterceptor, JointAccountsInterceptor } from '../interceptors';
-import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { basicAuthorization, BatchMessage, FirebaseService, PhoneNumberService } from '../services';
 import { LocalizedMessages } from '../application';
 

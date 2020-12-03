@@ -13,6 +13,7 @@ import {
 } from '@loopback/rest';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, service, intercept } from '@loopback/core';
 
 import _ from 'lodash';
@@ -30,7 +31,6 @@ import {
   JointAccountsRepository,
   JointAccountSubscribesRepository,
 } from '../repositories';
-import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { FirebaseService, BatchMessage } from '../services';
 import {
   ValidateCategoryIdInterceptor,

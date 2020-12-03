@@ -11,6 +11,7 @@ import {
   AuthorizationComponent,
   AuthorizationBindings,
 } from '@loopback/authorization';
+import { SECURITY_SCHEME_SPEC } from '@loopback/authentication-jwt';
 import { MetricsComponent, MetricsBindings } from '@loopback/extension-metrics';
 import { HealthComponent, HealthBindings } from '@loopback/extension-health';
 import { CronComponent } from '@loopback/cron';
@@ -31,7 +32,6 @@ import {
   UserServiceBindings,
 } from './keys';
 import { JWTService, BcryptHasher, MyUserService, CronJobService } from './services';
-import { SECURITY_SCHEME_SPEC } from './utils/security-specs';
 
 /**
  * Information from package.json

@@ -20,8 +20,8 @@ import 'moment-timezone';
 import { Messages, Notifications, Users } from '../models';
 import { basicAuthorization, FirebaseService, MessagePayload } from '../services';
 import { MessagesRepository, UsersRepository } from '../repositories';
-import { OPERATION_SECURITY_SPEC } from '../utils/security-specs';
 import { LocalizedMessages } from '../application';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 
 @api({ basePath: '/support/', paths: {} })
 @authorize({ allowedRoles: ['GOD'], voters: [basicAuthorization] })
