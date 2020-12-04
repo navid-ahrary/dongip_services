@@ -13,11 +13,11 @@ import { TokenServiceBindings } from '../keys';
 export class JWTService implements TokenService {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
     @inject(TokenServiceBindings.ACCESS_SECRET) private jwtSecret: string,
     @inject(TokenServiceBindings.TOKEN_ALGORITHM) private jwtAlgorithm: Algorithm,
     @inject(TokenServiceBindings.VERIFY_EXPIRES_IN) private verifyExpiresIn: string,
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
+    @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
   ) {}
 
   decryptedToken(accessToken: string) {
@@ -30,6 +30,7 @@ export class JWTService implements TokenService {
     const nullToken = 'Error verifying access token: token is null';
 
     if (!accessToken) {
+      console.error(new Date(), JSON.stringify(nullToken));
       throw new HttpErrors.Unauthorized(nullToken);
     }
 
@@ -76,6 +77,7 @@ export class JWTService implements TokenService {
         roles: decryptedData.roles,
       });
     } catch (err) {
+      console.error(new Date(), JSON.stringify(err));
       throw new HttpErrors.Unauthorized(`Error verifying token: ${err.message}`);
     }
 
@@ -99,6 +101,7 @@ export class JWTService implements TokenService {
         expiresIn = +this.accessExpiresIn;
         break;
       default:
+        console.error(new Date(), JSON.stringify(nullAudience));
         throw new HttpErrors.Unauthorized(nullAudience);
     }
 
@@ -116,6 +119,7 @@ export class JWTService implements TokenService {
 
       return generatedToken;
     } catch (err) {
+      console.error(new Date(), JSON.stringify(err));
       throw new HttpErrors.Unauthorized(`Error generating verify token: ${err.message}`);
     }
   }

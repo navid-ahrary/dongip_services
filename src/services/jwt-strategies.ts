@@ -14,30 +14,37 @@ export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
     const userProfile: UserProfile = await this.jwtService.verifyToken(token);
 
     if (userProfile.aud !== 'access') {
-      throw new HttpErrors.Unauthorized('Access token is not provided!');
+      const errMsg = 'Access token is not provided!';
+      console.error(new Date(), 'Access token::', errMsg, userProfile);
+      throw new HttpErrors.Unauthorized(errMsg);
     }
     return userProfile;
   }
 
   private extractCredentials(request: Request): string {
     if (!request.headers.authorization) {
-      throw new HttpErrors.Unauthorized('Authorization header not found.');
+      const errMsg = 'Authorization header not found.';
+      console.error(new Date(), 'Access token::', errMsg, request);
+      throw new HttpErrors.Unauthorized(errMsg);
     }
 
     // for example: Bearer xxx.yyy.zzz
     const authHeaderValue = request.headers.authorization;
 
     if (!authHeaderValue.startsWith('Bearer')) {
-      throw new HttpErrors.Unauthorized('Authorization header is not type of Bearer.');
+      const errMsg = 'Authorization header is not type of Bearer.';
+      console.error(new Date(), 'Access token::', errMsg, authHeaderValue);
+      throw new HttpErrors.Unauthorized(errMsg);
     }
 
     // split the authHeaderValue into 2 parts, 'Bearer ' and the xxx.yyy.zzz
     const parts = authHeaderValue.split(' ');
     if (parts.length !== 2) {
-      throw new HttpErrors.Unauthorized(
+      const errMsg =
         'Authorization header value must follow this pattern:' +
-          " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
-      );
+        " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.";
+      console.error(new Date(), 'Access token::', errMsg, authHeaderValue);
+      throw new HttpErrors.Unauthorized(errMsg);
     }
     const token = parts[1];
 
@@ -55,7 +62,9 @@ export class JWTVerifyAutehticationStrategy implements AuthenticationStrategy {
     const userProfile: UserProfile = await this.jwtService.verifyToken(token);
 
     if (userProfile.aud !== 'verify') {
-      throw new HttpErrors.Unauthorized('Verify token is not provided!');
+      const errMsg = 'Verify token is not provided!';
+      console.error(new Date(), 'Verify token::', errMsg, userProfile);
+      throw new HttpErrors.Unauthorized(errMsg);
     }
 
     return userProfile;
@@ -63,23 +72,28 @@ export class JWTVerifyAutehticationStrategy implements AuthenticationStrategy {
 
   private extractCredentials(request: Request): string {
     if (!request.headers.authorization) {
-      throw new HttpErrors.Unauthorized('Authorization header not found.');
+      const errMsg = 'Authorization header not found.';
+      console.error(new Date(), 'Verify token::', errMsg, request);
+      throw new HttpErrors.Unauthorized(errMsg);
     }
 
     // for example: Bearer xxx.yyy.zzz
     const authHeaderValue = request.headers.authorization;
 
     if (!authHeaderValue.startsWith('Bearer')) {
-      throw new HttpErrors.Unauthorized('Authorization header is not type of Bearer.');
+      const errMsg = 'Authorization header is not type of Bearer.';
+      console.error(new Date(), 'Verify token::', errMsg, authHeaderValue);
+      throw new HttpErrors.Unauthorized(errMsg);
     }
 
     // split the authHeaderValue into 2 parts, 'Bearer ' and the xxx.yyy.zzz
     const parts = authHeaderValue.split(' ');
     if (parts.length !== 2) {
-      throw new HttpErrors.Unauthorized(
+      const errMsg =
         'Authorization header value must follow this pattern:' +
-          " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.",
-      );
+        " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.";
+      console.error(new Date(), 'Verify token::', errMsg, authHeaderValue);
+      throw new HttpErrors.Unauthorized(errMsg);
     }
     const token = parts[1];
 

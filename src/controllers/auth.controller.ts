@@ -263,7 +263,7 @@ export class AuthController {
           });
         })
         .catch((err) => {
-          console.error(err);
+          console.error(new Date(), JSON.stringify(err), JSON.stringify(verifyReqBody));
         });
     }
 
