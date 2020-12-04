@@ -42,7 +42,6 @@ export class BudgetsController {
     },
   })
   async findBudgets(): Promise<Budgets[]> {
-    console.log(this.currentUserProfile);
     return this.budgetsRepository.find({ where: { userId: this.userId } });
   }
 
