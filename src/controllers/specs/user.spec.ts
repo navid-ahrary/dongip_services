@@ -1,5 +1,5 @@
-import {getModelSchemaRef} from '@loopback/rest';
-import {Users} from '../../models';
+import { getModelSchemaRef } from '@loopback/rest';
+import { Users } from '../../models';
 
 export const UserPatchRequestBody = {
   content: {
@@ -15,7 +15,6 @@ export const UserPatchRequestBody = {
           'categories',
           'virtualUsers',
           'firebaseToken',
-          'refreshToken',
           'usersRels',
           'userAgent',
           'phoneLocked',

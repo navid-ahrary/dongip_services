@@ -1,5 +1,5 @@
 import { repository, Count, CountSchema } from '@loopback/repository';
-import { param, get, getModelSchemaRef, patch, del, requestBody, api, post } from '@loopback/rest';
+import { param, get, getModelSchemaRef, patch, del, requestBody, post } from '@loopback/rest';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { inject, intercept } from '@loopback/core';
 import { authenticate } from '@loopback/authentication';
@@ -12,7 +12,6 @@ import { BudgetsRepository } from '../repositories';
 import { ValidateBudgetIdInterceptor } from '../interceptors';
 
 @authenticate('jwt.access')
-@api({ basePath: '/', paths: {} })
 @intercept(ValidateBudgetIdInterceptor.BINDING_KEY)
 export class BudgetsController {
   private readonly userId: number;
@@ -43,6 +42,7 @@ export class BudgetsController {
     },
   })
   async findBudgets(): Promise<Budgets[]> {
+    console.log(this.currentUserProfile);
     return this.budgetsRepository.find({ where: { userId: this.userId } });
   }
 

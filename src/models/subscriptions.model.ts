@@ -1,5 +1,5 @@
-import {Entity, model, property, belongsTo} from '@loopback/repository';
-import {Users} from './users.model';
+import { Entity, model, property, belongsTo } from '@loopback/repository';
+import { Users } from './users.model';
 
 @model({
   name: 'subscriptions',
@@ -79,7 +79,7 @@ export class Subscriptions extends Entity {
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',

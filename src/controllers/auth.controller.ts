@@ -11,7 +11,7 @@ import {
   getModelSchemaRef,
 } from '@loopback/rest';
 import { authenticate, UserService, TokenService } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
+import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
 
 import util from 'util';
@@ -36,6 +36,7 @@ import {
   VerifyService,
   PhoneNumberService,
   EmailService,
+  RefreshtokenService,
 } from '../services';
 import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocalizedMessages, CategoriesSource } from '../application';
@@ -47,27 +48,22 @@ export class AuthController {
 
   constructor(
     @inject.context() public ctx: RequestContext,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(BlacklistRepository)
-    public blacklistRepository: BlacklistRepository,
-    @repository(VerifyRepository) private verifyRepository: VerifyRepository,
-    @repository(SettingsRepository)
-    public settingsRepository: SettingsRepository,
-    @repository(CategoriesRepository)
-    public categoriesRepository: CategoriesRepository,
-    @inject(PasswordHasherBindings.PASSWORD_HASHER)
-    public passwordHasher: PasswordHasher,
-    @inject(UserServiceBindings.USER_SERVICE)
-    public userService: UserService<Users, Credentials>,
-    @inject(TokenServiceBindings.TOKEN_SERVICE)
-    private jwtService: TokenService,
-    @service(FirebaseService) public firebaseService: FirebaseService,
-    @service(VerifyService) public verifySerivce: VerifyService,
     @service(SmsService) public smsService: SmsService,
-    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
+    @service(VerifyService) public verifySerivce: VerifyService,
     @service(EmailService) protected emailService: EmailService,
+    @service(FirebaseService) public firebaseService: FirebaseService,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
     @inject('application.categoriesSourceList') public catSrc: CategoriesSource,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
+    @repository(VerifyRepository) private verifyRepository: VerifyRepository,
+    @repository(SettingsRepository) public settingsRepository: SettingsRepository,
+    @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
+    @inject(PasswordHasherBindings.PASSWORD_HASHER) public passwordHasher: PasswordHasher,
+    @inject(UserServiceBindings.USER_SERVICE) public userService: UserService<Users, Credentials>,
+    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
+    @inject(TokenServiceBindings.TOKEN_SERVICE) private jwtService: TokenService,
+    @service(RefreshtokenService) private refreshTokenService: RefreshtokenService,
   ) {
     this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
   }
@@ -203,20 +199,16 @@ export class AuthController {
 
     const createdVerify = await this.verifyRepository
       .create({
-        phone: verifyReqBody.phone ? verifyReqBody.phone : undefined,
-        email: verifyReqBody.email ? verifyReqBody.email : undefined,
+        phone: verifyReqBody.phone,
+        email: verifyReqBody.email,
         password: randomStr + randomCode,
-        smsSignature: verifyReqBody.smsSignature ? verifyReqBody.smsSignature : ' ',
-        registered: user ? true : false,
+        smsSignature: verifyReqBody.smsSignature ?? ' ',
+        registered: user !== null,
         createdAt: nowUTC.toISOString(),
+        platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
+        userAgent: this.ctx.request.headers['user-agent']?.toString().toLowerCase(),
         region: verifyReqBody.phone
           ? this.phoneNumberService.getRegionCodeISO(verifyReqBody.phone)
-          : undefined,
-        userAgent: this.ctx.request.headers['user-agent']
-          ? this.ctx.request.headers['user-agent'].toString().toLowerCase()
-          : undefined,
-        platform: this.ctx.request.headers['platform']
-          ? this.ctx.request.headers['platform'].toString().toLowerCase()
           : undefined,
       })
       .catch((err) => {
@@ -308,8 +300,8 @@ export class AuthController {
               phone: '+989171234567',
               email: 'dongip.supp@gmail.com',
               score: 260,
-              accessToken: 'string',
-              refreshToken: 'string',
+              accessToken: 'XXX.YYY.ZZZ',
+              refreshToken: 'AAA.BBB.CCC',
             },
           },
         },
@@ -373,14 +365,10 @@ export class AuthController {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepository.updateById(user.getId(), {
         firebaseToken: firebaseToken,
+        platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
+        userAgent: this.ctx.request.headers['user-agent']?.toString().toLowerCase(),
         region: foundVerify.phone
           ? this.phoneNumberService.getRegionCodeISO(foundVerify.phone)
-          : undefined,
-        userAgent: this.ctx.request.headers['user-agent']
-          ? this.ctx.request.headers['user-agent'].toString().toLowerCase()
-          : undefined,
-        platform: this.ctx.request.headers['platform']
-          ? this.ctx.request.headers['platform'].toString().toLowerCase()
           : undefined,
       });
 
@@ -389,9 +377,15 @@ export class AuthController {
       //convert a User object to a UserProfile object (reduced set of properties)
       const userProfile = this.userService.convertToUserProfile(user);
       userProfile['aud'] = 'access';
+      userProfile['roles'] = user.roles;
 
       //create a JWT token based on the Userprofile
       const accessToken = await this.jwtService.generateToken(userProfile);
+      let refTokenObj = await this.refreshTokenService.getToken(userProfile);
+      if (!refTokenObj.refreshToken) {
+        refTokenObj = await this.refreshTokenService.generateToken(userProfile, accessToken);
+      }
+      const refToken = refTokenObj.refreshToken!;
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.verifyRepository.updateById(verifyId, {
@@ -399,26 +393,23 @@ export class AuthController {
         loggedInAt: moment.utc().toISOString(),
       });
 
-      const userPhone = user.phone ? user.phone : undefined;
-      const userEmail = user.email ? user.email : undefined;
-
       return {
         userId: user.getId(),
-        phone: userPhone,
-        email: userEmail,
-        accessToken: accessToken,
-        refreshToken: user.refreshToken,
+        phone: user.phone,
+        email: user.email,
         totalScores: scores,
+        accessToken: accessToken,
+        refreshToken: refToken,
       };
     } catch (err) {
-      console.log(err);
       const errMsg = this.locMsg[err.message][this.lang];
+      console.error(errMsg);
       throw new HttpErrors.UnprocessableEntity(errMsg);
     }
   }
 
   @post('/signup', {
-    summary: 'Signup then login to the app',
+    summary: 'Signup and login',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -443,8 +434,8 @@ export class AuthController {
             example: {
               id: 7,
               totalScores: 50,
-              accessToken: 'string',
-              refreshToken: 'string',
+              accessToken: 'XXX.YYY.ZZZ',
+              refreshToken: 'AAA.BBB.CCC',
             },
           },
         },
@@ -464,7 +455,6 @@ export class AuthController {
               'categories',
               'dongs',
               'userAgent',
-              'refreshToken',
               'firebaseToken',
               'registeredAt',
               'usersRels',
@@ -499,7 +489,7 @@ export class AuthController {
     solTime: string | null;
     eolTime: string | null;
     accessToken: string;
-    refreshToken: string;
+    refreshToken?: string;
     totalScores: number;
   }> {
     const verifyId = +currentUserProfile[securityId],
@@ -515,15 +505,15 @@ export class AuthController {
 
     try {
       const userObject = new Users({
-        phone: foundVerify.phone ? foundVerify.phone : undefined,
-        email: foundVerify.email ? foundVerify.email : undefined,
-        phoneLocked: foundVerify.phone ? true : false,
-        emailLocked: foundVerify.email ? true : false,
+        roles: roles,
         name: newUser.name,
         avatar: newUser.avatar,
-        region: foundVerify.region ?? undefined,
-        roles: roles,
-        firebaseToken: firebaseToken ?? undefined,
+        phone: foundVerify.phone,
+        email: foundVerify.email,
+        region: foundVerify.region,
+        firebaseToken: firebaseToken,
+        phoneLocked: _.has(foundVerify, 'phone'),
+        emailLocked: _.has(foundVerify, 'email'),
         userAgent: this.ctx.request.headers['user-agent'],
         platform: this.ctx.request.headers['platform']
           ? this.ctx.request.headers['platform'].toString().toLowerCase()
@@ -546,7 +536,8 @@ export class AuthController {
       const userProfile = this.userService.convertToUserProfile(savedUser);
       userProfile['aud'] = 'access';
 
-      const accessToken: string = await this.jwtService.generateToken(userProfile);
+      const accessToken = await this.jwtService.generateToken(userProfile);
+      const tokenObj = await this.refreshTokenService.generateToken(userProfile, accessToken);
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepository
@@ -555,8 +546,8 @@ export class AuthController {
           type: 'self',
           name: savedUser.name,
           avatar: savedUser.avatar,
-          phone: foundVerify.phone ?? undefined,
-          email: foundVerify.email ?? undefined,
+          phone: foundVerify.phone,
+          email: foundVerify.email,
         })
         .then(async (rel) => {
           await this.usersRepository
@@ -590,9 +581,8 @@ export class AuthController {
         planId: planId,
         solTime: roles.includes('GOLD') ? nowUTC.toISOString() : null,
         eolTime: roles.includes('GOLD') ? nowUTC.add(1, 'year').toISOString() : null,
-        accessToken: accessToken,
-        refreshToken: savedUser.refreshToken,
         totalScores: savedScore.score,
+        ...tokenObj,
       };
     } catch (err) {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY' && err.sqlMessage.endsWith("'phone'")) {
@@ -605,38 +595,43 @@ export class AuthController {
     }
   }
 
-  @get('/access-token', {
-    summary: 'Get a new access token with provided refresh token - not implemented yet',
+  @get('/refresh-token', {
+    summary: 'Get a new access token with provided refresh token',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'New access token',
+        content: {
+          'application/josn': {
+            schema: {
+              type: 'object',
+              properties: {
+                accessToken: { type: 'string' },
+                refreshToken: { type: 'string' },
+              },
+            },
+            example: {
+              accessToken: 'XXX.YYY.ZZZ',
+              refreshToken: 'AAA.BBB.CCC',
+            },
+          },
+        },
       },
     },
   })
-  @authenticate('jwt.refresh')
-  async refreshToken(
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @param.header.string('Authorization') token: string,
-  ) {
-    const userId = +currentUserProfile[securityId];
-
-    const user = await this.usersRepository.findById(userId);
-
-    const isMatched = await this.passwordHasher.comparePassword(
-      token.split(' ')[1],
-      user.refreshToken,
-    );
-
-    if (!isMatched) {
-      throw new HttpErrors.Unauthorized(this.locMsg['REFRESH_TOKEN_NOT_MATCHED'][this.lang]);
+  @authenticate.skip()
+  async refreshToken(): Promise<TokenObject> {
+    try {
+      const refToken = this.ctx.request.headers.authorization!.split(' ')[1];
+      const tokenObj = await this.refreshTokenService.refreshToken(refToken);
+      return tokenObj;
+    } catch (err) {
+      if (err.message === 'REFRESH_TOKEN_NOT_MATCHED') {
+        throw new HttpErrors.Unauthorized(this.locMsg['REFRESH_TOKEN_NOT_MATCHED'][this.lang]);
+      } else {
+        throw new HttpErrors.Unauthorized(err.message);
+      }
     }
-
-    const userProfile = this.userService.convertToUserProfile(user);
-    userProfile.aud = 'refresh';
-    const accessToken = await this.jwtService.generateToken(userProfile);
-
-    return { accessToken };
   }
 
   @get('/logout', {

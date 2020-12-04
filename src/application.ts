@@ -17,21 +17,25 @@ import { HealthComponent, HealthBindings } from '@loopback/extension-health';
 import { CronComponent } from '@loopback/cron';
 import path from 'path';
 import dotenv from 'dotenv';
+dotenv.config();
 
 import { MyAuthenticationSequence } from './sequence';
 import { UserAuthenticationComponent } from './components/user.authentication';
 import {
+  JWTService,
+  BcryptHasher,
+  MyUserService,
+  CronJobService,
   JWTVerifyAutehticationStrategy,
   JWTAccessAutehticationStrategy,
-  JWTRefreshAutehticationStrategy,
-} from './authentication-strategies/jwt-strategies';
+} from './services';
 import {
+  UserServiceBindings,
   TokenServiceBindings,
   TokenServiceConstants,
   PasswordHasherBindings,
-  UserServiceBindings,
+  RefreshTokenServiceBindings,
 } from './keys';
-import { JWTService, BcryptHasher, MyUserService, CronJobService } from './services';
 
 /**
  * Information from package.json
@@ -93,8 +97,6 @@ export class MyApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestAp
       shutdown: { signals: ['SIGTERM'], gracePeriod: 1000 },
     },
   ) {
-    dotenv.config();
-
     super(options);
 
     this.api({
@@ -130,9 +132,8 @@ export class MyApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestAp
     this.configure(AuthorizationBindings.COMPONENT).to(authoriazationOptions);
     this.component(AuthorizationComponent);
 
-    registerAuthenticationStrategy(this, JWTAccessAutehticationStrategy);
-    registerAuthenticationStrategy(this, JWTRefreshAutehticationStrategy);
     registerAuthenticationStrategy(this, JWTVerifyAutehticationStrategy);
+    registerAuthenticationStrategy(this, JWTAccessAutehticationStrategy);
 
     // Set up the custom sequence
     this.sequence(MyAuthenticationSequence);
@@ -192,16 +193,19 @@ export class MyApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestAp
     // Bind categories source lists
     this.bind(CategoriesSourceList).to(categoriesSourceList);
 
-    this.bind(TokenServiceBindings.TOKEN_SECRET).to(TokenServiceConstants.TOKEN_SECRET_VALUE!);
-    this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(TokenServiceConstants.JWT_TOKEN_ALGORITHM);
-    this.bind(TokenServiceBindings.VERIFY_TOKEN_EXPIRES_IN).to(
-      TokenServiceConstants.VERIFY_TOKEN_EXPIRES_IN_VALUE,
+    this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(TokenServiceConstants.JWT_ALGORITHM_VALUE);
+    this.bind(TokenServiceBindings.ACCESS_SECRET).to(TokenServiceConstants.ACCESS_SECRET_VALUE);
+    this.bind(TokenServiceBindings.ACCESS_EXPIRES_IN).to(
+      TokenServiceConstants.ACCESS_EXPIRES_IN_VALUE,
     );
-    this.bind(TokenServiceBindings.ACCESS_TOKEN_EXPIRES_IN).to(
-      TokenServiceConstants.ACCESS_TOKEN_EXPIRES_IN_VALUE,
+    this.bind(TokenServiceBindings.VERIFY_EXPIRES_IN).to(
+      TokenServiceConstants.VERIFY_EXPIRES_IN_VALUE,
     );
-    this.bind(TokenServiceBindings.REFRESH_TOKEN_EXPIRES_IN).to(
-      TokenServiceConstants.REFRESH_TOKEN_EXPIRES_IN_VALUE,
+    this.bind(RefreshTokenServiceBindings.REFRESH_SECRET).to(
+      TokenServiceConstants.REFRESH_SECRET_VALUE,
+    );
+    this.bind(RefreshTokenServiceBindings.REFRESH_EXPIRES_IN).to(
+      TokenServiceConstants.REFRESH_EXPIRES_IN_VALUE,
     );
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
 

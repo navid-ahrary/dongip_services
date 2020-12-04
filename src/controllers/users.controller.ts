@@ -32,13 +32,14 @@ export class UsersController {
   lang: string;
 
   constructor(
+    @inject.context() public ctx: RequestContext,
+    @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(LinksRepository) public linkRepository: LinksRepository,
     @inject(UserServiceBindings.USER_SERVICE) public userService: UserService<Users, Credentials>,
     @inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
-    @inject.context() public ctx: RequestContext,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
@@ -87,6 +88,7 @@ export class UsersController {
                 },
                 registeredAt: { type: 'string' },
                 totalScores: { type: 'number' },
+                accessTokenExpiresIn: { type: 'number' },
                 externalLinks: {
                   type: 'object',
                   properties: {
@@ -114,6 +116,7 @@ export class UsersController {
     currency: string;
     registeredAt: string;
     totalScores: number;
+    accessTokenExpiresIn: number;
     externalLinks: object;
   }> {
     const nowUTC = moment.utc();
@@ -171,16 +174,17 @@ export class UsersController {
     });
 
     return {
-      name: foundUser!.name,
       roles: roles,
+      totalScores: scores,
+      name: foundUser!.name,
       planId: hasSubs ? foundUser.subscriptions[0].planId : null,
       solTime: hasSubs ? foundUser.subscriptions[0].solTime : null,
       eolTime: hasSubs ? foundUser.subscriptions[0].eolTime : null,
       language: foundUser.setting.language,
       currency: foundUser.setting.currency,
       registeredAt: foundUser.registeredAt,
-      totalScores: scores,
       externalLinks: externalLinks,
+      accessTokenExpiresIn: +this.accessExpiresIn,
     };
   }
 
@@ -268,7 +272,7 @@ export class UsersController {
             currency: 'IRR',
             phone: '+989171234567',
             email: 'dongip.app@dongip.ir',
-            referralCode: '123456',
+            referralCode: 'DGP-123456',
           },
         },
       },

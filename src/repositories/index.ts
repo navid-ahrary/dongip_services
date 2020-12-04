@@ -17,3 +17,4 @@ export * from './purchases.repository';
 export * from './subscriptions.repository';
 export * from './joint-accounts.repository';
 export * from './joint-account-subscribes.repository';
+export * from './refresh-tokens.repository';

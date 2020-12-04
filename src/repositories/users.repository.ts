@@ -24,6 +24,7 @@ import {
   Subscriptions,
   JointAccounts,
   JointAccountSubscribes,
+  RefreshTokens,
 } from '../models';
 import { BillListRepository } from './bill-list.repository';
 import { PayerListRepository } from './payer-list.repository';
@@ -40,6 +41,7 @@ import { CategoriesRepository } from './categories.repository';
 import { UsersRelsRepository } from './users-rels.repository';
 import { JointAccountsRepository } from './joint-accounts.repository';
 import { JointAccountSubscribesRepository } from './joint-account-subscribes.repository';
+import { RefreshTokensRepository } from './refresh-tokens.repository';
 
 export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.prototype.userId> {
   public readonly virtualUsers: HasManyRepositoryFactory<
@@ -87,6 +89,11 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
     typeof Users.prototype.userId
   >;
 
+  public readonly refreshToken: HasOneRepositoryFactory<
+    RefreshTokens,
+    typeof Users.prototype.userId
+  >;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -119,8 +126,16 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
     protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
     @repository.getter('JointAccountSubscribesRepository')
     protected jointAccountSubscribesRepositoryGetter: Getter<JointAccountSubscribesRepository>,
+    @repository.getter('RefreshTokensRepository')
+    protected refreshTokensRepositoryGetter: Getter<RefreshTokensRepository>,
   ) {
     super(Users, dataSource);
+
+    this.refreshToken = this.createHasOneRepositoryFactoryFor(
+      'refreshToken',
+      refreshTokensRepositoryGetter,
+    );
+    this.registerInclusionResolver('refreshToken', this.refreshToken.inclusionResolver);
 
     this.jointAccountSubscribes = this.createHasManyRepositoryFactoryFor(
       'jointAccountSubscribes',

@@ -238,5 +238,9 @@
   "DAILY_NOTIFY_BODY": {
     "fa": "امروز چه هزینه‌هایی داشتی ؟",
     "en": "What did you spend today ?"
+  },
+  "USER_NOT_FOUND": {
+    "fa": "کاربر یافت تشد!",
+    "en": "User not found!"
   }
 }

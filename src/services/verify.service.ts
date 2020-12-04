@@ -22,7 +22,7 @@ export class VerifyService {
     });
 
     if (!foundVerify) {
-      console.error(new Date(), 'Wrong Verify Code');
+      console.error(new Date(), 'Wrong Verify Code', password);
       throw new Error('WRONG_VERIFY_CODE');
     }
 

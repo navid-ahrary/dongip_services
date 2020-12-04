@@ -5,6 +5,7 @@ import { UserProfile, securityId } from '@loopback/security';
 import { HttpErrors } from '@loopback/rest';
 import { repository } from '@loopback/repository';
 import { sign, verify, Algorithm } from 'jsonwebtoken';
+import _ from 'lodash';
 
 import { UsersRepository, BlacklistRepository } from '../repositories';
 import { TokenServiceBindings } from '../keys';
@@ -13,12 +14,17 @@ export class JWTService implements TokenService {
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
-    @inject(TokenServiceBindings.TOKEN_SECRET) private jwtSecret: string,
+    @inject(TokenServiceBindings.ACCESS_SECRET) private jwtSecret: string,
     @inject(TokenServiceBindings.TOKEN_ALGORITHM) private jwtAlgorithm: Algorithm,
-    @inject(TokenServiceBindings.VERIFY_TOKEN_EXPIRES_IN) private jwtVerifyExpiresIn: string,
-    @inject(TokenServiceBindings.ACCESS_TOKEN_EXPIRES_IN) private jwtAccessExpiresIn: string,
-    @inject(TokenServiceBindings.REFRESH_TOKEN_EXPIRES_IN) private jwtRefreshExpiresIn: string,
+    @inject(TokenServiceBindings.VERIFY_EXPIRES_IN) private verifyExpiresIn: string,
+    @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
   ) {}
+
+  decryptedToken(accessToken: string) {
+    return verify(accessToken, this.jwtSecret, {
+      algorithms: [this.jwtAlgorithm],
+    });
+  }
 
   async verifyToken(accessToken: string): Promise<UserProfile> {
     const nullToken = 'Error verifying access token: token is null';
@@ -28,7 +34,7 @@ export class JWTService implements TokenService {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let decryptedToken: any;
+    let decryptedData: any;
     let userProfile: UserProfile = { [securityId]: '' };
 
     try {
@@ -37,13 +43,11 @@ export class JWTService implements TokenService {
       if (isBlacklisted) throw new Error('توکن شما بلاک شده!');
 
       // Decode user profile from token
-      decryptedToken = verify(accessToken, this.jwtSecret, {
-        algorithms: [this.jwtAlgorithm],
-      });
+      decryptedData = this.decryptedToken(accessToken);
 
       // In access audience, the user should exists in database certainly
-      if (decryptedToken.aud === 'access') {
-        const userId = +decryptedToken.sub;
+      if (decryptedData.aud === 'access') {
+        const userId = +(decryptedData.id ?? decryptedData.sub);
         const user = await this.usersRepository.findById(userId, {
           fields: {
             userId: true,
@@ -57,7 +61,7 @@ export class JWTService implements TokenService {
 
         if (!user) throw new Error('User is not exists');
 
-        userProfile = Object.assign(userProfile, {
+        Object.assign(userProfile, {
           phone: user.phone,
           email: user.email,
           name: user.name,
@@ -67,9 +71,9 @@ export class JWTService implements TokenService {
       }
 
       userProfile = Object.assign(userProfile, {
-        [securityId]: decryptedToken.sub,
-        aud: decryptedToken.aud,
-        roles: decryptedToken.roles,
+        [securityId]: String(decryptedData.id ?? decryptedData.sub),
+        aud: decryptedData.aud,
+        roles: decryptedData.roles,
       });
     } catch (err) {
       throw new HttpErrors.Unauthorized(`Error verifying token: ${err.message}`);
@@ -84,28 +88,30 @@ export class JWTService implements TokenService {
    * @return Promise string
    */
   public async generateToken(userProfile: UserProfile): Promise<string> {
-    const nullUserProfle = 'Error generating token, userPofile is null.',
-      nullAudience = 'Error generating token, supported audience is not provided';
-
-    if (!userProfile) {
-      throw new HttpErrors.Unauthorized(nullUserProfle);
+    const nullAudience = 'Error generating token, supported audience is not provided';
+    const aud = _.get(userProfile, 'aud');
+    let expiresIn: number;
+    switch (aud) {
+      case 'verify':
+        expiresIn = +this.verifyExpiresIn;
+        break;
+      case 'access':
+        expiresIn = +this.accessExpiresIn;
+        break;
+      default:
+        throw new HttpErrors.Unauthorized(nullAudience);
     }
 
-    let expiresIn: number;
-
-    if (userProfile.aud === 'verify') {
-      expiresIn = +this.jwtVerifyExpiresIn;
-    } else if (userProfile.aud === 'access') {
-      expiresIn = +this.jwtAccessExpiresIn;
-    } else if (userProfile.aud === 'refresh') {
-      expiresIn = +this.jwtRefreshExpiresIn;
-    } else throw new HttpErrors.Unauthorized(nullAudience);
-
+    const data = {
+      id: +userProfile[securityId],
+      name: userProfile.name,
+      roles: userProfile['roles'],
+    };
     try {
-      const generatedToken = sign(userProfile, this.jwtSecret, {
+      const generatedToken = sign(data, this.jwtSecret, {
         algorithm: this.jwtAlgorithm,
         expiresIn: expiresIn,
-        subject: userProfile[securityId].toString(),
+        audience: aud,
       });
 
       return generatedToken;

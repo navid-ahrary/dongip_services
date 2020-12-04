@@ -18,6 +18,7 @@ import {
   JointAccountSubscribes,
   JointAccountSubscribesWithRelations,
 } from './joint-account-subscribes.model';
+import { RefreshTokens } from './refresh-tokens.model';
 
 @model({ name: 'users' })
 export class Users extends Entity {
@@ -102,17 +103,6 @@ export class Users extends Entity {
     },
   })
   registeredAt: string;
-
-  @property({
-    type: 'string',
-    mysql: {
-      columnName: 'refresh_token',
-      dataType: 'varchar',
-      dataLength: 512,
-      nullable: 'Y',
-    },
-  })
-  refreshToken: string;
 
   @property({
     type: 'array',
@@ -372,6 +362,9 @@ export class Users extends Entity {
   })
   jointAccountSubscribes: JointAccountSubscribes[];
 
+  @hasOne(() => RefreshTokens, { keyTo: 'userId' })
+  refreshToken: RefreshTokens;
+
   constructor(data?: Partial<Users>) {
     super(data);
   }
@@ -381,7 +374,7 @@ export interface UsersRelations {
   setting: SettingsWithRelations;
   usersRels: UsersRelsWithRelations[];
   subscriptions?: SubscriptionsWithRelations[];
-  JointAccounts?: JointAccountsWithRelations[];
+  jointAccounts?: JointAccountsWithRelations[];
   jointAccountSubscribes?: JointAccountSubscribesWithRelations[];
 }
 

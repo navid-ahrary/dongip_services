@@ -367,7 +367,6 @@ export class UsersRelsController {
                   'userId',
                   'firebaseToken',
                   'platform',
-                  'refreshToken',
                   'region',
                   'registeredAt',
                   'roles',

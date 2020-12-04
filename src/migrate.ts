@@ -28,6 +28,7 @@ export async function migrate(args: string[]) {
       'purchases',
       'subscriptions',
       'notifications',
+      'refresh_tokens',
     ],
   });
 

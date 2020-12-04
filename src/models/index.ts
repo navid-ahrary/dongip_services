@@ -24,3 +24,4 @@ export * from './joint-accounts.model';
 export * from './joint-account-subscribes.model';
 export * from './joint-request.model';
 export * from './joint-response.model';
+export * from './refresh-tokens.model';
