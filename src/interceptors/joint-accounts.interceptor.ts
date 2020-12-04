@@ -26,7 +26,6 @@ import {
 import { BatchMessage, FirebaseService, PhoneNumberService } from '../services';
 import { LocalizedMessages } from '../application';
 import { HttpErrors, RestBindings, Request } from '@loopback/rest';
-import { JointAccountSubscribes } from '../models';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -295,12 +294,11 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
         const foundDong = foundDongs[0];
 
         const jointAcc = foundDong?.jointAccount;
-        let jointSub: JointAccountSubscribes | null = null;
 
         if (!foundDong) {
           throw this.locMsg['DONG_NOT_VALID'][this.lang];
         } else if (jointAcc && jointAcc.userId !== this.userId) {
-          jointSub = await this.jointAccSubscRepo.findOne({
+          const jointSub = await this.jointAccSubscRepo.findOne({
             where: { userId: this.userId, jointAccountId: jointAcc.getId() },
           });
           if (foundDong.originDongId && jointSub) {
@@ -313,7 +311,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
 
         const result = await next();
 
-        if (jointAcc && jointSub) {
+        if (jointAcc) {
           if (foundDong.originDongId) await this.dongRepo.deleteById(foundDong.originDongId);
 
           const jointAccountSubs = jointAcc.jointAccountSubscribes;
