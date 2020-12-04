@@ -535,6 +535,7 @@ export class AuthController {
       // Convert user object to a UserProfile object (reduced set of properties)
       const userProfile = this.userService.convertToUserProfile(savedUser);
       userProfile['aud'] = 'access';
+      userProfile['roles'] = roles;
 
       const accessToken = await this.jwtService.generateToken(userProfile);
       const tokenObj = await this.refreshTokenService.generateToken(userProfile, accessToken);
