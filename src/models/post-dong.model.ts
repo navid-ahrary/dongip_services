@@ -90,7 +90,12 @@ export class PostDong extends Model {
 
   @property({
     type: 'any',
-    jsonSchema: { oneOf: [{ type: 'null' }, { type: 'boolean' }] },
+    jsonSchema: {
+      oneOf: [
+        { type: 'null', default: true },
+        { type: 'boolean', default: true },
+      ],
+    },
     required: false,
     default: true,
   })
