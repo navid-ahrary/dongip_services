@@ -24,7 +24,7 @@ export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
   private extractCredentials(request: Request): string {
     if (!request.headers.authorization) {
       const errMsg = 'Authorization header not found.';
-      console.error(new Date(), 'Access token::', errMsg, request);
+      console.error(new Date(), 'Access token::', errMsg, request.headers.authorization);
       throw new HttpErrors.Unauthorized(errMsg);
     }
 
@@ -73,7 +73,7 @@ export class JWTVerifyAutehticationStrategy implements AuthenticationStrategy {
   private extractCredentials(request: Request): string {
     if (!request.headers.authorization) {
       const errMsg = 'Authorization header not found.';
-      console.error(new Date(), 'Verify token::', errMsg, request);
+      console.error(new Date(), 'Verify token::', errMsg, request.headers.authorization);
       throw new HttpErrors.Unauthorized(errMsg);
     }
 
