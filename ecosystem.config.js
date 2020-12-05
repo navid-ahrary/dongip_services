@@ -3,7 +3,7 @@
 module.exports = {
   apps: [{
     name: "dongip",
-    script: "./index.js",
+    script: ".",
     instances: "max",
     exec_mode: "cluster",
     watch: false,

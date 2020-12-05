@@ -1,31 +1,31 @@
-import { Client } from '@loopback/testlab'
-import { MyApplication } from '../..'
-import { setupApplication } from './test-helper'
+import { Client } from '@loopback/testlab';
+import { DongipApplication } from '../..';
+import { setupApplication } from './test-helper';
 
-describe( 'HomePage', () => {
-  let app: MyApplication
-  let client: Client
+describe('HomePage', () => {
+  let app: DongipApplication;
+  let client: Client;
 
-  before( 'setupApplication', async () => {
-    ( { app, client } = await setupApplication() )
-  } )
+  before('setupApplication', async () => {
+    ({ app, client } = await setupApplication());
+  });
 
-  after( async () => {
-    await app.stop()
-  } )
+  after(async () => {
+    await app.stop();
+  });
 
-  it( 'exposes a default home page', async () => {
+  it('exposes a default home page', async () => {
     await client
-      .get( '/' )
-      .expect( 200 )
-      .expect( 'Content-Type', /text\/html/ )
-  } )
+      .get('/')
+      .expect(200)
+      .expect('Content-Type', /text\/html/);
+  });
 
-  it( 'exposes self-hosted explorer', async () => {
+  it('exposes self-hosted explorer', async () => {
     await client
-      .get( '/explorer/' )
-      .expect( 200 )
-      .expect( 'Content-Type', /text\/html/ )
-      .expect( /<title>LoopBack API Explorer/ )
-  } )
-} )
+      .get('/explorer/')
+      .expect(200)
+      .expect('Content-Type', /text\/html/)
+      .expect(/<title>LoopBack API Explorer/);
+  });
+});

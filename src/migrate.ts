@@ -1,10 +1,10 @@
-import { MyApplication } from './application';
+import { DongipApplication } from './application';
 
 export async function migrate(args: string[]) {
   const existingSchema = args.includes('--rebuild') ? 'drop' : 'alter';
   console.log('Migrating schemas (%s existing schema)', existingSchema);
 
-  const app = new MyApplication();
+  const app = new DongipApplication();
   await app.boot();
   await app.migrateSchema({
     existingSchema,

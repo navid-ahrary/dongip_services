@@ -1,5 +1,5 @@
 import { ApplicationConfig } from '@loopback/core';
-import { MyApplication } from './application';
+import { DongipApplication } from './application';
 
 /**
  * Export the OpenAPI spec from the application
@@ -12,7 +12,7 @@ async function exportOpenApiSpec(): Promise<void> {
     },
   };
   const outFile = process.argv[2] ?? '';
-  const app = new MyApplication(config);
+  const app = new DongipApplication(config);
   await app.boot();
   await app.exportOpenApiSpec(outFile);
 }

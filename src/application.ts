@@ -97,7 +97,8 @@ export interface TutorialLinks {
 export const TutorialLinksList = BindingKey.create<TutorialLinks>('application.tutorialLinksList');
 const tutorialLinksList: TutorialLinks = require('../assets/tutorial-links.json');
 
-export class MyApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestApplication))) {
+export { ApplicationConfig };
+export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestApplication))) {
   hashRound: number;
 
   constructor(
