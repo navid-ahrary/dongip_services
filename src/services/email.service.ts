@@ -72,7 +72,7 @@ export class EmailService {
       },
       data: {
         encoding: 'UTF-8',
-        fromAddress: supportEmail,
+        fromAddress: `Dongip<${supportEmail}>`,
         ...mailOptions,
       },
     });
