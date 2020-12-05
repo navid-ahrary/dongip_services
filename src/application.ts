@@ -44,10 +44,13 @@ export interface PackageInfo {
   name: string;
   version: string;
   description: string;
+  systemStatus: {
+    maintenance: boolean;
+    forceUpdate: boolean;
+  };
 }
 export const PackageKey = BindingKey.create<PackageInfo>('application.package');
-
-const pkg: PackageInfo = require('../package.json');
+const pkg = require('../package.json');
 
 /**
  * Subscription specs from subscriotion-scpecs.json
@@ -78,16 +81,21 @@ export interface LocalizedMessages {
 export const LocalizedMessages = BindingKey.create<LocalizedMessages>(
   'application.localizedMessages',
 );
-const localizedMessages: LocalizedMessages = require('../locale/localized-contents.json');
+const localizedMessages: LocalizedMessages = require('../assets/localized-contents.json');
 
 export interface CategoriesSource {
   [language: string]: Array<{ id: number; title: string; icon: string }>;
 }
-
 export const CategoriesSourceList = BindingKey.create<CategoriesSource>(
   'application.categoriesSourceList',
 );
 const categoriesSourceList: CategoriesSource = require('../assets/categories-source.json');
+
+export interface TutorialLinks {
+  [key: string]: string;
+}
+export const TutorialLinksList = BindingKey.create<TutorialLinks>('application.tutorialLinksList');
+const tutorialLinksList: TutorialLinks = require('../assets/tutorial-links.json');
 
 export class MyApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestApplication))) {
   hashRound: number;
@@ -183,15 +191,10 @@ export class MyApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestAp
 
     // Bind package.json to the application context
     this.bind(PackageKey).to(pkg);
-
-    // Bind subscription specs to the context
     this.bind(SubscriptionSpec).to(subsSpec);
-
-    // Bind locale messages
     this.bind(LocalizedMessages).to(localizedMessages);
-
-    // Bind categories source lists
     this.bind(CategoriesSourceList).to(categoriesSourceList);
+    this.bind(TutorialLinksList).to(tutorialLinksList);
 
     this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(TokenServiceConstants.JWT_ALGORITHM_VALUE);
     this.bind(TokenServiceBindings.ACCESS_SECRET).to(TokenServiceConstants.ACCESS_SECRET_VALUE);

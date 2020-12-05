@@ -19,8 +19,12 @@
     "fa": "تعداد در خواست هاینان بیش از حد مجاز است. ۵ دقیقه منتظر بمانید",
     "en": "Too many requests, Wait for 5 minutes"
   },
+  "WRONG_VERIFY_CODE": {
+    "fa": "کد اشتباه است",
+    "en": "Wrong code"
+  },
   "VERFIY_EMAIL_SUBJECT": {
-    "fa": "دُنگیپ | کد تایید",
+    "fa": "Dongip | Confirmation Code",
     "en": "Dongip | Confirmation Code"
   },
   "VERFIY_EMAIL_CONTENT": {
@@ -229,10 +233,18 @@
   },
   "DAILY_NOTIFY_TITLE": {
     "fa": "وقتشه حساب کتاب‌هاتو دُنگیپ کنی",
-    "en": "It's time to submit your expenses"
+    "en": "Time to Dongip"
   },
   "DAILY_NOTIFY_BODY": {
     "fa": "امروز چه هزینه‌هایی داشتی ؟",
-    "en": "What did you spend today ?"
+    "en": "What did you spend on today ?"
+  },
+  "USER_NOT_FOUND": {
+    "fa": "کاربر یافت تشد!",
+    "en": "User not found!"
+  },
+  "SERVER_MAINTENACE": {
+    "fa": "با عرض پوزش s% عزیز، در حال انجام بهبودهایی در سیستم هستیم. از صبر شما سپاسگذاریم",
+    "en": "Sorry dear %s, We are improving the system. Thanks for your patient"
   }
 }

@@ -5,7 +5,6 @@ import {
   HttpErrors,
   get,
   patch,
-  api,
   param,
   getModelSchemaRef,
   RequestContext,
@@ -13,37 +12,39 @@ import {
 import { authenticate, UserService, TokenService } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
-
 import _ from 'lodash';
 import moment from 'moment';
+import util from 'util';
 
 import { UserServiceBindings, TokenServiceBindings } from '../keys';
 import { UserPatchRequestBody } from './specs';
 import { Users, Credentials, CompleteSignup, Settings, UsersRels } from '../models';
-import { UsersRepository, LinksRepository } from '../repositories';
+import { UsersRepository } from '../repositories';
 import { FirebasetokenInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { PhoneNumberService } from '../services';
-import { LocalizedMessages } from '../application';
+import { LocalizedMessages, PackageInfo, TutorialLinks } from '../application';
 
-@api({ basePath: '/', paths: {} })
 @authenticate('jwt.access')
 export class UsersController {
   private readonly userId: number;
   lang: string;
+  userName: string;
 
   constructor(
     @inject.context() public ctx: RequestContext,
-    @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(LinksRepository) public linkRepository: LinksRepository,
-    @inject(UserServiceBindings.USER_SERVICE) public userService: UserService<Users, Credentials>,
-    @inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService,
-    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
-    @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
+    @inject('application.package') public packageInfo: PackageInfo,
+    @inject('application.tutorialLinksList') public tutLinks: TutorialLinks,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+    @inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService,
+    @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
+    @inject(UserServiceBindings.USER_SERVICE) public userService: UserService<Users, Credentials>,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
   ) {
     this.userId = +this.currentUserProfile[securityId];
     this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
+    this.userName = this.currentUserProfile.name ?? '';
   }
 
   async getUserScores(userId: typeof Users.prototype.userId): Promise<number> {
@@ -88,7 +89,6 @@ export class UsersController {
                 },
                 registeredAt: { type: 'string' },
                 totalScores: { type: 'number' },
-                accessTokenExpiresIn: { type: 'number' },
                 externalLinks: {
                   type: 'object',
                   properties: {
@@ -99,6 +99,16 @@ export class UsersController {
                     category: { type: 'string' },
                   },
                 },
+                application: {
+                  type: 'object',
+                  properties: {
+                    accessTokenExpiresIn: { type: 'number' },
+                    version: { type: 'string' },
+                    maintenance: { type: 'boolean' },
+                    message: { type: 'string' },
+                    forceUpdate: { type: 'boolean' },
+                  },
+                },
               },
             },
           },
@@ -106,7 +116,7 @@ export class UsersController {
       },
     },
   })
-  async findUserRrops(): Promise<{
+  async userInfo(): Promise<{
     name: string;
     roles: string[] | [];
     planId: string | null;
@@ -116,8 +126,14 @@ export class UsersController {
     currency: string;
     registeredAt: string;
     totalScores: number;
-    accessTokenExpiresIn: number;
-    externalLinks: object;
+    externalLinks: TutorialLinks;
+    application: {
+      accessTokenExpiresIn: number;
+      version: string;
+      maintenance: boolean;
+      message: string;
+      forceUpdate: boolean;
+    };
   }> {
     const nowUTC = moment.utc();
     const scores = await this.getUserScores(this.userId);
@@ -166,13 +182,6 @@ export class UsersController {
       this.usersRepository.updateById(this.userId, { roles: roles });
     }
 
-    const foundLinks = await this.linkRepository.find();
-
-    const externalLinks: { [key: string]: string } = {};
-    foundLinks.forEach((link) => {
-      externalLinks[link.name] = link.url;
-    });
-
     return {
       roles: roles,
       totalScores: scores,
@@ -183,8 +192,14 @@ export class UsersController {
       language: foundUser.setting.language,
       currency: foundUser.setting.currency,
       registeredAt: foundUser.registeredAt,
-      externalLinks: externalLinks,
-      accessTokenExpiresIn: +this.accessExpiresIn,
+      externalLinks: this.tutLinks,
+      application: {
+        accessTokenExpiresIn: +this.accessExpiresIn,
+        version: this.packageInfo.version,
+        forceUpdate: this.packageInfo.systemStatus.forceUpdate,
+        maintenance: this.packageInfo.systemStatus.maintenance,
+        message: util.format(this.locMsg['SERVER_MAINTENACE'][this.lang], this.userName),
+      },
     };
   }
 
@@ -237,9 +252,6 @@ export class UsersController {
         patchUser.email = updateUserReqBody.email;
       }
     }
-
-    // // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    // this.usersRepository.usersRels(this.userId).patch(patchUser, { type: 'self' });
 
     return this.usersRepository.updateById(this.userId, updateUserReqBody).catch((err) => {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {

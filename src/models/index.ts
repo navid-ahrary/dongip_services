@@ -14,7 +14,6 @@ export * from './messages.model';
 export * from './notifications.model';
 export * from './budgets.model';
 export * from './settings.model';
-export * from './links.model';
 export * from './purchases.model';
 export * from './subscriptions.model';
 export * from './complete-signup.model';
