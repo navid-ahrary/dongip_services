@@ -13,8 +13,9 @@ import { authenticate } from '@loopback/authentication';
 import { repository, Filter } from '@loopback/repository';
 import { inject, service } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
-import moment from 'moment';
 import ct from 'countries-and-timezones';
+import _ from 'lodash';
+import moment from 'moment';
 import 'moment-timezone';
 
 import { Messages, Notifications, Users } from '../models';
@@ -41,7 +42,7 @@ export class SupportController {
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
+    this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
   @get('/messages', {

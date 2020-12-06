@@ -43,8 +43,10 @@ export class UsersController {
     @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
-    this.userName = this.currentUserProfile.name ?? '';
+    this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
+    this.userName =
+      this.currentUserProfile.name ??
+      (_.includes(this.ctx.request.headers['accept-language'], 'en') ? 'mate' : 'رفیق');
   }
 
   async getUserScores(userId: typeof Users.prototype.userId): Promise<number> {

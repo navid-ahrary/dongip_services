@@ -41,7 +41,13 @@ import {
 import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocalizedMessages, CategoriesSource } from '../application';
 
-@api({ basePath: '/auth', paths: {} })
+@api({
+  basePath: '/auth',
+  paths: {},
+  components: {
+    // headers: { 'accept-language': { required: false, schema: { type: 'string', default: 'fa' } } },
+  },
+})
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, ValidatePasswordInterceptor.BINDING_KEY)
 export class AuthController {
   lang: string;
@@ -65,7 +71,7 @@ export class AuthController {
     @inject(TokenServiceBindings.TOKEN_SERVICE) private jwtService: TokenService,
     @service(RefreshtokenService) private refreshTokenService: RefreshtokenService,
   ) {
-    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
+    this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
   generateRandomString(length: number) {
@@ -157,7 +163,7 @@ export class AuthController {
       },
     })
     verifyReqBody: Verify,
-    @param.header.string('language', { required: false }) langHeader: string,
+    @param.header.string('accept-language', { required: false }) langHeader: string,
   ): Promise<{
     status: boolean;
     name: string;

@@ -16,7 +16,6 @@ import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, service, intercept } from '@loopback/core';
-
 import _ from 'lodash';
 import moment from 'moment';
 import util from 'util';
@@ -60,7 +59,7 @@ export class UsersRelsController {
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
+    this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
   private normalizePhonesList(phonesList: string[], refrenceRegionCode: string): string[] {

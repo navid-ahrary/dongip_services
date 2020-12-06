@@ -4,12 +4,13 @@ import { get, getModelSchemaRef, HttpErrors, param, RequestContext } from '@loop
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { authorize } from '@loopback/authorization';
+import _ from 'lodash';
 
 import { Dongs } from '../models';
 import { LocalizedMessages } from '../application';
 import { JointAccountsRepository, JointAccountSubscribesRepository } from '../repositories';
 import { basicAuthorization } from '../services';
-import { authorize } from '@loopback/authorization';
 
 @authenticate('jwt.access')
 @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
@@ -26,7 +27,7 @@ export class JointAccountsDongsController {
     @inject.context() public ctx: RequestContext,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
+    this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
   @get('/joint-accounts/{jointAccountId}/dongs', {

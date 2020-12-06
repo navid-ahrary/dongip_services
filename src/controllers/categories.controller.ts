@@ -14,6 +14,7 @@ import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept } from '@loopback/core';
+import _ from 'lodash';
 
 import { Categories } from '../models';
 import { UsersRepository, CategoriesRepository } from '../repositories';
@@ -36,7 +37,7 @@ export class CategoriesController {
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     this.userId = +this.currentUserProfile[securityId];
-    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
+    this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
   @get('/categories', {

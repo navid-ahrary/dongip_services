@@ -62,7 +62,7 @@ export class JointAccountController {
   ) {
     this.userId = +this.currentUserProfile[securityId];
     this.phone = this.currentUserProfile.phone;
-    this.lang = this.ctx.request.headers['accept-language'] ?? 'fa';
+    this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
   @post('/joint-accounts', {
