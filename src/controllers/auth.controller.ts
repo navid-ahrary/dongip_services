@@ -157,6 +157,7 @@ export class AuthController {
       },
     })
     verifyReqBody: Verify,
+    @param.header.string('language', { required: false }) langHeader: string,
   ): Promise<{
     status: boolean;
     name: string;
