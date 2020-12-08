@@ -104,6 +104,7 @@ export class AuthController {
               type: 'object',
               properties: {
                 status: { type: 'boolean' },
+                isCompleted: { type: 'boolean' },
                 name: { type: 'string' },
                 avatar: { type: 'string' },
                 prefix: { type: 'string' },
@@ -166,6 +167,7 @@ export class AuthController {
     @param.header.string('accept-language', { required: false }) langHeader: string,
   ): Promise<{
     status: boolean;
+    isCompleted: boolean;
     name: string;
     avatar: string;
     prefix: string;
@@ -197,11 +199,8 @@ export class AuthController {
     }
 
     const user = await this.usersRepository.findOne({
+      fields: { name: true, avatar: true, phone: true },
       where: { or: [{ phone: verifyReqBody.phone }, { email: verifyReqBody.email }] },
-      fields: {
-        name: true,
-        avatar: true,
-      },
     });
 
     const createdVerify = await this.verifyRepository
@@ -275,7 +274,8 @@ export class AuthController {
     }
 
     return {
-      status: user ? true : false,
+      status: _.isObjectLike(user),
+      isCompleted: Boolean(user?.phone),
       avatar: user ? user.avatar : 'dongip',
       name: user ? user.name : 'noob',
       prefix: randomStr,
