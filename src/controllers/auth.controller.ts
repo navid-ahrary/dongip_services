@@ -511,22 +511,20 @@ export class AuthController {
     const planId = countRegisteredUsers.count < 1000 ? 'plan_gy1' : 'free';
 
     try {
-      const userObject = new Users({
+      const userEntity = new Users({
         roles: roles,
         name: newUser.name,
         avatar: newUser.avatar,
         phone: foundVerify.phone,
         email: foundVerify.email,
-        region: foundVerify.region,
+        region: foundVerify.region ?? undefined,
         firebaseToken: firebaseToken,
-        phoneLocked: _.has(foundVerify, 'phone'),
-        emailLocked: _.has(foundVerify, 'email'),
+        phoneLocked: Boolean(_.get(foundVerify, 'phone')),
+        emailLocked: Boolean(_.get(foundVerify, 'email')),
         userAgent: this.ctx.request.headers['user-agent'],
-        platform: this.ctx.request.headers['platform']
-          ? this.ctx.request.headers['platform'].toString().toLowerCase()
-          : undefined,
+        platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
       });
-      const savedUser = await this.usersRepository.create(userObject);
+      const savedUser = await this.usersRepository.create(userEntity);
 
       if (roles.includes('GOLD')) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -595,6 +593,12 @@ export class AuthController {
     } catch (err) {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY' && err.sqlMessage.endsWith("'phone'")) {
         throw new HttpErrors.Conflict(this.locMsg['SINGUP_CONFILCT_PHONE'][this.lang]);
+      } else if (
+        err.errno === 1062 &&
+        err.code === 'ER_DUP_ENTRY' &&
+        err.sqlMessage.endsWith("'email'")
+      ) {
+        throw new HttpErrors.Conflict(this.locMsg['COMPLETE_SIGNUP_CONFILICT_EMAIL'][this.lang]);
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
         throw new HttpErrors.NotAcceptable(err.message);
       } else {

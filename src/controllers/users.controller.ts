@@ -217,7 +217,7 @@ export class UsersController {
     },
   })
   async updateUserById(
-    @requestBody(UserPatchRequestBody) updateUserReqBody: Omit<Users, '_key'>,
+    @requestBody(UserPatchRequestBody) updateUserReqBody: Omit<Users, 'userId'>,
   ): Promise<void> {
     if (updateUserReqBody.avatar) {
       await this.usersRepository.usersRels(this.userId).patch(updateUserReqBody, { type: 'self' });
@@ -294,7 +294,6 @@ export class UsersController {
     cmpltSignBody: CompleteSignup,
   ): Promise<void> {
     try {
-      console.log(cmpltSignBody);
       const userProps: Partial<Users> = _.pick(cmpltSignBody, [
         'avatar',
         'name',
@@ -309,10 +308,8 @@ export class UsersController {
         const u = await this.usersRepository.findOne({
           where: { userId: this.userId, phoneLocked: true },
         });
-
-        if (u) delete userProps.phone;
-        else {
-          _.assign(userProps, { phoneLocked: true });
+        if (!u) {
+          userProps.phoneLocked = true;
           userRelProps.phone = userProps.phone;
           userProps.region = this.phoneNumService.getRegionCodeISO(userProps.phone!);
         }
@@ -322,21 +319,18 @@ export class UsersController {
         const u = await this.usersRepository.findOne({
           where: { userId: this.userId, emailLocked: true },
         });
-
-        if (u) delete userProps.email;
-        else {
-          _.assign(userProps, { emailLocked: true });
+        if (!u) {
+          userProps.emailLocked = true;
           userRelProps.email = userProps.email;
         }
+      }
+      if (_.keys(userProps).length) {
+        await this.usersRepository.updateById(this.userId, userProps);
       }
       await this.usersRepository.usersRels(this.userId).patch(userRelProps, { type: 'self' });
 
       if (_.keys(settingProps).length) {
         await this.usersRepository.setting(this.userId).patch(settingProps);
-      }
-
-      if (_.keys(userProps).length) {
-        await this.usersRepository.updateById(this.userId, userProps);
       }
     } catch (err) {
       let errMsg = '';
