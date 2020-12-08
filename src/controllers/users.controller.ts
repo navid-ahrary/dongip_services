@@ -294,6 +294,7 @@ export class UsersController {
     cmpltSignBody: CompleteSignup,
   ): Promise<void> {
     try {
+      console.log(cmpltSignBody);
       const userProps: Partial<Users> = _.pick(cmpltSignBody, [
         'avatar',
         'name',
