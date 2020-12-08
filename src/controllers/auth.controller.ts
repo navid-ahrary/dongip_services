@@ -209,7 +209,7 @@ export class AuthController {
         email: verifyReqBody.email,
         password: randomStr + randomCode,
         smsSignature: verifyReqBody.smsSignature ?? ' ',
-        registered: user !== null,
+        registered: _.isObjectLike(user),
         createdAt: nowUTC.toISOString(),
         platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
         userAgent: this.ctx.request.headers['user-agent']?.toString().toLowerCase(),
