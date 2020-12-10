@@ -1,6 +1,6 @@
 import { inject } from '@loopback/core';
 import { Count, repository } from '@loopback/repository';
-import { get, getModelSchemaRef, requestBody, api, patch } from '@loopback/rest';
+import { get, getModelSchemaRef, requestBody, patch } from '@loopback/rest';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
@@ -9,9 +9,8 @@ import { Settings } from '../models';
 import { SettingsRepository, UsersRepository } from '../repositories';
 
 @authenticate('jwt.access')
-@api({ basePath: '/', paths: {} })
 export class SettingsController {
-  readonly userId: number;
+  private readonly userId: number;
 
   constructor(
     @repository(SettingsRepository)
