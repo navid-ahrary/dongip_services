@@ -7,18 +7,17 @@ import {
   ValueOrPromise,
   inject,
 } from '@loopback/core';
-
-import {HttpErrors, Request, RestBindings} from '@loopback/rest';
-import {LocalizedMessages} from '../application';
+import { HttpErrors, Request, RestBindings } from '@loopback/rest';
+import _ from 'lodash';
+import { LocalizedMessages } from '../application';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
  * `boot`
  */
-@bind({tags: {key: ValidatePasswordInterceptor.BINDING_KEY}})
+@bind({ tags: { key: ValidatePasswordInterceptor.BINDING_KEY } })
 export class ValidatePasswordInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidatePasswordInterceptor.name}`;
-  lang: string;
 
   constructor(
     @inject(RestBindings.Http.REQUEST) private req: Request,
@@ -40,17 +39,11 @@ export class ValidatePasswordInterceptor implements Provider<Interceptor> {
    * @param invocationCtx - Invocation context
    * @param next - A function to invoke next interceptor or the target method
    */
-  async intercept(
-    invocationCtx: InvocationContext,
-    next: () => ValueOrPromise<InvocationResult>,
-  ) {
-    this.lang = this.req.headers['accept-language'] ?? 'fa';
+  async intercept(invocationCtx: InvocationContext, next: () => ValueOrPromise<InvocationResult>) {
+    const lang = _.includes(this.req.headers['accept-language'], 'en') ? 'en' : 'fa';
 
-    if (
-      invocationCtx.methodName === 'login' ||
-      invocationCtx.methodName === 'signup'
-    ) {
-      const invalidPassword = this.locMsg['PASSWORD_LENGTH'][this.lang];
+    if (invocationCtx.methodName === 'login' || invocationCtx.methodName === 'signup') {
+      const invalidPassword = this.locMsg['PASSWORD_LENGTH'][lang];
 
       if (
         invocationCtx.args[0].password.length - 3 !== 6 ||

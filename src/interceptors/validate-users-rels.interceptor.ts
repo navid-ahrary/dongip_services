@@ -9,6 +9,7 @@ import {
 } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import _ from 'lodash';
 
 import { UsersRelsRepository, UsersRepository } from '../repositories';
 import { HttpErrors, Request, RestBindings } from '@loopback/rest';
@@ -22,7 +23,6 @@ import { LocalizedMessages } from '../application';
 export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidateUsersRelsInterceptor.name}`;
   private readonly userId: number;
-  lang: string;
 
   constructor(
     @repository(UsersRelsRepository)
@@ -50,7 +50,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
    * @param next - A function to invoke next interceptor or the target method
    */
   async intercept(invocationCtx: InvocationContext, next: () => ValueOrPromise<InvocationResult>) {
-    this.lang = this.req.headers['accept-language'] ?? 'fa';
+    const lang = _.includes(this.req.headers['accept-lang'], 'en') ? 'en' : 'fa';
 
     let errMsg: string;
 
@@ -64,7 +64,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         });
 
         if (countUserRels.count !== userRelIds.length) {
-          errMsg = this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang];
+          errMsg = this.locMsg['SOME_USERS_RELS_NOT_VALID'][lang];
           throw new Error(errMsg);
         }
       } else if (invocationCtx.methodName === 'patchGroupsById') {
@@ -77,7 +77,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
           });
 
           if (countUserRels.count !== userRelIds.length) {
-            errMsg = this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang];
+            errMsg = this.locMsg['SOME_USERS_RELS_NOT_VALID'][lang];
             throw new Error(errMsg);
           }
         }
@@ -95,7 +95,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
         });
 
         if (!foundUserRel) {
-          errMsg = this.locMsg['USER_REL_NOT_VALID'][this.lang];
+          errMsg = this.locMsg['USER_REL_NOT_VALID'][lang];
           throw new Error(errMsg);
         }
       } else if (
@@ -118,7 +118,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
           });
 
           if (user.usersRels?.length !== userRelIds.length) {
-            errMsg = this.locMsg['JOINT_USER_REL_BI_ERR'][this.lang];
+            errMsg = this.locMsg['JOINT_USER_REL_BI_ERR'][lang];
             throw new Error(errMsg);
           }
 
@@ -141,7 +141,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
                   mutualUserRelId: rel.getId(),
                 });
               } else {
-                errMsg = this.locMsg['JOINT_USER_REL_BI_ERR'][this.lang];
+                errMsg = this.locMsg['JOINT_USER_REL_BI_ERR'][lang];
                 throw new Error(errMsg);
               }
             }

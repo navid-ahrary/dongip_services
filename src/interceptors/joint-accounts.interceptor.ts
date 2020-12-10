@@ -36,7 +36,6 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${JointAccountsInterceptor.name}`;
   private readonly userId: number;
   private readonly phone: string;
-  lang: string;
 
   constructor(
     @repository(UsersRepository) protected usersRepo: UsersRepository,
@@ -71,7 +70,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
    * @param next - A function to invoke next interceptor or the target method
    */
   async intercept(invocationCtx: InvocationContext, next: () => ValueOrPromise<InvocationResult>) {
-    this.lang = this.req.headers['accept-language'] ?? 'fa';
+    const lang = _.includes(this.req.headers['accept-language'], 'en') ? 'en' : 'fa';
     const methodName = invocationCtx.methodName;
     const firebaseMessages: BatchMessage = [];
 
@@ -296,16 +295,13 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
         const jointAcc = foundDong?.jointAccount;
 
         if (!foundDong) {
-          throw this.locMsg['DONG_NOT_VALID'][this.lang];
+          throw this.locMsg['DONG_NOT_VALID'][lang];
         } else if (jointAcc && jointAcc.userId !== this.userId) {
           const jointSub = await this.jointAccSubscRepo.findOne({
             where: { userId: this.userId, jointAccountId: jointAcc.getId() },
           });
           if (foundDong.originDongId && jointSub) {
-            throw util.format(
-              this.locMsg['JOINT_ADMIN_DELETE_DONG_ERROR'][this.lang],
-              jointAcc.title,
-            );
+            throw util.format(this.locMsg['JOINT_ADMIN_DELETE_DONG_ERROR'][lang], jointAcc.title);
           }
         }
 
