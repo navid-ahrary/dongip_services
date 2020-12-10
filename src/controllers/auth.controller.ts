@@ -504,13 +504,13 @@ export class AuthController {
       userLanguage = newUser.language,
       userCurrency = newUser.currency;
 
-    const foundVerify = await this.verifySerivce.verifyCredentials(verifyId, newUser.password);
-
-    const countRegisteredUsers = await this.usersRepository.count();
-    const roles = countRegisteredUsers.count < 1000 ? ['GOLD'] : ['BRONZE'];
-    const planId = countRegisteredUsers.count < 1000 ? 'plan_gy1' : 'free';
-
     try {
+      const foundVerify = await this.verifySerivce.verifyCredentials(verifyId, newUser.password);
+
+      const countRegisteredUsers = await this.usersRepository.count();
+      const roles = countRegisteredUsers.count < 1000 ? ['GOLD'] : ['BRONZE'];
+      const planId = countRegisteredUsers.count < 1000 ? 'plan_gy1' : 'free';
+
       const userEntity = new Users({
         roles: roles,
         name: newUser.name,
@@ -591,7 +591,13 @@ export class AuthController {
         ...tokenObj,
       };
     } catch (err) {
-      if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY' && err.sqlMessage.endsWith("'phone'")) {
+      if (err.message === 'WRONG_VERIFY_CODE') {
+        throw new HttpErrors.NotAcceptable(this.locMsg[err.message][this.lang]);
+      } else if (
+        err.errno === 1062 &&
+        err.code === 'ER_DUP_ENTRY' &&
+        err.sqlMessage.endsWith("'phone'")
+      ) {
         throw new HttpErrors.Conflict(this.locMsg['SINGUP_CONFILCT_PHONE'][this.lang]);
       } else if (
         err.errno === 1062 &&
