@@ -22,7 +22,7 @@ export class CronJobService extends CronJob {
       name: 'reminderNotifyJob',
       onTick: async () => {
         // Run cronjob only on one instance in pm2
-        if (process.env.NODE_APP_INSTANCE === undefined || process.env.NODE_APP_INSTANCE === '0') {
+        if (process.env.NODE_APP_INSTANCE === undefined || process.env.NODE_APP_INSTANCE === '9') {
           await this.sendReminderNotify();
         }
       },
