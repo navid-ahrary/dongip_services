@@ -2,8 +2,6 @@ import { CronJob, cronJob } from '@loopback/cron';
 import { repository } from '@loopback/repository';
 import { service, BindingScope, inject } from '@loopback/core';
 import moment from 'moment';
-import debug from 'debug';
-const log = debug('api:cronjob');
 
 import { SettingsRepository, UsersRepository } from '../repositories';
 import { FirebaseService, BatchMessage } from '../services';
@@ -32,16 +30,15 @@ export class CronJobService extends CronJob {
   }
 
   private async sendReminderNotify() {
-    const nowUTC = moment.utc();
-
+    const utcTime = moment().isDST() ? moment.utc() : moment.utc().subtract(1, 'hour');
     const foundSettings = await this.settingsRepository.find({
       fields: { userId: true, language: true },
       where: {
         scheduleNotify: true,
         scheduleTime: {
           between: [
-            nowUTC.startOf('m').subtract(4, 'm').format('HH:mm:ss.00000'),
-            nowUTC.startOf('m').add(5, 'm').format('HH:mm:ss.00000'),
+            utcTime.startOf('m').subtract(4, 'm').format('HH:mm:ss.00000'),
+            utcTime.startOf('m').add(5, 'm').format('HH:mm:ss.00000'),
           ],
         },
       },
@@ -80,7 +77,7 @@ export class CronJobService extends CronJob {
     if (firebaseMessages.length) {
       await this.firebaseService.sendAllMessage(firebaseMessages);
 
-      log(`Cronjob started at ${nowUTC}, ${firebaseMessages.length} notifications sent`);
+      console.log(`Cronjob started at ${utcTime}, ${firebaseMessages.length} notifications sent`);
     }
   }
 }

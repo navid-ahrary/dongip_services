@@ -1,12 +1,6 @@
-import {
-  Entity,
-  model,
-  property,
-  belongsTo,
-  RelationType,
-} from '@loopback/repository';
+import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
 
-import {Users, UsersWithRelations} from './users.model';
+import { Users, UsersWithRelations } from './users.model';
 
 export enum CurrencyEnum {
   IRAN_RIAL = 'IRR',
@@ -180,7 +174,7 @@ export class Settings extends Entity {
     type: 'date',
     required: true,
     defaultFn: 'now',
-    mysql: {columnName: 'created_at', dataType: 'datetime', nullable: 'N'},
+    mysql: { columnName: 'created_at', dataType: 'datetime', nullable: 'N' },
   })
   createdAt: string;
 
@@ -197,7 +191,7 @@ export class Settings extends Entity {
     {
       type: 'number',
       required: true,
-      index: {unique: true},
+      index: { unique: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',

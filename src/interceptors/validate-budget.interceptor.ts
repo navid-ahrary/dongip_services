@@ -10,7 +10,7 @@ import {
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { repository } from '@loopback/repository';
 import { HttpErrors, Request, RestBindings } from '@loopback/rest';
-
+import _ from 'lodash';
 import {
   BudgetsRepository,
   CategoriesRepository,
@@ -28,7 +28,6 @@ import { LocalizedMessages } from '../application';
 export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidateBudgetIdInterceptor.name}`;
   private readonly userId: number;
-  lang: string;
 
   constructor(
     @repository(BudgetsRepository) public budgetsRepo: BudgetsRepository,
@@ -59,7 +58,7 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
    * @param next - A function to invoke next interceptor or the target method
    */
   async intercept(invocationCtx: InvocationContext, next: () => ValueOrPromise<InvocationResult>) {
-    this.lang = this.req.headers['accept-language'] ?? 'fa';
+    const lang = _.includes(this.req.headers['accept-language'], 'en') ? 'en' : 'fa';
 
     if (
       invocationCtx.methodName === 'updateBudgetsById' ||
@@ -72,16 +71,26 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
       });
 
       if (!foundBudget) {
-        throw new HttpErrors.UnprocessableEntity(this.locMsg['BUDGET_NOT_VALID'][this.lang]);
+        throw new HttpErrors.UnprocessableEntity(this.locMsg['BUDGET_NOT_VALID'][lang]);
       }
     }
 
     if (invocationCtx.methodName === 'updateBudgetsById') {
-      await this.validateBudgetReqBody(invocationCtx.args[1]);
+      try {
+        await this.validateBudgetReqBody(invocationCtx.args[1]);
+      } catch (err) {
+        const errMsg = this.locMsg[err.message][lang];
+        throw new HttpErrors.UnprocessableEntity(errMsg);
+      }
     }
 
     if (invocationCtx.methodName === 'createBudgets') {
-      await this.validateBudgetReqBody(invocationCtx.args[0]);
+      try {
+        await this.validateBudgetReqBody(invocationCtx.args[0]);
+      } catch (err) {
+        const errMsg = this.locMsg[err.message][lang];
+        throw new HttpErrors.UnprocessableEntity(errMsg);
+      }
     }
 
     const result = await next();
@@ -90,41 +99,37 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
   }
 
   async validateBudgetReqBody(entity: Budgets): Promise<Budgets> {
-    let errMsg = this.locMsg['BUDGET_SELECT_ITEM'][this.lang];
-
     if (entity.categoryId && entity.categoryId > 0) {
       if (entity.userRelId !== 0 || entity.jointAccountId !== 0) {
-        throw new HttpErrors.UnprocessableEntity(errMsg);
+        throw new Error('BUDGET_SELECT_ITEM');
       }
 
       const foundCategory = await this.categoriessRepo.findOne({
         where: { userId: this.userId, categoryId: entity.categoryId },
       });
       if (!foundCategory) {
-        errMsg = this.locMsg['GROUP_NOT_VALID'][this.lang];
-        throw new HttpErrors.UnprocessableEntity(errMsg);
+        throw new Error('GROUP_NOT_VALID');
       }
 
       entity.jointAccountId = undefined;
       entity.userRelId = undefined;
     } else if (entity.userRelId && entity.userRelId > 0) {
       if (entity.categoryId !== 0 || entity.jointAccountId !== 0) {
-        throw new HttpErrors.UnprocessableEntity(errMsg);
+        throw new Error('BUDGET_SELECT_ITEM');
       }
 
       const foundUserRel = await this.usersRelsRepo.findOne({
         where: { userId: this.userId, userRelId: entity.userRelId },
       });
       if (!foundUserRel) {
-        errMsg = this.locMsg['USER_REL_NOT_VALID'][this.lang];
-        throw new HttpErrors.UnprocessableEntity(errMsg);
+        throw new Error('USER_REL_NOT_VALID');
       }
 
       entity.categoryId = undefined;
       entity.jointAccountId = undefined;
     } else if (entity.jointAccountId && entity.jointAccountId > 0) {
       if (entity.userRelId !== 0 || entity.categoryId !== 0) {
-        throw new HttpErrors.UnprocessableEntity(errMsg);
+        throw new Error('BUDGET_SELECT_ITEM');
       }
 
       const JA = await this.joitAccRepo.findOne({
@@ -134,8 +139,7 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
         ],
       });
       if (!JA?.jointAccountSubscribes) {
-        errMsg = this.locMsg['GROUP_NOT_VALID'][this.lang];
-        throw new HttpErrors.UnprocessableEntity(errMsg);
+        throw new Error('GROUP_NOT_VALID');
       }
 
       entity.categoryId = undefined;

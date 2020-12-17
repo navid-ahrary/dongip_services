@@ -9,8 +9,9 @@ import {
 } from '@loopback/context';
 import { repository } from '@loopback/repository';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
-import { CategoriesRepository, UsersRepository } from '../repositories';
 import { HttpErrors, Request, RestBindings } from '@loopback/rest';
+import _ from 'lodash';
+import { CategoriesRepository, UsersRepository } from '../repositories';
 import { LocalizedMessages } from '../application';
 
 /**
@@ -21,7 +22,6 @@ import { LocalizedMessages } from '../application';
 export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidateCategoryIdInterceptor.name}`;
   private readonly userId: number;
-  lang: string;
 
   constructor(
     @repository(CategoriesRepository)
@@ -50,7 +50,7 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
    * @param next - A function to invoke next interceptor or the target method
    */
   async intercept(invocationCtx: InvocationContext, next: () => ValueOrPromise<InvocationResult>) {
-    this.lang = this.req.headers['accept-language'] ?? 'fa';
+    const lang = _.includes(this.req.headers['accept-language'], 'en') ? 'en' : 'fa';
 
     if (invocationCtx.methodName === 'createDongs') {
       const categoryId = invocationCtx.args[0].categoryId;
@@ -60,7 +60,7 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
       });
       // Validate categoryId
       if (!curretnUserFoundCategory) {
-        const errMessage = this.locMsg['CATEGORY_NOT_VALID'][this.lang];
+        const errMessage = this.locMsg['CATEGORY_NOT_VALID'][lang];
         throw new HttpErrors.UnprocessableEntity(errMessage);
       }
 
@@ -78,7 +78,7 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
       });
 
       if (!foundCategory) {
-        const errMsg = this.locMsg['CATEGORY_NOT_VALID'][this.lang];
+        const errMsg = this.locMsg['CATEGORY_NOT_VALID'][lang];
         throw new HttpErrors.UnprocessableEntity(errMsg);
       }
     }

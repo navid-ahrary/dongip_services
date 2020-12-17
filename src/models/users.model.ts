@@ -153,6 +153,7 @@ export class Users extends Entity {
 
   @property({
     type: 'string',
+    default: 'IR',
     mysql: {
       dataType: 'varchar',
       dataLength: 2,

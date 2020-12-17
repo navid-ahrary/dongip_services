@@ -104,6 +104,7 @@ export class AuthController {
               type: 'object',
               properties: {
                 status: { type: 'boolean' },
+                isCompleted: { type: 'boolean' },
                 name: { type: 'string' },
                 avatar: { type: 'string' },
                 prefix: { type: 'string' },
@@ -166,6 +167,7 @@ export class AuthController {
     @param.header.string('accept-language', { required: false }) langHeader: string,
   ): Promise<{
     status: boolean;
+    isCompleted: boolean;
     name: string;
     avatar: string;
     prefix: string;
@@ -197,11 +199,8 @@ export class AuthController {
     }
 
     const user = await this.usersRepository.findOne({
+      fields: { name: true, avatar: true, phone: true },
       where: { or: [{ phone: verifyReqBody.phone }, { email: verifyReqBody.email }] },
-      fields: {
-        name: true,
-        avatar: true,
-      },
     });
 
     const createdVerify = await this.verifyRepository
@@ -210,7 +209,7 @@ export class AuthController {
         email: verifyReqBody.email,
         password: randomStr + randomCode,
         smsSignature: verifyReqBody.smsSignature ?? ' ',
-        registered: user !== null,
+        registered: _.isObjectLike(user),
         createdAt: nowUTC.toISOString(),
         platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
         userAgent: this.ctx.request.headers['user-agent']?.toString().toLowerCase(),
@@ -275,7 +274,8 @@ export class AuthController {
     }
 
     return {
-      status: user ? true : false,
+      status: _.isObjectLike(user),
+      isCompleted: Boolean(user?.phone),
       avatar: user ? user.avatar : 'dongip',
       name: user ? user.name : 'noob',
       prefix: randomStr,
@@ -504,29 +504,27 @@ export class AuthController {
       userLanguage = newUser.language,
       userCurrency = newUser.currency;
 
-    const foundVerify = await this.verifySerivce.verifyCredentials(verifyId, newUser.password);
-
-    const countRegisteredUsers = await this.usersRepository.count();
-    const roles = countRegisteredUsers.count < 1000 ? ['GOLD'] : ['BRONZE'];
-    const planId = countRegisteredUsers.count < 1000 ? 'plan_gy1' : 'free';
-
     try {
-      const userObject = new Users({
+      const foundVerify = await this.verifySerivce.verifyCredentials(verifyId, newUser.password);
+
+      const countRegisteredUsers = await this.usersRepository.count();
+      const roles = countRegisteredUsers.count < 1000 ? ['GOLD'] : ['BRONZE'];
+      const planId = countRegisteredUsers.count < 1000 ? 'plan_gy1' : 'free';
+
+      const userEntity = new Users({
         roles: roles,
         name: newUser.name,
         avatar: newUser.avatar,
         phone: foundVerify.phone,
         email: foundVerify.email,
-        region: foundVerify.region,
+        region: foundVerify.region ?? undefined,
         firebaseToken: firebaseToken,
-        phoneLocked: _.has(foundVerify, 'phone'),
-        emailLocked: _.has(foundVerify, 'email'),
+        phoneLocked: Boolean(_.get(foundVerify, 'phone')),
+        emailLocked: Boolean(_.get(foundVerify, 'email')),
         userAgent: this.ctx.request.headers['user-agent'],
-        platform: this.ctx.request.headers['platform']
-          ? this.ctx.request.headers['platform'].toString().toLowerCase()
-          : undefined,
+        platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
       });
-      const savedUser = await this.usersRepository.create(userObject);
+      const savedUser = await this.usersRepository.create(userEntity);
 
       if (roles.includes('GOLD')) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -593,8 +591,20 @@ export class AuthController {
         ...tokenObj,
       };
     } catch (err) {
-      if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY' && err.sqlMessage.endsWith("'phone'")) {
+      if (err.message === 'WRONG_VERIFY_CODE') {
+        throw new HttpErrors.NotAcceptable(this.locMsg[err.message][this.lang]);
+      } else if (
+        err.errno === 1062 &&
+        err.code === 'ER_DUP_ENTRY' &&
+        err.sqlMessage.endsWith("'phone'")
+      ) {
         throw new HttpErrors.Conflict(this.locMsg['SINGUP_CONFILCT_PHONE'][this.lang]);
+      } else if (
+        err.errno === 1062 &&
+        err.code === 'ER_DUP_ENTRY' &&
+        err.sqlMessage.endsWith("'email'")
+      ) {
+        throw new HttpErrors.Conflict(this.locMsg['COMPLETE_SIGNUP_CONFILICT_EMAIL'][this.lang]);
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
         throw new HttpErrors.NotAcceptable(err.message);
       } else {
