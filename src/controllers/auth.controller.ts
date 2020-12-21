@@ -510,7 +510,7 @@ export class AuthController {
         avatar: newUser.avatar,
         phone: foundVerify.phone,
         email: foundVerify.email,
-        region: foundVerify.region ?? undefined,
+        region: foundVerify.region,
         firebaseToken: firebaseToken,
         phoneLocked: Boolean(_.get(foundVerify, 'phone')),
         emailLocked: Boolean(_.get(foundVerify, 'email')),
