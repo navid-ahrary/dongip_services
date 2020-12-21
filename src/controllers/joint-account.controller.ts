@@ -267,6 +267,13 @@ export class JointAccountController {
       this.usersRepo.jointAccounts(this.userId).delete({ jointAccountId: jointAccountId });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepo.jointAccountSubscribes(this.userId).delete({ jointAccountId: jointAccountId });
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepo
+        .dongs(this.userId)
+        .patch(
+          { jointAccountId: undefined, originDongId: undefined },
+          { jointAccountId: jointAccountId },
+        );
     } catch (err) {
       console.error(err);
     }
@@ -288,6 +295,10 @@ export class JointAccountController {
       this.usersRepo.jointAccountSubscribes(this.userId).delete();
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepo.jointAccounts(this.userId).delete();
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepo
+        .dongs(this.userId)
+        .patch({ jointAccountId: undefined, originDongId: undefined });
     } catch (err) {
       console.error(err);
     }
