@@ -361,22 +361,15 @@ export class AuthController {
     const verifyId = +currentUserProfile[securityId];
 
     try {
-      const foundVerify = await this.verifySerivce.verifyCredentials(
-        verifyId,
-        credentials.password,
-      );
+      await this.verifySerivce.verifyCredentials(verifyId, credentials.password);
 
       // Ensure the user exists and the password is correct
       const user = await this.userService.verifyCredentials(credentials);
-
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepository.updateById(user.getId(), {
         firebaseToken: firebaseToken,
         platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
         userAgent: this.ctx.request.headers['user-agent']?.toString().toLowerCase(),
-        region: foundVerify.phone
-          ? this.phoneNumberService.getRegionCodeISO(foundVerify.phone)
-          : undefined,
       });
 
       // Get total user's scores
