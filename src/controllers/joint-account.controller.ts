@@ -442,13 +442,15 @@ export class JointAccountController {
         (user) => !_.includes(deletedUserPhones, user.phone),
       );
 
-      const deletedUsersIds = _.map(deletedUsers, (user) => user.userId);
-      await this.jointAccountsRepo
-        .jointAccountSubscribes(jointAccountId)
-        .delete({ userId: { inq: deletedUsersIds } });
       if (deletedUsers.length) {
+        const deletedUsersIds = _.map(deletedUsers, (user) => user.userId);
+
+        await this.jointAccountsRepo
+          .jointAccountSubscribes(jointAccountId)
+          .delete({ userId: { inq: deletedUsersIds } });
+
         await this.dongRepo.updateAll(
-          { jointAccountId: undefined },
+          { jointAccountId: undefined, originDongId: undefined },
           { userId: { inq: deletedUsersIds }, jointAccountId: jointAccountId },
         );
       }
