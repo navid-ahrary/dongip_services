@@ -368,8 +368,8 @@ export class AuthController {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepository.updateById(user.getId(), {
         firebaseToken: firebaseToken,
-        platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
-        userAgent: this.ctx.request.headers['user-agent']?.toString().toLowerCase(),
+        platform: this.ctx.request.headers['platform']?.toString(),
+        userAgent: this.ctx.request.headers['user-agent']?.toString(),
       });
 
       // Get total user's scores
@@ -514,8 +514,8 @@ export class AuthController {
         firebaseToken: firebaseToken,
         phoneLocked: Boolean(_.get(foundVerify, 'phone')),
         emailLocked: Boolean(_.get(foundVerify, 'email')),
-        userAgent: this.ctx.request.headers['user-agent'],
-        platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
+        userAgent: this.ctx.request.headers['user-agent']?.toString(),
+        platform: this.ctx.request.headers['platform']?.toString(),
       });
       const savedUser = await this.usersRepository.create(userEntity);
 
