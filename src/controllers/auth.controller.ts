@@ -361,22 +361,15 @@ export class AuthController {
     const verifyId = +currentUserProfile[securityId];
 
     try {
-      const foundVerify = await this.verifySerivce.verifyCredentials(
-        verifyId,
-        credentials.password,
-      );
+      await this.verifySerivce.verifyCredentials(verifyId, credentials.password);
 
       // Ensure the user exists and the password is correct
       const user = await this.userService.verifyCredentials(credentials);
-
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepository.updateById(user.getId(), {
         firebaseToken: firebaseToken,
-        platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
-        userAgent: this.ctx.request.headers['user-agent']?.toString().toLowerCase(),
-        region: foundVerify.phone
-          ? this.phoneNumberService.getRegionCodeISO(foundVerify.phone)
-          : undefined,
+        platform: this.ctx.request.headers['platform']?.toString(),
+        userAgent: this.ctx.request.headers['user-agent'],
       });
 
       // Get total user's scores
@@ -517,12 +510,12 @@ export class AuthController {
         avatar: newUser.avatar,
         phone: foundVerify.phone,
         email: foundVerify.email,
-        region: foundVerify.region ?? undefined,
+        region: foundVerify.region,
         firebaseToken: firebaseToken,
         phoneLocked: Boolean(_.get(foundVerify, 'phone')),
         emailLocked: Boolean(_.get(foundVerify, 'email')),
+        platform: this.ctx.request.headers['platform']?.toString(),
         userAgent: this.ctx.request.headers['user-agent'],
-        platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
       });
       const savedUser = await this.usersRepository.create(userEntity);
 
