@@ -4,6 +4,7 @@ import { juggler } from '@loopback/repository';
 const config = {
   name: 'Mysql',
   connector: 'mysql',
+  url: process.env.MYSQL_URL,
   host: process.env.MYSQL_HOST,
   port: process.env.MYSQL_PORT,
   user: process.env.MYSQL_USER,
