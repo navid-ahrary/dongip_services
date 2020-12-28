@@ -1,23 +1,24 @@
+import { inject, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
-import { post, get, getModelSchemaRef, requestBody, api } from '@loopback/rest';
-import { inject } from '@loopback/core';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
+import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { post, get, getModelSchemaRef, requestBody } from '@loopback/rest';
+import moment from 'moment';
 
 import { Messages } from '../models';
+import { FirebaseService } from '../services';
 import { UsersRepository, MessagesRepository } from '../repositories';
 
-@api({ basePath: '/', paths: {} })
 @authenticate('jwt.access')
 export class MessagesController {
   private readonly userId: number;
 
   constructor(
-    @repository(MessagesRepository)
-    public messagesRepository: MessagesRepository,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @service(FirebaseService) public firebaseService: FirebaseService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(MessagesRepository) public messagesRepository: MessagesRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
   }
@@ -53,13 +54,28 @@ export class MessagesController {
     })
     newMessage: Omit<Messages, 'messageId'>,
   ): Promise<Messages> {
-    const messageEntity = {
-      message: newMessage.message,
-      createdAt: new Date().toISOString(),
+    const messageContent = newMessage.message;
+
+    const messageEntity = new Messages({
+      message: messageContent,
       userId: this.userId,
       isQuestion: true,
       isAnswer: false,
-    };
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.usersRepository
+      .find({
+        fields: { firebaseToken: true },
+        where: { phone: { inq: ['+989176502184', '+989197744814'] } },
+      })
+      .then((users) => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.firebaseService.sendMultiCastMessage({
+          tokens: users.map((u) => u.firebaseToken ?? ' '),
+          notification: { title: 'تیکت جدید', body: messageContent },
+        });
+      });
 
     return this.messagesRepository.create(messageEntity);
   }
