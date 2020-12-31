@@ -13,7 +13,6 @@ import {
 import { authenticate, UserService, TokenService } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
-
 import util from 'util';
 import path from 'path';
 import fs from 'fs';
@@ -41,13 +40,7 @@ import {
 import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocalizedMessages, CategoriesSource } from '../application';
 
-@api({
-  basePath: '/auth',
-  paths: {},
-  components: {
-    // headers: { 'accept-language': { required: false, schema: { type: 'string', default: 'fa' } } },
-  },
-})
+@api({ basePath: '/auth' })
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, ValidatePasswordInterceptor.BINDING_KEY)
 export class AuthController {
   lang: string;
@@ -55,21 +48,21 @@ export class AuthController {
   constructor(
     @inject.context() public ctx: RequestContext,
     @service(SmsService) public smsService: SmsService,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @inject('application.categoriesSourceList') public catSrc: CategoriesSource,
+    @inject(TokenServiceBindings.TOKEN_SERVICE) private jwtService: TokenService,
+    @inject(PasswordHasherBindings.PASSWORD_HASHER) public passwordHasher: PasswordHasher,
+    @inject(UserServiceBindings.USER_SERVICE) public userService: UserService<Users, Credentials>,
     @service(VerifyService) public verifySerivce: VerifyService,
     @service(EmailService) protected emailService: EmailService,
     @service(FirebaseService) public firebaseService: FirebaseService,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
-    @inject('application.categoriesSourceList') public catSrc: CategoriesSource,
+    @service(RefreshtokenService) private refreshTokenService: RefreshtokenService,
+    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
     @repository(VerifyRepository) private verifyRepository: VerifyRepository,
+    @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
     @repository(SettingsRepository) public settingsRepository: SettingsRepository,
     @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
-    @inject(PasswordHasherBindings.PASSWORD_HASHER) public passwordHasher: PasswordHasher,
-    @inject(UserServiceBindings.USER_SERVICE) public userService: UserService<Users, Credentials>,
-    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
-    @inject(TokenServiceBindings.TOKEN_SERVICE) private jwtService: TokenService,
-    @service(RefreshtokenService) private refreshTokenService: RefreshtokenService,
   ) {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
