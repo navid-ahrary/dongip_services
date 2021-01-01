@@ -238,7 +238,7 @@ export class JointAccountController {
           description: ja.title,
           userRels: usersRels,
           createdAt: ja.createdAt,
-          admin: ja.userId === this.userId ? true : false,
+          admin: ja.userId === this.userId,
         }),
       );
     }
