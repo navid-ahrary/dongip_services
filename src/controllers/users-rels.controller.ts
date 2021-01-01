@@ -8,7 +8,6 @@ import {
   post,
   requestBody,
   HttpErrors,
-  api,
   del,
   RequestContext,
 } from '@loopback/rest';
@@ -36,7 +35,6 @@ import {
 } from '../interceptors';
 import { LocalizedMessages } from '../application';
 
-@api({ basePath: '/', paths: {} })
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, FirebasetokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class UsersRelsController {
@@ -44,19 +42,16 @@ export class UsersRelsController {
   lang: string;
 
   constructor(
+    @inject.context() public ctx: RequestContext,
+    @service(FirebaseService) public firebaseService: FirebaseService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(DongsRepository) public dongsRepository: DongsRepository,
-    @repository(VirtualUsersRepository)
-    public virtualUsersRepository: VirtualUsersRepository,
-    @repository(BlacklistRepository)
-    public blacklistRepository: BlacklistRepository,
-    @repository(UsersRelsRepository)
-    public usersRelsRepository: UsersRelsRepository,
-    @service(FirebaseService) public firebaseService: FirebaseService,
-    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
-    @inject.context() public ctx: RequestContext,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
+    @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
+    @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
+    @repository(VirtualUsersRepository) public virtualUsersRepository: VirtualUsersRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
