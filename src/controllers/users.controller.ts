@@ -1,5 +1,3 @@
-import { inject, intercept, service } from '@loopback/core';
-import { repository, DataObject } from '@loopback/repository';
 import {
   requestBody,
   HttpErrors,
@@ -9,38 +7,42 @@ import {
   getModelSchemaRef,
   RequestContext,
 } from '@loopback/rest';
-import { authenticate, UserService, TokenService } from '@loopback/authentication';
+import { inject, intercept, service } from '@loopback/core';
+import { repository, DataObject } from '@loopback/repository';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
+import { authenticate, UserService, TokenService } from '@loopback/authentication';
 import _ from 'lodash';
-import moment from 'moment';
 import util from 'util';
+import moment from 'moment';
 
-import { UserServiceBindings, TokenServiceBindings } from '../keys';
 import { UserPatchRequestBody } from './specs';
-import { Users, Credentials, CompleteSignup, Settings, UsersRels } from '../models';
-import { UsersRepository } from '../repositories';
-import { FirebasetokenInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { PhoneNumberService } from '../services';
+import { UsersRepository } from '../repositories';
+import { UserServiceBindings, TokenServiceBindings } from '../keys';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../application';
+import { Users, Credentials, CompleteSignup, Settings, UsersRels } from '../models';
+import { FirebasetokenInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
+import { JointAccountController } from './joint-account.controller';
 
 @authenticate('jwt.access')
 export class UsersController {
   private readonly userId: number;
+  private readonly userName: string;
   lang: string;
-  userName: string;
 
   constructor(
     @inject.context() public ctx: RequestContext,
     @inject('application.package') public packageInfo: PackageInfo,
     @inject('application.tutorialLinksList') public tutLinks: TutorialLinks,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @inject('controllers.JointAccountController') public jointController: JointAccountController,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService,
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
     @inject(UserServiceBindings.USER_SERVICE) public userService: UserService<Users, Credentials>,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
     @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
@@ -50,12 +52,117 @@ export class UsersController {
   }
 
   async getUserScores(userId: typeof Users.prototype.userId): Promise<number> {
-    const scoresList = await this.usersRepository.scores(userId).find();
+    const scoresList = await this.usersRepository.scores(userId).find({ fields: { score: true } });
     let totalScores = 0;
-    scoresList.forEach((scoreItem) => {
-      totalScores += scoreItem.score;
+    scoresList.forEach((s) => {
+      totalScores += s.score;
     });
     return totalScores;
+  }
+
+  @get('/users', {
+    summary: 'Get User, included all related data',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      200: {
+        description: 'Users model instance',
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(Users),
+          },
+        },
+      },
+    },
+  })
+  async findUser() {
+    try {
+      const user = await this.usersRepository.findById(this.userId, {
+        fields: {
+          firebaseToken: false,
+          emailLocked: false,
+          phoneLocked: false,
+          referralCode: false,
+        },
+        include: [
+          { relation: 'setting' },
+          { relation: 'budgets' },
+          { relation: 'categories' },
+          { relation: 'usersRels', scope: { fields: { mutualUserRelId: false } } },
+          {
+            relation: 'dongs',
+            scope: {
+              fields: { originDongId: false },
+              include: [{ relation: 'billList' }, { relation: 'payerList' }],
+            },
+          },
+        ],
+      });
+
+      return _.assign(user, { jointAccounts: await this.jointController.getJointAccounts() });
+    } catch (err) {
+      console.error(err);
+      throw new HttpErrors.NotImplemented(err.messsage);
+    }
+  }
+
+  @intercept(FirebasetokenInterceptor.BINDING_KEY, ValidatePhoneEmailInterceptor.BINDING_KEY)
+  @patch('/users', {
+    summary: "Update User's properties",
+    description: 'Request body includes desired properties to update',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '204': {
+        description: 'User PATCH success - No content',
+      },
+    },
+  })
+  async updateUserById(
+    @requestBody(UserPatchRequestBody) updateUserReqBody: Omit<Users, 'userId'>,
+  ): Promise<void> {
+    if (updateUserReqBody.avatar) {
+      await this.usersRepository.usersRels(this.userId).patch(updateUserReqBody, { type: 'self' });
+    }
+
+    const patchUser: DataObject<Users> = {};
+
+    if (updateUserReqBody.phone) {
+      const phone = updateUserReqBody.phone;
+
+      const user = await this.usersRepository.findOne({
+        where: { userId: this.userId, phoneLocked: true },
+      });
+
+      if (user) {
+        delete updateUserReqBody.phone;
+      } else {
+        updateUserReqBody.region = this.phoneNumService.getRegionCodeISO(phone);
+        updateUserReqBody.phoneLocked = true;
+
+        patchUser.phone = phone;
+      }
+    }
+
+    if (updateUserReqBody.email) {
+      const user = await this.usersRepository.findOne({
+        where: { userId: this.userId, emailLocked: true },
+      });
+
+      if (user) {
+        delete updateUserReqBody.email;
+      } else {
+        updateUserReqBody.emailLocked = true;
+        patchUser.email = updateUserReqBody.email;
+      }
+    }
+
+    return this.usersRepository.updateById(this.userId, updateUserReqBody).catch((err) => {
+      if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
+        if (err.sqlMessage.endsWith("'users.username'")) {
+          throw new HttpErrors.Conflict(this.locMsg['USERNAME_UNAVAILABLE'][this.lang]);
+        }
+      }
+      throw new HttpErrors.NotAcceptable(err.message);
+    });
   }
 
   @intercept(FirebasetokenInterceptor.BINDING_KEY)
@@ -203,66 +310,6 @@ export class UsersController {
         message: util.format(this.locMsg['SERVER_MAINTENACE'][this.lang], this.userName),
       },
     };
-  }
-
-  @intercept(FirebasetokenInterceptor.BINDING_KEY, ValidatePhoneEmailInterceptor.BINDING_KEY)
-  @patch('/users', {
-    summary: "Update User's properties",
-    description: 'Request body includes desired properties to update',
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '204': {
-        description: 'User PATCH success - No content',
-      },
-    },
-  })
-  async updateUserById(
-    @requestBody(UserPatchRequestBody) updateUserReqBody: Omit<Users, 'userId'>,
-  ): Promise<void> {
-    if (updateUserReqBody.avatar) {
-      await this.usersRepository.usersRels(this.userId).patch(updateUserReqBody, { type: 'self' });
-    }
-
-    const patchUser: DataObject<Users> = {};
-
-    if (updateUserReqBody.phone) {
-      const phone = updateUserReqBody.phone;
-
-      const user = await this.usersRepository.findOne({
-        where: { userId: this.userId, phoneLocked: true },
-      });
-
-      if (user) {
-        delete updateUserReqBody.phone;
-      } else {
-        updateUserReqBody.region = this.phoneNumService.getRegionCodeISO(phone);
-        updateUserReqBody.phoneLocked = true;
-
-        patchUser.phone = phone;
-      }
-    }
-
-    if (updateUserReqBody.email) {
-      const user = await this.usersRepository.findOne({
-        where: { userId: this.userId, emailLocked: true },
-      });
-
-      if (user) {
-        delete updateUserReqBody.email;
-      } else {
-        updateUserReqBody.emailLocked = true;
-        patchUser.email = updateUserReqBody.email;
-      }
-    }
-
-    return this.usersRepository.updateById(this.userId, updateUserReqBody).catch((err) => {
-      if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-        if (err.sqlMessage.endsWith("'users.username'")) {
-          throw new HttpErrors.Conflict(this.locMsg['USERNAME_UNAVAILABLE'][this.lang]);
-        }
-      }
-      throw new HttpErrors.NotAcceptable(err.message);
-    });
   }
 
   @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
