@@ -92,7 +92,11 @@ export class UsersController {
             relation: 'dongs',
             scope: {
               fields: { originDongId: false },
-              include: [{ relation: 'billList' }, { relation: 'payerList' }],
+              include: [
+                { relation: 'billList' },
+                { relation: 'payerList' },
+                { relation: 'category' },
+              ],
             },
           },
         ],
