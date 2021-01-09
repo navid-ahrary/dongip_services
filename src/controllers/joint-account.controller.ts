@@ -18,7 +18,7 @@ import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 
 import util from 'util';
 import moment from 'moment';
-import _ from 'lodash';
+import _, { property } from 'lodash';
 import 'moment-timezone';
 import ct from 'countries-and-timezones';
 
@@ -387,8 +387,8 @@ export class JointAccountController {
     const JASs = JA.jointAccountSubscribes;
     const currentUsers = _.map(JASs, (jass) => jass.user);
 
-    const props = _.pick(patchReqBody, ['title', 'description']);
-    if (_.has(props, 'title')) {
+    const props = _.pick(patchReqBody, ['title', 'description', 'family']);
+    if (_.has(props, 'title') || _.has(props, 'family')) {
       await this.usersRepo
         .jointAccounts(this.userId)
         .patch(props, { jointAccountId: jointAccountId });
@@ -400,35 +400,74 @@ export class JointAccountController {
         )[0].name;
         const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
-        const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
-          jointAccountId: JA.getId(),
-          type: 'jointAccount',
-          title: util.format(
-            this.locMsg['UPDATE_JOINT_ACCOUNT_NOTIFY_TITLE'][user.setting.language],
-            JA.title,
-          ),
-          body: util.format(
-            this.locMsg['UPDATE_TITLE_JOINT_ACCOUNT_NOTIFY_BODY'][user.setting.language],
-            props.title,
-          ),
-          createdAt: time,
-        });
+        if (_.has(props, 'title')) {
+          const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
+            jointAccountId: JA.getId(),
+            type: 'jointAccount',
+            title: util.format(
+              this.locMsg['UPDATE_JOINT_ACCOUNT_NOTIFY_TITLE'][user.setting.language],
+              JA.title,
+            ),
+            body: util.format(
+              this.locMsg['UPDATE_TITLE_JOINT_ACCOUNT_NOTIFY_BODY'][user.setting.language],
+              props.title,
+            ),
+            createdAt: time,
+          });
 
-        notifyMsgs.push({
-          token: user.firebaseToken ?? '',
-          notification: {
-            title: savedNotify.title,
-            body: savedNotify.body,
-          },
-          data: {
-            notifyId: savedNotify.getId().toString(),
-            title: savedNotify.title,
-            body: savedNotify.body,
-            jointAccountId: JA.getId().toString(),
-            type: savedNotify.type,
-            silent: 'false',
-          },
-        });
+          notifyMsgs.push({
+            token: user.firebaseToken ?? ' ',
+            notification: {
+              title: savedNotify.title,
+              body: savedNotify.body,
+            },
+            data: {
+              notifyId: '' + savedNotify.getId(),
+              title: savedNotify.title,
+              body: savedNotify.body,
+              jointAccountId: JA.getId().toString(),
+              type: savedNotify.type,
+              silent: 'false',
+            },
+          });
+        }
+        if (_.has(props, 'family')) {
+          const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
+            jointAccountId: JA.getId(),
+            type: 'jointAccount',
+            title: util.format(
+              this.locMsg['UPDATE_JOINT_ACCOUNT_NOTIFY_TITLE'][user.setting.language],
+              JA.title,
+            ),
+            body: util.format(
+              props.family
+                ? this.locMsg['UPDATE_ENABLE_FAMILY_JOINT_ACCOUNT_NOTIFY_BODY'][
+                    user.setting.language
+                  ]
+                : this.locMsg['UPDATE_DISABLE_FAMILY_JOINT_ACCOUNT_NOTIFY_BODY'][
+                    user.setting.language
+                  ],
+              props.title,
+            ),
+            createdAt: time,
+          });
+
+          notifyMsgs.push({
+            token: user.firebaseToken ?? ' ',
+            notification: {
+              title: savedNotify.title,
+              body: savedNotify.body,
+            },
+            data: {
+              notifyId: '' + savedNotify.getId(),
+              title: savedNotify.title,
+              body: savedNotify.body,
+              jointAccountId: JA.getId().toString(),
+              type: savedNotify.type,
+              silent: 'false',
+            },
+          });
+        }
       }
     }
 

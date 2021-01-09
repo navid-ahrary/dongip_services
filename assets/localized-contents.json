@@ -123,6 +123,14 @@
     "fa": "اسم گروه به %s تغییر یافت",
     "en": "Group title has been changed to %s"
   },
+  "UPDATE_ENABLE_FAMILY_JOINT_ACCOUNT_NOTIFY_BODY": {
+    "fa": "حالت خانوادگی، فعال شد",
+    "en": "Enabled family state"
+  },
+  "UPDATE_DISABLE_FAMILY_JOINT_ACCOUNT_NOTIFY_BODY": {
+    "fa": "حالت خانوادگی، غیرفعال شد",
+    "en": "Disabled family state"
+  },
   "ADD_MEMBERS_JOINT_ACCOUNT_NOTIFY_BODY": {
     "fa": "%s به گروه پیوست",
     "en": "%s joined to group"
