@@ -37,6 +37,9 @@ export class JointResponse extends Model {
   })
   admin: boolean;
 
+  @property({ type: 'boolean', required: true })
+  family: boolean;
+
   @property({
     jsonSchema: {
       type: 'array',

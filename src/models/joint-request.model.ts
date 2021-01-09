@@ -32,6 +32,13 @@ export class JointRequest extends Model {
   })
   userRelIds: typeof UsersRels.prototype.userRelId[];
 
+  @property({
+    type: 'boolean',
+    required: false,
+    jsonSchema: { default: false },
+  })
+  family: boolean;
+
   constructor(data?: Partial<JointRequest>) {
     super(data);
   }

@@ -72,6 +72,18 @@ export class JointAccounts extends Entity {
   })
   createdAt: string;
 
+  @property({
+    type: 'boolean',
+    default: false,
+    mysql: {
+      columnName: 'family',
+      dataType: 'tinyint',
+      dataLength: 2,
+      nullable: 'N',
+    },
+  })
+  family?: boolean;
+
   @belongsTo(
     () => Users,
     {
