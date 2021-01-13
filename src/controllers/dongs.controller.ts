@@ -9,6 +9,8 @@ import {
   param,
   del,
   RequestContext,
+  patch,
+  HttpErrors,
 } from '@loopback/rest';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
@@ -76,6 +78,54 @@ export class DongsController {
 
   public numberWithCommas(x: number): string {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  @patch('/dongs/{dongId}', {
+    summary: 'Update Dongs description by dongId',
+    description: 'Do not send notification to dong members, just update own Dong entity',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      204: { description: 'Succeed, not content' },
+    },
+  })
+  async updateDongsById(
+    @param.path.number('dongId', { required: true }) dongId: typeof Dongs.prototype.dongId,
+    @requestBody({
+      required: true,
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Dongs, {
+            exclude: [
+              'dongId',
+              'categoryId',
+              'createdAt',
+              'currency',
+              'includeBill',
+              'includeBudget',
+              'jointAccountId',
+              'originDongId',
+              'userId',
+              'title',
+              'pong',
+              'scores',
+            ],
+          }),
+        },
+      },
+    })
+    patchDong: Dongs,
+  ) {
+    try {
+      const res = await this.usersRepository
+        .dongs(this.userId)
+        .patch(patchDong, { dongId: dongId });
+
+      if (res.count === 0) {
+        throw new Error(this.locMsg['DONG_NOT_VALID'][this.lang]);
+      }
+    } catch (err) {
+      throw new HttpErrors.UnprocessableEntity(err.message);
+    }
   }
 
   @get('/dongs/', {
