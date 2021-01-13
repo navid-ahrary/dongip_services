@@ -11,11 +11,7 @@ import {
   getModelSchemaRef,
 } from '@loopback/rest';
 import { authenticate, UserService, TokenService } from '@loopback/authentication';
-import {
-  OPERATION_SECURITY_SPEC,
-  RefreshTokenRepository,
-  TokenObject,
-} from '@loopback/authentication-jwt';
+import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
 import util from 'util';
 import path from 'path';
@@ -32,6 +28,7 @@ import {
   CategoriesRepository,
   SettingsRepository,
   UsersRelsRepository,
+  RefreshTokensRepository,
 } from '../repositories';
 import {
   FirebaseService,
@@ -70,7 +67,7 @@ export class AuthController {
     @repository(SettingsRepository) public settingsRepository: SettingsRepository,
     @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
     @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
-    @repository(RefreshTokenRepository) public refreshTokenRepo: RefreshTokenRepository,
+    @repository(RefreshTokensRepository) public refreshTokenRepo: RefreshTokensRepository,
     @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
   ) {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
