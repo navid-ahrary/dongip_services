@@ -13,3 +13,4 @@ export * from './email.service';
 export * from './woocommerce.service';
 export * from './refreshtoken.service';
 export * from './jwt-strategies';
+export * from './dong.service';

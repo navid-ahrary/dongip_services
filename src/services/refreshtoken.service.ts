@@ -109,9 +109,9 @@ export class RefreshtokenService {
     return { refreshToken: userRefreshData?.refreshToken };
   }
 
-  async revokeToken(refreshToken: string) {
+  async revokeToken(userId: number) {
     try {
-      await this.refreshTokenRepo.delete(new RefreshTokens({ refreshToken: refreshToken }));
+      await this.refreshTokenRepo.delete(new RefreshTokens({ userId: userId }));
     } catch (err) {
       // ignore
     }

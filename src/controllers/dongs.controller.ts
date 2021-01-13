@@ -5,7 +5,6 @@ import {
   getModelSchemaRef,
   post,
   requestBody,
-  HttpErrors,
   api,
   param,
   del,
@@ -30,7 +29,7 @@ import {
   JointAccountsRepository,
   JointAccountSubscribesRepository,
 } from '../repositories';
-import { FirebaseService, BatchMessage } from '../services';
+import { FirebaseService, BatchMessage, DongService } from '../services';
 import {
   ValidateCategoryIdInterceptor,
   FirebasetokenInterceptor,
@@ -40,12 +39,13 @@ import { CategoriesSource, LocalizedMessages } from '../application';
 import { dongReqBody } from './specs';
 
 @model()
-class ResponseNewDong extends Dongs {
+export class ResponseNewDong extends Dongs {
   @property({ type: 'number' })
   score: number;
 
   @property() category: Categories;
 }
+
 @intercept(FirebasetokenInterceptor.BINDING_KEY)
 @api({ basePath: '/', paths: {} })
 @authenticate('jwt.access')
@@ -64,10 +64,10 @@ export class DongsController {
     @repository(JointAccountSubscribesRepository)
     public jointAccSunRepository: JointAccountSubscribesRepository,
     @service(FirebaseService) private firebaseSerice: FirebaseService,
+    @service(DongService) public dongService: DongService,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
     @inject('application.categoriesSourceList') public catSrc: CategoriesSource,
-
     @inject.context() public ctx: RequestContext,
   ) {
     this.userId = +this.currentUserProfile[securityId];
@@ -127,242 +127,7 @@ export class DongsController {
   async createDongs(
     @requestBody(dongReqBody) newDong: PostDong,
   ): Promise<DataObject<ResponseNewDong>> {
-    const newDongScore = 50;
-    const mutualFriendScore = 20;
-    const category = _.pick(newDong, 'category');
-
-    let mutualFactor = 0;
-
-    delete newDong?.userId;
-    delete newDong?.dongId;
-
-    let billList = newDong.billList,
-      payerList = newDong.payerList,
-      allUsersRelsIdList: number[] = [],
-      currentUserIsPayer: Boolean = false,
-      firebaseMessagesList: BatchMessage = [];
-
-    payerList.forEach((item) => {
-      if (!allUsersRelsIdList.includes(item.userRelId)) {
-        allUsersRelsIdList.push(item.userRelId);
-      }
-    });
-
-    billList.forEach((item) => {
-      if (!allUsersRelsIdList.includes(item.userRelId)) {
-        allUsersRelsIdList.push(item.userRelId);
-      }
-    });
-
-    const currentUser = await this.usersRepository.findById(this.userId, {
-      fields: {
-        userId: true,
-        phone: true,
-        name: true,
-        jointAccounts: true,
-        usersRels: true,
-        categories: true,
-      },
-      include: [
-        {
-          relation: 'categories',
-          scope: {
-            where: { categoryId: newDong.categoryId },
-          },
-        },
-        {
-          relation: 'usersRels',
-          scope: {
-            fields: {
-              userRelId: true,
-              userId: true,
-              phone: true,
-              type: true,
-              mutualUserRelId: true,
-              name: true,
-            },
-            where: {
-              userRelId: { inq: allUsersRelsIdList },
-            },
-          },
-        },
-        {
-          relation: 'jointAccountSubscribes',
-          scope: {
-            where: { jointAccountId: newDong.jointAccountId ?? null },
-          },
-        },
-      ],
-    });
-
-    const usersRels = currentUser.usersRels;
-    const exterUserRelsList = _.filter(usersRels, (ur) => ur.type !== 'self');
-    const selfUserRel = _.find(usersRels, (ur) => ur.type === 'self');
-
-    if (usersRels?.length !== allUsersRelsIdList.length) {
-      throw new HttpErrors.UnprocessableEntity(this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang]);
-    }
-    if (newDong.jointAccountId && !currentUser.jointAccountSubscribes) {
-      throw new HttpErrors.UnprocessableEntity(this.locMsg['JOINT_NOT_VALID'][this.lang]);
-    }
-
-    if (selfUserRel?.getId() === newDong.payerList[0].userRelId) {
-      currentUserIsPayer = true;
-    }
-
-    if (newDong.includeBudget === null) newDong.includeBudget = true;
-
-    // Create a Dongs objcet
-    const dong = new Dongs({
-      title: newDong.title,
-      createdAt: newDong.createdAt,
-      categoryId: newDong.categoryId,
-      desc: newDong.desc,
-      pong: newDong.pong,
-      currency: newDong.currency,
-      jointAccountId: newDong.jointAccountId ?? undefined,
-      includeBudget: newDong.includeBudget !== null ? newDong.includeBudget : undefined,
-      includeBill: newDong.includeBill,
-    });
-
-    try {
-      const createdDong = await this.usersRepository.dongs(this.userId).create(dong);
-
-      payerList.forEach((item) => {
-        item = _.assign(item, {
-          userId: this.userId,
-          dongId: createdDong.getId(),
-          createdAt: createdDong.createdAt,
-          categoryId: createdDong.categoryId,
-          currency: createdDong.currency,
-          jointAccountId: createdDong.jointAccountId,
-          userRelName: _.find(usersRels, (rel) => rel.getId() === item.userRelId)?.name,
-        });
-      });
-
-      billList.forEach((item) => {
-        item = _.assign(item, {
-          userId: this.userId,
-          dongId: createdDong.getId(),
-          createdAt: createdDong.createdAt,
-          categoryId: createdDong.categoryId,
-          currency: createdDong.currency,
-          jointAccountId: createdDong.jointAccountId,
-          userRelName: _.find(usersRels, (rel) => rel.getId() === item.userRelId)?.name,
-        });
-      });
-
-      const createdPayerList = await this.payerListRepository.createAll(payerList);
-      const createdBillList = await this.billListRepository.createAll(billList);
-
-      createdDong.billList = createdBillList;
-      createdDong.payerList = createdPayerList;
-
-      const sendNotify = _.has(newDong, 'sendNotify') ? newDong.sendNotify : true;
-
-      if (!currentUser.jointAccountSubscribes && currentUserIsPayer && sendNotify) {
-        for (const relation of exterUserRelsList) {
-          const user = await this.usersRepository.findOne({
-            where: { phone: relation.phone },
-            include: [{ relation: 'setting' }],
-          });
-
-          // If relation is mutual, add to notification reciever list
-          if (user instanceof Users) {
-            const foundMutualUsersRels = await this.usersRelsRepository.findOne({
-              where: {
-                phone: currentUser.phone,
-                userId: user.getId(),
-              },
-            });
-
-            if (foundMutualUsersRels) {
-              // Increament scoreFactor for every mutual friend contribute in dong
-              mutualFactor++;
-              // Get rounded dong amount
-              const roundedDongAmount = _.find(billList, {
-                userRelId: relation.getId(),
-              })
-                ? Math.floor(_.find(billList, { userRelId: relation.getId() })!.dongAmount)
-                : 0;
-
-              // Seperate thousands with "," for use in notification body
-              const notifyBodyDongAmount = this.numberWithCommas(roundedDongAmount);
-
-              // Notification data payload
-              const notifyData = new Notifications({
-                title: this.locMsg['DONGIP_NOTIFY_TITLE'][user!.setting.language],
-                body: util.format(
-                  this.locMsg['DONGIP_NOTIFY_BODY'][user!.setting.language],
-                  notifyBodyDongAmount,
-                  this.locMsg['CURRENCY'][user!.setting.language][createdDong.currency],
-                  foundMutualUsersRels.name,
-                ),
-                desc: createdDong.desc ?? '',
-                type: 'dong',
-                categoryTitle: currentUser.categories[0].title,
-                categoryIcon: currentUser.categories[0].icon,
-                createdAt: moment(createdDong.createdAt).utc().toISOString(),
-                userRelId: foundMutualUsersRels.getId(),
-                dongAmount: roundedDongAmount,
-                currency: createdDong.currency,
-                dongId: createdDong.getId(),
-              });
-
-              const createdNotify = await this.usersRepository
-                .notifications(user!.getId())
-                .create(notifyData);
-
-              // Generate notification messages
-              firebaseMessagesList.push({
-                token: user.firebaseToken ?? ' ',
-                notification: {
-                  title: notifyData.title,
-                  body: notifyData.body,
-                },
-                data: {
-                  notifyId: createdNotify.getId().toString(),
-                  title: notifyData.title!,
-                  body: notifyData.body!,
-                  desc: notifyData.desc!,
-                  type: notifyData.type!,
-                  categoryTitle: notifyData.categoryTitle!,
-                  categoryIcon: notifyData.categoryIcon!,
-                  createdAt: notifyData.createdAt!,
-                  userRelId: notifyData.userRelId!.toString(),
-                  dongAmount: notifyData.dongAmount!.toString(),
-                  currency: createdNotify.currency!,
-                  dongId: notifyData.dongId!.toString(),
-                },
-              });
-            }
-          }
-        }
-
-        if (firebaseMessagesList.length > 0) {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          this.firebaseSerice.sendAllMessage(firebaseMessagesList);
-        }
-      } else if (currentUser.jointAccountSubscribes) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.submitJoint(currentUser, createdDong);
-      }
-
-      const calculatedScore = newDongScore + mutualFactor * mutualFriendScore;
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepository.scores(this.userId).create({
-        dongId: createdDong.getId(),
-        score: calculatedScore,
-      });
-
-      return {
-        ...createdDong,
-        ...category,
-        score: calculatedScore,
-      };
-    } catch (err) {
-      throw new HttpErrors.UnprocessableEntity(err);
-    }
+    return this.dongService.createDongs(this.userId, newDong);
   }
 
   async submitJoint(currentUser: Users, dong: Partial<Dongs>) {

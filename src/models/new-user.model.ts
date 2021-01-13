@@ -28,7 +28,7 @@ export class NewUser extends Users {
       enum: Object.values(CurrencyEnum),
     },
   })
-  currency?: CurrencyEnum;
+  currency?: string;
 }
 
 export interface NewUserRelations {

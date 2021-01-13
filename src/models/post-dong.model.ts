@@ -76,7 +76,7 @@ export class PostDong extends Model {
   })
   payerList: {
     userRelId: typeof UsersRels.prototype.userRelId;
-    dongAmount: number;
+    paidAmount: number;
   }[];
 
   @property({

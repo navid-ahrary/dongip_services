@@ -11,7 +11,11 @@ import {
   getModelSchemaRef,
 } from '@loopback/rest';
 import { authenticate, UserService, TokenService } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-jwt';
+import {
+  OPERATION_SECURITY_SPEC,
+  RefreshTokenRepository,
+  TokenObject,
+} from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
 import util from 'util';
 import path from 'path';
@@ -20,13 +24,14 @@ import moment from 'moment';
 import _ from 'lodash';
 
 import { PasswordHasherBindings, UserServiceBindings, TokenServiceBindings } from '../keys';
-import { Users, Credentials, Verify, NewUser, Categories } from '../models';
+import { Users, Credentials, Verify, NewUser, Categories, UsersRels, PostDong } from '../models';
 import {
   UsersRepository,
   BlacklistRepository,
   VerifyRepository,
   CategoriesRepository,
   SettingsRepository,
+  UsersRelsRepository,
 } from '../repositories';
 import {
   FirebaseService,
@@ -36,6 +41,7 @@ import {
   PhoneNumberService,
   EmailService,
   RefreshtokenService,
+  DongService,
 } from '../services';
 import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocalizedMessages, CategoriesSource } from '../application';
@@ -58,10 +64,13 @@ export class AuthController {
     @service(FirebaseService) public firebaseService: FirebaseService,
     @service(RefreshtokenService) private refreshTokenService: RefreshtokenService,
     @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
+    @service(DongService) public dongService: DongService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(VerifyRepository) private verifyRepository: VerifyRepository,
-    @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
     @repository(SettingsRepository) public settingsRepository: SettingsRepository,
+    @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
+    @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
+    @repository(RefreshTokenRepository) public refreshTokenRepo: RefreshTokenRepository,
     @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
   ) {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
@@ -531,33 +540,18 @@ export class AuthController {
       const accessToken = await this.jwtService.generateToken(userProfile);
       const tokenObj = await this.refreshTokenService.generateToken(userProfile, accessToken);
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepository
-        .usersRels(savedUser.getId())
-        .create({
-          type: 'self',
-          name: savedUser.name,
-          avatar: savedUser.avatar,
-          phone: foundVerify.phone,
-          email: foundVerify.email,
-        })
-        .then(async (rel) => {
-          await this.usersRepository
-            .usersRels(savedUser.getId())
-            .patch({ mutualUserRelId: rel.getId() }, { userRelId: rel.getId() });
-        });
-
-      const categoriesList = this.catSrc[this.lang];
-      const initCatList: Categories[] = [];
-      _.forEach(categoriesList, (cat) => {
-        initCatList.push(
-          new Categories({ userId: savedUser.userId, icon: cat.icon, title: cat.title }),
-        );
+      const selfRel = await this.usersRepository.usersRels(savedUser.getId()).create({
+        type: 'self',
+        name: savedUser.name,
+        avatar: savedUser.avatar,
+        phone: foundVerify.phone,
+        email: foundVerify.email,
       });
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.categoriesRepository.createAll(initCatList);
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.settingsRepository.create({
+      await this.usersRepository
+        .usersRels(savedUser.getId())
+        .patch({ mutualUserRelId: selfRel.getId() }, { userRelId: selfRel.getId() });
+
+      const savedSetting = await this.settingsRepository.create({
         userId: savedUser.userId,
         language: userLanguage,
         currency: userCurrency,
@@ -567,6 +561,8 @@ export class AuthController {
         loggedIn: true,
         loggedInAt: nowUTC.toISOString(),
       });
+
+      await this.createDemoData(savedUser.getId(), selfRel.getId(), savedSetting.currency);
 
       return {
         userId: savedUser.getId(),
@@ -657,5 +653,95 @@ export class AuthController {
     });
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.usersRepository.updateById(userId, { firebaseToken: undefined });
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.refreshTokenService.revokeToken(userId);
+  }
+
+  async createDemoData(userId: typeof Users.prototype.userId, selfRelId: number, currency: string) {
+    try {
+      const categoriesList = this.catSrc[this.lang];
+      const initCatList: Categories[] = [];
+      _.forEach(categoriesList, (cat) => {
+        initCatList.push(new Categories({ userId: userId, icon: cat.icon, title: cat.title }));
+      });
+      const savdDemoCats = await this.categoriesRepository.createAll(initCatList);
+
+      const rel1 = new UsersRels({
+        name: this.lang === 'fa' ? 'دوست من ۱' : 'My Friend A',
+        userId: userId,
+        phone: '+989170000000',
+        avatar: 'assets/images/users/two/033-superhero.png',
+      });
+
+      const rel2 = new UsersRels({
+        name: this.lang === 'fa' ? 'دوست من ۲' : 'My Friend B',
+        userId: userId,
+        phone: '+989120000000',
+        avatar: 'assets/images/users/three/028-architect-min.png',
+      });
+
+      const savedRels = await this.usersRelsRepository.createAll([rel1, rel2]);
+
+      await this.dongService.createDongs(
+        userId,
+        new PostDong({
+          title: this.lang === 'fa' ? 'دنگ من ۱' : 'My Dong A',
+          desc: '',
+          userId: userId,
+          categoryId: savdDemoCats[0].getId(),
+          createdAt: new Date().toISOString(),
+          pong: 8000,
+          currency: currency,
+          includeBill: true,
+          includeBudget: true,
+          billList: [
+            { dongAmount: 4000, userRelId: selfRelId },
+            { dongAmount: 4000, userRelId: savedRels[0].getId() },
+          ],
+          payerList: [{ paidAmount: 8000, userRelId: selfRelId }],
+        }),
+      );
+      await this.dongService.createDongs(
+        userId,
+        new PostDong({
+          title: this.lang === 'fa' ? 'دنگ من ۲' : 'My Dong B',
+          desc: '',
+          userId: userId,
+          categoryId: savdDemoCats[1].getId(),
+          createdAt: new Date().toISOString(),
+          pong: 3000,
+          currency: currency,
+          includeBill: true,
+          includeBudget: true,
+          billList: [
+            { dongAmount: 1000, userRelId: selfRelId },
+            { dongAmount: 1000, userRelId: savedRels[0].getId() },
+            { dongAmount: 1000, userRelId: savedRels[1].getId() },
+          ],
+          payerList: [{ paidAmount: 3000, userRelId: selfRelId }],
+        }),
+      );
+      await this.dongService.createDongs(
+        userId,
+        new PostDong({
+          title: this.lang === 'fa' ? 'دنگ من ۳' : 'My Dong C',
+          desc: '',
+          userId: userId,
+          categoryId: savdDemoCats[3].getId(),
+          createdAt: new Date().toISOString(),
+          pong: 2800,
+          currency: currency,
+          includeBill: true,
+          includeBudget: true,
+          billList: [
+            { dongAmount: 1400, userRelId: savedRels[0].getId() },
+            { dongAmount: 1400, userRelId: savedRels[1].getId() },
+          ],
+          payerList: [{ paidAmount: 2800, userRelId: selfRelId }],
+        }),
+      );
+    } catch (err) {
+      console.error(err);
+    }
   }
 }

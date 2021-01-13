@@ -12,7 +12,7 @@ import { service, inject } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-
+import _ from 'lodash';
 import moment from 'moment';
 import isemail from 'isemail';
 
@@ -178,9 +178,7 @@ export class PurchasesController {
     @inject.context() ctx: RequestContext,
   ): Promise<Purchases> {
     const userId = +currentUserProfile[securityId];
-    const lang = ctx.request.headers['accept-language']
-      ? ctx.request.headers['accept-language']
-      : 'fa';
+    const lang = _.includes(ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
 
     let purchaseTime: moment.Moment;
 
