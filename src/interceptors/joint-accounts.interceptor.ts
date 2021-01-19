@@ -205,7 +205,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
 
             const mutualRel = await this.usersRelsRepo.findOne({
               fields: { name: true },
-              where: { userId: user.getId(), phone: user.phone },
+              where: { userId: user.getId(), phone: this.phone },
             });
 
             const savedNotify = await this.usersRepo.notifications(user.getId()).create({
@@ -440,7 +440,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
             });
 
             firebaseMessages.push({
-              token: user.firebaseToken ?? '',
+              token: user.firebaseToken ?? ' ',
               notification: {
                 title: savedNotify.title,
                 body: savedNotify.body,
