@@ -173,7 +173,6 @@ export class AuthController {
     verifyToken: string;
   }> {
     const nowUTC = moment.utc(),
-      durationLimit = 5,
       randomCode = Math.random().toFixed(7).slice(3),
       randomStr = this.generateRandomString(3);
 
@@ -181,19 +180,17 @@ export class AuthController {
       (!_.has(verifyReqBody, 'phone') && !_.has(verifyReqBody, 'email')) ||
       (_.has(verifyReqBody, 'phone') && _.has(verifyReqBody, 'email'))
     ) {
-      throw new HttpErrors.UnprocessableEntity('Either Phone or email must be provided');
+      throw new HttpErrors.UnprocessableEntity('One of phone and email must be provided');
     }
 
     const countRequstedVerifyCode = await this.verifyRepository.count({
-      or: [{ phone: verifyReqBody.phone }, { email: verifyReqBody.email }],
-      loggedIn: false,
-      loggedInAt: undefined,
+      ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
       createdAt: {
-        between: [nowUTC.subtract(durationLimit, 'minutes').toISOString(), nowUTC.toISOString()],
+        between: [nowUTC.subtract(5, 'minutes').toISOString(), nowUTC.toISOString()],
       },
     });
 
-    if (countRequstedVerifyCode.count > 5) {
+    if (countRequstedVerifyCode.count >= 3) {
       throw new HttpErrors.TooManyRequests(this.locMsg['TOO_MANY_REQUEST'][this.lang]);
     }
 
@@ -212,6 +209,7 @@ export class AuthController {
         createdAt: nowUTC.toISOString(),
         platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
         userAgent: this.ctx.request.headers['user-agent']?.toString().toLowerCase(),
+        ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
         region: verifyReqBody.phone
           ? this.phoneNumberService.getRegionCodeISO(verifyReqBody.phone)
           : undefined,

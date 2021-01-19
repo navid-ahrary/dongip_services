@@ -1,6 +1,6 @@
-import {Entity, model, property} from '@loopback/repository';
+import { Entity, model, property } from '@loopback/repository';
 
-@model({name: 'verify'})
+@model({ name: 'verify' })
 export class Verify extends Entity {
   @property({
     type: 'number',
@@ -39,7 +39,7 @@ export class Verify extends Entity {
 
   @property({
     type: 'string',
-    jsonSchema: {maxLength: 20},
+    jsonSchema: { maxLength: 20 },
     mysql: {
       dataType: 'varchar',
       dataLength: 20,
@@ -50,7 +50,7 @@ export class Verify extends Entity {
 
   @property({
     type: 'string',
-    jsonSchema: {maxLength: 100},
+    jsonSchema: { maxLength: 100 },
     mysql: {
       dataType: 'varchar',
       dataLength: 100,
@@ -75,7 +75,7 @@ export class Verify extends Entity {
     type: 'string',
     required: true,
     default: 'and',
-    jsonSchema: {minLength: 3, maxLength: 20},
+    jsonSchema: { minLength: 3, maxLength: 20 },
     mysql: {
       dataType: 'varchar',
       dataLength: 20,
@@ -226,6 +226,17 @@ export class Verify extends Entity {
     },
   })
   emailStatusText?: string;
+
+  @property({
+    type: 'string',
+    mysql: {
+      columnName: 'ip_address',
+      dataType: 'varchar',
+      dataLength: 30,
+      nullable: 'Y',
+    },
+  })
+  ipAddress?: string;
 
   constructor(data?: Partial<Verify>) {
     super(data);
