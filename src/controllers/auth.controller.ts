@@ -172,8 +172,7 @@ export class AuthController {
     prefix: string;
     verifyToken: string;
   }> {
-    const nowUTC = moment.utc(),
-      randomCode = Math.random().toFixed(7).slice(3),
+    const randomCode = Math.random().toFixed(7).slice(3),
       randomStr = this.generateRandomString(3);
 
     if (
@@ -186,11 +185,11 @@ export class AuthController {
     const countRequstedVerifyCode = await this.verifyRepository.count({
       ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
       createdAt: {
-        between: [nowUTC.subtract(5, 'minutes').toISOString(), nowUTC.toISOString()],
+        between: [moment.utc().subtract(5, 'minutes').toISOString(), moment.utc().toISOString()],
       },
     });
 
-    if (countRequstedVerifyCode.count >= 3) {
+    if (countRequstedVerifyCode.count >= 2) {
       throw new HttpErrors.TooManyRequests(this.locMsg['TOO_MANY_REQUEST'][this.lang]);
     }
 
@@ -206,7 +205,7 @@ export class AuthController {
         password: randomStr + randomCode,
         smsSignature: verifyReqBody.smsSignature ?? ' ',
         registered: _.isObjectLike(user),
-        createdAt: nowUTC.toISOString(),
+        // createdAt: moment.utc().toISOString(),
         platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
         userAgent: this.ctx.request.headers['user-agent']?.toString().toLowerCase(),
         ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
