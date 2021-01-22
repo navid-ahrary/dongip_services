@@ -157,8 +157,21 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.static('/', path.join(__dirname, '../public'));
 
     // Customize @loopback/rest-explorer configuration here
-    this.bind(RestExplorerBindings.CONFIG).to({
+    this.configure(RestExplorerBindings.COMPONENT).to({
       path: '/explorer',
+    });
+    // Configure metric component
+    this.configure(MetricsBindings.COMPONENT).to({
+      endpoint: { basePath: '/metrics', disabled: false },
+      defaultMetrics: { timeout: 10000, disabled: false },
+    });
+
+    // Configure health checking configuration
+    this.configure(HealthBindings.COMPONENT).to({
+      disabled: false,
+      healthPath: '/health',
+      readyPath: '/ready',
+      livePath: '/live',
     });
 
     this.component(RestExplorerComponent);
@@ -176,20 +189,6 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
   }
 
   setupBinding(): void {
-    // Configure metric component
-    this.configure(MetricsBindings.COMPONENT).to({
-      endpoint: { basePath: '/metrics', disabled: false },
-      defaultMetrics: { timeout: 10000, disabled: false },
-    });
-
-    // Configure health checking configuration
-    this.configure(HealthBindings.COMPONENT).to({
-      disabled: false,
-      healthPath: '/health',
-      readyPath: '/ready',
-      livePath: '/live',
-    });
-
     // Bind package.json to the application context
     this.bind(PackageKey).to(pkg);
     this.bind(SubscriptionSpec).to(subsSpec);
