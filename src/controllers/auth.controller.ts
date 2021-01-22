@@ -205,7 +205,6 @@ export class AuthController {
         password: randomStr + randomCode,
         smsSignature: verifyReqBody.smsSignature ?? ' ',
         registered: _.isObjectLike(user),
-        // createdAt: moment.utc().toISOString(),
         platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
         userAgent: this.ctx.request.headers['user-agent']?.toString().toLowerCase(),
         ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
