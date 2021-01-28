@@ -28,13 +28,11 @@ export class CategoriesController {
   lang: string;
 
   constructor(
-    @repository(UsersRepository)
-    protected usersRepository: UsersRepository,
-    @repository(CategoriesRepository)
-    protected categoryRepository: CategoriesRepository,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
     @inject.context() public ctx: RequestContext,
+    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @repository(UsersRepository) protected usersRepository: UsersRepository,
+    @repository(CategoriesRepository) protected categoryRepository: CategoriesRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
