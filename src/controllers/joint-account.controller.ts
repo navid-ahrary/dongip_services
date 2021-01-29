@@ -18,7 +18,7 @@ import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 
 import util from 'util';
 import moment from 'moment';
-import _, { property } from 'lodash';
+import _ from 'lodash';
 import 'moment-timezone';
 import ct from 'countries-and-timezones';
 
