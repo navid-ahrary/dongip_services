@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { BindingScope, injectable, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
-
 const Kavenegar = require('kavenegar');
 
-import { VerifyRepository } from '../repositories';
 import { PhoneNumberService } from './phone-number.service';
 
 const faTemplate = process.env.SMS_TEMPLATE_FA!;
@@ -35,18 +32,14 @@ export interface KavenegarResponse {
 @injectable({ scope: BindingScope.SINGLETON })
 export class SmsService {
   private readonly LOOKUP_TYPE = 'sms';
+  private readonly kavenegarApi;
 
-  constructor(
-    @service(PhoneNumberService) private phoneNumService: PhoneNumberService,
-    @repository(VerifyRepository) public verifyRepository: VerifyRepository,
-    private smsApi = Kavenegar.KavenegarApi({
-      apikey: process.env.KAVENEGAR_API,
-    }),
-  ) {
-    this.validateEnvVars();
+  constructor(@service(PhoneNumberService) private phoneNumService: PhoneNumberService) {
+    this.kavenegarApi = Kavenegar.KavenegarApi({ apikey: process.env.KAVENEGAR_API });
+    this._validateEnvVars();
   }
 
-  private validateEnvVars() {
+  private _validateEnvVars() {
     if (!process.env.SMS_TEMPLATE_FA || !process.env.SMS_TEMPLATE_EN) {
       throw new Error('SMS template is not provided');
     }
@@ -73,7 +66,7 @@ export class SmsService {
     };
 
     return new Promise((resolve, reject) => {
-      this.smsApi.VerifyLookup(sms, (res: any, status: number) => {
+      this.kavenegarApi.VerifyLookup(sms, (res: any, status: number) => {
         if (status && res) {
           resolve({
             statusCode: status,
