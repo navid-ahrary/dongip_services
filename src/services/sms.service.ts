@@ -35,8 +35,9 @@ export class SmsService {
   private readonly kavenegarApi;
 
   constructor(@service(PhoneNumberService) private phoneNumService: PhoneNumberService) {
-    this.kavenegarApi = Kavenegar.KavenegarApi({ apikey: process.env.KAVENEGAR_API });
     this._validateEnvVars();
+
+    this.kavenegarApi = Kavenegar.KavenegarApi({ apikey: process.env.KAVENEGAR_API });
   }
 
   private _validateEnvVars() {
