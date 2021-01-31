@@ -19,6 +19,7 @@ import {
   JointAccountSubscribesWithRelations,
 } from './joint-account-subscribes.model';
 import { RefreshTokens } from './refresh-tokens.model';
+import { Reminders } from './reminders.model';
 
 @model({ name: 'users' })
 export class Users extends Entity {
@@ -366,6 +367,9 @@ export class Users extends Entity {
   @hasOne(() => RefreshTokens, { keyTo: 'userId' })
   refreshToken: RefreshTokens;
 
+  @hasMany(() => Reminders, { keyTo: 'userId' })
+  reminders: Reminders[];
+
   constructor(data?: Partial<Users>) {
     super(data);
   }
@@ -377,6 +381,7 @@ export interface UsersRelations {
   subscriptions?: SubscriptionsWithRelations[];
   jointAccounts?: JointAccountsWithRelations[];
   jointAccountSubscribes?: JointAccountSubscribesWithRelations[];
+  reminders?: Reminders[];
 }
 
 export type UsersWithRelations = Users & UsersRelations;

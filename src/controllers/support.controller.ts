@@ -1,7 +1,6 @@
 import {
   get,
   getModelSchemaRef,
-  api,
   param,
   post,
   requestBody,
@@ -17,14 +16,12 @@ import ct from 'countries-and-timezones';
 import _ from 'lodash';
 import moment from 'moment';
 import 'moment-timezone';
-
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { Messages, Notifications, Users } from '../models';
 import { basicAuthorization, FirebaseService, MessagePayload } from '../services';
 import { MessagesRepository, UsersRepository } from '../repositories';
 import { LocalizedMessages } from '../application';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 
-@api({ basePath: '/support/', paths: {} })
 @authorize({ allowedRoles: ['GOD'], voters: [basicAuthorization] })
 @authenticate('jwt.access')
 export class SupportController {
@@ -45,7 +42,7 @@ export class SupportController {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
-  @get('/messages', {
+  @get('/support/messages', {
     summary: ' GET Messages asked recently',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -82,7 +79,7 @@ export class SupportController {
     return this.messagesRepository.find(filterOnMessage);
   }
 
-  @post('/messages/{targetUserId}', {
+  @post('/support/messages/{targetUserId}', {
     summary: 'POST a answer message to user',
     security: OPERATION_SECURITY_SPEC,
     responses: {

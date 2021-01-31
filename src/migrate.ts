@@ -13,6 +13,7 @@ export async function migrate(args: string[]) {
       'verify',
       'users',
       'settings',
+      'reminders',
       'messages',
       'categories',
       'users_rels',

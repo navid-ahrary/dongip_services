@@ -15,7 +15,6 @@ import { authenticate, UserService, TokenService } from '@loopback/authenticatio
 import _ from 'lodash';
 import util from 'util';
 import moment from 'moment';
-
 import { UserPatchRequestBody } from './specs';
 import { PhoneNumberService } from '../services';
 import { UsersRepository } from '../repositories';
@@ -99,6 +98,7 @@ export class UsersController {
               ],
             },
           },
+          { relation: 'reminders' },
         ],
       });
 

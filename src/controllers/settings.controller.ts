@@ -4,7 +4,6 @@ import { get, getModelSchemaRef, requestBody, patch } from '@loopback/rest';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-
 import { Settings } from '../models';
 import { SettingsRepository, UsersRepository } from '../repositories';
 

@@ -4,8 +4,6 @@ import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { post, get, getModelSchemaRef, requestBody } from '@loopback/rest';
-import moment from 'moment';
-
 import { Messages } from '../models';
 import { FirebaseService } from '../services';
 import { UsersRepository, MessagesRepository } from '../repositories';
@@ -73,7 +71,7 @@ export class MessagesController {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.firebaseService.sendMultiCastMessage({
           tokens: users.map((u) => u.firebaseToken ?? ' '),
-          notification: { title: 'تیکت جدید', body: messageContent },
+          notification: { title: `A New Ticket From UserId ${this.userId}`, body: messageContent },
         });
       });
 

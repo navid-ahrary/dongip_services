@@ -5,7 +5,6 @@ import {
   HasOneRepositoryFactory,
 } from '@loopback/repository';
 import { inject, Getter } from '@loopback/core';
-
 import { MysqlDataSource } from '../datasources';
 import {
   Users,
@@ -25,6 +24,7 @@ import {
   JointAccounts,
   JointAccountSubscribes,
   RefreshTokens,
+  Reminders,
 } from '../models';
 import { BillListRepository } from './bill-list.repository';
 import { PayerListRepository } from './payer-list.repository';
@@ -42,6 +42,7 @@ import { UsersRelsRepository } from './users-rels.repository';
 import { JointAccountsRepository } from './joint-accounts.repository';
 import { JointAccountSubscribesRepository } from './joint-account-subscribes.repository';
 import { RefreshTokensRepository } from './refresh-tokens.repository';
+import { RemindersRepository } from './reminders.repository';
 
 export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.prototype.userId> {
   public readonly virtualUsers: HasManyRepositoryFactory<
@@ -94,6 +95,8 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
     typeof Users.prototype.userId
   >;
 
+  public readonly reminders: HasManyRepositoryFactory<Reminders, typeof Users.prototype.userId>;
+
   constructor(
     @inject('datasources.Mysql') dataSource: MysqlDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -128,8 +131,12 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
     protected jointAccountSubscribesRepositoryGetter: Getter<JointAccountSubscribesRepository>,
     @repository.getter('RefreshTokensRepository')
     protected refreshTokensRepositoryGetter: Getter<RefreshTokensRepository>,
+    @repository.getter('RemindersRepository')
+    protected remindersRepositoryGetter: Getter<RemindersRepository>,
   ) {
     super(Users, dataSource);
+    this.reminders = this.createHasManyRepositoryFactoryFor('reminders', remindersRepositoryGetter);
+    this.registerInclusionResolver('reminders', this.reminders.inclusionResolver);
 
     this.refreshToken = this.createHasOneRepositoryFactoryFor(
       'refreshToken',

@@ -7,7 +7,6 @@ import {
   get,
   param,
   RequestContext,
-  api,
   getModelSchemaRef,
 } from '@loopback/rest';
 import { authenticate, UserService, TokenService } from '@loopback/authentication';
@@ -18,7 +17,6 @@ import path from 'path';
 import fs from 'fs';
 import moment from 'moment';
 import _ from 'lodash';
-
 import { PasswordHasherBindings, UserServiceBindings, TokenServiceBindings } from '../keys';
 import { Users, Credentials, Verify, NewUser, Categories, UsersRels, PostDong } from '../models';
 import {
@@ -43,7 +41,6 @@ import {
 import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocalizedMessages, CategoriesSource } from '../application';
 
-@api({ basePath: '/auth' })
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, ValidatePasswordInterceptor.BINDING_KEY)
 export class AuthController {
   lang: string;
@@ -92,7 +89,7 @@ export class AuthController {
     return totalScores;
   }
 
-  @post('/verify', {
+  @post('/auth/verify', {
     summary: 'Verify phone/email for login/signup',
     responses: {
       '200': {
@@ -278,7 +275,7 @@ export class AuthController {
     };
   }
 
-  @post('/login', {
+  @post('/auth/login', {
     summary: 'Login to app',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -403,7 +400,7 @@ export class AuthController {
     }
   }
 
-  @post('/signup', {
+  @post('/auth/signup', {
     summary: 'Signup and login',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -588,7 +585,7 @@ export class AuthController {
     }
   }
 
-  @get('/refresh-token', {
+  @get('/auth/refresh-token', {
     summary: 'Get a new access token with provided refresh token',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -627,7 +624,7 @@ export class AuthController {
     }
   }
 
-  @get('/logout', {
+  @get('/auth/logout', {
     summary: 'Logout from app',
     description: "Blacklist access token and remove user's firebase token property",
     security: OPERATION_SECURITY_SPEC,

@@ -4,7 +4,6 @@ import {
   HttpErrors,
   getModelSchemaRef,
   post,
-  api,
   RequestContext,
   requestBody,
 } from '@loopback/rest';
@@ -15,7 +14,6 @@ import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import _ from 'lodash';
 import moment from 'moment';
 import isemail from 'isemail';
-
 import { PurchasesRepository, UsersRepository } from '../repositories';
 import {
   CafebazaarService,
@@ -28,7 +26,6 @@ import {
 import { Purchases, Subscriptions, Users, InappPurchase } from '../models';
 import { SubscriptionSpec, LocalizedMessages } from '../application';
 
-@api({ basePath: '/' })
 export class PurchasesController {
   constructor(
     @repository(PurchasesRepository) public purchasesRepo: PurchasesRepository,

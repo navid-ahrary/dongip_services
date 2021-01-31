@@ -5,7 +5,6 @@ import {
   getModelSchemaRef,
   post,
   requestBody,
-  api,
   param,
   del,
   RequestContext,
@@ -19,7 +18,6 @@ import { inject, service, intercept } from '@loopback/core';
 import _ from 'lodash';
 import util from 'util';
 import moment from 'moment';
-
 import { Dongs, PostDong, Notifications, Users, Categories, PayerList, BillList } from '../models';
 import {
   UsersRepository,
@@ -49,7 +47,6 @@ export class ResponseNewDong extends Dongs {
 }
 
 @intercept(FirebasetokenInterceptor.BINDING_KEY)
-@api({ basePath: '/', paths: {} })
 @authenticate('jwt.access')
 export class DongsController {
   private readonly userId: number;

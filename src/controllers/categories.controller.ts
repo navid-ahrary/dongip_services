@@ -15,7 +15,6 @@ import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept } from '@loopback/core';
 import _ from 'lodash';
-
 import { Categories } from '../models';
 import { UsersRepository, CategoriesRepository } from '../repositories';
 import { FirebasetokenInterceptor, ValidateCategoryIdInterceptor } from '../interceptors';

@@ -6,7 +6,6 @@ import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authorize } from '@loopback/authorization';
 import _ from 'lodash';
-
 import { Dongs } from '../models';
 import { LocalizedMessages } from '../application';
 import { JointAccountsRepository, JointAccountSubscribesRepository } from '../repositories';

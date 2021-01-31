@@ -15,13 +15,11 @@ import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-
 import util from 'util';
 import moment from 'moment';
 import _ from 'lodash';
 import 'moment-timezone';
 import ct from 'countries-and-timezones';
-
 import {
   JointRequest,
   JointResponse,
