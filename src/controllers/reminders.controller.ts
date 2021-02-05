@@ -129,6 +129,6 @@ export class RemindersController {
     },
   })
   async deleteAll(): Promise<Count> {
-    return this.remindersRepository.deleteAll({ userId: this.userId });
+    return this.usersRepository.reminders(this.userId).delete();
   }
 }

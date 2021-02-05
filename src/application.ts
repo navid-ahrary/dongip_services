@@ -26,8 +26,8 @@ import {
   BcryptHasher,
   MyUserService,
   CronJobService,
-  JWTVerifyAutehticationStrategy,
-  JWTAccessAutehticationStrategy,
+  JWTVerifyAutenticationStrategy,
+  JWTAccessAutenticationStrategy,
 } from './services';
 import {
   UserServiceBindings,
@@ -50,7 +50,7 @@ export interface PackageInfo {
   };
 }
 export const PackageKey = BindingKey.create<PackageInfo>('application.package');
-const pkg = require('../package.json');
+const pkg: PackageInfo = require('../package.json');
 
 /**
  * Subscription specs from subscriotion-scpecs.json
@@ -141,8 +141,8 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.configure(AuthorizationBindings.COMPONENT).to(authoriazationOptions);
     this.component(AuthorizationComponent);
 
-    registerAuthenticationStrategy(this, JWTVerifyAutehticationStrategy);
-    registerAuthenticationStrategy(this, JWTAccessAutehticationStrategy);
+    registerAuthenticationStrategy(this, JWTVerifyAutenticationStrategy);
+    registerAuthenticationStrategy(this, JWTAccessAutenticationStrategy);
 
     // Set up the custom sequence
     this.sequence(MyAuthenticationSequence);

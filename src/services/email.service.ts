@@ -1,20 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { BindingScope, injectable } from '@loopback/core';
-import isEmail from 'isemail';
+import emailValidator from 'deep-email-validator';
 import util from 'util';
 import axios from 'axios';
-
-const gmailAccount = process.env.GMAIL_ACCOUNT;
-const supportEmail = process.env.ZOHO_SUPPORT_MAIL_ADDRESS;
-const supportRefreshToken = process.env.ZOHO_SUPPRT_ACCOUNT_REFRESH_TOKEN;
-const supportClientId = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_ID;
-const supportClientSecret = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_SECRET;
-const supportAccountId = process.env.ZOHO_SUPPORT_ACCOUNT_ID;
-const supportMessageURL = util.format(process.env.ZOHO_MESSAGE_SCOPE_URL, supportAccountId);
-
-const noreplyEmail = process.env.ZOHO_NOREPLY_MAIL_ADDRESS;
-
-const accountURL = process.env.ZOHO_ACCOUNT_SCOPE_URL;
 
 export interface MailOptions {
   toAddress: string;
@@ -37,20 +25,32 @@ export interface SentEmail {
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class EmailService {
+  gmailAccount = process.env.GMAIL_ACCOUNT;
+  supportEmail = process.env.ZOHO_SUPPORT_MAIL_ADDRESS;
+  supportRefreshToken = process.env.ZOHO_SUPPRT_ACCOUNT_REFRESH_TOKEN;
+  supportClientId = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_ID;
+  supportClientSecret = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_SECRET;
+  supportMessageURL = util.format(
+    process.env.ZOHO_MESSAGE_SCOPE_URL,
+    process.env.ZOHO_SUPPORT_ACCOUNT_ID,
+  );
+  noreplyEmail = process.env.ZOHO_NOREPLY_MAIL_ADDRESS;
+  accountURL = process.env.ZOHO_ACCOUNT_SCOPE_URL;
+
   constructor() {}
 
   private async refreshSupportAccessToken(): Promise<string> {
     const queryParam = {
       grant_type: 'refresh_token',
-      refresh_token: supportRefreshToken,
-      client_id: supportClientId,
-      client_secret: supportClientSecret,
+      refresh_token: this.supportRefreshToken,
+      client_id: this.supportClientId,
+      client_secret: this.supportClientSecret,
     };
 
     try {
       const res = await axios({
         method: 'POST',
-        url: accountURL,
+        url: this.accountURL,
         params: queryParam,
       });
 
@@ -69,13 +69,13 @@ export class EmailService {
 
     const res = await axios({
       method: 'POST',
-      url: supportMessageURL,
+      url: this.supportMessageURL,
       headers: {
         Authorization: `Zoho-oauthtoken ${accessToken}`,
       },
       data: {
         encoding: 'UTF-8',
-        fromAddress: `Dongip<${supportEmail}>`,
+        fromAddress: `Dongip<${this.supportEmail}>`,
         ...mailOptions,
       },
     });
@@ -83,12 +83,18 @@ export class EmailService {
     return res.data;
   }
 
-  isValid(email: string): boolean {
+  async isValid(email: string): Promise<boolean> {
     return (
-      isEmail.validate(email) &&
-      email !== supportEmail &&
-      email !== gmailAccount &&
-      email !== noreplyEmail
+      email !== this.supportEmail &&
+      email !== this.gmailAccount &&
+      email !== this.noreplyEmail &&
+      (
+        await emailValidator({
+          email: email,
+          validateSMTP: false,
+          validateTypo: false,
+        })
+      ).valid
     );
   }
 
@@ -99,10 +105,15 @@ export class EmailService {
    */
   normalize(email: string): string {
     let result = email.toLowerCase();
+
     const splitted = result.split('@');
-    if (splitted[1].includes('gmail')) {
+
+    if (splitted.length !== 2) throw new Error('Email value is not valid');
+
+    if (splitted[1].startsWith('gmail.')) {
       result = splitted[0].replace(/\./g, '') + '@' + splitted[1];
     }
+
     return result;
   }
 }

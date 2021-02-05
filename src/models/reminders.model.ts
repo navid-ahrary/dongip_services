@@ -57,7 +57,7 @@ export class Reminders extends Entity {
     type: 'string',
     required: false,
     jsonSchema: {
-      enum: ['daily', 'weekly', 'monthly', 'yearly'],
+      enum: ['daily', 'weekly', 'monthly', '3monthly', '6monthly', 'yearly'],
     },
     mysql: {
       dataType: 'varchar',

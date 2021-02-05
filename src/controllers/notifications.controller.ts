@@ -5,15 +5,16 @@ import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject } from '@loopback/core';
 import { Notifications } from '../models';
-import { UsersRepository } from '../repositories';
+import { NotificationsRepository, UsersRepository } from '../repositories';
 
 @authenticate('jwt.access')
 export class NotificationsController {
   private readonly userId: number;
 
   constructor(
-    @repository(UsersRepository) protected usersRepository: UsersRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @repository(UsersRepository) protected usersRepository: UsersRepository,
+    @repository(NotificationsRepository) public notifyRepo: NotificationsRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
   }
@@ -41,7 +42,7 @@ export class NotificationsController {
     @param.query.object('filter', {
       example: {
         limit: 20,
-        orders: ['createAt ASC'],
+        orders: ['createdAt ASC'],
         where: {
           additionalProp1: {},
         },

@@ -68,10 +68,12 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
         }
 
         invocationCtx.args[0].phone = this.phoneNumberService.convertToE164Format(phoneValue);
-      } else if (invocationCtx.args[0].email) {
+      }
+
+      if (invocationCtx.args[0].email) {
         const emailValue = invocationCtx.args[0].email;
 
-        if (!this.emailService.isValid(emailValue)) {
+        if (!(await this.emailService.isValid(emailValue))) {
           throw new HttpErrors.UnprocessableEntity(invalidEmailValueMessage);
         }
 

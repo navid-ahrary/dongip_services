@@ -40,7 +40,7 @@ export class FirebaseService {
     payload: messaging.MessagingPayload,
     options?: messaging.MessagingOptions | undefined,
   ): Promise<messaging.MessagingDevicesResponse> {
-    Object.assign(payload.notification, { clickAction: 'FLUTTER_NOTIFICATION_CLICK' });
+    payload.notification!.clickAction = 'FLUTTER_NOTIFICATION_CLICK';
 
     const response = await messaging().sendToDevice(firebaseToken, payload, options);
 

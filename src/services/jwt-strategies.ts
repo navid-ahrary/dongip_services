@@ -2,10 +2,9 @@ import { AuthenticationStrategy, TokenService } from '@loopback/authentication';
 import { inject } from '@loopback/core';
 import { UserProfile } from '@loopback/security';
 import { HttpErrors, Request } from '@loopback/rest';
-
 import { TokenServiceBindings } from '../keys';
 
-export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
+export class JWTAccessAutenticationStrategy implements AuthenticationStrategy {
   name = 'jwt.access';
   constructor(@inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService) {}
 
@@ -52,7 +51,7 @@ export class JWTAccessAutehticationStrategy implements AuthenticationStrategy {
   }
 }
 
-export class JWTVerifyAutehticationStrategy implements AuthenticationStrategy {
+export class JWTVerifyAutenticationStrategy implements AuthenticationStrategy {
   name = 'jwt.verify';
   constructor(@inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService) {}
 
