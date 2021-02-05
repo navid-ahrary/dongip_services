@@ -13,7 +13,6 @@ import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import _ from 'lodash';
 import moment from 'moment';
-import isemail from 'isemail';
 import { PurchasesRepository, UsersRepository } from '../repositories';
 import {
   CafebazaarService,
@@ -22,6 +21,7 @@ import {
   MessagePayload,
   WoocommerceService,
   PhoneNumberService,
+  EmailService,
 } from '../services';
 import { Purchases, Subscriptions, Users, InappPurchase } from '../models';
 import { SubscriptionSpec, LocalizedMessages } from '../application';
@@ -30,6 +30,7 @@ export class PurchasesController {
   constructor(
     @repository(PurchasesRepository) public purchasesRepo: PurchasesRepository,
     @repository(UsersRepository) public usersRepo: UsersRepository,
+    @service(EmailService) public emailService: EmailService,
     @service(SubscriptionService) protected subsService: SubscriptionService,
     @service(CafebazaarService) protected cafebazaarService: CafebazaarService,
     @service(FirebaseService) protected firebaseService: FirebaseService,
@@ -257,7 +258,7 @@ export class PurchasesController {
         let user: Users | null;
 
         const isMobile = this.phoneNumSerice.isValid(identiyValue);
-        const isEmail = isemail.validate(identiyValue);
+        const isEmail = await this.emailService.isValid(identiyValue);
 
         if (isMobile) {
           identiyValue = this.phoneNumSerice.convertToE164Format(identiyValue);
