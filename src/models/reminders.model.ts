@@ -54,7 +54,7 @@ export class Reminders extends Entity {
   @property({
     type: 'number',
     required: false,
-    jsonSchema: { minimum: 1, maximum: 12 },
+    jsonSchema: { minimum: 1 },
     mysql: {
       columnName: 'period_amount',
       dataType: 'tinyint',
