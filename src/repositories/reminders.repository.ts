@@ -16,6 +16,8 @@ export class RemindersRepository extends DefaultCrudRepository<
     @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
     super(Reminders, dataSource);
+
     this.user = this.createBelongsToAccessorFor('user', usersRepositoryGetter);
+    this.registerInclusionResolver('user', this.user.inclusionResolver);
   }
 }

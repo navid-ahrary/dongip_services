@@ -1,5 +1,5 @@
 import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
-import { Users } from './users.model';
+import { Users, UsersWithRelations } from './users.model';
 
 @model({
   name: 'reminders',
@@ -33,7 +33,6 @@ export class Reminders extends Entity {
     required: false,
     jsonSchema: { maxLength: 255 },
     mysql: {
-      columnName: 'title',
       dataType: 'varchar',
       dataLength: 255,
       nullable: 'Y',
@@ -45,7 +44,6 @@ export class Reminders extends Entity {
     type: 'string',
     jsonSchema: { maxLength: 255 },
     mysql: {
-      columnName: 'desc',
       dataType: 'varchar',
       dataLength: 255,
       nullable: 'Y',
@@ -54,18 +52,68 @@ export class Reminders extends Entity {
   desc?: string;
 
   @property({
-    type: 'string',
+    type: 'number',
     required: false,
-    jsonSchema: {
-      enum: ['daily', 'weekly', 'monthly', '3monthly', '6monthly', 'yearly'],
-    },
+    jsonSchema: { minimum: 1, maximum: 12 },
     mysql: {
-      dataType: 'varchar',
-      dataLength: 10,
+      columnName: 'period_amount',
+      dataType: 'tinyint',
+      dataLength: 2,
       nullable: 'Y',
     },
   })
-  period?: string;
+  periodAmount?: number;
+
+  @property({
+    type: 'string',
+    required: false,
+    jsonSchema: {
+      enum: ['day', 'week', 'month', 'year'],
+    },
+    mysql: {
+      columnName: 'period_unit',
+      dataType: 'varchar',
+      dataLength: 5,
+      nullable: 'Y',
+    },
+  })
+  periodUnit?: 'day' | 'week' | 'month' | 'year';
+
+  @property({
+    type: 'string',
+    default: '17:00:00',
+    required: false,
+    length: 8,
+    mysql: {
+      columnName: 'notify_time',
+      dataType: 'time',
+      dataLength: 6,
+      nullable: 'Y',
+    },
+  })
+  notifyTime?: string;
+
+  @property({
+    type: 'string',
+    required: false,
+    mysql: {
+      columnName: 'previous_notify_date',
+      dataType: 'date',
+      nullable: 'Y',
+    },
+  })
+  previousNotifyDate?: string;
+
+  @property({
+    type: 'string',
+    required: false,
+    mysql: {
+      columnName: 'next_notify_date',
+      dataType: 'date',
+      nullable: 'Y',
+    },
+  })
+  nextNotifyDate?: string;
 
   @property({
     type: 'boolean',
@@ -81,18 +129,6 @@ export class Reminders extends Entity {
   @property({
     type: 'string',
     required: false,
-    jsonSchema: { maxLength: 10 },
-    mysql: {
-      dataType: 'varchar',
-      dataLength: 10,
-      nullable: 'Y',
-    },
-  })
-  time?: string;
-
-  @property({
-    type: 'string',
-    required: false,
     jsonSchema: { maxLength: 20 },
     mysql: {
       dataType: 'varchar',
@@ -100,7 +136,7 @@ export class Reminders extends Entity {
       nullable: 'Y',
     },
   })
-  amount?: string;
+  price?: string;
 
   @belongsTo(
     () => Users,
@@ -142,6 +178,8 @@ export class Reminders extends Entity {
   }
 }
 
-export interface RemindersRelations {}
+export interface RemindersRelations {
+  user: UsersWithRelations;
+}
 
 export type RemindersWithRelations = Reminders & RemindersRelations;
