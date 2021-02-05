@@ -39,8 +39,19 @@ export class RemindersController {
         'application/json': {
           schema: getModelSchemaRef(Reminders, {
             title: 'NewReminders',
-            exclude: ['reminderId', 'createdAt', 'userId', 'nextNotifyDate'],
+            exclude: ['reminderId', 'createdAt', 'userId', 'nextNotifyDate', 'previousNotifyDate'],
           }),
+          example: {
+            title: 'string',
+            desc: 'string',
+            periodAmount: 1,
+            periodUnit: 'month',
+            notifyTime: '22:00:00',
+            previousNotifyDate: '2021-02-06',
+            nextNotifyDate: '2021-03-06',
+            repeat: true,
+            price: 1000000,
+          },
         },
       },
     })
@@ -70,7 +81,9 @@ export class RemindersController {
     },
   })
   async find(): Promise<Reminders[]> {
-    return this.usersRepository.reminders(this.userId).find({ fields: { nextNotifyDate: false } });
+    return this.usersRepository
+      .reminders(this.userId)
+      .find({ fields: { nextNotifyDate: false, previousNotifyDate: false } });
   }
 
   @patch('/reminders/{reminderId}', {
@@ -89,7 +102,7 @@ export class RemindersController {
         'application/json': {
           schema: getModelSchemaRef(Reminders, {
             partial: true,
-            exclude: ['createdAt', 'userId', 'nextNotifyDate'],
+            exclude: ['createdAt', 'userId', 'nextNotifyDate', 'previousNotifyDate'],
           }),
         },
       },

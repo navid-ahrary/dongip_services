@@ -127,16 +127,15 @@ export class Reminders extends Entity {
   repeat?: boolean;
 
   @property({
-    type: 'string',
+    type: 'number',
     required: false,
-    jsonSchema: { maxLength: 20 },
+    jsonSchema: { minimum: 1 },
     mysql: {
-      dataType: 'varchar',
-      dataLength: 20,
+      dataType: 'int unsigned',
       nullable: 'Y',
     },
   })
-  price?: string;
+  price?: number;
 
   @belongsTo(
     () => Users,
