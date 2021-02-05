@@ -7,7 +7,7 @@ import {
   RequestContext,
   requestBody,
 } from '@loopback/rest';
-import { service, inject } from '@loopback/core';
+import { service, inject, intercept } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
@@ -25,6 +25,7 @@ import {
 } from '../services';
 import { Purchases, Subscriptions, Users, InappPurchase } from '../models';
 import { SubscriptionSpec, LocalizedMessages } from '../application';
+import { ValidatePhoneEmailInterceptor } from '../interceptors';
 
 export class PurchasesController {
   constructor(
@@ -228,6 +229,7 @@ export class PurchasesController {
   }
 
   @authenticate.skip()
+  @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
   @post('/purchases/in-site/validate/', {
     summary: 'Validate in-site subscription purchase',
     responses: {
@@ -254,29 +256,27 @@ export class PurchasesController {
         const purchasedAt = moment(order['date_paid_gmt']);
         const purchaseOrigin = order['payment_method'];
 
-        let identiyValue = order['billing']['phone'];
+        let identityValue = order['billing']['phone'];
         let user: Users | null;
 
-        const isMobile = this.phoneNumSerice.isValid(identiyValue);
-        const isEmail = await this.emailService.isValid(identiyValue);
+        const isMobile = this.phoneNumSerice.isValid(identityValue);
+        const isEmail = await this.emailService.isValid(identityValue);
 
         if (isMobile) {
-          identiyValue = this.phoneNumSerice.convertToE164Format(identiyValue);
-
           user = await this.usersRepo.findOne({
-            where: { phone: identiyValue },
+            where: { phone: identityValue },
           });
         } else if (isEmail) {
-          identiyValue = this.phoneNumSerice.convertToE164Format(identiyValue);
+          identityValue = this.emailService.normalize(identityValue);
 
           user = await this.usersRepo.findOne({
-            where: { email: identiyValue },
+            where: { email: identityValue },
           });
-        } else if (identiyValue.startsWith('0')) {
-          identiyValue = this.phoneNumSerice.normalizeZeroPrefix(identiyValue);
+        } else if (identityValue.startsWith('0')) {
+          identityValue = this.phoneNumSerice.normalizeZeroPrefix(identityValue);
 
           user = await this.usersRepo.findOne({
-            where: { phone: identiyValue },
+            where: { phone: identityValue },
           });
         } else {
           throw new Error(`${order['billing']['phone']} is not a valid phone or email address`);
