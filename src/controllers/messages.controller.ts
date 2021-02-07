@@ -11,6 +11,7 @@ import { UsersRepository, MessagesRepository } from '../repositories';
 @authenticate('jwt.access')
 export class MessagesController {
   private readonly userId: number;
+  readonly name: string;
 
   constructor(
     @service(FirebaseService) public firebaseService: FirebaseService,
@@ -19,6 +20,7 @@ export class MessagesController {
     @repository(MessagesRepository) public messagesRepository: MessagesRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
+    this.name = this.currentUserProfile.name!;
   }
 
   @post('/messages', {
@@ -71,7 +73,10 @@ export class MessagesController {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.firebaseService.sendMultiCastMessage({
           tokens: users.map((u) => u.firebaseToken ?? ' '),
-          notification: { title: `A New Ticket From UserId ${this.userId}`, body: messageContent },
+          notification: {
+            title: `A New Ticket From '${this.name}' with userId ${this.userId}`,
+            body: messageContent,
+          },
         });
       });
 
