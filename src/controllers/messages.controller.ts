@@ -58,12 +58,11 @@ export class MessagesController {
 
     const messageEntity = new Messages({
       message: messageContent,
-      userId: this.userId,
       isQuestion: true,
       isAnswer: false,
     });
 
-    const createdMsg = await this.messagesRepository.create(messageEntity);
+    const createdMsg = await this.usersRepository.messages(this.userId).create(messageEntity);
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.usersRepository
