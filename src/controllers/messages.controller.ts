@@ -63,6 +63,8 @@ export class MessagesController {
       isAnswer: false,
     });
 
+    const createdMsg = await this.messagesRepository.create(messageEntity);
+
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.usersRepository
       .find({
@@ -74,13 +76,15 @@ export class MessagesController {
         this.firebaseService.sendMultiCastMessage({
           tokens: users.map((u) => u.firebaseToken ?? ' '),
           notification: {
-            title: `A New Ticket From '${this.name}' with userId ${this.userId}`,
+            title: `A New TicketId ${createdMsg.getId()} From '${this.name}' with userId ${
+              this.userId
+            }`,
             body: messageContent,
           },
         });
       });
 
-    return this.messagesRepository.create(messageEntity);
+    return createdMsg;
   }
 
   @get('/messages', {
