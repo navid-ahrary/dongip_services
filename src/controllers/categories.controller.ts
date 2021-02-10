@@ -17,10 +17,10 @@ import { inject, intercept } from '@loopback/core';
 import _ from 'lodash';
 import { Categories } from '../models';
 import { UsersRepository, CategoriesRepository } from '../repositories';
-import { FirebasetokenInterceptor, ValidateCategoryIdInterceptor } from '../interceptors';
+import { ValidateCategoryIdInterceptor } from '../interceptors';
 import { LocalizedMessages } from '../application';
 
-@intercept(FirebasetokenInterceptor.BINDING_KEY, ValidateCategoryIdInterceptor.BINDING_KEY)
+@intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class CategoriesController {
   private readonly userId: number;

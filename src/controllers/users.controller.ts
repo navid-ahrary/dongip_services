@@ -21,7 +21,7 @@ import { UsersRepository } from '../repositories';
 import { UserServiceBindings, TokenServiceBindings } from '../keys';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../application';
 import { Users, Credentials, CompleteSignup, Settings, UsersRels } from '../models';
-import { FirebasetokenInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
+import { ValidatePhoneEmailInterceptor } from '../interceptors';
 import { JointAccountController } from './joint-account.controller';
 
 @authenticate('jwt.access')
@@ -109,7 +109,7 @@ export class UsersController {
     }
   }
 
-  @intercept(FirebasetokenInterceptor.BINDING_KEY, ValidatePhoneEmailInterceptor.BINDING_KEY)
+  @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
   @patch('/users', {
     summary: "Update User's properties",
     description: 'Request body includes desired properties to update',
@@ -169,7 +169,6 @@ export class UsersController {
     });
   }
 
-  @intercept(FirebasetokenInterceptor.BINDING_KEY)
   @get('/users/info', {
     summary: "Get User's info",
     security: OPERATION_SECURITY_SPEC,
