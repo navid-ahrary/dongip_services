@@ -1,5 +1,5 @@
 {
-  "name": "dongip_services_gateway",
+  "name": "dongip_gateway",
   "version": "0.4.5",
   "description": "Dongip OpenAPI Explorer",
   "keywords": [

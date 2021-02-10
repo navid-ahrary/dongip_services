@@ -1,4 +1,5 @@
 import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
+import moment from 'moment';
 import { Users, UsersWithRelations } from './users.model';
 
 @model({
@@ -59,14 +60,15 @@ export class Reminders extends Entity {
       columnName: 'period_amount',
       dataType: 'tinyint',
       dataLength: 2,
-      nullable: 'Y',
+      nullable: 'N',
     },
   })
-  periodAmount?: number;
+  periodAmount: number;
 
   @property({
     type: 'string',
     required: false,
+    default: 'month',
     jsonSchema: {
       enum: ['day', 'week', 'month', 'year'],
     },
@@ -74,35 +76,36 @@ export class Reminders extends Entity {
       columnName: 'period_unit',
       dataType: 'varchar',
       dataLength: 5,
-      nullable: 'Y',
+      nullable: 'N',
     },
   })
-  periodUnit?: 'day' | 'week' | 'month' | 'year';
+  periodUnit: 'day' | 'week' | 'month' | 'year';
 
   @property({
     type: 'string',
-    default: '17:00:00',
+    default: '08:00:00',
     required: false,
     length: 8,
     mysql: {
       columnName: 'notify_time',
       dataType: 'time',
       dataLength: 6,
-      nullable: 'Y',
+      nullable: 'N',
     },
   })
-  notifyTime?: string;
+  notifyTime: string;
 
   @property({
     type: 'string',
     required: false,
+    default: moment().format('YYYY-MM-DD'),
     mysql: {
       columnName: 'previous_notify_date',
       dataType: 'date',
-      nullable: 'Y',
+      nullable: 'N',
     },
   })
-  previousNotifyDate?: string;
+  previousNotifyDate: string;
 
   @property({
     type: 'string',
@@ -110,21 +113,22 @@ export class Reminders extends Entity {
     mysql: {
       columnName: 'next_notify_date',
       dataType: 'date',
-      nullable: 'Y',
+      nullable: 'N',
     },
   })
-  nextNotifyDate?: string;
+  nextNotifyDate: string;
 
   @property({
     type: 'boolean',
     required: false,
+    default: true,
     mysql: {
       dataType: 'tinyint',
       dataLength: '1',
-      nullable: 'Y',
+      nullable: 'N',
     },
   })
-  repeat?: boolean;
+  repeat: boolean;
 
   @property({
     type: 'number',
@@ -171,6 +175,10 @@ export class Reminders extends Entity {
     },
   })
   createdAt: string;
+
+  // Indexer property to allow additional data
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // [prop: string]: any;
 
   constructor(data?: Partial<Reminders>) {
     super(data);

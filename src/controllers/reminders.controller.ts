@@ -5,14 +5,13 @@ import { Count, CountSchema, repository } from '@loopback/repository';
 import { post, param, get, getModelSchemaRef, patch, del, requestBody } from '@loopback/rest';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { Reminders } from '../models';
-import { RemindersRepository, UsersRepository } from '../repositories';
+import { UsersRepository } from '../repositories';
 
 @authenticate('jwt.access')
 export class RemindersController {
   private readonly userId: number;
 
   constructor(
-    @repository(RemindersRepository) public remindersRepository: RemindersRepository,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {
@@ -27,7 +26,18 @@ export class RemindersController {
         description: 'Reminders model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Reminders, { exclude: ['userId', 'createdAt'] }),
+            schema: getModelSchemaRef(Reminders, { includeRelations: false }),
+            example: {
+              title: 'Settle up',
+              desc: 'Do it today before will be late',
+              periodAmount: 3,
+              periodUnit: 'month',
+              notifyTime: '08:00:00',
+              previousNotifyDate: '2021-02-06',
+              nextNotifyDate: '2021-05-06',
+              repeat: true,
+              price: 500000,
+            },
           },
         },
       },
@@ -39,18 +49,19 @@ export class RemindersController {
         'application/json': {
           schema: getModelSchemaRef(Reminders, {
             title: 'NewReminders',
-            exclude: ['reminderId', 'createdAt', 'userId', 'nextNotifyDate', 'previousNotifyDate'],
+            partial: true,
+            exclude: ['reminderId', 'createdAt', 'userId', 'nextNotifyDate', 'notifyTime'],
           }),
-          example: {
-            title: 'string',
-            desc: 'string',
-            periodAmount: 1,
-            periodUnit: 'month',
-            notifyTime: '22:00:00',
-            previousNotifyDate: '2021-02-06',
-            nextNotifyDate: '2021-03-06',
-            repeat: true,
-            price: 1000000,
+          examples: {
+            paid: {
+              title: 'Settle up',
+              desc: 'Do it today before will be late',
+              periodAmount: 3,
+              periodUnit: 'month',
+              previousNotifyDate: '2021-02-06',
+              repeat: true,
+              price: 500000,
+            },
           },
         },
       },
@@ -72,7 +83,6 @@ export class RemindersController {
               type: 'array',
               items: getModelSchemaRef(Reminders, {
                 includeRelations: false,
-                exclude: ['nextNotifyDate'],
               }),
             },
           },
@@ -87,7 +97,7 @@ export class RemindersController {
   }
 
   @patch('/reminders/{reminderId}', {
-    summary: 'Update a Remindes by reminderId',
+    summary: 'Update a Reminders by reminderId',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
@@ -102,12 +112,12 @@ export class RemindersController {
         'application/json': {
           schema: getModelSchemaRef(Reminders, {
             partial: true,
-            exclude: ['createdAt', 'userId', 'nextNotifyDate', 'previousNotifyDate'],
+            exclude: ['reminderId', 'createdAt', 'userId', 'nextNotifyDate', 'notifyTime'],
           }),
         },
       },
     })
-    reminders: Reminders,
+    reminders: Omit<Reminders, 'reminderId'>,
   ): Promise<void> {
     await this.usersRepository.reminders(this.userId).patch(reminders, {
       userId: this.userId,

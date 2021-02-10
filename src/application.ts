@@ -18,14 +18,14 @@ import { CronComponent } from '@loopback/cron';
 import path from 'path';
 import dotenv from 'dotenv';
 dotenv.config();
-
 import { MyAuthenticationSequence } from './sequence';
-import { UserAuthenticationComponent } from './components/user.authentication';
+import { UserAuthenticationComponent } from './components';
 import {
   JWTService,
   BcryptHasher,
   MyUserService,
-  CronJobService,
+  DailyScheduleConjobService,
+  ReminderCronjobService,
   JWTVerifyAutenticationStrategy,
   JWTAccessAutenticationStrategy,
 } from './services';
@@ -98,6 +98,7 @@ export const TutorialLinksList = BindingKey.create<TutorialLinks>('application.t
 const tutorialLinksList: TutorialLinks = require('../assets/tutorial-links.json');
 
 export { ApplicationConfig };
+
 export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestApplication))) {
   hashRound: number;
 
@@ -148,11 +149,12 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.sequence(MyAuthenticationSequence);
 
     this.component(MetricsComponent);
-
     this.component(HealthComponent);
 
+    // Add cronjob services
     this.component(CronComponent);
-    this.add(createBindingFromClass(CronJobService));
+    this.add(createBindingFromClass(DailyScheduleConjobService));
+    this.add(createBindingFromClass(ReminderCronjobService));
 
     this.static('/', path.join(__dirname, '../public'));
 
