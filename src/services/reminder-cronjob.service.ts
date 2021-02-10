@@ -18,7 +18,7 @@ export class ReminderCronjobService extends CronJob {
   ) {
     super({
       name: 'reminderNotifyJob',
-      cronTime: '0 29 22 * * *',
+      cronTime: '0 0 8 * * *',
       start: true,
       timeZone: process.env.TZ,
       onTick: async () => {
@@ -44,7 +44,7 @@ export class ReminderCronjobService extends CronJob {
 
     const users = await this.userRepo.find({
       fields: { userId: true, firebaseToken: true },
-      where: { userId: { inq: [...userIds] }, firebaseToken: { nin: [null!, 'null'] } },
+      where: { userId: { inq: [...userIds] }, firebaseToken: { nin: [undefined, 'null'] } },
       include: [{ relation: 'setting', scope: { fields: { userId: true, language: true } } }],
     });
 
