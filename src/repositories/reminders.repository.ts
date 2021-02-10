@@ -37,6 +37,7 @@ export class RemindersRepository extends DefaultCrudRepository<
         previous_notify_date AS previousNotifyDate ,
         next_notify_date AS nextNotifyDate,
         \`repeat\`,
+        enabled,
         price,
         user_id AS userId,
         created_at AS createdAt
@@ -66,7 +67,8 @@ export class RemindersRepository extends DefaultCrudRepository<
         FROM
           dongip.reminders
         WHERE
-          notify_time = ?
+          enabled = 1
+          AND notify_time = ?
           AND next_notify_date = ? ) ;`;
 
     const foundReminders = await this.execute(cmd, [data.notifyTime, data.notifyDate]);
@@ -85,10 +87,15 @@ export class RemindersRepository extends DefaultCrudRepository<
         previous_notify_date = next_notify_date,
         next_notify_date = (
           CASE
-          WHEN period_unit = 'day' THEN DATE_ADD(next_notify_date , INTERVAL period_amount DAY)
-          WHEN period_unit = 'week' THEN DATE_ADD(next_notify_date , INTERVAL period_amount*7 DAY)
-          WHEN period_unit = 'month' THEN DATE_ADD(next_notify_date , INTERVAL period_amount MONTH)
-          WHEN period_unit = 'year' THEN DATE_ADD(next_notify_date , INTERVAL period_amount YEAR)
+          WHEN period_unit = 'day' THEN DATE_ADD(next_notify_date, INTERVAL period_amount DAY)
+          WHEN period_unit = 'week' THEN DATE_ADD(next_notify_date, INTERVAL period_amount*7 DAY)
+          WHEN period_unit = 'month' THEN DATE_ADD(next_notify_date, INTERVAL period_amount MONTH)
+          WHEN period_unit = 'year' THEN DATE_ADD(next_notify_date, INTERVAL period_amount YEAR)
+          END ),
+        enabled = (
+          CASE
+          WHEN \`repeat\` = 1 THEN 1
+          ELSE 0
           END )
       WHERE
         id IN (${[...Array(ids.length)].map(() => '?').join(',')}) ;`;

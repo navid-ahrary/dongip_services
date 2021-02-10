@@ -30,13 +30,14 @@ export class RemindersController {
             example: {
               title: 'Settle up',
               desc: 'Do it today before will be late',
+              repeat: true,
+              enabled: true,
+              price: 500000,
               periodAmount: 3,
               periodUnit: 'month',
               notifyTime: '08:00:00',
               previousNotifyDate: '2021-02-06',
               nextNotifyDate: '2021-05-06',
-              repeat: true,
-              price: 500000,
             },
           },
         },
@@ -55,11 +56,11 @@ export class RemindersController {
           example: {
             title: 'Settle up',
             desc: 'Do it today before will be late',
+            repeat: true,
+            price: 500000,
             periodAmount: 3,
             periodUnit: 'month',
             previousNotifyDate: '2021-02-06',
-            repeat: true,
-            price: 500000,
           },
         },
       },
@@ -115,12 +116,9 @@ export class RemindersController {
         },
       },
     })
-    reminders: Omit<Reminders, 'reminderId'>,
+    reminder: Omit<Reminders, 'reminderId'>,
   ): Promise<void> {
-    await this.usersRepository.reminders(this.userId).patch(reminders, {
-      userId: this.userId,
-      reminderId: reminderId,
-    });
+    await this.usersRepository.reminders(this.userId).patch(reminder, { reminderId: reminderId });
   }
 
   @del('/reminders/{reminderId}', {

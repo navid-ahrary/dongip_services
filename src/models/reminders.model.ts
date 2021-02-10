@@ -125,10 +125,24 @@ export class Reminders extends Entity {
     mysql: {
       dataType: 'tinyint',
       dataLength: '1',
+      default: 1,
       nullable: 'N',
     },
   })
   repeat: boolean;
+
+  @property({
+    type: 'boolean',
+    required: false,
+    default: true,
+    mysql: {
+      dataType: 'tinyint',
+      dataLength: '1',
+      default: 1,
+      nullable: 'N',
+    },
+  })
+  enabled: boolean;
 
   @property({
     type: 'number',
