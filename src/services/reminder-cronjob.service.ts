@@ -65,7 +65,10 @@ export class ReminderCronjobService extends CronJob {
     if (firebaseMessages.length) {
       await this.firebaseService.sendAllMessage(firebaseMessages);
 
-      const reminderIds = _.map(foundReminders, (r) => r.getId());
+      const reminderIds = _.transform(foundReminders, (result: Array<number>, r) => {
+        if (r.repeat) result.push(r.getId());
+        return result;
+      });
       await this.remindersRepo.updateOverride([...reminderIds]);
     }
   }
