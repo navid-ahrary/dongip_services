@@ -33,7 +33,7 @@ export class ReminderCronjobService extends CronJob {
   }
 
   private async _sendReminderNotify() {
-    const now = moment().tz(this.TZ);
+    const now = moment().tz(this.TZ).startOf('minute');
 
     const foundReminders = await this.remindersRepo.findOverrided({
       notifyDate: now.format('YYYY-MM-DD'),
@@ -62,13 +62,14 @@ export class ReminderCronjobService extends CronJob {
       });
     }
 
-    if (firebaseMessages.length) {
-      await this.firebaseService.sendAllMessage(firebaseMessages);
+    if (firebaseMessages.length) await this.firebaseService.sendAllMessage(firebaseMessages);
 
+    if (foundReminders.length) {
       const reminderIds = _.transform(foundReminders, (result: Array<number>, r) => {
         if (r.repeat) result.push(r.getId());
         return result;
       });
+
       await this.remindersRepo.updateOverride([...reminderIds]);
     }
   }

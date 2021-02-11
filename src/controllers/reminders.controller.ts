@@ -71,15 +71,20 @@ export class RemindersController {
         },
       },
     })
-    reminders: Omit<Reminders, 'reminderId'>,
+    reminder: Omit<Reminders, 'reminderId'>,
   ): Promise<Reminders> {
     const userRegion = this.currentUserProfile.region;
     const userTZ = ct.getTimezonesForCountry(userRegion)[0].name;
-    const notifyTime = moment.tz(userTZ).hour(8).minute(0).second(0).tz(this.TZ).format('HH:mm:ss');
 
-    return this.usersRepository
-      .reminders(this.userId)
-      .create({ ...reminders, notifyTime: notifyTime });
+    reminder.notifyTime = moment
+      .tz(userTZ)
+      .hour(8)
+      .minute(0)
+      .second(0)
+      .tz(this.TZ)
+      .format('HH:mm:ss');
+
+    return this.usersRepository.reminders(this.userId).create(reminder);
   }
 
   @get('/reminders', {
