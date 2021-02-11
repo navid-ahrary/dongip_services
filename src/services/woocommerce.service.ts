@@ -4,7 +4,7 @@ import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api';
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class WoocommerceService {
-  protected wcRestApi: WooCommerceRestApi;
+  protected readonly wcRestApi: WooCommerceRestApi;
 
   constructor() {
     this.wcRestApi = new WooCommerceRestApi({
