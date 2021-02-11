@@ -25,7 +25,16 @@ export class RemindersRepository extends DefaultCrudRepository<
   public async findOverrided(data: { time: string; date: string }): Promise<Array<Reminders>> {
     const cmd = `
       SELECT
-        id AS reminderId,
+        CASE
+          WHEN period_unit = 'day'
+          AND TIMESTAMPDIFF(DAY, previous_notify_date, next_notify_date) = period_amount THEN id
+          WHEN period_unit = 'week'
+          AND TIMESTAMPDIFF(DAY, previous_notify_date, next_notify_date) / 7 = period_amount THEN id
+          WHEN period_unit = 'month'
+          AND TIMESTAMPDIFF(MONTH, previous_notify_date, next_notify_date) = period_amount THEN id
+          WHEN period_unit = 'year'
+          AND TIMESTAMPDIFF(YEAR, previous_notify_date, next_notify_date) = period_amount THEN id
+        END AS reminderId,
         title,
         \`desc\`,
         period_amount AS periodAmount,
@@ -39,26 +48,11 @@ export class RemindersRepository extends DefaultCrudRepository<
         user_id AS userId,
         created_at AS createdAt
       FROM
-        reminders
+        ${process.env.MYSQL_DATABASE}.reminders
       WHERE
-        id IN (
-        SELECT
-          CASE
-            WHEN period_unit = 'day'
-            AND TIMESTAMPDIFF(DAY, previous_notify_date, next_notify_date) = period_amount THEN id
-            WHEN period_unit = 'week'
-            AND TIMESTAMPDIFF(DAY, previous_notify_date, next_notify_date)/7 = period_amount THEN id
-            WHEN period_unit = 'month'
-            AND TIMESTAMPDIFF(MONTH, previous_notify_date, next_notify_date) = period_amount THEN id
-            WHEN period_unit = 'year'
-            AND TIMESTAMPDIFF(YEAR, previous_notify_date, next_notify_date) = period_amount THEN id
-          END
-        FROM
-          dongip.reminders
-        WHERE
-          enabled = 1
-          AND notify_time = ?
-          AND next_notify_date = ? ) ;`;
+        enabled = 1
+        AND notify_time = ?
+        AND next_notify_date = ? ;`;
 
     const foundReminders = await this.execute(cmd, [data.time, data.date]);
 
@@ -71,13 +65,13 @@ export class RemindersRepository extends DefaultCrudRepository<
   public async updateOverride(ids: Array<number>): Promise<Count> {
     const cmd = `
       UPDATE
-        reminders
+        ${process.env.MYSQL_DATABASE}.reminders
       SET
         previous_notify_date = next_notify_date,
         next_notify_date = (
           CASE
           WHEN period_unit = 'day' THEN DATE_ADD(next_notify_date, INTERVAL period_amount DAY)
-          WHEN period_unit = 'week' THEN DATE_ADD(next_notify_date, INTERVAL period_amount*7 DAY)
+          WHEN period_unit = 'week' THEN DATE_ADD(next_notify_date, INTERVAL period_amount * 7 DAY)
           WHEN period_unit = 'month' THEN DATE_ADD(next_notify_date, INTERVAL period_amount MONTH)
           WHEN period_unit = 'year' THEN DATE_ADD(next_notify_date, INTERVAL period_amount YEAR)
           END ),
