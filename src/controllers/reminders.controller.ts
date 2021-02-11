@@ -4,12 +4,16 @@ import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { Count, CountSchema, repository } from '@loopback/repository';
 import { post, param, get, getModelSchemaRef, patch, del, requestBody } from '@loopback/rest';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
+import moment from 'moment';
+import ct from 'countries-and-timezones';
+import 'moment-timezone';
 import { Reminders } from '../models';
 import { UsersRepository } from '../repositories';
 
 @authenticate('jwt.access')
 export class RemindersController {
   private readonly userId: number;
+  TZ = process.env.TZ!;
 
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -67,7 +71,13 @@ export class RemindersController {
     })
     reminders: Omit<Reminders, 'reminderId'>,
   ): Promise<Reminders> {
-    return this.usersRepository.reminders(this.userId).create(reminders);
+    const userRegion = this.currentUserProfile.region;
+    const userTZ = ct.getTimezonesForCountry(userRegion)[0].name;
+    const notifyTime = moment.tz(userTZ).hour(8).minute(0).second(0).tz(this.TZ).format('HH:mm:ss');
+
+    return this.usersRepository
+      .reminders(this.userId)
+      .create({ ...reminders, notifyTime: notifyTime });
   }
 
   @get('/reminders', {
