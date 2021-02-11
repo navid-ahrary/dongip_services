@@ -48,7 +48,7 @@ export class RemindersRepository extends DefaultCrudRepository<
         user_id AS userId,
         created_at AS createdAt
       FROM
-        ${process.env.MYSQL_DATABASE}.reminders
+        reminders
       WHERE
         enabled = 1
         AND notify_time = ?
@@ -65,7 +65,7 @@ export class RemindersRepository extends DefaultCrudRepository<
   public async updateOverride(ids: Array<number>): Promise<Count> {
     const cmd = `
       UPDATE
-        ${process.env.MYSQL_DATABASE}.reminders
+        reminders
       SET
         previous_notify_date = next_notify_date,
         next_notify_date = (
