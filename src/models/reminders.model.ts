@@ -1,5 +1,4 @@
 import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
-import moment from 'moment';
 import { Users, UsersWithRelations } from './users.model';
 
 @model({
