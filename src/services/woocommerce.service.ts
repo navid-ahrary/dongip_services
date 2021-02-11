@@ -1,29 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {BindingScope, injectable} from '@loopback/core';
-
+import { BindingScope, injectable } from '@loopback/core';
 import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api';
 
-const websiteURL = 'https://www.dongip.ir';
-const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
-const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
-
-@injectable({scope: BindingScope.SINGLETON})
+@injectable({ scope: BindingScope.SINGLETON })
 export class WoocommerceService {
-  constructor(
-    protected wcRestApi = new WooCommerceRestApi({
-      url: websiteURL,
-      consumerKey: consumerKey!,
-      consumerSecret: consumerSecret!,
-      version: 'wc/v3',
-    }),
-  ) {}
+  protected wcRestApi: WooCommerceRestApi;
 
-  async getOrder(orderId: number): Promise<{[key: string]: any}> {
+  constructor() {
+    this.wcRestApi = new WooCommerceRestApi({
+      url: 'https://www.dongip.ir',
+      consumerKey: process.env.WOOCOMMERCE_CONSUMER_KEY!,
+      consumerSecret: process.env.WOOCOMMERCE_CONSUMER_SECRET!,
+      version: 'wc/v3',
+    });
+  }
+
+  async getOrder(orderId: number): Promise<{ [key: string]: any }> {
     const res = await this.wcRestApi.get(`orders/${orderId}`);
     return res.data;
   }
 
   async updateOrderStatus(orderId: number, status: string): Promise<any> {
-    return this.wcRestApi.put(`orders/${orderId}`, {status: status});
+    return this.wcRestApi.put(`orders/${orderId}`, { status: status });
   }
 }
