@@ -76,13 +76,13 @@ export class RemindersController {
     const userRegion = this.currentUserProfile.region;
     const userTZ = ct.getTimezonesForCountry(userRegion)[0].name;
 
-    reminder.notifyTime = moment
-      .tz(userTZ)
-      .hour(8)
-      .minute(0)
-      .second(0)
-      .tz(this.TZ)
-      .format('HH:mm:ss');
+    reminder = {
+      ...reminder,
+      notifyTime: moment.tz(userTZ).hour(8).minute(0).second(0).tz(this.TZ).format('HH:mm:ss'),
+      nextNotifyDate: moment(reminder.previousNotifyDate, 'YYYY-MM-DD')
+        .add(reminder.periodAmount, reminder.periodUnit)
+        .format('YYYY-MM-DD'),
+    };
 
     return this.usersRepository.reminders(this.userId).create(reminder);
   }
