@@ -21,9 +21,10 @@ import { UsersRepository } from '../repositories';
 import { UserServiceBindings, TokenServiceBindings } from '../keys';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../application';
 import { Users, Credentials, CompleteSignup, Settings, UsersRels } from '../models';
-import { ValidatePhoneEmailInterceptor } from '../interceptors';
+import { FirebaseTokenInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { JointAccountController } from './joint-account.controller';
 
+@intercept(FirebaseTokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class UsersController {
   private readonly userId: number;

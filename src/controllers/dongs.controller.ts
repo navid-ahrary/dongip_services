@@ -28,7 +28,11 @@ import {
   JointAccountSubscribesRepository,
 } from '../repositories';
 import { FirebaseService, DongService } from '../services';
-import { ValidateCategoryIdInterceptor, JointAccountsInterceptor } from '../interceptors';
+import {
+  ValidateCategoryIdInterceptor,
+  JointAccountsInterceptor,
+  FirebaseTokenInterceptor,
+} from '../interceptors';
 import { CategoriesSource, LocalizedMessages } from '../application';
 import { dongReqBody } from './specs';
 
@@ -38,6 +42,7 @@ export class ResponseNewDong extends Dongs {
   @property() category: Categories;
 }
 
+intercept(FirebaseTokenInterceptor.BINDING_KEY);
 @authenticate('jwt.access')
 export class DongsController {
   private readonly userId: number;

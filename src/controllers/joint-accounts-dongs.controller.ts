@@ -1,4 +1,4 @@
-import { inject } from '@loopback/core';
+import { inject, intercept } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { get, getModelSchemaRef, HttpErrors, param, RequestContext } from '@loopback/rest';
 import { authenticate } from '@loopback/authentication';
@@ -10,9 +10,11 @@ import { Dongs } from '../models';
 import { LocalizedMessages } from '../application';
 import { JointAccountsRepository, JointAccountSubscribesRepository } from '../repositories';
 import { basicAuthorization } from '../services';
+import { FirebaseTokenInterceptor } from '../interceptors';
 
 @authenticate('jwt.access')
 @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
+@intercept(FirebaseTokenInterceptor.BINDING_KEY)
 export class JointAccountsDongsController {
   private readonly userId: number;
   lang: string;

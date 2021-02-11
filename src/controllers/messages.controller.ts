@@ -1,4 +1,4 @@
-import { inject, service } from '@loopback/core';
+import { inject, intercept, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
@@ -7,7 +7,9 @@ import { post, get, getModelSchemaRef, requestBody } from '@loopback/rest';
 import { Messages } from '../models';
 import { FirebaseService } from '../services';
 import { UsersRepository, MessagesRepository } from '../repositories';
+import { FirebaseTokenInterceptor } from '../interceptors';
 
+@intercept(FirebaseTokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class MessagesController {
   private readonly userId: number;

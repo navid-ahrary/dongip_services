@@ -7,10 +7,10 @@ import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import moment from 'moment';
 import { Budgets } from '../models';
 import { BudgetsRepository } from '../repositories';
-import { ValidateBudgetIdInterceptor } from '../interceptors';
+import { FirebaseTokenInterceptor, ValidateBudgetIdInterceptor } from '../interceptors';
 
 @authenticate('jwt.access')
-@intercept(ValidateBudgetIdInterceptor.BINDING_KEY)
+@intercept(ValidateBudgetIdInterceptor.BINDING_KEY, FirebaseTokenInterceptor.BINDING_KEY)
 export class BudgetsController {
   private readonly userId: number;
 
