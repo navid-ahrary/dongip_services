@@ -22,10 +22,7 @@ export class RemindersRepository extends DefaultCrudRepository<
     this.registerInclusionResolver('user', this.user.inclusionResolver);
   }
 
-  public async findOverrided(data: {
-    notifyTime: string;
-    notifyDate: string;
-  }): Promise<Array<Reminders>> {
+  public async findOverrided(data: { time: string; date: string }): Promise<Array<Reminders>> {
     const cmd = `
       SELECT
         id AS reminderId,
@@ -47,22 +44,14 @@ export class RemindersRepository extends DefaultCrudRepository<
         id IN (
         SELECT
           CASE
-            WHEN period_unit = 'day' THEN
-            CASE
-              WHEN TIMESTAMPDIFF(DAY , previous_notify_date, next_notify_date) = period_amount THEN id
-            END
-            WHEN period_unit = 'week' THEN
-            CASE
-              WHEN TIMESTAMPDIFF(DAY , previous_notify_date, next_notify_date) / 7 = period_amount THEN id
-            END
-            WHEN period_unit = 'month' THEN
-            CASE
-              WHEN TIMESTAMPDIFF(MONTH , previous_notify_date, next_notify_date) = period_amount THEN id
-            END
-            WHEN period_unit = 'year' THEN
-            CASE
-              WHEN TIMESTAMPDIFF(YEAR , previous_notify_date, next_notify_date) = period_amount THEN id
-            END
+            WHEN period_unit = 'day'
+            AND TIMESTAMPDIFF(DAY, previous_notify_date, next_notify_date) = period_amount THEN id
+            WHEN period_unit = 'week'
+            AND TIMESTAMPDIFF(DAY, previous_notify_date, next_notify_date)/7 = period_amount THEN id
+            WHEN period_unit = 'month'
+            AND TIMESTAMPDIFF(MONTH, previous_notify_date, next_notify_date) = period_amount THEN id
+            WHEN period_unit = 'year'
+            AND TIMESTAMPDIFF(YEAR, previous_notify_date, next_notify_date) = period_amount THEN id
           END
         FROM
           dongip.reminders
@@ -71,7 +60,7 @@ export class RemindersRepository extends DefaultCrudRepository<
           AND notify_time = ?
           AND next_notify_date = ? ) ;`;
 
-    const foundReminders = await this.execute(cmd, [data.notifyTime, data.notifyDate]);
+    const foundReminders = await this.execute(cmd, [data.time, data.date]);
 
     return _.transform(foundReminders, (result: Array<Reminders>, curr) => {
       result.push(new Reminders(curr));
@@ -101,6 +90,7 @@ export class RemindersRepository extends DefaultCrudRepository<
         id IN (${[...Array(ids.length)].map(() => '?').join(',')}) ;`;
 
     const result = await this.execute(cmd, [...ids]);
+
     return { count: +result.changedRows };
   }
 }
