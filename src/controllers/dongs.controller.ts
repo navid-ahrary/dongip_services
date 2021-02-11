@@ -52,8 +52,8 @@ export class DongsController {
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
     @inject('application.categoriesSourceList') public catSrc: CategoriesSource,
+    @repository(UsersRepository) public userRepo: UsersRepository,
     @repository(DongsRepository) public dongRepository: DongsRepository,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(BillListRepository) public billListRepository: BillListRepository,
     @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
     @repository(PayerListRepository) public payerListRepository: PayerListRepository,
@@ -61,10 +61,6 @@ export class DongsController {
   ) {
     this.userId = +this.currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
-  }
-
-  public numberWithCommas(x: number): string {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
   @patch('/dongs/{dongId}', {
@@ -103,9 +99,7 @@ export class DongsController {
     patchDong: Dongs,
   ) {
     try {
-      const res = await this.usersRepository
-        .dongs(this.userId)
-        .patch(patchDong, { dongId: dongId });
+      const res = await this.userRepo.dongs(this.userId).patch(patchDong, { dongId: dongId });
 
       if (res.count === 0) {
         throw new Error(this.locMsg['DONG_NOT_VALID'][this.lang]);
@@ -136,9 +130,9 @@ export class DongsController {
     },
   })
   async findDongs(): Promise<Dongs[]> {
-    return this.usersRepository.dongs(this.userId).find({
-      fields: { originDongId: false },
+    return this.userRepo.dongs(this.userId).find({
       order: ['createdAt DESC'],
+      fields: { originDongId: false },
       include: [{ relation: 'payerList' }, { relation: 'billList' }, { relation: 'category' }],
     });
   }
@@ -195,6 +189,6 @@ export class DongsController {
     },
   })
   async deleteAllDongs() {
-    return this.usersRepository.dongs(this.userId).delete({ originDongId: null! });
+    return this.userRepo.dongs(this.userId).delete({ originDongId: null! });
   }
 }
