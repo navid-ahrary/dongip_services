@@ -24,10 +24,8 @@ import {
   PayerListRepository,
   CategoriesRepository,
   UsersRelsRepository,
-  JointAccountsRepository,
-  JointAccountSubscribesRepository,
 } from '../repositories';
-import { FirebaseService, DongService } from '../services';
+import { DongService } from '../services';
 import {
   ValidateCategoryIdInterceptor,
   JointAccountsInterceptor,
@@ -49,21 +47,17 @@ export class DongsController {
   lang: string;
 
   constructor(
-    @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
-    @repository(DongsRepository) public dongRepository: DongsRepository,
-    @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
-    @repository(PayerListRepository) public payerListRepository: PayerListRepository,
-    @repository(BillListRepository) public billListRepository: BillListRepository,
-    @repository(JointAccountsRepository) public jointAccRepository: JointAccountsRepository,
-    @repository(JointAccountSubscribesRepository)
-    public jointAccSunRepository: JointAccountSubscribesRepository,
-    @service(FirebaseService) private firebaseSerice: FirebaseService,
+    @inject.context() public ctx: RequestContext,
     @service(DongService) public dongService: DongService,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @inject('application.localizedMessages') public locMsg: LocalizedMessages,
     @inject('application.categoriesSourceList') public catSrc: CategoriesSource,
-    @inject.context() public ctx: RequestContext,
+    @repository(DongsRepository) public dongRepository: DongsRepository,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(BillListRepository) public billListRepository: BillListRepository,
+    @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
+    @repository(PayerListRepository) public payerListRepository: PayerListRepository,
+    @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
