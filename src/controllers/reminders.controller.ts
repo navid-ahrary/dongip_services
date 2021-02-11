@@ -56,7 +56,6 @@ export class RemindersController {
         'application/json': {
           schema: getModelSchemaRef(Reminders, {
             title: 'NewReminders',
-            partial: true,
             exclude: ['reminderId', 'createdAt', 'userId', 'nextNotifyDate', 'notifyTime'],
           }),
           example: {
