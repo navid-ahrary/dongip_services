@@ -97,23 +97,22 @@ export class Reminders extends Entity {
 
   @property({
     type: 'string',
-    required: false,
-    default: moment().format('YYYY-MM-DD'),
+    required: true,
     mysql: {
       columnName: 'previous_notify_date',
       dataType: 'date',
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
   previousNotifyDate: string;
 
   @property({
     type: 'string',
-    required: false,
+    required: true,
     mysql: {
       columnName: 'next_notify_date',
       dataType: 'date',
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
   nextNotifyDate: string;
