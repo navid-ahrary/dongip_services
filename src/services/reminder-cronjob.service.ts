@@ -67,7 +67,7 @@ export class ReminderCronjobService extends CronJob {
     if (foundReminders.length) {
       const reminderIds = _.map(
         _.filter(foundReminders, (r) => r.repeat),
-        (r) => r.getId(),
+        (r) => r.reminderId,
       );
 
       await this.remindersRepo.updateOverride([...reminderIds]);
