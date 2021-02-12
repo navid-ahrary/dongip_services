@@ -70,15 +70,15 @@ export class RemindersRepository extends DefaultCrudRepository<
         previous_notify_date = next_notify_date,
         next_notify_date = (
           CASE
-          WHEN period_unit = 'day' THEN DATE_ADD(next_notify_date, INTERVAL period_amount DAY)
-          WHEN period_unit = 'week' THEN DATE_ADD(next_notify_date, INTERVAL period_amount * 7 DAY)
-          WHEN period_unit = 'month' THEN DATE_ADD(next_notify_date, INTERVAL period_amount MONTH)
-          WHEN period_unit = 'year' THEN DATE_ADD(next_notify_date, INTERVAL period_amount YEAR)
+            WHEN period_unit = 'day' THEN DATE_ADD(next_notify_date, INTERVAL period_amount DAY)
+            WHEN period_unit = 'week' THEN DATE_ADD(next_notify_date, INTERVAL period_amount * 7 DAY)
+            WHEN period_unit = 'month' THEN DATE_ADD(next_notify_date, INTERVAL period_amount MONTH)
+            WHEN period_unit = 'year' THEN DATE_ADD(next_notify_date, INTERVAL period_amount YEAR)
           END ),
         enabled = (
           CASE
-          WHEN \`repeat\` = 1 THEN 1
-          ELSE 0
+            WHEN \`repeat\` = 1 THEN 1
+            ELSE 0
           END )
       WHERE
         id IN (${[...Array(ids.length)].map(() => '?').join(',')}) ;`;
