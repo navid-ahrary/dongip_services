@@ -4,8 +4,9 @@ import { service, BindingScope } from '@loopback/core';
 import moment from 'moment';
 import 'moment-timezone';
 import _ from 'lodash';
-import { RemindersRepository, UsersRepository } from '../repositories';
+import { NotificationsRepository, RemindersRepository, UsersRepository } from '../repositories';
 import { FirebaseService, BatchMessage } from '.';
+import { Notifications } from '../models';
 
 @cronJob({ scope: BindingScope.TRANSIENT })
 export class ReminderCronjobService extends CronJob {
@@ -14,6 +15,7 @@ export class ReminderCronjobService extends CronJob {
   constructor(
     @repository(UsersRepository) public userRepo: UsersRepository,
     @repository(RemindersRepository) public remindersRepo: RemindersRepository,
+    @repository(NotificationsRepository) public notifRepo: NotificationsRepository,
     @service(FirebaseService) public firebaseService: FirebaseService,
   ) {
     super({
@@ -48,21 +50,33 @@ export class ReminderCronjobService extends CronJob {
       include: [{ relation: 'setting', scope: { fields: { userId: true, language: true } } }],
     });
 
+    const notifyEntities: Array<Notifications> = [];
     const firebaseMessages: BatchMessage = [];
     for (const user of users) {
       const reminder = _.find(foundReminders, (r) => r.userId === user.getId());
       const lang = user.setting.language;
 
+      const notif = new Notifications({
+        userId: user.userId,
+        title: reminder?.title ?? (lang === 'en' ? 'Reminder' : 'یادآوری'),
+        body: reminder?.desc ?? ' ',
+        createdAt: moment().format(),
+        type: 'reminder',
+      });
+      notifyEntities.push(notif);
+
       firebaseMessages.push({
         token: user.firebaseToken!,
         notification: {
-          title: reminder?.title ?? (lang === 'en' ? 'Reminder' : 'یادآوری'),
-          body: reminder?.desc ?? ' ',
+          title: notif.title,
+          body: notif.body,
         },
       });
     }
 
     if (firebaseMessages.length) await this.firebaseService.sendAllMessage(firebaseMessages);
+
+    if (notifyEntities.length) await this.notifRepo.createAll(notifyEntities);
 
     if (foundReminders.length) {
       const reminderIds = _.map(
