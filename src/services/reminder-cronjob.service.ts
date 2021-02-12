@@ -36,8 +36,8 @@ export class ReminderCronjobService extends CronJob {
     const now = moment().tz(this.TZ).startOf('minute');
 
     const foundReminders = await this.remindersRepo.findOverrided({
-      date: now.format('YYYY-MM-DD'),
-      time: now.format('HH:mm:ss'),
+      notifyTime: now.format('HH:mm:ss'),
+      nextNotifyDate: now.format('YYYY-MM-DD'),
     });
 
     const userIds = _.map(foundReminders, (r) => r.userId);

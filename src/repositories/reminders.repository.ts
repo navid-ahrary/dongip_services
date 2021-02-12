@@ -22,7 +22,10 @@ export class RemindersRepository extends DefaultCrudRepository<
     this.registerInclusionResolver('user', this.user.inclusionResolver);
   }
 
-  public async findOverrided(data: { time: string; date: string }): Promise<Array<Reminders>> {
+  public async findOverrided(data: {
+    notifyTime: string;
+    nextNotifyDate: string;
+  }): Promise<Array<Reminders>> {
     const cmd = `
       SELECT
         CASE
@@ -54,7 +57,7 @@ export class RemindersRepository extends DefaultCrudRepository<
         AND notify_time = ?
         AND next_notify_date = ? ;`;
 
-    const foundReminders = await this.execute(cmd, [data.time, data.date]);
+    const foundReminders = await this.execute(cmd, [data.notifyTime, data.nextNotifyDate]);
 
     return _.transform(foundReminders, (result: Array<Reminders>, curr) => {
       result.push(new Reminders(curr));
