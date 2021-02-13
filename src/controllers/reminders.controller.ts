@@ -2,7 +2,16 @@ import { authenticate } from '@loopback/authentication';
 import { inject, intercept } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { Count, CountSchema, repository } from '@loopback/repository';
-import { post, param, get, getModelSchemaRef, patch, del, requestBody } from '@loopback/rest';
+import {
+  post,
+  param,
+  get,
+  getModelSchemaRef,
+  patch,
+  del,
+  requestBody,
+  HttpErrors,
+} from '@loopback/rest';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import moment from 'moment';
 import ct from 'countries-and-timezones';
@@ -139,23 +148,33 @@ export class RemindersController {
     })
     reminder: Omit<Reminders, 'reminderId'>,
   ): Promise<void> {
+    const foundReminders = await this.usersRepository
+      .reminders(this.userId)
+      .find({ where: { reminderId: reminderId } });
+
+    if (!foundReminders.length) throw new HttpErrors.UnprocessableEntity('reminder not found');
+
+    const foundReminder = foundReminders[0];
+
+    if (!reminder.periodAmount) reminder.periodAmount = foundReminder.periodAmount;
+
+    if (!reminder.periodUnit) reminder.periodUnit = foundReminder.periodUnit;
+
+    if (!reminder.previousNotifyDate) {
+      reminder.previousNotifyDate = foundReminder.previousNotifyDate;
+    }
+
     const userRegion = this.currentUserProfile.region;
     const userTZ = ct.getTimezonesForCountry(userRegion)[0].name;
-
     const firstNotifyDate = reminder.previousNotifyDate;
     const nowDate = moment.tz(userTZ).format('YYYY-MM-DD');
-
     const isFirstNotifyDateAfterNowDate = moment(firstNotifyDate).isAfter(moment(nowDate));
 
-    reminder = {
-      ...reminder,
-      notifyTime: moment.tz(userTZ).hour(8).minute(0).second(0).tz(this.TZ).format('HH:mm:ss'),
-      nextNotifyDate: isFirstNotifyDateAfterNowDate
-        ? reminder.previousNotifyDate
-        : moment(reminder.previousNotifyDate)
-            .add(reminder.periodAmount, reminder.periodUnit)
-            .format('YYYY-MM-DD'),
-    };
+    reminder.nextNotifyDate = isFirstNotifyDateAfterNowDate
+      ? reminder.previousNotifyDate
+      : moment(reminder.previousNotifyDate)
+          .add(reminder.periodAmount, reminder.periodUnit)
+          .format('YYYY-MM-DD');
 
     await this.usersRepository.reminders(this.userId).patch(reminder, { reminderId: reminderId });
   }
