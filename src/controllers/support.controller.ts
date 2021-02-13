@@ -47,10 +47,10 @@ export class SupportController {
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
-        description: 'Message model instance',
+        description: 'Array of Messages model instances',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Messages),
+            schema: { type: 'array', items: getModelSchemaRef(Messages) },
           },
         },
       },
@@ -59,11 +59,9 @@ export class SupportController {
   async findMessages(
     @param.query.object('filterOnMessage', {
       example: {
-        offset: 0,
-        limit: 100,
-        skip: 0,
-        where: {},
-        order: ['createdAt ASC'],
+        limit: 5,
+        where: { userId: 1 },
+        order: ['createdAt DESC'],
         fields: {
           messageId: true,
           message: true,
@@ -79,7 +77,7 @@ export class SupportController {
     return this.messagesRepository.find(filterOnMessage);
   }
 
-  @post('/support/messages/{targetUserId}', {
+  @post('/support/messages/{userId}', {
     summary: 'POST a answer message to user',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -94,8 +92,7 @@ export class SupportController {
     },
   })
   async responseToMessage(
-    @param.path.number('targetUserId', { required: true })
-    targetUserId: typeof Users.prototype.userId,
+    @param.path.number('userId', { required: true }) userId: typeof Users.prototype.userId,
     @requestBody({
       content: {
         'application/json': {
@@ -113,7 +110,7 @@ export class SupportController {
     newMessage: Omit<Messages, 'messageId'>,
   ): Promise<Messages> {
     try {
-      const foundTargetUser = await this.usersRepository.findById(targetUserId, {
+      const foundTargetUser = await this.usersRepository.findById(userId, {
         fields: { userId: true, firebaseToken: true, region: true },
         include: [{ relation: 'setting', scope: { fields: { userId: true, language: true } } }],
       });
@@ -126,7 +123,7 @@ export class SupportController {
 
       const createdMessage = await this.messagesRepository.create({
         message: newMessage.message,
-        userId: targetUserId,
+        userId: userId,
         isQuestion: false,
         isAnswer: true,
       });
@@ -137,9 +134,7 @@ export class SupportController {
         type: 'supportMessage',
         createdAt: time,
       });
-      const createdNotify = await this.usersRepository
-        .notifications(targetUserId)
-        .create(notifyData);
+      const createdNotify = await this.usersRepository.notifications(userId).create(notifyData);
 
       const notifyMessage: MessagePayload = {
         notification: {
@@ -161,5 +156,25 @@ export class SupportController {
       console.error(err);
       throw new HttpErrors.NotImplemented(JSON.stringify(err));
     }
+  }
+
+  @get('/support/message/{userId}', {
+    summary: 'GET all Messages belong to userId',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '200': {
+        description: 'Array of Messages model instances',
+        content: {
+          'application/json': {
+            schema: { type: 'array', items: getModelSchemaRef(Messages) },
+          },
+        },
+      },
+    },
+  })
+  async findUserBelongMessage(
+    @param.path.number('userId', { required: true }) userId: number,
+  ): Promise<Array<Messages>> {
+    return this.usersRepository.messages(userId).find({ order: ['crearedAt DESC'] });
   }
 }

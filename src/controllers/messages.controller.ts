@@ -3,7 +3,7 @@ import { repository } from '@loopback/repository';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
-import { post, get, getModelSchemaRef, requestBody } from '@loopback/rest';
+import { post, getModelSchemaRef, requestBody } from '@loopback/rest';
 import { Messages } from '../models';
 import { FirebaseService } from '../services';
 import { UsersRepository, MessagesRepository } from '../repositories';
@@ -77,35 +77,12 @@ export class MessagesController {
         this.firebaseService.sendMultiCastMessage({
           tokens: users.map((u) => u.firebaseToken ?? ' '),
           notification: {
-            title: `A New TicketId ${createdMsg.getId()} From '${this.name}' with userId ${
-              this.userId
-            }`,
+            title: `TicketId ${createdMsg.getId()} From '${this.name}', id ${this.userId}`,
             body: messageContent,
           },
         });
       });
 
     return createdMsg;
-  }
-
-  @get('/messages', {
-    summary: 'GET all Messages',
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'Array of Messages model instances',
-        content: {
-          'application/json': {
-            schema: { type: 'array', items: getModelSchemaRef(Messages) },
-          },
-        },
-      },
-    },
-  })
-  async findMessages(): Promise<Messages[]> {
-    return this.messagesRepository.find({
-      order: ['createdAt ASC'],
-      where: { userId: this.userId },
-    });
   }
 }
