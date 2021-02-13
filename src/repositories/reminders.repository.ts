@@ -83,10 +83,7 @@ export class RemindersRepository extends DefaultCrudRepository<
             ELSE 0
           END )
       WHERE
-        id IN (${_.join(
-          _.map([...Array(ids.length)], () => '?'),
-          ',',
-        )}) ;`;
+        id IN ( ${[...Array(ids.length)].map(() => '?').join(',')} ) ;`;
 
     const result = await this.execute(cmd, [...ids]);
 
