@@ -52,11 +52,11 @@ export class RemindersRepository extends DefaultCrudRepository<
       FROM
         reminders
       WHERE
-        enabled = 1
+        enabled = ?
         AND notify_time = ?
         AND next_notify_date = ? ;`;
 
-    const foundReminders = await this.execute(cmd, [data.notifyTime, data.nextNotifyDate]);
+    const foundReminders = await this.execute(cmd, [1, data.notifyTime, data.nextNotifyDate]);
 
     return _.transform(foundReminders, (result: Array<Reminders>, curr) => {
       result.push(new Reminders(curr));
