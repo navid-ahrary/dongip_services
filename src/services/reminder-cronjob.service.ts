@@ -38,23 +38,30 @@ export class ReminderCronjobService extends CronJob {
   private async _sendReminderNotify() {
     const now = moment().tz(this.TZ).startOf('minute');
 
-    const foundReminders = await this.remindersRepo.findOverrided({
-      notifyTime: now.format('HH:mm:ss'),
-      nextNotifyDate: now.format('YYYY-MM-DD'),
+    const foundReminders = await this.remindersRepo.find({
+      where: { notifyTime: now.format('HH:mm:ss'), nextNotifyDate: now.format('YYYY-MM-DD') },
+      include: [
+        {
+          relation: 'user',
+          scope: {
+            fields: { userId: true, firebaseToken: true, region: true },
+            where: { firebaseToken: { nin: [undefined, 'null'] } },
+            include: [{ relation: 'setting', scope: { fields: { userId: true, language: true } } }],
+          },
+        },
+      ],
     });
 
-    const userIds = _.map(foundReminders, (r) => r.userId);
-
-    const users = await this.userRepo.find({
-      fields: { userId: true, firebaseToken: true, region: true },
-      where: { userId: { inq: [...userIds] }, firebaseToken: { nin: [undefined, 'null'] } },
-      include: [{ relation: 'setting', scope: { fields: { userId: true, language: true } } }],
-    });
+    const users = _.map(
+      _.filter(foundReminders, (r1) => typeof r1.user === 'object'),
+      (r2) => r2.user,
+    );
 
     const notifyEntities: Array<Notifications> = [];
     const firebaseMessages: BatchMessage = [];
     for (const user of users) {
-      const reminder = _.find(foundReminders, (r) => r.userId === user.getId());
+      const reminder = _.find(foundReminders, (r) => r.userId === user.userId);
+
       const lang = user.setting.language;
       const userRegion = user.region;
       const userTZ = ct.getTimezonesForCountry(userRegion ?? 'IR')[0].name;
