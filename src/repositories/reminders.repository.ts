@@ -58,10 +58,7 @@ export class RemindersRepository extends DefaultCrudRepository<
 
     const foundReminders = await this.execute(cmd, [1, data.notifyTime, data.nextNotifyDate]);
 
-    return _.transform(foundReminders, (result: Array<Reminders>, curr) => {
-      result.push(new Reminders(curr));
-      return result;
-    });
+    return _.map(foundReminders, (r) => new Reminders(r));
   }
 
   public async updateOverride(ids: Array<number>): Promise<Count> {
@@ -83,7 +80,7 @@ export class RemindersRepository extends DefaultCrudRepository<
             ELSE 0
           END )
       WHERE
-        id IN ( ${[...Array(ids.length)].map(() => '?').join(',')} ) ;`;
+        id IN ( ${_.map([...Array(ids.length)], () => '?').join(',')} ) ;`;
 
     const result = await this.execute(cmd, [...ids]);
 
