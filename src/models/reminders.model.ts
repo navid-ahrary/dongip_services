@@ -1,8 +1,5 @@
 import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
-import moment from 'moment';
 import { Users, UsersWithRelations } from './users.model';
-
-type DateType = string;
 
 @model({
   name: 'reminders',
