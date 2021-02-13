@@ -1,5 +1,8 @@
 import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
+import moment from 'moment';
 import { Users, UsersWithRelations } from './users.model';
+
+type DateType = string;
 
 @model({
   name: 'reminders',
@@ -96,7 +99,6 @@ export class Reminders extends Entity {
 
   @property({
     type: 'string',
-    required: true,
     mysql: {
       columnName: 'previous_notify_date',
       dataType: 'date',

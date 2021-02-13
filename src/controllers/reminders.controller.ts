@@ -106,9 +106,7 @@ export class RemindersController {
     },
   })
   async find(): Promise<Reminders[]> {
-    return this.usersRepository
-      .reminders(this.userId)
-      .find({ fields: { nextNotifyDate: false, previousNotifyDate: false } });
+    return this.usersRepository.reminders(this.userId).find();
   }
 
   @patch('/reminders/{reminderId}', {
