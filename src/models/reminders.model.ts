@@ -145,7 +145,6 @@ export class Reminders extends Entity {
   @property({
     type: 'number',
     required: false,
-    jsonSchema: { minimum: 1 },
     mysql: {
       dataType: 'int unsigned',
       nullable: 'Y',
