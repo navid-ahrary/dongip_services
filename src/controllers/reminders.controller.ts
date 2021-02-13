@@ -139,6 +139,24 @@ export class RemindersController {
     })
     reminder: Omit<Reminders, 'reminderId'>,
   ): Promise<void> {
+    const userRegion = this.currentUserProfile.region;
+    const userTZ = ct.getTimezonesForCountry(userRegion)[0].name;
+
+    const firstNotifyDate = reminder.previousNotifyDate;
+    const nowDate = moment.tz(userTZ).format('YYYY-MM-DD');
+
+    const isFirstNotifyDateAfterNowDate = moment(firstNotifyDate).isAfter(moment(nowDate));
+
+    reminder = {
+      ...reminder,
+      notifyTime: moment.tz(userTZ).hour(8).minute(0).second(0).tz(this.TZ).format('HH:mm:ss'),
+      nextNotifyDate: isFirstNotifyDateAfterNowDate
+        ? reminder.previousNotifyDate
+        : moment(reminder.previousNotifyDate)
+            .add(reminder.periodAmount, reminder.periodUnit)
+            .format('YYYY-MM-DD'),
+    };
+
     await this.usersRepository.reminders(this.userId).patch(reminder, { reminderId: reminderId });
   }
 
