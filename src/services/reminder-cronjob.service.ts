@@ -39,7 +39,11 @@ export class ReminderCronjobService extends CronJob {
     const now = moment().tz(this.TZ).startOf('minute');
 
     const foundReminders = await this.remindersRepo.find({
-      where: { notifyTime: now.format('HH:mm:ss'), nextNotifyDate: now.format('YYYY-MM-DD') },
+      where: {
+        enabled: true,
+        notifyTime: now.format('HH:mm:ss'),
+        nextNotifyDate: now.format('YYYY-MM-DD'),
+      },
       include: [
         {
           relation: 'user',
