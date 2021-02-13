@@ -5,6 +5,8 @@ import { Reminders, RemindersRelations, Users } from '../models';
 import { MysqlDataSource } from '../datasources';
 import { UsersRepository } from './users.repository';
 
+export type Find = { notifyTime: string; nextNotifyDate: string };
+
 export class RemindersRepository extends DefaultCrudRepository<
   Reminders,
   typeof Reminders.prototype.reminderId,
@@ -22,10 +24,7 @@ export class RemindersRepository extends DefaultCrudRepository<
     this.registerInclusionResolver('user', this.user.inclusionResolver);
   }
 
-  public async findOverrided(data: {
-    notifyTime: string;
-    nextNotifyDate: string;
-  }): Promise<Array<Reminders>> {
+  public async findOverrided(data: Find): Promise<Array<Reminders>> {
     const cmd = `
       SELECT
         CASE
