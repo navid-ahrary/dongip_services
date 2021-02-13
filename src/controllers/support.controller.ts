@@ -157,24 +157,4 @@ export class SupportController {
       throw new HttpErrors.NotImplemented(JSON.stringify(err));
     }
   }
-
-  @get('/support/message/{userId}', {
-    summary: 'GET all Messages belong to userId',
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'Array of Messages model instances',
-        content: {
-          'application/json': {
-            schema: { type: 'array', items: getModelSchemaRef(Messages) },
-          },
-        },
-      },
-    },
-  })
-  async findUserBelongMessage(
-    @param.path.number('userId', { required: true }) userId: number,
-  ): Promise<Array<Messages>> {
-    return this.usersRepository.messages(userId).find({ order: ['crearedAt DESC'] });
-  }
 }
