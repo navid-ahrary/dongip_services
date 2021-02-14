@@ -24,7 +24,7 @@ export class ReminderCronjobService extends CronJob {
   ) {
     super({
       name: 'reminderNotifyJob',
-      cronTime: '0 */30 * * * *',
+      cronTime: '0 */15 * * * *',
       start: true,
       timeZone: process.env.TZ,
       onTick: async () => {
