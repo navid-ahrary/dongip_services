@@ -1,6 +1,5 @@
 import { DefaultCrudRepository, repository, BelongsToAccessor, Count } from '@loopback/repository';
 import { inject, Getter } from '@loopback/core';
-import _ from 'lodash';
 import { Reminders, RemindersRelations, Users } from '../models';
 import { MysqlDataSource } from '../datasources';
 import { UsersRepository } from './users.repository';
@@ -58,7 +57,7 @@ export class RemindersRepository extends DefaultCrudRepository<
 
     const foundReminders = await this.execute(cmd, [1, data.notifyTime, data.nextNotifyDate]);
 
-    return _.map(foundReminders, (r) => new Reminders(r));
+    return foundReminders.map((r: object) => new Reminders(r));
   }
 
   public async updateOverride(ids: Array<number>): Promise<Count> {
@@ -80,7 +79,7 @@ export class RemindersRepository extends DefaultCrudRepository<
             ELSE 0
           END )
       WHERE
-        id IN ( ${_.map([...Array(ids.length)], () => '?').join(',')} ) ;`;
+        id IN ( ${[...Array(ids.length)].map(() => '?').join(',')} ) ;`;
 
     const result = await this.execute(cmd, [...ids]);
 

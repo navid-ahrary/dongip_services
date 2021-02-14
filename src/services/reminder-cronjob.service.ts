@@ -1,13 +1,15 @@
 import { CronJob, cronJob } from '@loopback/cron';
 import { repository } from '@loopback/repository';
-import { service, BindingScope } from '@loopback/core';
+import { service, BindingScope, inject } from '@loopback/core';
 import moment from 'moment';
 import 'moment-timezone';
 import ct from 'countries-and-timezones';
 import _ from 'lodash';
+import util from 'util';
 import { NotificationsRepository, RemindersRepository, UsersRepository } from '../repositories';
 import { FirebaseService, BatchMessage } from '.';
 import { Notifications } from '../models';
+import { LocalizedMessages } from '../application';
 
 @cronJob({ scope: BindingScope.TRANSIENT })
 export class ReminderCronjobService extends CronJob {
@@ -18,6 +20,7 @@ export class ReminderCronjobService extends CronJob {
     @repository(RemindersRepository) public remindersRepo: RemindersRepository,
     @repository(NotificationsRepository) public notifRepo: NotificationsRepository,
     @service(FirebaseService) public firebaseService: FirebaseService,
+    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     super({
       name: 'reminderNotifyJob',
@@ -48,7 +51,7 @@ export class ReminderCronjobService extends CronJob {
         {
           relation: 'user',
           scope: {
-            fields: { userId: true, firebaseToken: true, region: true },
+            fields: { userId: true, firebaseToken: true, region: true, name: true },
             where: { firebaseToken: { nin: [undefined, 'null'] } },
             include: [{ relation: 'setting', scope: { fields: { userId: true, language: true } } }],
           },
@@ -56,26 +59,24 @@ export class ReminderCronjobService extends CronJob {
       ],
     });
 
-    const users = _.map(
-      _.filter(foundReminders, (r1) => typeof r1.user === 'object'),
-      (r2) => r2.user,
-    );
+    const users = foundReminders.filter((r1) => typeof r1.user === 'object').map((r2) => r2.user);
 
     const notifyEntities: Array<Notifications> = [];
     const firebaseMessages: BatchMessage = [];
     for (const user of users) {
-      const reminder = _.find(foundReminders, (r) => r.userId === user.userId);
+      const reminder = foundReminders.find((r) => r.userId === user.userId);
 
+      const name = user.name;
       const lang = user.setting.language;
       const userRegion = user.region;
       const userTZ = ct.getTimezonesForCountry(userRegion ?? 'IR')[0].name;
 
       const notif = new Notifications({
-        userId: user.userId,
-        title: reminder?.title ?? (lang === 'en' ? 'Reminder' : 'یادآوری'),
-        body: reminder?.desc ?? ' ',
-        createdAt: moment.tz(userTZ).format('YYYY-MM-DDTHH:mm:ss+00:00'),
         type: 'reminder',
+        userId: user.userId,
+        title: util.format(this.locMsg['REMINDER_TITLE'][lang], name),
+        body: reminder?.title ?? (lang === 'en' ? 'Reminder' : 'یادآوری'),
+        createdAt: moment.tz(userTZ).format('YYYY-MM-DDTHH:mm:ss+00:00'),
       });
       notifyEntities.push(notif);
 
@@ -93,10 +94,7 @@ export class ReminderCronjobService extends CronJob {
     if (notifyEntities.length) await this.notifRepo.createAll(notifyEntities);
 
     if (foundReminders.length) {
-      const reminderIds = _.map(
-        _.filter(foundReminders, (r) => r.repeat),
-        (r) => r.reminderId,
-      );
+      const reminderIds = foundReminders.filter((r) => r.repeat).map((r) => r.reminderId);
 
       await this.remindersRepo.updateOverride([...reminderIds]);
     }

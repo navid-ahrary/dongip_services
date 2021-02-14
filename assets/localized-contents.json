@@ -254,5 +254,9 @@
   "SERVER_MAINTENACE": {
     "fa": "با عرض پوزش s% عزیز، در حال انجام بهبودهایی در سیستم هستیم. از صبر شما سپاسگذاریم",
     "en": "Sorry dear %s, We are improving the system. Thanks for your patient"
+  },
+  "REMINDER_TITLE": {
+    "fa": "%s جان یه موقع یادت نره",
+    "en": "Dear %s do not forget"
   }
 }
