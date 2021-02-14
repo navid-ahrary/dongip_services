@@ -504,8 +504,8 @@ export class AuthController {
         email: foundVerify.email,
         region: foundVerify.region,
         firebaseToken: firebaseToken,
-        phoneLocked: Boolean(foundVerify.phone),
-        emailLocked: Boolean(foundVerify.email),
+        phoneLocked: Boolean(_.get(foundVerify, 'phone')),
+        emailLocked: Boolean(_.get(foundVerify, 'email')),
         platform: this.ctx.request.headers['platform']?.toString(),
         userAgent: this.ctx.request.headers['user-agent'],
       });
