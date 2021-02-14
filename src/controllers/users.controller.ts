@@ -20,7 +20,7 @@ import { PhoneNumberService } from '../services';
 import { UsersRepository } from '../repositories';
 import { UserServiceBindings, TokenServiceBindings } from '../keys';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../application';
-import { Users, Credentials, CompleteSignup, Settings, UsersRels } from '../models';
+import { Users, Credentials, CompleteSignup, Settings, UsersRels, Scores } from '../models';
 import { FirebaseTokenInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { JointAccountController } from './joint-account.controller';
 
@@ -49,15 +49,6 @@ export class UsersController {
     this.userName =
       this.currentUserProfile.name ??
       (_.includes(this.ctx.request.headers['accept-language'], 'en') ? 'mate' : 'رفیق');
-  }
-
-  async getUserScores(userId: typeof Users.prototype.userId): Promise<number> {
-    const scoresList = await this.usersRepository.scores(userId).find({ fields: { score: true } });
-    let totalScores = 0;
-    scoresList.forEach((s) => {
-      totalScores += s.score;
-    });
-    return totalScores;
   }
 
   @get('/users', {
@@ -249,7 +240,6 @@ export class UsersController {
     };
   }> {
     const nowUTC = moment.utc();
-    const scores = await this.getUserScores(this.userId);
 
     const foundUser = await this.usersRepository.findById(this.userId, {
       fields: {
@@ -276,6 +266,7 @@ export class UsersController {
             },
           },
         },
+        { relation: 'scores', scope: { fields: { userId: true, score: true } } },
       ],
     });
 
@@ -297,7 +288,7 @@ export class UsersController {
 
     return {
       roles: roles,
-      totalScores: scores,
+      totalScores: this._calculateTotalUserScore(foundUser.scores),
       name: foundUser!.name,
       planId: hasSubs ? foundUser.subscriptions[0].planId : null,
       solTime: hasSubs ? foundUser.subscriptions[0].solTime : null,
@@ -420,5 +411,12 @@ export class UsersController {
 
     if (foundUsername.count)
       throw new HttpErrors.Conflict(this.locMsg['USERNAME_UNAVAILABLE'][this.lang]);
+  }
+
+  private _calculateTotalUserScore(scores: Array<Scores>): number {
+    return _.transform(scores, (result: number, curr) => {
+      result += curr.score;
+      return result;
+    });
   }
 }
