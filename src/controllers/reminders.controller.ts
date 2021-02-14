@@ -13,7 +13,7 @@ import {
   HttpErrors,
 } from '@loopback/rest';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import ct from 'countries-and-timezones';
 import 'moment-timezone';
 import { Reminders } from '../models';
@@ -24,7 +24,8 @@ import { FirebaseTokenInterceptor } from '../interceptors';
 @authenticate('jwt.access')
 export class RemindersController {
   private readonly userId: number;
-  TZ = process.env.TZ!;
+  private readonly TZ = process.env.TZ!;
+  private readonly notifyTime = '08:00:00';
 
   constructor(
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -83,11 +84,15 @@ export class RemindersController {
   ): Promise<Reminders> {
     const userRegion = this.currentUserProfile.region;
     const userTZ = ct.getTimezonesForCountry(userRegion)[0].name;
+    const nowUserLocaleMoment = moment.tz(userTZ);
 
     const firstNotifyDate = reminder.previousNotifyDate;
-    const nowDate = moment.tz(userTZ).format('YYYY-MM-DD');
 
-    const isFirstNotifyDateAfterNowDate = moment(firstNotifyDate).isAfter(moment(nowDate));
+    const isFirstNotifyDateAfterNowDate = this._generateMomentfromDateAndTimeBaseTz({
+      date: firstNotifyDate,
+      time: this.notifyTime,
+      tz: userTZ,
+    }).isAfter(nowUserLocaleMoment);
 
     reminder = {
       ...reminder,
@@ -166,9 +171,15 @@ export class RemindersController {
 
     const userRegion = this.currentUserProfile.region;
     const userTZ = ct.getTimezonesForCountry(userRegion)[0].name;
+    const nowUserLocaleMoment = moment.tz(userTZ);
+
     const firstNotifyDate = reminder.previousNotifyDate;
-    const nowDate = moment.tz(userTZ).format('YYYY-MM-DD');
-    const isFirstNotifyDateAfterNowDate = moment(firstNotifyDate).isAfter(moment(nowDate));
+
+    const isFirstNotifyDateAfterNowDate = this._generateMomentfromDateAndTimeBaseTz({
+      date: firstNotifyDate,
+      time: this.notifyTime,
+      tz: userTZ,
+    }).isAfter(nowUserLocaleMoment);
 
     reminder.nextNotifyDate = isFirstNotifyDateAfterNowDate
       ? reminder.previousNotifyDate
@@ -210,5 +221,21 @@ export class RemindersController {
   })
   async deleteAll(): Promise<Count> {
     return this.usersRepository.reminders(this.userId).delete();
+  }
+
+  private _generateMomentfromDateAndTimeBaseTz(data: {
+    date: string;
+    time: string;
+    tz: string;
+  }): Moment {
+    const splittedTime = data.time.split(':');
+
+    if (splittedTime.length !== 3) throw new Error('time is not valid, "HH:mm:ss"');
+
+    const hour = +splittedTime[0];
+    const minute = +splittedTime[1];
+    const second = +splittedTime[2];
+
+    return moment(data.date).tz(data.tz).hour(hour).minute(minute).second(second);
   }
 }
