@@ -336,39 +336,32 @@ export class UsersController {
     cmpltSignBody: CompleteSignup,
   ): Promise<void> {
     try {
-      const userProps: Partial<Users> = _.pick(cmpltSignBody, [
-        'avatar',
-        'name',
-        'phone',
-        'email',
-        'referralCode',
-      ]);
+      const foundUser = await this.usersRepository.findById(this.userId, {
+        fields: { phoneLocked: true, emailLocked: true },
+      });
+
+      if (foundUser.phoneLocked && foundUser.emailLocked) throw new Error('DONE');
+
+      const userProps: Partial<Users> = _.pick(cmpltSignBody, ['avatar', 'name', 'referralCode']);
       const settingProps: Partial<Settings> = _.pick(cmpltSignBody, ['language', 'currency']);
       const userRelProps: Partial<UsersRels> = _.pick(cmpltSignBody, ['avatar', 'name']);
 
-      if (_.has(userProps, 'phone')) {
-        const u = await this.usersRepository.findOne({
-          where: { userId: this.userId, phoneLocked: true },
-        });
-        if (!u) {
-          userProps.phoneLocked = true;
-          userRelProps.phone = userProps.phone;
-          userProps.region = this.phoneNumService.getRegionCodeISO(userProps.phone!);
-        }
+      const postedPhone = cmpltSignBody.phone;
+      if (!foundUser.phoneLocked && postedPhone) {
+        userProps.phoneLocked = true;
+        userProps.phone = postedPhone;
+        userProps.region = this.phoneNumService.getRegionCodeISO(postedPhone);
+        userRelProps.phone = postedPhone;
       }
 
-      if (_.has(userProps, 'email')) {
-        const u = await this.usersRepository.findOne({
-          where: { userId: this.userId, emailLocked: true },
-        });
-        if (!u) {
-          userProps.emailLocked = true;
-          userRelProps.email = userProps.email;
-        }
+      const postedEmail = cmpltSignBody.email;
+      if (!foundUser.emailLocked && postedEmail) {
+        userProps.emailLocked = true;
+        userRelProps.email = postedEmail;
       }
-      if (_.keys(userProps).length) {
-        await this.usersRepository.updateById(this.userId, userProps);
-      }
+
+      await this.usersRepository.updateById(this.userId, userProps);
+
       await this.usersRepository.usersRels(this.userId).patch(userRelProps, { type: 'self' });
 
       if (_.keys(settingProps).length) {
@@ -380,16 +373,16 @@ export class UsersController {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         if (err.sqlMessage.endsWith("'phone'")) {
           errMsg = this.locMsg['COMPLETE_SIGNUP_CONFILICT_PHONE'][this.lang];
-        }
-        if (err.sqlMessage.endsWith("'email'")) {
+        } else if (err.sqlMessage.endsWith("'email'")) {
           errMsg = this.locMsg['COMPLETE_SIGNUP_CONFILICT_EMAIL'][this.lang];
         }
+
+        throw new HttpErrors.Conflict(errMsg);
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
         throw new HttpErrors.NotAcceptable(err.message);
       } else {
         throw new HttpErrors.NotAcceptable(err.message);
       }
-      throw new HttpErrors.Conflict(errMsg);
     }
   }
 
