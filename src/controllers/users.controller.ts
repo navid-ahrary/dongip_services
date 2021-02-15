@@ -348,16 +348,16 @@ export class UsersController {
 
       const postedPhone = cmpltSignBody.phone;
       if (!foundUser.phoneLocked && postedPhone) {
-        userProps.phoneLocked = true;
-        userProps.phone = postedPhone;
-        userProps.region = this.phoneNumService.getRegionCodeISO(postedPhone);
-        userRelProps.phone = postedPhone;
+        userProps['phoneLocked'] = true;
+        userProps['phone'] = postedPhone;
+        userProps['region'] = this.phoneNumService.getRegionCodeISO(postedPhone);
+        userRelProps['phone'] = postedPhone;
       }
 
       const postedEmail = cmpltSignBody.email;
       if (!foundUser.emailLocked && postedEmail) {
-        userProps.emailLocked = true;
-        userRelProps.email = postedEmail;
+        userProps['emailLocked'] = true;
+        userRelProps['email'] = postedEmail;
       }
 
       await this.usersRepository.updateById(this.userId, userProps);
