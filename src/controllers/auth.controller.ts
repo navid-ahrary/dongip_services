@@ -202,8 +202,8 @@ export class AuthController {
         password: randomStr + randomCode,
         smsSignature: verifyReqBody.smsSignature ?? ' ',
         registered: _.isObjectLike(user),
-        platform: this.ctx.request.headers['platform']?.toString().toLowerCase(),
-        userAgent: this.ctx.request.headers['user-agent']?.toString().toLowerCase(),
+        platform: this.ctx.request.headers['platform']?.toString(),
+        userAgent: this.ctx.request.headers['user-agent']?.toString(),
         ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
         region: verifyReqBody.phone
           ? this.phoneNumberService.getRegionCodeISO(verifyReqBody.phone)
