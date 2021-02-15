@@ -13,7 +13,15 @@ export class VerifyService {
 
   public async verifyCredentials(verifyId: number, password: string): Promise<Verify> {
     const foundVerify = await this.verifyRepository.findOne({
-      where: { verifyId: verifyId, password: password },
+      fields: {
+        verifyId: true,
+        phone: true,
+        email: true,
+        region: true,
+        platform: true,
+        userAgent: true,
+      },
+      where: { verifyId: verifyId, password: password, loggedIn: false },
     });
 
     if (!foundVerify) {

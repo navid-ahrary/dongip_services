@@ -108,7 +108,6 @@ export class Verify extends Entity {
 
   @property({
     type: 'boolean',
-    required: true,
     default: false,
     mysql: {
       columnName: 'logged_in',

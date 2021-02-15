@@ -492,6 +492,7 @@ export class AuthController {
     try {
       const foundVerify = await this.verifySerivce.verifyCredentials(verifyId, newUser.password);
 
+      console.log('foundVerify', foundVerify);
       const countRegisteredUsers = await this.usersRepository.count();
       const roles = countRegisteredUsers.count < 1000 ? ['GOLD'] : ['BRONZE'];
       const planId = countRegisteredUsers.count < 1000 ? 'plan_gy1' : 'free';
@@ -504,8 +505,8 @@ export class AuthController {
         email: foundVerify.email,
         region: foundVerify.region,
         firebaseToken: firebaseToken,
-        phoneLocked: Boolean(_.get(foundVerify, 'phone')),
-        emailLocked: Boolean(_.get(foundVerify, 'email')),
+        phoneLocked: Boolean(foundVerify.phone),
+        emailLocked: Boolean(foundVerify.email),
         platform: this.ctx.request.headers['platform']?.toString(),
         userAgent: this.ctx.request.headers['user-agent'],
       });
@@ -515,8 +516,8 @@ export class AuthController {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.usersRepository.subscriptions(savedUser.getId()).create({
           planId: 'plan_gy1',
-          solTime: nowUTC.toISOString(),
-          eolTime: nowUTC.add(1, 'year').toISOString(),
+          solTime: moment(nowUTC).utc().toISOString(),
+          eolTime: moment(nowUTC).utc().add(1, 'year').toISOString(),
         });
       }
 
@@ -557,8 +558,8 @@ export class AuthController {
       return {
         userId: savedUser.getId(),
         planId: planId,
-        solTime: roles.includes('GOLD') ? nowUTC.toISOString() : null,
-        eolTime: roles.includes('GOLD') ? nowUTC.add(1, 'year').toISOString() : null,
+        solTime: roles.includes('GOLD') ? moment(nowUTC).utc().toISOString() : null,
+        eolTime: roles.includes('GOLD') ? moment(nowUTC).utc().add(1, 'year').toISOString() : null,
         totalScores: savedScore.score,
         ...tokenObj,
       };
