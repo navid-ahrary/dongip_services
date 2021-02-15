@@ -407,9 +407,8 @@ export class UsersController {
   }
 
   private _calculateTotalUserScore(scores: Array<Scores>): number {
-    return _.transform(scores, (result: number, curr) => {
-      result += curr.score;
-      return result;
-    });
+    let result = 0;
+    scores.forEach((s) => (result += s.score));
+    return result;
   }
 }
