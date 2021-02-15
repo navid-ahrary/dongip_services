@@ -504,10 +504,8 @@ export class AuthController {
         email: foundVerify.email,
         region: foundVerify.region,
         firebaseToken: firebaseToken,
-        // eslint-disable-next-line eqeqeq
-        phoneLocked: foundVerify.phone != undefined,
-        // eslint-disable-next-line eqeqeq
-        emailLocked: foundVerify.email != undefined,
+        phoneLocked: foundVerify.phone ? true : false,
+        emailLocked: foundVerify.email ? true : false,
         platform: this.ctx.request.headers['platform']?.toString(),
         userAgent: this.ctx.request.headers['user-agent'],
       });
