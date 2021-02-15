@@ -190,10 +190,18 @@ export class AuthController {
       throw new HttpErrors.TooManyRequests(this.locMsg['TOO_MANY_REQUEST'][this.lang]);
     }
 
-    const user = await this.usersRepository.findOne({
-      fields: { name: true, avatar: true, phone: true },
-      where: { or: [{ phone: verifyReqBody.phone }, { email: verifyReqBody.email }] },
-    });
+    let user: Partial<Users> | null = null;
+    if (verifyReqBody.phone) {
+      user = await this.usersRepository.findOne({
+        fields: { name: true, avatar: true, phone: true },
+        where: { phone: verifyReqBody.phone },
+      });
+    } else if (verifyReqBody.email) {
+      user = await this.usersRepository.findOne({
+        fields: { name: true, avatar: true, phone: true },
+        where: { email: verifyReqBody.email },
+      });
+    }
 
     const createdVerify = await this.verifyRepository
       .create({
@@ -267,9 +275,9 @@ export class AuthController {
 
     return {
       status: _.isObjectLike(user),
-      isCompleted: Boolean(user?.phone),
-      avatar: user ? user.avatar : 'dongip',
-      name: user ? user.name : 'noob',
+      isCompleted: user?.phoneLocked ?? false,
+      avatar: user?.avatar ?? 'dongip',
+      name: user?.name ?? 'noob',
       prefix: randomStr,
       verifyToken: verifyToken,
     };
