@@ -492,7 +492,6 @@ export class AuthController {
     try {
       const foundVerify = await this.verifySerivce.verifyCredentials(verifyId, newUser.password);
 
-      console.log('foundVerify', foundVerify);
       const countRegisteredUsers = await this.usersRepository.count();
       const roles = countRegisteredUsers.count < 1000 ? ['GOLD'] : ['BRONZE'];
       const planId = countRegisteredUsers.count < 1000 ? 'plan_gy1' : 'free';
