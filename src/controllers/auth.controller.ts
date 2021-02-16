@@ -393,7 +393,7 @@ export class AuthController {
         loggedInAt: moment.utc().toISOString(),
       });
 
-      return {
+      const resp = {
         userId: user.getId(),
         phone: user.phone,
         email: user.email,
@@ -401,6 +401,10 @@ export class AuthController {
         accessToken: accessToken,
         refreshToken: refToken,
       };
+
+      console.log('LOGIN RESPONSE:::', resp);
+
+      return resp;
     } catch (err) {
       const errMsg = this.locMsg[err.message][this.lang];
       console.error(errMsg);
@@ -562,7 +566,7 @@ export class AuthController {
 
       await this.createDemoData(savedUser.getId(), selfRel.getId(), savedSetting.currency);
 
-      return {
+      const resp = {
         userId: savedUser.getId(),
         planId: planId,
         solTime: roles.includes('GOLD') ? moment(nowUTC).utc().toISOString() : null,
@@ -570,6 +574,10 @@ export class AuthController {
         totalScores: savedScore.score,
         ...tokenObj,
       };
+
+      console.log('SINGUP RESPONSE:::', resp);
+
+      return resp;
     } catch (err) {
       if (err.message === 'WRONG_VERIFY_CODE') {
         throw new HttpErrors.NotAcceptable(this.locMsg[err.message][this.lang]);
