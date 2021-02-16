@@ -5,7 +5,7 @@ import { CurrencyEnum, LanguageEnum } from './settings.model';
 export class CompleteSignup extends Model {
   @property({
     type: 'string',
-    jsonSchema: { minLength: 3, maxLength: 30 },
+    jsonSchema: { minLength: 1, maxLength: 50 },
   })
   name?: string;
 
