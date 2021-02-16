@@ -98,8 +98,6 @@ export class FirebaseService {
       }),
     );
 
-    console.log(new Date(), JSON.stringify(messages));
-
     const response = await messaging()
       .sendAll(messages)
       .catch(function (_error) {
