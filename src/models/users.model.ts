@@ -74,7 +74,7 @@ export class Users extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: { minLength: 3, maxLength: 50 },
+    jsonSchema: { minLength: 1, maxLength: 50 },
     mysql: {
       columnName: 'name',
       dataType: 'varchar',

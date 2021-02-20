@@ -336,6 +336,7 @@ export class UsersController {
     cmpltSignBody: CompleteSignup,
   ): Promise<void> {
     try {
+      console.log('cmpltSignBody:', cmpltSignBody);
       const foundUser = await this.usersRepository.findById(this.userId, {
         fields: { phoneLocked: true, emailLocked: true },
       });
@@ -357,6 +358,7 @@ export class UsersController {
       const postedEmail = cmpltSignBody.email;
       if (!foundUser.emailLocked && postedEmail) {
         userProps['emailLocked'] = true;
+        userProps['email'] = postedEmail;
         userRelProps['email'] = postedEmail;
       }
 
