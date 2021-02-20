@@ -275,7 +275,7 @@ export class AuthController {
 
     return {
       status: _.isObjectLike(user),
-      isCompleted: user?.phoneLocked ? user.phoneLocked : false,
+      isCompleted: user?.phoneLocked ?? false,
       avatar: user?.avatar ?? 'dongip',
       name: user?.name ?? 'noob',
       prefix: randomStr,
