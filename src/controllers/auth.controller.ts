@@ -193,12 +193,12 @@ export class AuthController {
     let user: Partial<Users> | null = null;
     if (verifyReqBody.phone) {
       user = await this.usersRepository.findOne({
-        fields: { name: true, avatar: true, phone: true },
+        fields: { name: true, avatar: true, phone: true, phoneLocked: true },
         where: { phone: verifyReqBody.phone },
       });
     } else if (verifyReqBody.email) {
       user = await this.usersRepository.findOne({
-        fields: { name: true, avatar: true, phone: true },
+        fields: { name: true, avatar: true, phone: true, phoneLocked: true },
         where: { email: verifyReqBody.email },
       });
     }
@@ -275,7 +275,7 @@ export class AuthController {
 
     return {
       status: _.isObjectLike(user),
-      isCompleted: user?.phoneLocked ?? false,
+      isCompleted: user?.phoneLocked ? user.phoneLocked : false,
       avatar: user?.avatar ?? 'dongip',
       name: user?.name ?? 'noob',
       prefix: randomStr,
