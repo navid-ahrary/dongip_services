@@ -7,13 +7,14 @@ import {
   Provider,
   ValueOrPromise,
 } from '@loopback/context';
-import { repository } from '@loopback/repository';
+import { Count, repository } from '@loopback/repository';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { HttpErrors, Request, RestBindings } from '@loopback/rest';
 import _ from 'lodash';
 import { CategoriesRepository, UsersRepository } from '../repositories';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
+import { Categories } from '../models';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -51,39 +52,59 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
    */
   async intercept(invocationCtx: InvocationContext, next: () => ValueOrPromise<InvocationResult>) {
     const lang = _.includes(this.req.headers['accept-language'], 'en') ? 'en' : 'fa';
+    let categoryId: typeof Categories.prototype.categoryId;
+    let countCategory: Count;
 
     if (invocationCtx.methodName === 'createDongs') {
-      const categoryId = invocationCtx.args[0].categoryId;
+      categoryId = invocationCtx.args[0].categoryId;
 
-      const curretnUserFoundCategory = await this.categoriesRepo.findOne({
-        where: { userId: this.userId, categoryId: categoryId },
+      countCategory = await this.categoriesRepo.count({
+        userId: this.userId,
+        categoryId: categoryId,
       });
       // Validate categoryId
-      if (!curretnUserFoundCategory) {
+      if (countCategory.count !== 1) {
         const errMessage = this.locMsg['CATEGORY_NOT_VALID'][lang];
         throw new HttpErrors.UnprocessableEntity(errMessage);
       }
-
-      Object.assign(invocationCtx.args[0], { category: curretnUserFoundCategory });
     } else if (
-      invocationCtx.methodName === 'deleteCategoriesById' ||
-      invocationCtx.methodName === 'patchCategoriesById' ||
-      invocationCtx.methodName === 'createCategoriesBudgets' ||
-      invocationCtx.methodName === 'findCategoriesBudgets'
+      invocationCtx.methodName === 'updateDongsById' &&
+      _.has(invocationCtx.args[1], 'categoryId')
     ) {
-      const categoryId = invocationCtx.args[0];
-
-      const foundCategory = await this.categoriesRepo.findOne({
-        where: { categoryId: categoryId, userId: this.userId },
+      categoryId = invocationCtx.args[1].categoryId;
+      countCategory = await this.categoriesRepo.count({
+        userId: this.userId,
+        categoryId: categoryId,
       });
 
-      if (!foundCategory) {
+      if (countCategory.count !== 1) {
+        const errMsg = this.locMsg['CATEGORY_NOT_VALID'][lang];
+        throw new HttpErrors.UnprocessableEntity(errMsg);
+      }
+    } else if (
+      [
+        'deleteCategoriesById',
+        'patchCategoriesById',
+        'createCategoriesBudgets',
+        'findCategoriesBudgets',
+      ].includes(invocationCtx.methodName)
+    ) {
+      categoryId = invocationCtx.args[0];
+
+      countCategory = await this.categoriesRepo.count({
+        userId: this.userId,
+        categoryId: categoryId,
+      });
+
+      if (countCategory.count !== 1) {
         const errMsg = this.locMsg['CATEGORY_NOT_VALID'][lang];
         throw new HttpErrors.UnprocessableEntity(errMsg);
       }
     }
+
     const result = await next();
     // Add post-invocation logic here
+
     return result;
   }
 }

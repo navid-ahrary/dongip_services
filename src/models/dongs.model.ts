@@ -165,6 +165,7 @@ export class Dongs extends Entity {
       type: 'number',
       required: true,
       index: { normal: true },
+      jsonSchema: { minimum: 1, type: 'number' },
       mysql: {
         columnName: 'category_id',
         dataType: 'mediumint unsigned',

@@ -6,7 +6,6 @@ import _ from 'lodash';
 import util from 'util';
 import moment from 'moment';
 import { BatchMessage, FirebaseService } from './firebase.service';
-import { ResponseNewDong } from '../controllers';
 import { BillList, Categories, Dongs, Notifications, PayerList, PostDong, Users } from '../models';
 import {
   BillListRepository,
@@ -50,10 +49,9 @@ export class DongService {
   async createDongs(
     userId: typeof Users.prototype.userId,
     newDong: PostDong,
-  ): Promise<DataObject<ResponseNewDong>> {
+  ): Promise<DataObject<Dongs> & { score: number }> {
     const newDongScore = 50;
     const mutualFriendScore = 20;
-    const category = _.pick(newDong, 'category');
 
     let mutualFactor = 0;
 
@@ -281,7 +279,6 @@ export class DongService {
 
       return {
         ...createdDong,
-        ...category,
         score: calculatedScore,
       };
     } catch (err) {

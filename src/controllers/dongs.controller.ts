@@ -64,8 +64,9 @@ export class DongsController {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
+  @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
   @patch('/dongs/{dongId}', {
-    summary: 'Update Dongs description by dongId',
+    summary: 'Update Dongs description and categoryId by dongId',
     description: 'Do not send notification to dong members, just update own Dong entity',
     security: OPERATION_SECURITY_SPEC,
     responses: {
@@ -79,9 +80,9 @@ export class DongsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(Dongs, {
+            partial: true,
             exclude: [
               'dongId',
-              'categoryId',
               'createdAt',
               'currency',
               'includeBill',
@@ -104,6 +105,13 @@ export class DongsController {
 
       if (res.count === 0) {
         throw new Error(this.locMsg['DONG_NOT_VALID'][this.lang]);
+      }
+
+      if (_.has(patchDong, 'categoryId')) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.dongRepository.billList(dongId).patch({ categoryId: patchDong.categoryId });
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.dongRepository.payerList(dongId).patch({ categoryId: patchDong.categoryId });
       }
     } catch (err) {
       throw new HttpErrors.UnprocessableEntity(err.message);
@@ -159,7 +167,17 @@ export class DongsController {
   async createDongs(
     @requestBody(dongReqBody) newDong: PostDong,
   ): Promise<DataObject<ResponseNewDong>> {
-    return this.dongService.createDongs(this.userId, newDong);
+    // eslint-disable-next-line no-useless-catch
+    try {
+      const createdDong = await this.dongService.createDongs(this.userId, newDong);
+      const foundCategory = await this.categoriesRepository.findOne({
+        where: { categoryId: newDong.categoryId, userId: this.userId },
+      });
+
+      return { ...createdDong, category: foundCategory! };
+    } catch (err) {
+      throw err;
+    }
   }
 
   @intercept(JointAccountsInterceptor.BINDING_KEY)
