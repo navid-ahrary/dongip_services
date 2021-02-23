@@ -111,7 +111,7 @@ export class DongsController {
         throw new Error(this.locMsg['DONG_NOT_VALID'][this.lang]);
       }
 
-      if (_.has(patchDong, 'categoryId')) {
+      if (_.has(patchDong, 'categoryId') && !_.isUndefined(patchDong.categoryId)) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.dongRepository.billList(dongId).patch({ categoryId: patchDong.categoryId });
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
