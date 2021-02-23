@@ -77,12 +77,14 @@ export class AuthController {
   }
 
   generateRandomString(length: number) {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      charactersLength = characters.length;
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&[]()_+-*~/?><:;|',
+      charsLength = chars.length;
+
     let result = '';
     for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      result += chars.charAt(Math.floor(Math.random() * charsLength));
     }
+
     return result;
   }
 
@@ -194,7 +196,7 @@ export class AuthController {
       },
     });
 
-    if (countRequstedVerifyCode.count >= 2) {
+    if (countRequstedVerifyCode.count >= 3) {
       throw new HttpErrors.TooManyRequests(this.locMsg['TOO_MANY_REQUEST'][this.lang]);
     }
 
