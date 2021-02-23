@@ -5,18 +5,16 @@ import { UserProfile, securityId } from '@loopback/security';
 import { HttpErrors } from '@loopback/rest';
 import { repository } from '@loopback/repository';
 import { sign, verify, Algorithm } from 'jsonwebtoken';
-import _ from 'lodash';
-
 import { UsersRepository, BlacklistRepository } from '../repositories';
 import { TokenServiceBindings } from '../keys';
 
 export class JWTService implements TokenService {
   constructor(
-    @repository(UsersRepository) public usersRepository: UsersRepository,
     @inject(TokenServiceBindings.ACCESS_SECRET) private jwtSecret: string,
     @inject(TokenServiceBindings.TOKEN_ALGORITHM) private jwtAlgorithm: Algorithm,
     @inject(TokenServiceBindings.VERIFY_EXPIRES_IN) private verifyExpiresIn: string,
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
   ) {}
 
@@ -91,7 +89,8 @@ export class JWTService implements TokenService {
    */
   public async generateToken(userProfile: UserProfile): Promise<string> {
     const nullAudience = 'Error generating token, supported audience is not provided';
-    const aud = _.get(userProfile, 'aud');
+
+    const aud = userProfile.aud;
     let expiresIn: number;
     switch (aud) {
       case 'verify':

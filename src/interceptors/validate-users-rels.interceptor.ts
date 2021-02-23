@@ -9,11 +9,12 @@ import {
 } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { HttpErrors, Request, RestBindings } from '@loopback/rest';
 import _ from 'lodash';
 
 import { UsersRelsRepository, UsersRepository } from '../repositories';
-import { HttpErrors, Request, RestBindings } from '@loopback/rest';
-import { LocalizedMessages } from '../application';
+import { LocalizedMessages } from '../types';
+import { LocMsgsBindings } from '../keys';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -25,12 +26,11 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
   private readonly userId: number;
 
   constructor(
-    @repository(UsersRelsRepository)
-    public usersRelsRepository: UsersRelsRepository,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
-    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
     @inject(RestBindings.Http.REQUEST) private req: Request,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
   }

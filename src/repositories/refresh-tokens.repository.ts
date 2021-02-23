@@ -1,8 +1,8 @@
 import { DefaultCrudRepository, repository, BelongsToAccessor } from '@loopback/repository';
 import { inject, Getter } from '@loopback/core';
 import { RefreshTokens, RefreshTokensRelations, Users } from '../models';
-import { MysqlDataSource } from '../datasources';
-import { UsersRepository } from './users.repository';
+import { MariadbDataSource } from '../datasources';
+import { UsersRepository } from '.';
 
 export class RefreshTokensRepository extends DefaultCrudRepository<
   RefreshTokens,
@@ -12,10 +12,11 @@ export class RefreshTokensRepository extends DefaultCrudRepository<
   public readonly user: BelongsToAccessor<Users, typeof RefreshTokens.prototype.refreshId>;
 
   constructor(
-    @inject('datasources.Mysql') dataSource: MysqlDataSource,
+    @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
     super(RefreshTokens, dataSource);
+
     this.user = this.createBelongsToAccessorFor('user', usersRepositoryGetter);
   }
 }

@@ -1,8 +1,9 @@
 import { DefaultCrudRepository, repository, BelongsToAccessor, Count } from '@loopback/repository';
 import { inject, Getter } from '@loopback/core';
+import _ from 'lodash';
 import { Reminders, RemindersRelations, Users } from '../models';
-import { MysqlDataSource } from '../datasources';
-import { UsersRepository } from './users.repository';
+import { MariadbDataSource } from '../datasources';
+import { UsersRepository } from '.';
 
 export type Find = { notifyTime: string; nextNotifyDate: string };
 
@@ -14,7 +15,7 @@ export class RemindersRepository extends DefaultCrudRepository<
   public readonly user: BelongsToAccessor<Users, typeof Reminders.prototype.reminderId>;
 
   constructor(
-    @inject('datasources.Mysql') dataSource: MysqlDataSource,
+    @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
     super(Reminders, dataSource);
@@ -79,7 +80,10 @@ export class RemindersRepository extends DefaultCrudRepository<
             ELSE 0
           END )
       WHERE
-        id IN ( ${[...Array(ids.length)].map(() => '?').join(',')} ) ;`;
+        id IN ( ${_.join(
+          _.map([...Array(ids.length)], () => '?'),
+          ',',
+        )} ) ;`;
 
     const result = await this.execute(cmd, [...ids]);
 

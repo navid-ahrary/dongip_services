@@ -1,11 +1,13 @@
 import { DefaultCrudRepository, repository, BelongsToAccessor } from '@loopback/repository';
 import { inject, Getter } from '@loopback/core';
 import { Budgets, BudgetsRelations, Users, Categories, UsersRels, JointAccounts } from '../models';
-import { MysqlDataSource } from '../datasources';
-import { UsersRepository } from './users.repository';
-import { CategoriesRepository } from './categories.repository';
-import { UsersRelsRepository } from './users-rels.repository';
-import { JointAccountsRepository } from './joint-accounts.repository';
+import { MariadbDataSource } from '../datasources';
+import {
+  JointAccountsRepository,
+  UsersRelsRepository,
+  CategoriesRepository,
+  UsersRepository,
+} from '.';
 
 export class BudgetsRepository extends DefaultCrudRepository<
   Budgets,
@@ -21,9 +23,8 @@ export class BudgetsRepository extends DefaultCrudRepository<
   public readonly jointAccount: BelongsToAccessor<JointAccounts, typeof Budgets.prototype.budgetId>;
 
   constructor(
-    @inject('datasources.Mysql') dataSource: MysqlDataSource,
-    @repository.getter('UsersRepository')
-    protected usersRepositoryGetter: Getter<UsersRepository>,
+    @inject('datasources.Mariadb') dataSource: MariadbDataSource,
+    @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('CategoriesRepository')
     protected categoriesRepositoryGetter: Getter<CategoriesRepository>,
     @repository.getter('UsersRelsRepository')

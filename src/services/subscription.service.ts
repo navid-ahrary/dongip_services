@@ -4,17 +4,16 @@ import { repository } from '@loopback/repository';
 import moment from 'moment';
 
 import { UsersRepository, SubscriptionsRepository } from '../repositories';
-import { SubscriptionSpec } from '../application';
 import { Users, Subscriptions } from '../models';
+import { SubscriptionSpec } from '../types';
+import { SubsSpecBindings } from '../keys';
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class SubscriptionService {
   constructor(
     @repository(UsersRepository) protected usersRepo: UsersRepository,
-    @repository(SubscriptionsRepository)
-    protected subsRepo: SubscriptionsRepository,
-    @inject('application.subscriptionSpec')
-    protected subsSpec: SubscriptionSpec,
+    @repository(SubscriptionsRepository) protected subsRepo: SubscriptionsRepository,
+    @inject(SubsSpecBindings) protected subsSpec: SubscriptionSpec,
   ) {}
 
   /** Perform subsciption on user
@@ -29,8 +28,8 @@ export class SubscriptionService {
     planId: string,
     purchaseTime: moment.Moment,
   ): Promise<Subscriptions> {
-    const durationAmount = this.subsSpec.plans[planId].duration.amount;
-    const durationUnit = this.subsSpec.plans[planId].duration.unit;
+    const durationAmount = this.subsSpec.plans[planId].period.amount;
+    const durationUnit = this.subsSpec.plans[planId].period.unit;
 
     let sol: string, eol: string;
 

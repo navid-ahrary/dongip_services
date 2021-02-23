@@ -39,7 +39,8 @@ import {
   FirebaseTokenInterceptor,
 } from '../interceptors';
 import { basicAuthorization, BatchMessage, FirebaseService, PhoneNumberService } from '../services';
-import { LocalizedMessages } from '../application';
+import { LocalizedMessages } from '../types';
+import { LocMsgsBindings } from '../keys';
 
 @intercept(
   ValidateUsersRelsInterceptor.BINDING_KEY,
@@ -54,17 +55,17 @@ export class JointAccountController {
   lang: string;
 
   constructor(
-    @inject.context() public ctx: RequestContext,
-    @repository(JointAccountSubscribesRepository)
-    protected jointAccSubscribesRepo: JointAccountSubscribesRepository,
-    @repository(UsersRepository) protected usersRepo: UsersRepository,
-    @service(FirebaseService) protected firebaseSerice: FirebaseService,
+    @inject.context() private ctx: RequestContext,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
-    @service(PhoneNumberService) private phoneNumService: PhoneNumberService,
-    @inject('application.localizedMessages') protected locMsg: LocalizedMessages,
-    @repository(UsersRelsRepository) protected usersRelsRepo: UsersRelsRepository,
-    @repository(DongsRepository) protected dongRepo: DongsRepository,
-    @repository(JointAccountsRepository) protected jointAccountsRepo: JointAccountsRepository,
+    @service(FirebaseService) public firebaseSerice: FirebaseService,
+    @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
+    @repository(DongsRepository) public dongRepo: DongsRepository,
+    @repository(UsersRepository) public usersRepo: UsersRepository,
+    @repository(UsersRelsRepository) public usersRelsRepo: UsersRelsRepository,
+    @repository(JointAccountsRepository) public jointAccountsRepo: JointAccountsRepository,
+    @repository(JointAccountSubscribesRepository)
+    public jointAccSubscribesRepo: JointAccountSubscribesRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
     this.phone = this.currentUserProfile.phone;

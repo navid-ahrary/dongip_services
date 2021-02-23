@@ -5,8 +5,7 @@ import {
   DefaultCrudRepository,
 } from '@loopback/repository';
 import { inject, Getter } from '@loopback/core';
-
-import { MysqlDataSource } from '../datasources';
+import { MariadbDataSource } from '../datasources';
 import {
   Dongs,
   DongsRelations,
@@ -17,12 +16,14 @@ import {
   Scores,
   JointAccounts,
 } from '../models';
-import { UsersRepository } from './users.repository';
-import { BillListRepository } from './bill-list.repository';
-import { PayerListRepository } from './payer-list.repository';
-import { CategoriesRepository } from './categories.repository';
-import { ScoresRepository } from './scores.repository';
-import { JointAccountsRepository } from './joint-accounts.repository';
+import {
+  UsersRepository,
+  BillListRepository,
+  PayerListRepository,
+  CategoriesRepository,
+  ScoresRepository,
+  JointAccountsRepository,
+} from '.';
 
 export class DongsRepository extends DefaultCrudRepository<
   Dongs,
@@ -42,9 +43,8 @@ export class DongsRepository extends DefaultCrudRepository<
   public readonly jointAccount: BelongsToAccessor<JointAccounts, typeof Dongs.prototype.dongId>;
 
   constructor(
-    @inject('datasources.Mysql') dataSource: MysqlDataSource,
-    @repository.getter('UsersRepository')
-    protected usersRepositoryGetter: Getter<UsersRepository>,
+    @inject('datasources.Mariadb') dataSource: MariadbDataSource,
+    @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('CategoriesRepository')
     protected categoryRepositoryGetter: Getter<CategoriesRepository>,
     @repository.getter('BillListRepository')
@@ -57,11 +57,13 @@ export class DongsRepository extends DefaultCrudRepository<
     protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
   ) {
     super(Dongs, dataSource);
+
     this.jointAccount = this.createBelongsToAccessorFor(
       'jointAccount',
       jointAccountsRepositoryGetter,
     );
     this.registerInclusionResolver('jointAccount', this.jointAccount.inclusionResolver);
+
     this.scores = this.createHasManyRepositoryFactoryFor('scores', scoresRepositoryGetter);
     this.registerInclusionResolver('scores', this.scores.inclusionResolver);
 

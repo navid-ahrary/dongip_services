@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { BindingScope, injectable } from '@loopback/core';
-import emailValidator from 'deep-email-validator';
-import util from 'util';
-import axios from 'axios';
+import { BindingScope, inject, injectable } from '@loopback/core';
+import EmailValidator from 'deep-email-validator';
+import Axios from 'axios';
+import { EmailBindings } from '../keys';
 
 export interface MailOptions {
-  toAddress: string;
   subject: string;
   content: string;
-  mailFormat?: 'plaintext' | 'html';
+  toAddress: string;
   encoding?: 'UTF-8';
+  mailFormat?: 'plaintext' | 'html';
 }
 
 export interface SentEmail {
@@ -25,30 +25,27 @@ export interface SentEmail {
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class EmailService {
-  gmailAccount = process.env.GMAIL_ACCOUNT;
-  supportEmail = process.env.ZOHO_SUPPORT_MAIL_ADDRESS;
-  supportRefreshToken = process.env.ZOHO_SUPPRT_ACCOUNT_REFRESH_TOKEN;
-  supportClientId = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_ID;
-  supportClientSecret = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_SECRET;
-  supportMessageURL = util.format(
-    process.env.ZOHO_MESSAGE_SCOPE_URL,
-    process.env.ZOHO_SUPPORT_ACCOUNT_ID,
-  );
-  noreplyEmail = process.env.ZOHO_NOREPLY_MAIL_ADDRESS;
-  accountURL = process.env.ZOHO_ACCOUNT_SCOPE_URL;
-
-  constructor() {}
+  constructor(
+    @inject(EmailBindings.GMAIL_ACCOUNT) private gmailAccount: string,
+    @inject(EmailBindings.ZOHO_ACCOUNT_SCOPE_URL) private accountURL: string,
+    @inject(EmailBindings.NOREPLY_MAIL_ADDRESS) private noreplyEmail: string,
+    @inject(EmailBindings.SUPPORT_CLIENT_ID) private supportClientId: string,
+    @inject(EmailBindings.SUPPORT_EMAIL_ADDRESS) private supportEmail: string,
+    @inject(EmailBindings.SUPPORT_MESSAGE_URL) private supportMessageURL: string,
+    @inject(EmailBindings.SUPPORT_REFRESH_TOKEN) private supportRefreshToken: string,
+    @inject(EmailBindings.SUPPORT_CLIENT_SECRET) private supportClientSecret: string,
+  ) {}
 
   private async refreshSupportAccessToken(): Promise<string> {
     const queryParam = {
       grant_type: 'refresh_token',
-      refresh_token: this.supportRefreshToken,
       client_id: this.supportClientId,
+      refresh_token: this.supportRefreshToken,
       client_secret: this.supportClientSecret,
     };
 
     try {
-      const res = await axios({
+      const res = await Axios({
         method: 'POST',
         url: this.accountURL,
         params: queryParam,
@@ -67,7 +64,7 @@ export class EmailService {
   async sendSupportMail(mailOptions: MailOptions): Promise<SentEmail> {
     const accessToken = await this.refreshSupportAccessToken();
 
-    const res = await axios({
+    const res = await Axios({
       method: 'POST',
       url: this.supportMessageURL,
       headers: {
@@ -89,10 +86,13 @@ export class EmailService {
       email !== this.gmailAccount &&
       email !== this.noreplyEmail &&
       (
-        await emailValidator({
+        await EmailValidator({
           email: email,
-          validateSMTP: false,
           validateTypo: false,
+          validateSMTP: false,
+          validateRegex: true,
+          validateDisposable: true,
+          validateMx: true,
         })
       ).valid
     );
@@ -100,10 +100,10 @@ export class EmailService {
 
   /** To lowercase and remove dots from gmail addresses
    *
-   * @param email string
-   * @returns string
+   * @param {String} email
+   * @returns String
    */
-  normalize(email: string): string {
+  public normalize(email: string): string {
     let result = email.toLowerCase();
 
     const splitted = result.split('@');

@@ -1,29 +1,22 @@
-import {
-  DefaultCrudRepository,
-  repository,
-  BelongsToAccessor,
-} from '@loopback/repository';
-import {Messages, MessagesRelations, Users} from '../models';
-import {MysqlDataSource} from '../datasources';
-import {inject, Getter} from '@loopback/core';
-import {UsersRepository} from './users.repository';
+import { DefaultCrudRepository, repository, BelongsToAccessor } from '@loopback/repository';
+import { inject, Getter } from '@loopback/core';
+import { Messages, MessagesRelations, Users } from '../models';
+import { MariadbDataSource } from '../datasources';
+import { UsersRepository } from '.';
 
 export class MessagesRepository extends DefaultCrudRepository<
   Messages,
   typeof Messages.prototype.messageId,
   MessagesRelations
 > {
-  public readonly user: BelongsToAccessor<
-    Users,
-    typeof Messages.prototype.messageId
-  >;
+  public readonly user: BelongsToAccessor<Users, typeof Messages.prototype.messageId>;
 
   constructor(
-    @inject('datasources.Mysql') dataSource: MysqlDataSource,
-    @repository.getter('UsersRepository')
-    protected usersRepositoryGetter: Getter<UsersRepository>,
+    @inject('datasources.Mariadb') dataSource: MariadbDataSource,
+    @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
     super(Messages, dataSource);
+
     this.user = this.createBelongsToAccessorFor('user', usersRepositoryGetter);
     this.registerInclusionResolver('user', this.user.inclusionResolver);
   }

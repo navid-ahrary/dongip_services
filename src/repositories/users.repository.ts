@@ -5,7 +5,7 @@ import {
   HasOneRepositoryFactory,
 } from '@loopback/repository';
 import { inject, Getter } from '@loopback/core';
-import { MysqlDataSource } from '../datasources';
+import { MariadbDataSource } from '../datasources';
 import {
   Users,
   VirtualUsers,
@@ -26,23 +26,25 @@ import {
   RefreshTokens,
   Reminders,
 } from '../models';
-import { BillListRepository } from './bill-list.repository';
-import { PayerListRepository } from './payer-list.repository';
-import { ScoresRepository } from './scores.repository';
-import { MessagesRepository } from './messages.repository';
-import { NotificationsRepository } from './notifications.repository';
-import { BudgetsRepository } from './budgets.repository';
-import { SettingsRepository } from './settings.repository';
-import { PurchasesRepository } from './purchases.repository';
-import { SubscriptionsRepository } from './subscriptions.repository';
-import { VirtualUsersRepository } from './virtual-users.repository';
-import { DongsRepository } from './dongs.repository';
-import { CategoriesRepository } from './categories.repository';
-import { UsersRelsRepository } from './users-rels.repository';
-import { JointAccountsRepository } from './joint-accounts.repository';
-import { JointAccountSubscribesRepository } from './joint-account-subscribes.repository';
-import { RefreshTokensRepository } from './refresh-tokens.repository';
-import { RemindersRepository } from './reminders.repository';
+import {
+  PayerListRepository,
+  BillListRepository,
+  ScoresRepository,
+  MessagesRepository,
+  NotificationsRepository,
+  BudgetsRepository,
+  SettingsRepository,
+  PurchasesRepository,
+  CategoriesRepository,
+  SubscriptionsRepository,
+  VirtualUsersRepository,
+  UsersRelsRepository,
+  JointAccountsRepository,
+  JointAccountSubscribesRepository,
+  DongsRepository,
+  RefreshTokensRepository,
+  RemindersRepository,
+} from '.';
 
 export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.prototype.userId> {
   public readonly virtualUsers: HasManyRepositoryFactory<
@@ -98,7 +100,7 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
   public readonly reminders: HasManyRepositoryFactory<Reminders, typeof Users.prototype.userId>;
 
   constructor(
-    @inject('datasources.Mysql') dataSource: MysqlDataSource,
+    @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('VirtualUsersRepository')
     protected virtualUsersRepositoryGetter: Getter<VirtualUsersRepository>,
     @repository.getter('DongsRepository')
@@ -135,6 +137,7 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
     protected remindersRepositoryGetter: Getter<RemindersRepository>,
   ) {
     super(Users, dataSource);
+
     this.reminders = this.createHasManyRepositoryFactoryFor('reminders', remindersRepositoryGetter);
     this.registerInclusionResolver('reminders', this.reminders.inclusionResolver);
 

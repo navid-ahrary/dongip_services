@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { BindingScope, injectable } from '@loopback/core';
-import { messaging, initializeApp, credential, ServiceAccount } from 'firebase-admin';
+import { BindingScope, inject, injectable } from '@loopback/core';
 import { HttpErrors } from '@loopback/rest';
+import { messaging, initializeApp, credential, app } from 'firebase-admin';
+import { FirebaseBinding } from '../keys';
 
 export type MessagePayload = messaging.MessagingPayload;
 export type BatchMessage = Array<messaging.Message>;
@@ -12,26 +13,38 @@ export interface FirebaseService {
     payload: MessagePayload,
     options?: messaging.MessagingOptions | undefined,
   ): void;
+
   sendMultiCastMessage(message: messaging.MulticastMessage, dryRun?: boolean): void;
+
   sendAllMessage(messages: BatchMessage): Promise<messaging.BatchResponse>;
 }
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class FirebaseService {
-  constructor() {
-    this.initializeApp();
+  private readonly app: app.App;
+  private readonly messagingService: messaging.Messaging;
+
+  constructor(
+    @inject(FirebaseBinding.FIREBASE_APPLICATION_DATABASEURL) private baseUrl: string,
+    @inject(FirebaseBinding.FIREBASE_PROJECT_ID) private projectId: string,
+    @inject(FirebaseBinding.FIREBASE_CLIENT_EMAIL) private clientEmail: string,
+    @inject(FirebaseBinding.FIREBASE_PRIVATE_KEY) private privateKey: string,
+  ) {
+    this.app = this.initializeApp();
+    this.messagingService = this.app.messaging();
   }
 
   private initializeApp() {
-    const serviceAccount: ServiceAccount = require(`${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
-    initializeApp({
+    const initApp = initializeApp({
+      databaseURL: this.baseUrl,
       credential: credential.cert({
-        clientEmail: serviceAccount.clientEmail,
-        privateKey: serviceAccount.privateKey,
-        projectId: serviceAccount.projectId,
+        projectId: this.projectId,
+        clientEmail: this.clientEmail,
+        privateKey: this.privateKey,
       }),
-      databaseURL: process.env.GOOGLE_APPLICATION_DATABASEURL,
     });
+
+    return initApp;
   }
 
   // send a message to a device
@@ -40,9 +53,9 @@ export class FirebaseService {
     payload: messaging.MessagingPayload,
     options?: messaging.MessagingOptions | undefined,
   ): Promise<messaging.MessagingDevicesResponse> {
-    payload.notification!.clickAction = 'FLUTTER_NOTIFICATION_CLICK';
+    payload['notification']!['clickAction'] = 'FLUTTER_NOTIFICATION_CLICK';
 
-    const response = await messaging().sendToDevice(firebaseToken, payload, options);
+    const response = await this.messagingService.sendToDevice(firebaseToken, payload, options);
 
     if (response.successCount) {
       console.log(`Sucessfully sent notification: ${JSON.stringify(response)}`);
@@ -57,33 +70,35 @@ export class FirebaseService {
 
   // send a message to multi devices
   public async sendMultiCastMessage(message: messaging.MulticastMessage, dryRun?: boolean) {
-    Object.assign(message, {
-      // Android options
-      android: {
-        notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
-      },
-    });
-
-    // Android options
-    await messaging()
-      .sendMulticast(message, dryRun)
-      .then(function (_response) {
-        if (_response.failureCount > 0) {
-          const failedTokens: string[] = [];
-          _response.responses.forEach((resp, idx) => {
-            if (!resp.success) {
-              failedTokens.push(message.tokens[idx]);
-            }
-          });
-          console.warn(`List of tokens that caused failure ${failedTokens}`);
-          throw new HttpErrors.NotImplemented(`List of tokens that caused failure ${failedTokens}`);
-        }
-        console.log(`Successfully sent notifications, ${_response}`);
-      })
-      .catch(function (_error) {
-        console.warn(`Error sending notifications, ${_error}`);
-        throw new HttpErrors.NotImplemented(`Error sending notifications, ${_error}`);
+    try {
+      Object.assign(message, {
+        // Android options
+        android: {
+          notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
+        },
       });
+
+      const response = await this.messagingService.sendMulticast(message, dryRun);
+
+      if (response.failureCount > 0) {
+        const failedTokens: string[] = [];
+
+        response.responses.forEach((resp, idx) => {
+          if (!resp.success) {
+            failedTokens.push(message.tokens[idx]);
+          }
+        });
+
+        console.warn(`List of tokens that caused failure ${failedTokens}`);
+        throw new HttpErrors.NotImplemented(`List of tokens that caused failure ${failedTokens}`);
+      }
+
+      console.log(`Successfully sent notifications, ${response}`);
+    } catch (err) {
+      console.warn(`Error sending notifications, ${err}`);
+
+      throw new HttpErrors.NotImplemented(`Error sending notifications, ${err}`);
+    }
   }
 
   //send multi message to multi devices
@@ -98,21 +113,21 @@ export class FirebaseService {
       }),
     );
 
-    const response = await messaging()
-      .sendAll(messages)
-      .catch(function (_error) {
-        console.error(_error);
-        throw new Error(`Error sending notifications, ${_error}`);
-      });
+    try {
+      const response = await this.messagingService.sendAll(messages);
 
-    if (response.successCount) {
-      console.log(`Successfully sent notifications, ${JSON.stringify(response)}`);
-    } else if (response.failureCount) {
-      console.warn(`Failed sent notifications: ${JSON.stringify(response)}`);
-    } else {
-      console.warn('There is no response from firebase');
+      if (response.successCount) {
+        console.log(`Successfully sent notifications, ${JSON.stringify(response)}`);
+      } else if (response.failureCount) {
+        console.warn(`Failed sent notifications: ${JSON.stringify(response)}`);
+      } else {
+        console.warn('There is no response from firebase');
+      }
+
+      return response;
+    } catch (err) {
+      console.warn(err);
+      throw new Error(`Error sending notifications, ${err}`);
     }
-
-    return response;
   }
 }

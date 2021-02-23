@@ -1,20 +1,21 @@
 import { CronJob, cronJob } from '@loopback/cron';
 import { repository } from '@loopback/repository';
 import { service, BindingScope, inject } from '@loopback/core';
-import moment from 'moment';
+import Moment from 'moment';
 import _ from 'lodash';
 import { RemindersRepository, SettingsRepository, UsersRepository } from '../repositories';
 import { FirebaseService, BatchMessage } from '.';
-import { LocalizedMessages } from '../application';
+import { LocalizedMessages } from '../types';
+import { LocMsgsBindings } from '../keys';
 
 @cronJob({ scope: BindingScope.TRANSIENT })
 export class DailyScheduleConjobService extends CronJob {
   constructor(
-    @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(SettingsRepository) public settingsRepository: SettingsRepository,
-    @repository(RemindersRepository) public remindersRepo: RemindersRepository,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @service(FirebaseService) public firebaseService: FirebaseService,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(RemindersRepository) public remindersRepo: RemindersRepository,
+    @repository(SettingsRepository) public settingsRepository: SettingsRepository,
   ) {
     super({
       name: 'dailyScheduleNotifyJob',
@@ -33,7 +34,7 @@ export class DailyScheduleConjobService extends CronJob {
   }
 
   private async _sendDailyNotify() {
-    const utcTime = moment().isDST() ? moment.utc() : moment.utc().subtract(1, 'hour');
+    const utcTime = Moment().isDST() ? Moment.utc() : Moment.utc().subtract(1, 'hour');
     const firebaseMessages: BatchMessage = [];
 
     const foundSettings = await this.settingsRepository.find({
@@ -42,8 +43,8 @@ export class DailyScheduleConjobService extends CronJob {
         scheduleNotify: true,
         scheduleTime: {
           between: [
-            moment(utcTime).startOf('minute').subtract(4, 'minutes').format('HH:mm:ss.00000'),
-            moment(utcTime).startOf('minute').add(5, 'minutes').format('HH:mm:ss.00000'),
+            Moment(utcTime).startOf('minute').subtract(4, 'minutes').format('HH:mm:ss.00000'),
+            Moment(utcTime).startOf('minute').add(5, 'minutes').format('HH:mm:ss.00000'),
           ],
         },
       },

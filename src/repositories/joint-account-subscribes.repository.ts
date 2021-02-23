@@ -1,18 +1,13 @@
-import {Getter, inject} from '@loopback/core';
-import {
-  BelongsToAccessor,
-  DefaultCrudRepository,
-  repository,
-} from '@loopback/repository';
+import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
+import { Getter, inject } from '@loopback/core';
 import {
   JointAccounts,
   JointAccountSubscribes,
   JointAccountSubscribesRelations,
   Users,
 } from '../models';
-import {MysqlDataSource} from '../datasources';
-import {JointAccountsRepository} from './joint-accounts.repository';
-import {UsersRepository} from './users.repository';
+import { MariadbDataSource } from '../datasources';
+import { JointAccountsRepository, UsersRepository } from '.';
 
 export class JointAccountSubscribesRepository extends DefaultCrudRepository<
   JointAccountSubscribes,
@@ -30,11 +25,10 @@ export class JointAccountSubscribesRepository extends DefaultCrudRepository<
   >;
 
   constructor(
-    @inject('datasources.Mysql') dataSource: MysqlDataSource,
+    @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('JointAccountsRepository')
     protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
-    @repository.getter('UsersRepository')
-    protected usersRepositoryGetter: Getter<UsersRepository>,
+    @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
   ) {
     super(JointAccountSubscribes, dataSource);
 
@@ -45,9 +39,6 @@ export class JointAccountSubscribesRepository extends DefaultCrudRepository<
       'jointAccount',
       jointAccountsRepositoryGetter,
     );
-    this.registerInclusionResolver(
-      'jointAccount',
-      this.jointAccount.inclusionResolver,
-    );
+    this.registerInclusionResolver('jointAccount', this.jointAccount.inclusionResolver);
   }
 }

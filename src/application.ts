@@ -1,5 +1,5 @@
 import { BootMixin } from '@loopback/boot';
-import { ApplicationConfig, BindingKey, createBindingFromClass } from '@loopback/core';
+import { ApplicationConfig, createBindingFromClass } from '@loopback/core';
 import { RestExplorerBindings, RestExplorerComponent } from '@loopback/rest-explorer';
 import { RepositoryMixin } from '@loopback/repository';
 import { RestApplication } from '@loopback/rest';
@@ -11,13 +11,11 @@ import {
   AuthorizationComponent,
   AuthorizationBindings,
 } from '@loopback/authorization';
-import { SECURITY_SCHEME_SPEC } from '@loopback/authentication-jwt';
+import { RefreshTokenServiceBindings, SECURITY_SCHEME_SPEC } from '@loopback/authentication-jwt';
 import { MetricsComponent, MetricsBindings } from '@loopback/extension-metrics';
 import { HealthComponent, HealthBindings } from '@loopback/extension-health';
 import { CronComponent } from '@loopback/cron';
-import path from 'path';
-import dotenv from 'dotenv';
-dotenv.config();
+import Path from 'path';
 import { MyAuthenticationSequence } from './sequence';
 import { UserAuthenticationComponent } from './components';
 import {
@@ -30,72 +28,31 @@ import {
   JWTAccessAutenticationStrategy,
 } from './services';
 import {
-  UserServiceBindings,
+  pkg,
+  PackageKey,
+  SubsSpecBindings,
+  SubsSpecConstants,
+  LocMsgsBindings,
+  LocMsgsConstants,
+  TutorialLinksListBinding,
+  MariadbBinding,
+  MariadbConstants,
+  PasswordHasherBindings,
+  FirebaseBinding,
+  FirebaseConstants,
+  KavenegarBindings,
+  KavenegarConstans,
+  CafebazaarBindings,
+  CafebazaarConstants,
+  EmailBindings,
+  EmailConstants,
   TokenServiceBindings,
   TokenServiceConstants,
-  PasswordHasherBindings,
-  RefreshTokenServiceBindings,
+  CategoriesSourceListBindings,
+  categoriesSourceListConstants,
+  UserServiceBindings,
+  TutorialLinksListCnostants,
 } from './keys';
-
-/**
- * Information from package.json
- */
-export interface PackageInfo {
-  name: string;
-  version: string;
-  description: string;
-  systemStatus: {
-    maintenance: boolean;
-    forceUpdate: boolean;
-  };
-}
-export const PackageKey = BindingKey.create<PackageInfo>('application.package');
-const pkg: PackageInfo = require('../package.json');
-
-/**
- * Subscription specs from subscriotion-scpecs.json
- */
-export interface SubscriptionSpec {
-  baseCallbackUrl: string;
-  plans: {
-    [planId: string]: {
-      id: string;
-      name: string;
-      grade: string;
-      duration: { unit: 'month' | 'months' | 'year'; amount: number };
-      regular: { [currency: string]: number };
-      sale: { [currency: string]: number };
-      onSale: boolean;
-    };
-  };
-}
-export const SubscriptionSpec = BindingKey.create<SubscriptionSpec>('application.subscriptionSpec');
-const subsSpec: SubscriptionSpec = require('../assets/subscription-specs.json');
-
-export interface LocalizedMessages {
-  [key: string]: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [language: string]: any;
-  };
-}
-export const LocalizedMessages = BindingKey.create<LocalizedMessages>(
-  'application.localizedMessages',
-);
-const localizedMessages: LocalizedMessages = require('../assets/localized-contents.json');
-
-export interface CategoriesSource {
-  [language: string]: Array<{ id: number; title: string; icon: string }>;
-}
-export const CategoriesSourceList = BindingKey.create<CategoriesSource>(
-  'application.categoriesSourceList',
-);
-const categoriesSourceList: CategoriesSource = require('../assets/categories-source.json');
-
-export interface TutorialLinks {
-  [key: string]: string;
-}
-export const TutorialLinksList = BindingKey.create<TutorialLinks>('application.tutorialLinksList');
-const tutorialLinksList: TutorialLinks = require('../assets/tutorial-links.json');
 
 export { ApplicationConfig };
 
@@ -156,7 +113,7 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.add(createBindingFromClass(DailyScheduleConjobService));
     this.add(createBindingFromClass(ReminderCronjobService));
 
-    this.static('/', path.join(__dirname, '../public'));
+    this.static('/', Path.join(__dirname, '../public'));
 
     // Customize @loopback/rest-explorer configuration here
     this.configure(RestExplorerBindings.COMPONENT).to({
@@ -193,11 +150,19 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
   setupBinding(): void {
     // Bind package.json to the application context
     this.bind(PackageKey).to(pkg);
-    this.bind(SubscriptionSpec).to(subsSpec);
-    this.bind(LocalizedMessages).to(localizedMessages);
-    this.bind(CategoriesSourceList).to(categoriesSourceList);
-    this.bind(TutorialLinksList).to(tutorialLinksList);
 
+    this.bind(SubsSpecBindings).to(SubsSpecConstants);
+
+    this.bind(LocMsgsBindings).to(LocMsgsConstants);
+
+    this.bind(CategoriesSourceListBindings).to(categoriesSourceListConstants);
+
+    this.bind(TutorialLinksListBinding).to(TutorialLinksListCnostants);
+
+    // MariaDB datasource configs
+    this.bind(MariadbBinding.MARIADB_CONFIG).to(MariadbConstants.MARIADB_CONFIG_VALUE);
+
+    // JWT binding constants
     this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(TokenServiceConstants.JWT_ALGORITHM_VALUE);
     this.bind(TokenServiceBindings.ACCESS_SECRET).to(TokenServiceConstants.ACCESS_SECRET_VALUE);
     this.bind(TokenServiceBindings.ACCESS_EXPIRES_IN).to(
@@ -219,5 +184,49 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.bind(PasswordHasherBindings.PASSWORD_HASHER).toClass(BcryptHasher);
 
     this.bind(UserServiceBindings.USER_SERVICE).toClass(MyUserService);
+
+    // Firebase binding constants
+    this.bind(FirebaseBinding.FIREBASE_APPLICATION_DATABASEURL).to(
+      FirebaseConstants.FIREBASE_DATABASEURL_VALUE,
+    );
+    this.bind(FirebaseBinding.FIREBASE_CLIENT_EMAIL).to(
+      FirebaseConstants.FIREBASE_CLIENT_EMAIL_VALUE,
+    );
+    this.bind(FirebaseBinding.FIREBASE_PRIVATE_KEY).to(
+      FirebaseConstants.FIREBASE_PRIVATE_KEY_VALUE,
+    );
+    this.bind(FirebaseBinding.FIREBASE_PROJECT_ID).to(FirebaseConstants.FIREBASE_PROJECT_ID_VALUE);
+
+    // Kavenegar binding constants
+    this.bind(KavenegarBindings.KAVENEGAR_API_KEY).to(KavenegarConstans.KAVENEGAR_API_KEY_VALUE);
+    this.bind(KavenegarBindings.SMS_TEMPLATE_FA).to(KavenegarConstans.SMS_TEMPLATE_FA_VALUE);
+    this.bind(KavenegarBindings.SMS_TEMPLATE_EN).to(KavenegarConstans.SMS_TEMPLATE_EN_VALUE);
+
+    // Cafebazaar binding constants
+    this.bind(CafebazaarBindings.CAFEBAZAAR_API_BASEURL).to(
+      CafebazaarConstants.CAFEBAZAAR_API_BASEURL_VALUE,
+    );
+    this.bind(CafebazaarBindings.CAFEBAZAAR_CLIENT_ID).to(
+      CafebazaarConstants.CAFEBAZAAR_CLIENT_ID_VALUE,
+    );
+    this.bind(CafebazaarBindings.CAFEBAZAAR_CLIENT_SECRET).to(
+      CafebazaarConstants.CAFEBAZAAR_CLIENT_SECRET_VALUE,
+    );
+    this.bind(CafebazaarBindings.CAFEBAZAAR_PACKAGE_NAME).to(
+      CafebazaarConstants.CAFEBAZAAR_PACKAGE_NAME_VALUE,
+    );
+    this.bind(CafebazaarBindings.CAFEBAZAAR_REFRESH_TOKEN).to(
+      CafebazaarConstants.CAFEBAZAAR_REFRESH_TOKEN_VALUE,
+    );
+
+    // Email service binding constants
+    this.bind(EmailBindings.ZOHO_ACCOUNT_SCOPE_URL).to(EmailConstants.ZOHO_ACCOUNT_SCOPE_URL_VALUE);
+    this.bind(EmailBindings.GMAIL_ACCOUNT).to(EmailConstants.GMAIL_ACCOUNT_VALUE);
+    this.bind(EmailBindings.NOREPLY_MAIL_ADDRESS).to(EmailConstants.NOREPLY_MAIL_ADDRESS_VALUE);
+    this.bind(EmailBindings.SUPPORT_CLIENT_ID).to(EmailConstants.SUPPORT_CLIENT_ID_VALUE);
+    this.bind(EmailBindings.SUPPORT_CLIENT_SECRET).to(EmailConstants.SUPPORT_CLIENT_SECRET_VALUE);
+    this.bind(EmailBindings.SUPPORT_EMAIL_ADDRESS).to(EmailConstants.SUPPORT_EMAIL_ADDRESS_VALUE);
+    this.bind(EmailBindings.SUPPORT_MESSAGE_URL).to(EmailConstants.SUPPORT_MESSAGE_URL_VALUE);
+    this.bind(EmailBindings.SUPPORT_REFRESH_TOKEN).to(EmailConstants.SUPPORT_REFRESH_TOKEN_VALUE);
   }
 }

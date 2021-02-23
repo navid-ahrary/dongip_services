@@ -1,14 +1,8 @@
-import {
-  repository,
-  BelongsToAccessor,
-  DefaultCrudRepository,
-} from '@loopback/repository';
-import {inject, Getter} from '@loopback/core';
-
-import {VirtualUsers, VirtualUsersRelations, Users, UsersRels} from '../models';
-import {MysqlDataSource} from '../datasources';
-import {UsersRepository} from './';
-import {UsersRelsRepository} from './users-rels.repository';
+import { repository, BelongsToAccessor, DefaultCrudRepository } from '@loopback/repository';
+import { inject, Getter } from '@loopback/core';
+import { VirtualUsers, VirtualUsersRelations, Users, UsersRels } from '../models';
+import { MariadbDataSource } from '../datasources';
+import { UsersRepository, UsersRelsRepository } from '.';
 
 export class VirtualUsersRepository extends DefaultCrudRepository<
   VirtualUsers,
@@ -26,29 +20,20 @@ export class VirtualUsersRepository extends DefaultCrudRepository<
   >;
 
   constructor(
-    @inject('datasources.Mysql') dataSource: MysqlDataSource,
-    @repository.getter('UsersRepository')
-    protected usersRepositoryGetter: Getter<UsersRepository>,
+    @inject('datasources.Mariadb') dataSource: MariadbDataSource,
+    @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('UsersRelsRepository')
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
   ) {
     super(VirtualUsers, dataSource);
+
     this.belongsToUserRel = this.createBelongsToAccessorFor(
       'belongsToUserRel',
       usersRelsRepositoryGetter,
     );
-    this.registerInclusionResolver(
-      'belongsToUserRel',
-      this.belongsToUserRel.inclusionResolver,
-    );
+    this.registerInclusionResolver('belongsToUserRel', this.belongsToUserRel.inclusionResolver);
 
-    this.belongsToUser = this.createBelongsToAccessorFor(
-      'belongsToUser',
-      usersRepositoryGetter,
-    );
-    this.registerInclusionResolver(
-      'belongsToUser',
-      this.belongsToUser.inclusionResolver,
-    );
+    this.belongsToUser = this.createBelongsToAccessorFor('belongsToUser', usersRepositoryGetter);
+    this.registerInclusionResolver('belongsToUser', this.belongsToUser.inclusionResolver);
   }
 }

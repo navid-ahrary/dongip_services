@@ -12,12 +12,18 @@ import {
 import { authenticate, UserService, TokenService } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
-import util from 'util';
-import path from 'path';
-import fs from 'fs';
-import moment from 'moment';
+import Util from 'util';
+import Path from 'path';
+import Fs from 'fs';
+import Moment from 'moment';
 import _ from 'lodash';
-import { PasswordHasherBindings, UserServiceBindings, TokenServiceBindings } from '../keys';
+import {
+  PasswordHasherBindings,
+  UserServiceBindings,
+  TokenServiceBindings,
+  CategoriesSourceListBindings,
+  LocMsgsBindings,
+} from '../keys';
 import { Users, Credentials, Verify, NewUser, Categories, UsersRels, PostDong } from '../models';
 import {
   UsersRepository,
@@ -39,33 +45,33 @@ import {
   DongService,
 } from '../services';
 import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
-import { LocalizedMessages, CategoriesSource } from '../application';
+import { CategoriesSource, LocalizedMessages } from '../types';
 
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, ValidatePasswordInterceptor.BINDING_KEY)
 export class AuthController {
   lang: string;
 
   constructor(
-    @inject.context() public ctx: RequestContext,
-    @service(SmsService) public smsService: SmsService,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
-    @inject('application.categoriesSourceList') public catSrc: CategoriesSource,
+    @inject.context() private ctx: RequestContext,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(CategoriesSourceListBindings) public catSrc: CategoriesSource,
     @inject(TokenServiceBindings.TOKEN_SERVICE) private jwtService: TokenService,
     @inject(PasswordHasherBindings.PASSWORD_HASHER) public passwordHasher: PasswordHasher,
     @inject(UserServiceBindings.USER_SERVICE) public userService: UserService<Users, Credentials>,
-    @service(VerifyService) public verifySerivce: VerifyService,
-    @service(EmailService) protected emailService: EmailService,
-    @service(FirebaseService) public firebaseService: FirebaseService,
-    @service(RefreshtokenService) private refreshTokenService: RefreshtokenService,
-    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
+    @service(SmsService) public smsService: SmsService,
     @service(DongService) public dongService: DongService,
+    @service(EmailService) public emailService: EmailService,
+    @service(VerifyService) public verifyService: VerifyService,
+    @service(FirebaseService) public firebaseService: FirebaseService,
+    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
+    @service(RefreshtokenService) public refreshTokenService: RefreshtokenService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(VerifyRepository) private verifyRepository: VerifyRepository,
+    @repository(VerifyRepository) public verifyRepository: VerifyRepository,
     @repository(SettingsRepository) public settingsRepository: SettingsRepository,
     @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
     @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
-    @repository(RefreshTokensRepository) public refreshTokenRepo: RefreshTokensRepository,
     @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
+    @repository(RefreshTokensRepository) public refreshTokenRepo: RefreshTokensRepository,
   ) {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
@@ -82,10 +88,12 @@ export class AuthController {
 
   async getUserScores(userId: typeof Users.prototype.userId): Promise<number> {
     const scoresList = await this.usersRepository.scores(userId).find();
+
     let totalScores = 0;
     scoresList.forEach((scoreItem) => {
       totalScores += scoreItem.score;
     });
+
     return totalScores;
   }
 
@@ -182,7 +190,7 @@ export class AuthController {
     const countRequstedVerifyCode = await this.verifyRepository.count({
       ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
       createdAt: {
-        between: [moment.utc().subtract(5, 'minutes').toISOString(), moment.utc().toISOString()],
+        between: [Moment.utc().subtract(5, 'minutes').toISOString(), Moment.utc().toISOString()],
       },
     });
 
@@ -249,11 +257,11 @@ export class AuthController {
           console.error(err.message);
         });
     } else if (verifyReqBody.email) {
-      let mailContent = fs.readFileSync(
-        path.resolve(__dirname, '../../assets/confirmation_dongip_en.html'),
+      let mailContent = Fs.readFileSync(
+        Path.resolve(__dirname, '../../assets/confirmation_dongip_en.html'),
         'utf-8',
       );
-      mailContent = util.format(mailContent, randomCode.split('').join(' '));
+      mailContent = Util.format(mailContent, randomCode.split('').join(' '));
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.emailService
@@ -361,10 +369,11 @@ export class AuthController {
     const verifyId = +currentUserProfile[securityId];
 
     try {
-      await this.verifySerivce.verifyCredentials(verifyId, credentials.password);
+      await this.verifyService.verifyCredentials(verifyId, credentials.password);
 
       // Ensure the user exists and the password is correct
       const user = await this.userService.verifyCredentials(credentials);
+
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepository.updateById(user.getId(), {
         firebaseToken: firebaseToken,
@@ -381,16 +390,19 @@ export class AuthController {
 
       //create a JWT token based on the Userprofile
       const accessToken = await this.jwtService.generateToken(userProfile);
+
       let refTokenObj = await this.refreshTokenService.getToken(userProfile);
+
       if (!refTokenObj.refreshToken) {
         refTokenObj = await this.refreshTokenService.generateToken(userProfile, accessToken);
       }
+
       const refToken = refTokenObj.refreshToken!;
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.verifyRepository.updateById(verifyId, {
         loggedIn: true,
-        loggedInAt: moment.utc().toISOString(),
+        loggedInAt: Moment.utc().toISOString(),
       });
 
       const resp = {
@@ -402,12 +414,10 @@ export class AuthController {
         refreshToken: refToken,
       };
 
-      console.log('LOGIN RESPONSE:::', resp);
-
       return resp;
     } catch (err) {
+      console.error(err.message);
       const errMsg = this.locMsg[err.message][this.lang];
-      console.error(errMsg);
       throw new HttpErrors.UnprocessableEntity(errMsg);
     }
   }
@@ -497,12 +507,12 @@ export class AuthController {
     totalScores: number;
   }> {
     const verifyId = +currentUserProfile[securityId],
-      nowUTC = moment.utc(),
+      nowUTC = Moment.utc(),
       userLanguage = newUser.language,
       userCurrency = newUser.currency;
 
     try {
-      const foundVerify = await this.verifySerivce.verifyCredentials(verifyId, newUser.password);
+      const foundVerify = await this.verifyService.verifyCredentials(verifyId, newUser.password);
 
       const countRegisteredUsers = await this.usersRepository.count();
       const roles = countRegisteredUsers.count < 1000 ? ['GOLD'] : ['BRONZE'];
@@ -527,8 +537,8 @@ export class AuthController {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.usersRepository.subscriptions(savedUser.getId()).create({
           planId: 'plan_gy1',
-          solTime: moment(nowUTC).utc().toISOString(),
-          eolTime: moment(nowUTC).utc().add(1, 'year').toISOString(),
+          solTime: Moment(nowUTC).utc().toISOString(),
+          eolTime: Moment(nowUTC).utc().add(1, 'year').toISOString(),
         });
       }
 
@@ -569,13 +579,11 @@ export class AuthController {
       const resp = {
         userId: savedUser.getId(),
         planId: planId,
-        solTime: roles.includes('GOLD') ? moment(nowUTC).utc().toISOString() : null,
-        eolTime: roles.includes('GOLD') ? moment(nowUTC).utc().add(1, 'year').toISOString() : null,
+        solTime: roles.includes('GOLD') ? Moment(nowUTC).utc().toISOString() : null,
+        eolTime: roles.includes('GOLD') ? Moment(nowUTC).utc().add(1, 'year').toISOString() : null,
         totalScores: savedScore.score,
         ...tokenObj,
       };
-
-      console.log('SINGUP RESPONSE:::', resp);
 
       return resp;
     } catch (err) {

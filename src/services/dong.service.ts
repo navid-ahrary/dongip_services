@@ -18,26 +18,27 @@ import {
   UsersRelsRepository,
   UsersRepository,
 } from '../repositories';
-import { CategoriesSource, LocalizedMessages } from '../application';
+import { CategoriesSource, LocalizedMessages } from '../types';
+import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class DongService {
   lang: string;
 
   constructor(
-    @inject.context() public ctx: RequestContext,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
+    @inject.context() private ctx: RequestContext,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(CategoriesSourceListBindings) public catSrc: CategoriesSource,
+    @service(FirebaseService) private firebaseSerice: FirebaseService,
     @repository(DongsRepository) public dongRepository: DongsRepository,
-    @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
-    @repository(PayerListRepository) public payerListRepository: PayerListRepository,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(BillListRepository) public billListRepository: BillListRepository,
+    @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
+    @repository(PayerListRepository) public payerListRepository: PayerListRepository,
+    @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
     @repository(JointAccountsRepository) public jointAccRepository: JointAccountsRepository,
     @repository(JointAccountSubscribesRepository)
     public jointAccSunRepository: JointAccountSubscribesRepository,
-    @service(FirebaseService) private firebaseSerice: FirebaseService,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
-    @inject('application.categoriesSourceList') public catSrc: CategoriesSource,
   ) {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }

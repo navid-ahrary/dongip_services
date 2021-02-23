@@ -24,21 +24,22 @@ import {
   EmailService,
 } from '../services';
 import { Purchases, Subscriptions, Users, InappPurchase } from '../models';
-import { SubscriptionSpec, LocalizedMessages } from '../application';
 import { ValidatePhoneEmailInterceptor } from '../interceptors';
+import { LocMsgsBindings, SubsSpecBindings } from '../keys';
+import { LocalizedMessages, SubscriptionSpec } from '../types';
 
 export class PurchasesController {
   constructor(
-    @repository(PurchasesRepository) public purchasesRepo: PurchasesRepository,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(SubsSpecBindings) public subsSpec: SubscriptionSpec,
     @repository(UsersRepository) public usersRepo: UsersRepository,
+    @repository(PurchasesRepository) public purchasesRepo: PurchasesRepository,
     @service(EmailService) public emailService: EmailService,
-    @service(SubscriptionService) protected subsService: SubscriptionService,
-    @service(CafebazaarService) protected cafebazaarService: CafebazaarService,
-    @service(FirebaseService) protected firebaseService: FirebaseService,
-    @service(WoocommerceService) protected woocomService: WoocommerceService,
-    @service(PhoneNumberService) protected phoneNumSerice: PhoneNumberService,
-    @inject('application.subscriptionSpec') public subsSpec: SubscriptionSpec,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @service(FirebaseService) public firebaseService: FirebaseService,
+    @service(SubscriptionService) public subsService: SubscriptionService,
+    @service(WoocommerceService) public woocomService: WoocommerceService,
+    @service(PhoneNumberService) public phoneNumSerice: PhoneNumberService,
+    @service(CafebazaarService) public cafebazaarService: CafebazaarService,
   ) {}
 
   async sendNotification(userId: typeof Users.prototype.userId, subscription: Subscriptions) {

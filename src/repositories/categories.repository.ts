@@ -5,7 +5,6 @@ import {
   DefaultCrudRepository,
 } from '@loopback/repository';
 import { inject, Getter } from '@loopback/core';
-
 import {
   Categories,
   CategoriesRelations,
@@ -15,12 +14,14 @@ import {
   Dongs,
   Budgets,
 } from '../models';
-import { MysqlDataSource } from '../datasources';
-import { UsersRepository } from './';
-import { BillListRepository } from './bill-list.repository';
-import { PayerListRepository } from './payer-list.repository';
-import { DongsRepository } from './dongs.repository';
-import { BudgetsRepository } from './budgets.repository';
+import { MariadbDataSource } from '../datasources';
+import {
+  UsersRepository,
+  BillListRepository,
+  PayerListRepository,
+  DongsRepository,
+  BudgetsRepository,
+} from '.';
 
 export class CategoriesRepository extends DefaultCrudRepository<
   Categories,
@@ -47,7 +48,7 @@ export class CategoriesRepository extends DefaultCrudRepository<
   >;
 
   constructor(
-    @inject('datasources.Mysql') dataSource: MysqlDataSource,
+    @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('BillListRepository')
     protected billListRepositoryGetter: Getter<BillListRepository>,

@@ -18,7 +18,8 @@ import {
   UsersRelsRepository,
 } from '../repositories';
 import { Budgets } from '../models';
-import { LocalizedMessages } from '../application';
+import { LocalizedMessages } from '../types';
+import { LocMsgsBindings } from '../keys';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -30,14 +31,13 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
   private readonly userId: number;
 
   constructor(
-    @repository(BudgetsRepository) public budgetsRepo: BudgetsRepository,
-    @repository(CategoriesRepository)
-    public categoriessRepo: CategoriesRepository,
-    @repository(JointAccountsRepository) public joitAccRepo: JointAccountsRepository,
-    @repository(UsersRelsRepository) public usersRelsRepo: UsersRelsRepository,
-    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @inject(RestBindings.Http.REQUEST) private req: Request,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+    @repository(BudgetsRepository) public budgetsRepo: BudgetsRepository,
+    @repository(UsersRelsRepository) public usersRelsRepo: UsersRelsRepository,
+    @repository(CategoriesRepository) public categoriessRepo: CategoriesRepository,
+    @repository(JointAccountsRepository) public joitAccRepo: JointAccountsRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
   }

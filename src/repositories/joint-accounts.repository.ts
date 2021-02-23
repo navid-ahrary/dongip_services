@@ -5,7 +5,6 @@ import {
   HasManyRepositoryFactory,
 } from '@loopback/repository';
 import { inject, Getter } from '@loopback/core';
-
 import {
   JointAccounts,
   JointAccountsRelations,
@@ -13,10 +12,8 @@ import {
   JointAccountSubscribes,
   Dongs,
 } from '../models';
-import { MysqlDataSource } from '../datasources';
-import { UsersRepository } from './users.repository';
-import { JointAccountSubscribesRepository } from './joint-account-subscribes.repository';
-import { DongsRepository } from './dongs.repository';
+import { MariadbDataSource } from '../datasources';
+import { UsersRepository, JointAccountSubscribesRepository, DongsRepository } from '.';
 
 export class JointAccountsRepository extends DefaultCrudRepository<
   JointAccounts,
@@ -36,7 +33,7 @@ export class JointAccountsRepository extends DefaultCrudRepository<
   >;
 
   constructor(
-    @inject('datasources.Mysql') dataSource: MysqlDataSource,
+    @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('UsersRepository')
     protected usersRepositoryGetter: Getter<UsersRepository>,
     @repository.getter('JointAccountSubscribesRepository')

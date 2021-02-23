@@ -31,8 +31,9 @@ import {
   JointAccountsInterceptor,
   FirebaseTokenInterceptor,
 } from '../interceptors';
-import { CategoriesSource, LocalizedMessages } from '../application';
 import { dongReqBody } from './specs';
+import { CategoriesSource, LocalizedMessages } from '../types';
+import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
 
 @model()
 export class ResponseNewDong extends Dongs {
@@ -47,11 +48,11 @@ export class DongsController {
   lang: string;
 
   constructor(
-    @inject.context() public ctx: RequestContext,
+    @inject.context() private ctx: RequestContext,
+    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(CategoriesSourceListBindings) public catSrc: CategoriesSource,
     @service(DongService) public dongService: DongService,
-    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
-    @inject('application.categoriesSourceList') public catSrc: CategoriesSource,
     @repository(UsersRepository) public userRepo: UsersRepository,
     @repository(DongsRepository) public dongRepository: DongsRepository,
     @repository(BillListRepository) public billListRepository: BillListRepository,

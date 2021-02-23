@@ -7,10 +7,11 @@ import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authorize } from '@loopback/authorization';
 import _ from 'lodash';
 import { Dongs } from '../models';
-import { LocalizedMessages } from '../application';
 import { JointAccountsRepository, JointAccountSubscribesRepository } from '../repositories';
 import { basicAuthorization } from '../services';
 import { FirebaseTokenInterceptor } from '../interceptors';
+import { LocalizedMessages } from '../types';
+import { LocMsgsBindings } from '../keys';
 
 @authenticate('jwt.access')
 @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
@@ -20,12 +21,12 @@ export class JointAccountsDongsController {
   lang: string;
 
   constructor(
-    @repository(JointAccountsRepository) protected jointAccountsRepository: JointAccountsRepository,
-    @repository(JointAccountSubscribesRepository)
-    protected jointAccSubRepo: JointAccountSubscribesRepository,
-    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
     @inject.context() public ctx: RequestContext,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+    @repository(JointAccountSubscribesRepository)
+    public jointAccSubRepo: JointAccountSubscribesRepository,
+    @repository(JointAccountsRepository) public jointAccountsRepository: JointAccountsRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';

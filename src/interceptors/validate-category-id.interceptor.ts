@@ -12,7 +12,8 @@ import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { HttpErrors, Request, RestBindings } from '@loopback/rest';
 import _ from 'lodash';
 import { CategoriesRepository, UsersRepository } from '../repositories';
-import { LocalizedMessages } from '../application';
+import { LocalizedMessages } from '../types';
+import { LocMsgsBindings } from '../keys';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -24,12 +25,11 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
   private readonly userId: number;
 
   constructor(
-    @repository(CategoriesRepository)
-    public categoriesRepo: CategoriesRepository,
-    @repository(UsersRepository) public usersRepo: UsersRepository,
-    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @inject(RestBindings.Http.REQUEST) private req: Request,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+    @repository(UsersRepository) public usersRepo: UsersRepository,
+    @repository(CategoriesRepository) public categoriesRepo: CategoriesRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
   }

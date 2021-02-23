@@ -32,7 +32,8 @@ import {
   ValidatePhoneEmailInterceptor,
   ValidateUsersRelsInterceptor,
 } from '../interceptors';
-import { LocalizedMessages } from '../application';
+import { LocalizedMessages } from '../types';
+import { LocMsgsBindings } from '../keys';
 
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, FirebaseTokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
@@ -42,12 +43,12 @@ export class UsersRelsController {
 
   constructor(
     @inject.context() public ctx: RequestContext,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
     @service(FirebaseService) public firebaseService: FirebaseService,
+    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(DongsRepository) public dongsRepository: DongsRepository,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
-    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
     @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
     @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
     @repository(VirtualUsersRepository) public virtualUsersRepository: VirtualUsersRepository,
@@ -385,7 +386,7 @@ export class UsersRelsController {
             items: { type: 'string' },
             nullable: false,
             additionalProperties: false,
-            example: ['+989176502184', '+989387401240', '09197744814'],
+            example: ['+989171234657', '+19381234567', '09191234657'],
           },
         },
       },

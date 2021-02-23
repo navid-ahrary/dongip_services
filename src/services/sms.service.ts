@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { BindingScope, injectable, service } from '@loopback/core';
-const Kavenegar = require('kavenegar');
-
+import { BindingScope, inject, injectable, service } from '@loopback/core';
+import { KavenegarBindings } from '../keys';
 import { PhoneNumberService } from './phone-number.service';
 
-const faTemplate = process.env.SMS_TEMPLATE_FA!;
-const enTemplate = process.env.SMS_TEMPLATE_EN!;
+const Kavenegar = require('kavenegar');
 
 export interface VerifyLookupSMS {
   token: string;
@@ -34,20 +32,13 @@ export class SmsService {
   private readonly LOOKUP_TYPE = 'sms';
   private readonly kavenegarApi;
 
-  constructor(@service(PhoneNumberService) private phoneNumService: PhoneNumberService) {
-    this._validateEnvVars();
-
-    this.kavenegarApi = Kavenegar.KavenegarApi({ apikey: process.env.KAVENEGAR_API });
-  }
-
-  private _validateEnvVars() {
-    if (!process.env.SMS_TEMPLATE_FA || !process.env.SMS_TEMPLATE_EN) {
-      throw new Error('SMS template is not provided');
-    }
-
-    if (!process.env.KAVENEGAR_API) {
-      throw new Error('KAVENEGAR API is not provided');
-    }
+  constructor(
+    @service(PhoneNumberService) private phoneNumService: PhoneNumberService,
+    @inject(KavenegarBindings.KAVENEGAR_API_KEY) private apiKey: string,
+    @inject(KavenegarBindings.SMS_TEMPLATE_EN) private tempEn: string,
+    @inject(KavenegarBindings.SMS_TEMPLATE_FA) private tempFa: string,
+  ) {
+    this.kavenegarApi = Kavenegar.KavenegarApi({ apikey: this.apiKey });
   }
 
   public async sendSms(
@@ -61,7 +52,7 @@ export class SmsService {
     const sms: VerifyLookupSMS = {
       token: token1,
       token2: token2 ? token2 : undefined,
-      template: lang === 'fa' ? faTemplate : enTemplate,
+      template: lang === 'fa' ? this.tempFa : this.tempEn,
       type: this.LOOKUP_TYPE,
       receptor: receptor,
     };

@@ -20,7 +20,8 @@ import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { Messages, Notifications, Users } from '../models';
 import { basicAuthorization, FirebaseService, MessagePayload } from '../services';
 import { MessagesRepository, UsersRepository } from '../repositories';
-import { LocalizedMessages } from '../application';
+import { LocMsgsBindings } from '../keys';
+import { LocalizedMessages } from '../types';
 
 @authorize({ allowedRoles: ['GOD'], voters: [basicAuthorization] })
 @authenticate('jwt.access')
@@ -29,14 +30,12 @@ export class SupportController {
   lang: string;
 
   constructor(
-    @repository(MessagesRepository)
-    public messagesRepository: MessagesRepository,
-    @repository(UsersRepository)
-    public usersRepository: UsersRepository,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
-    @service(FirebaseService) protected firebaseService: FirebaseService,
     @inject.context() public ctx: RequestContext,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(SecurityBindings.USER) public currentUserProfile: UserProfile,
+    @service(FirebaseService) public firebaseService: FirebaseService,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(MessagesRepository) public messagesRepository: MessagesRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';

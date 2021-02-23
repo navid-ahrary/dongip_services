@@ -18,7 +18,8 @@ import _ from 'lodash';
 import { Categories } from '../models';
 import { UsersRepository, CategoriesRepository } from '../repositories';
 import { FirebaseTokenInterceptor, ValidateCategoryIdInterceptor } from '../interceptors';
-import { LocalizedMessages } from '../application';
+import { LocalizedMessages } from '../types';
+import { LocMsgsBindings } from '../keys';
 
 @intercept(ValidateCategoryIdInterceptor.BINDING_KEY, FirebaseTokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
@@ -27,11 +28,11 @@ export class CategoriesController {
   lang: string;
 
   constructor(
-    @inject.context() public ctx: RequestContext,
+    @inject.context() private ctx: RequestContext,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
-    @repository(UsersRepository) protected usersRepository: UsersRepository,
-    @repository(CategoriesRepository) protected categoryRepository: CategoriesRepository,
+    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @repository(CategoriesRepository) public categoryRepository: CategoriesRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';

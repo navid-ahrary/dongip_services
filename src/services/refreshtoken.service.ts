@@ -93,6 +93,7 @@ export class RefreshtokenService {
       algorithm: this.jwtAlgorithm,
       expiresIn: +this.refreshExpiresIn,
     });
+
     const result = { accessToken: accessToken, refreshToken: refreshToken };
 
     refEnt.refreshToken = refreshToken;

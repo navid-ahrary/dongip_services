@@ -23,6 +23,8 @@ export class JointRequest extends Model {
   description: string;
 
   @property({
+    type: 'array',
+    itemType: 'number',
     jsonSchema: {
       type: 'array',
       uniqueItems: true,

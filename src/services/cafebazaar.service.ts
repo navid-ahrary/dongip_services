@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { BindingScope, injectable } from '@loopback/core';
+import { BindingScope, inject, injectable } from '@loopback/core';
 import axios from 'axios';
 import qs from 'qs';
+import { CafebazaarBindings } from '../keys';
 
 export interface AccessTokenResponse {
   access_token: string;
@@ -27,13 +28,13 @@ export interface Purchase {
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CafebazaarService {
-  private readonly packageName = process.env.CAFEBAZAAR_PACKAGE_NAME;
-  private readonly refreshToken = process.env.CAFEBAZAAR_REFRESH_TOKEN;
-  private readonly clientId = process.env.CAFEBAZAAR_CLIENT_ID;
-  private readonly clientSecret = process.env.CAFEBAZAAR_CLIENT_SECRET;
-  private readonly baseURL = process.env.CAFEBAZAAR_API_BASEURL;
-
-  constructor() {}
+  constructor(
+    @inject(CafebazaarBindings.CAFEBAZAAR_API_BASEURL) private apiBaseUrl: string,
+    @inject(CafebazaarBindings.CAFEBAZAAR_CLIENT_ID) private clientId: string,
+    @inject(CafebazaarBindings.CAFEBAZAAR_CLIENT_SECRET) private clientSecret: string,
+    @inject(CafebazaarBindings.CAFEBAZAAR_PACKAGE_NAME) private packageName: string,
+    @inject(CafebazaarBindings.CAFEBAZAAR_REFRESH_TOKEN) private refreshToken: string,
+  ) {}
 
   private async getAccessToken(): Promise<AccessTokenResponse> {
     const payload = qs.stringify({
@@ -47,7 +48,7 @@ export class CafebazaarService {
       const apiPath = '/auth/token/';
       const result = await axios({
         method: 'POST',
-        url: this.baseURL + apiPath,
+        url: this.apiBaseUrl + apiPath,
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -72,7 +73,7 @@ export class CafebazaarService {
       const result = await axios({
         method: 'GET',
         headers: { Authorization: data.access_token },
-        url: this.baseURL + apiPath,
+        url: this.apiBaseUrl + apiPath,
       });
 
       return result.data;

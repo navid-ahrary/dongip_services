@@ -9,7 +9,8 @@ import {
 } from '@loopback/core';
 import { HttpErrors, Request, RestBindings } from '@loopback/rest';
 import _ from 'lodash';
-import { LocalizedMessages } from '../application';
+import { LocMsgsBindings } from '../keys';
+import { LocalizedMessages } from '../types';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -21,7 +22,7 @@ export class ValidatePasswordInterceptor implements Provider<Interceptor> {
 
   constructor(
     @inject(RestBindings.Http.REQUEST) private req: Request,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
   ) {}
 
   /**

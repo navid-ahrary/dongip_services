@@ -9,18 +9,19 @@ import util from 'util';
 import { NotificationsRepository, RemindersRepository, UsersRepository } from '../repositories';
 import { FirebaseService, BatchMessage } from '.';
 import { Notifications } from '../models';
-import { LocalizedMessages } from '../application';
+import { LocalizedMessages } from '../types';
+import { LocMsgsBindings } from '../keys';
 
 @cronJob({ scope: BindingScope.TRANSIENT })
 export class ReminderCronjobService extends CronJob {
   TZ = process.env.TZ!;
 
   constructor(
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @service(FirebaseService) public firebaseService: FirebaseService,
     @repository(UsersRepository) public userRepo: UsersRepository,
     @repository(RemindersRepository) public remindersRepo: RemindersRepository,
     @repository(NotificationsRepository) public notifRepo: NotificationsRepository,
-    @service(FirebaseService) public firebaseService: FirebaseService,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
   ) {
     super({
       name: 'reminderNotifyJob',

@@ -11,7 +11,8 @@ import { HttpErrors, RestBindings, Request } from '@loopback/rest';
 import { service } from '@loopback/core';
 import _ from 'lodash';
 import { EmailService, PhoneNumberService } from '../services';
-import { LocalizedMessages } from '../application';
+import { LocalizedMessages } from '../types';
+import { LocMsgsBindings } from '../keys';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -22,10 +23,10 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${ValidatePhoneEmailInterceptor.name}`;
 
   constructor(
-    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
-    @service(EmailService) public emailService: EmailService,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
     @inject(RestBindings.Http.REQUEST) private req: Request,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @service(EmailService) public emailService: EmailService,
+    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
   ) {}
 
   /**

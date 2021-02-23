@@ -11,18 +11,23 @@ import { inject, intercept, service } from '@loopback/core';
 import { repository, DataObject } from '@loopback/repository';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
-import { authenticate, UserService, TokenService } from '@loopback/authentication';
+import { authenticate } from '@loopback/authentication';
 import _ from 'lodash';
-import util from 'util';
-import moment from 'moment';
+import Util from 'util';
+import Moment from 'moment';
 import { UserPatchRequestBody } from './specs';
 import { PhoneNumberService } from '../services';
 import { UsersRepository } from '../repositories';
-import { UserServiceBindings, TokenServiceBindings } from '../keys';
-import { LocalizedMessages, PackageInfo, TutorialLinks } from '../application';
-import { Users, Credentials, CompleteSignup, Settings, UsersRels, Scores } from '../models';
+import {
+  TokenServiceBindings,
+  PackageKey,
+  LocMsgsBindings,
+  TutorialLinksListBinding,
+} from '../keys';
+import { Users, CompleteSignup, Settings, UsersRels, Scores } from '../models';
 import { FirebaseTokenInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { JointAccountController } from './joint-account.controller';
+import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
 
 @intercept(FirebaseTokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
@@ -33,14 +38,12 @@ export class UsersController {
 
   constructor(
     @inject.context() public ctx: RequestContext,
-    @inject('application.package') public packageInfo: PackageInfo,
-    @inject('application.tutorialLinksList') public tutLinks: TutorialLinks,
-    @inject('application.localizedMessages') public locMsg: LocalizedMessages,
-    @inject('controllers.JointAccountController') public jointController: JointAccountController,
+    @inject(PackageKey) public packageInfo: PackageInfo,
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(TutorialLinksListBinding) public tutLinks: TutorialLinks,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
-    @inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService,
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
-    @inject(UserServiceBindings.USER_SERVICE) public userService: UserService<Users, Credentials>,
+    @inject('controllers.JointAccountController') public jointController: JointAccountController,
     @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
   ) {
@@ -239,7 +242,7 @@ export class UsersController {
       forceUpdate: boolean;
     };
   }> {
-    const nowUTC = moment.utc();
+    const nowUTC = Moment.utc();
 
     const foundUser = await this.usersRepository.findById(this.userId, {
       fields: {
@@ -302,7 +305,7 @@ export class UsersController {
         version: this.packageInfo.version,
         forceUpdate: this.packageInfo.systemStatus.forceUpdate,
         maintenance: this.packageInfo.systemStatus.maintenance,
-        message: util.format(this.locMsg['SERVER_MAINTENACE'][this.lang], this.userName),
+        message: Util.format(this.locMsg['SERVER_MAINTENACE'][this.lang], this.userName),
       },
     };
   }
