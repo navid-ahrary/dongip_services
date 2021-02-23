@@ -95,6 +95,10 @@ export class DongsController {
               'scores',
             ],
           }),
+          example: {
+            desc: 'For FUN',
+            categoryId: 123,
+          },
         },
       },
     })
