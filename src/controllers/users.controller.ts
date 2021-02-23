@@ -339,7 +339,6 @@ export class UsersController {
     cmpltSignBody: CompleteSignup,
   ): Promise<void> {
     try {
-      console.log('cmpltSignBody:', cmpltSignBody);
       const foundUser = await this.usersRepository.findById(this.userId, {
         fields: { phoneLocked: true, emailLocked: true },
       });
