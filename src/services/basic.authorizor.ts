@@ -22,9 +22,7 @@ export async function basicAuthorization(
   if (!currentUser.roles) return AuthorizationDecision.DENY;
 
   // Authorize everything that does not have a allowedRoles property
-  if (!_.get(metadata, 'allowedRoles') && !_.get(metadata, 'deniedRoles')) {
-    return AuthorizationDecision.ALLOW;
-  }
+  if (!metadata.allowedRoles && !metadata.deniedRoles) return AuthorizationDecision.ALLOW;
 
   let roleIsAllowed = false;
   for (const role of currentUser.roles) {
@@ -43,7 +41,7 @@ export async function basicAuthorization(
     _.includes(currentUser.roles, 'BRONZE')
   ) {
     return AuthorizationDecision.ALLOW;
-  } else if (_.includes(currentUser.roles, 'BLOCKED')) return AuthorizationDecision.DENY;
+  }
 
   // Allow access only to model owners
   if (currentUser[securityId] === authorizationCtx.invocationContext.args[0]) {
