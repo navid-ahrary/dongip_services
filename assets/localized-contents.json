@@ -132,8 +132,8 @@
     "en": "Disabled family state"
   },
   "ADD_MEMBERS_JOINT_ACCOUNT_NOTIFY_BODY": {
-    "fa": "%s به گروه پیوست",
-    "en": "%s joined to group"
+    "fa": "عضو جدید : %s به گروه پیوست",
+    "en": "New Member : %s joined to group"
   },
   "DELETE_MEMBERS_JOINT_ACCOUNT_NOTIFY_BODY": {
     "fa": "%s از گروه حذف شد",
@@ -164,16 +164,16 @@
     "en": "Deleted group"
   },
   "DELETE_JOINT_NOTIFY_BODY": {
-    "fa": "گروه %s توسط %s حذف شد",
-    "en": "Group %s has been deleted by %s"
+    "fa": "حذف گروه : گروه %s توسط %s حذف شد",
+    "en": "Deleted Group : Group %s has been deleted by %s"
   },
   "LEAVE_JOINT_NOTIFY_TITLE": {
     "fa": "ترک گروه",
     "en": "Left group"
   },
   "LEAVE_JOINT_NOTIFY_BODY": {
-    "fa": "%s گروه %s را ترک کرد",
-    "en": "%s left from %s group"
+    "fa": "ترک گروه : %s گروه %s را ترک کرد",
+    "en": "Left Group : %s left from %s group"
   },
   "PLAN_ID": {
     "fa": {
@@ -220,8 +220,8 @@
     "en": "%s added you. If you like to sync your bills, tap on this message and add to your friends"
   },
   "USERS_RELS_BACK_NOTIFY_TITLE": {
-    "fa": "همگام سازی حساب ها با %s",
-    "en": "Sync with %s"
+    "fa": "دوست جدید : همگام سازی حساب ها با %s",
+    "en": "New Frind : Sync with %s"
   },
   "USERS_RELS_BACK_NOTIFY_BODY": {
     "fa": "%s هم شما رو دوست دُنگیپش میدونه. از این به بعد حساب های بین تون همگام سازی میشن",
@@ -256,7 +256,7 @@
     "en": "Sorry dear %s, We are improving the system. Thanks for your patient"
   },
   "REMINDER_TITLE": {
-    "fa": "یادآوری: %s جان یه موقع یادت نره",
-    "en": "Reminer: Dear %s do not forget"
+    "fa": "یادآوری : %s جان یه موقع یادت نره",
+    "en": "Reminer : Dear %s do not forget"
   }
 }
