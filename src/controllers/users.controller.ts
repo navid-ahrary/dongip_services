@@ -349,16 +349,18 @@ export class UsersController {
       const settingProps: Partial<Settings> = _.pick(cmpltSignBody, ['language', 'currency']);
       const userRelProps: Partial<UsersRels> = _.pick(cmpltSignBody, ['avatar', 'name']);
 
-      const postedPhone = cmpltSignBody.phone;
-      if (!foundUser.phoneLocked && postedPhone) {
+      if (!foundUser.phoneLocked && cmpltSignBody.phone) {
+        const postedPhone = cmpltSignBody.phone;
+
         userProps['phoneLocked'] = true;
         userProps['phone'] = postedPhone;
         userProps['region'] = this.phoneNumService.getRegionCodeISO(postedPhone);
         userRelProps['phone'] = postedPhone;
       }
 
-      const postedEmail = cmpltSignBody.email;
-      if (!foundUser.emailLocked && postedEmail) {
+      if (!foundUser.emailLocked && cmpltSignBody.email) {
+        const postedEmail = cmpltSignBody.email;
+
         userProps['emailLocked'] = true;
         userProps['email'] = postedEmail;
         userRelProps['email'] = postedEmail;
