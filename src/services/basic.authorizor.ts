@@ -13,18 +13,13 @@ export async function basicAuthorization(
   let currentUser: UserProfile;
 
   if (authorizationCtx.principals.length > 0) {
-    const user = _.pick(authorizationCtx.principals[0], ['id', 'roles']);
     currentUser = {
-      [securityId]: user.id,
-      roles: user.roles,
+      [securityId]: _.get(authorizationCtx.principals[0], 'id'),
+      roles: _.get(authorizationCtx.principals[0], 'roles'),
     };
-  } else {
-    return AuthorizationDecision.DENY;
-  }
+  } else return AuthorizationDecision.DENY;
 
-  if (!currentUser.roles) {
-    return AuthorizationDecision.DENY;
-  }
+  if (!currentUser.roles) return AuthorizationDecision.DENY;
 
   // Authorize everything that does not have a allowedRoles property
   if (!_.get(metadata, 'allowedRoles') && !_.get(metadata, 'deniedRoles')) {
@@ -39,19 +34,16 @@ export async function basicAuthorization(
     }
   }
 
-  if (!roleIsAllowed) {
-    return AuthorizationDecision.DENY;
-  }
+  if (!roleIsAllowed) return AuthorizationDecision.DENY;
 
   // Admin and costumer accounts bypass id verification
   if (
     _.includes(currentUser.roles, 'GOD') ||
     _.includes(currentUser.roles, 'GOLD') ||
-    _.includes(currentUser.roles, 'BRONZE') ||
-    _.includes(currentUser.roles, 'BLOCKED')
+    _.includes(currentUser.roles, 'BRONZE')
   ) {
     return AuthorizationDecision.ALLOW;
-  }
+  } else if (_.includes(currentUser.roles, 'BLOCKED')) return AuthorizationDecision.DENY;
 
   // Allow access only to model owners
   if (currentUser[securityId] === authorizationCtx.invocationContext.args[0]) {
