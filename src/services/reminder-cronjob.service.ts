@@ -1,22 +1,25 @@
 import { CronJob, cronJob } from '@loopback/cron';
 import { repository } from '@loopback/repository';
 import { service, BindingScope, inject } from '@loopback/core';
-import moment from 'moment';
+import Moment from 'moment';
 import 'moment-timezone';
-import ct from 'countries-and-timezones';
+import Ct from 'countries-and-timezones';
 import _ from 'lodash';
-import util from 'util';
+import Util from 'util';
 import { NotificationsRepository, RemindersRepository, UsersRepository } from '../repositories';
 import { FirebaseService, BatchMessage } from '.';
 import { Notifications } from '../models';
 import { LocalizedMessages } from '../types';
-import { LocMsgsBindings } from '../keys';
+import { AppInstanceBinding, HostnameBinding, LocMsgsBindings, TzBindings } from '../keys';
 
-@cronJob({ scope: BindingScope.TRANSIENT })
+@cronJob({ scope: BindingScope.APPLICATION })
 export class ReminderCronjobService extends CronJob {
-  TZ = process.env.TZ!;
+  TZ: string;
 
   constructor(
+    @inject(TzBindings) timezone: string,
+    @inject(HostnameBinding) hostname: string,
+    @inject(AppInstanceBinding) nodeAppInstance: string,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @service(FirebaseService) public firebaseService: FirebaseService,
     @repository(UsersRepository) public userRepo: UsersRepository,
@@ -27,20 +30,19 @@ export class ReminderCronjobService extends CronJob {
       name: 'reminderNotifyJob',
       cronTime: '0 */15 * * * *',
       start: true,
-      timeZone: process.env.TZ,
+      timeZone: timezone,
       onTick: async () => {
-        if (
-          _.isUndefined(process.env.NODE_APP_INSTANCE) ||
-          (process.env.NODE_APP_INSTANCE === '1' && process.env.HOSTNAME === 'dongip_1')
-        ) {
+        if (nodeAppInstance === '0' && hostname === 'dongip_1') {
           await this._sendReminderNotify();
         }
       },
     });
+
+    this.TZ = timezone;
   }
 
   private async _sendReminderNotify() {
-    const now = moment().tz(this.TZ).startOf('minute');
+    const now = Moment().tz(this.TZ).startOf('minute');
 
     const foundReminders = await this.remindersRepo.find({
       where: {
@@ -60,24 +62,27 @@ export class ReminderCronjobService extends CronJob {
       ],
     });
 
-    const users = foundReminders.filter((r1) => typeof r1.user === 'object').map((r2) => r2.user);
+    const users = _.map(
+      _.filter(foundReminders, (r1) => _.isObjectLike(r1.user)),
+      (r2) => r2.user,
+    );
 
     const notifyEntities: Array<Notifications> = [];
     const firebaseMessages: BatchMessage = [];
     for (const user of users) {
-      const reminder = foundReminders.find((r) => r.userId === user.userId);
+      const reminder = _.find(foundReminders, (r) => r.userId === user.userId);
 
       const name = user.name;
       const lang = user.setting.language;
       const userRegion = user.region;
-      const userTZ = ct.getTimezonesForCountry(userRegion ?? 'IR')[0].name;
+      const userTZ = Ct.getTimezonesForCountry(userRegion ?? 'IR')[0].name;
 
       const notif = new Notifications({
         type: 'reminder',
         userId: user.userId,
-        title: util.format(this.locMsg['REMINDER_TITLE'][lang], name),
+        title: Util.format(this.locMsg['REMINDER_TITLE'][lang], name),
         body: reminder?.title ?? (lang === 'en' ? 'Reminder' : 'یادآوری'),
-        createdAt: moment.tz(userTZ).format('YYYY-MM-DDTHH:mm:ss+00:00'),
+        createdAt: Moment.tz(userTZ).format('YYYY-MM-DDTHH:mm:ss+00:00'),
       });
       notifyEntities.push(notif);
 
@@ -95,9 +100,12 @@ export class ReminderCronjobService extends CronJob {
     if (notifyEntities.length) await this.notifRepo.createAll(notifyEntities);
 
     if (foundReminders.length) {
-      const reminderIds = foundReminders.filter((r) => r.repeat).map((r) => r.reminderId);
+      const reminderIds = _.map(
+        _.filter(foundReminders, (r) => r.repeat),
+        (r) => r.reminderId,
+      );
 
-      await this.remindersRepo.updateOverride([...reminderIds]);
+      await this.remindersRepo.updateOverride(reminderIds);
     }
   }
 }
