@@ -100,7 +100,7 @@
     "en": "%s %s by %s"
   },
   "JOINT_USER_REL_BI_ERR": {
-    "fa": "برای همگام سازی حسابها، دوستاتون هم باید با شما دوست باشن",
+    "fa": "جهت همگام سازی حسابها، دوستاتون هم باید با شما دوست باشن",
     "en": "For Syncing bills, your friends should you know as a Dongip friend also"
   },
   "NEW_JOINT_ACCOUNT_NOTIFY_TITLE": {
@@ -216,8 +216,8 @@
     "en": "New friend"
   },
   "NEW_USERS_RELS_NOTIFY_BODY": {
-    "fa": "%s شما رو دوست دُنگیپش میدونه. اگه میخایی حساب های بین تون همگام سازی شن، با لمس این پیام به دوستهات اضافه ش کن",
-    "en": "%s added you. If you like to sync your bills, tap on this message and add to your friends"
+    "fa": "%s شما رو دوست دُنگیپش میدونه.جهت، با لمس این پیام به دوستهات اضافه ش کن",
+    "en": "%s added you. Tap on this message and add to your friends"
   },
   "USERS_RELS_BACK_NOTIFY_TITLE": {
     "fa": "دوست جدید : همگام سازی حساب ها با %s",
