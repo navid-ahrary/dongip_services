@@ -3,7 +3,7 @@ import {
   AuthorizationMetadata,
   AuthorizationDecision,
 } from '@loopback/authorization';
-import {UserProfile, securityId} from '@loopback/security';
+import { UserProfile, securityId } from '@loopback/security';
 import _ from 'lodash';
 
 export async function basicAuthorization(
@@ -27,13 +27,13 @@ export async function basicAuthorization(
   }
 
   // Authorize everything that does not have a allowedRoles property
-  if (!metadata.allowedRoles && !metadata.deniedRoles) {
+  if (!_.get(metadata, 'allowedRoles') && !_.get(metadata, 'deniedRoles')) {
     return AuthorizationDecision.ALLOW;
   }
 
   let roleIsAllowed = false;
   for (const role of currentUser.roles) {
-    if (metadata.allowedRoles?.includes(role)) {
+    if (_.includes(metadata.allowedRoles, role)) {
       roleIsAllowed = true;
       break;
     }
@@ -45,9 +45,10 @@ export async function basicAuthorization(
 
   // Admin and costumer accounts bypass id verification
   if (
-    currentUser.roles.includes('GOD') ||
-    currentUser.roles.includes('GOLD') ||
-    currentUser.roles.includes('BRONZE')
+    _.includes(currentUser.roles, 'GOD') ||
+    _.includes(currentUser.roles, 'GOLD') ||
+    _.includes(currentUser.roles, 'BRONZE') ||
+    _.includes(currentUser.roles, 'BLOCKED')
   ) {
     return AuthorizationDecision.ALLOW;
   }
