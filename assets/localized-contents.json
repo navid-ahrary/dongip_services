@@ -136,8 +136,8 @@
     "en": "New Member : %s joined to group"
   },
   "DELETE_MEMBERS_JOINT_ACCOUNT_NOTIFY_BODY": {
-    "fa": "%s از گروه حذف شد",
-    "en": "%s has been removed from group"
+    "fa": "ترک گروه : %s از گروه حذف شد",
+    "en": "Left group : %s has been removed from group"
   },
   "JOINT_ADMIN_DELETE_DONG_ERROR": {
     "fa": "این دنگ متعلق گروه %s است. فقط ادمین گروه می تواند دنگ را حذف کند",
@@ -173,7 +173,7 @@
   },
   "LEAVE_JOINT_NOTIFY_BODY": {
     "fa": "ترک گروه : %s گروه %s را ترک کرد",
-    "en": "Left Group : %s left from %s group"
+    "en": "Left group : %s left from %s group"
   },
   "PLAN_ID": {
     "fa": {
@@ -221,7 +221,7 @@
   },
   "USERS_RELS_BACK_NOTIFY_TITLE": {
     "fa": "دوست جدید : همگام سازی حساب ها با %s",
-    "en": "New Frind : Sync with %s"
+    "en": "New frind : Sync with %s"
   },
   "USERS_RELS_BACK_NOTIFY_BODY": {
     "fa": "%s هم شما رو دوست دُنگیپش میدونه. از این به بعد حساب های بین تون همگام سازی میشن",
