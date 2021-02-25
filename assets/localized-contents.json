@@ -256,7 +256,7 @@
     "en": "Sorry dear %s, We are improving the system. Thanks for your patient"
   },
   "REMINDER_TITLE": {
-    "fa": "%s جان یه موقع یادت نره",
-    "en": "Dear %s do not forget"
+    "fa": "یادآوری: %s جان یه موقع یادت نره",
+    "en": "Reminer: Dear %s do not forget"
   }
 }
