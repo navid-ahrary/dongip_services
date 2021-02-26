@@ -1,18 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {
-  Entity,
-  model,
-  property,
-  belongsTo,
-  hasMany,
-  RelationType,
-} from '@loopback/repository';
+import { Entity, model, property, belongsTo, hasMany, RelationType } from '@loopback/repository';
 
-import {Users} from './';
-import {BillList} from './bill-list.model';
-import {PayerList} from './payer-list.model';
-import {Dongs} from './dongs.model';
-import {Budgets} from './budgets.model';
+import { Users } from './';
+import { BillList } from './bill-list.model';
+import { PayerList } from './payer-list.model';
+import { Dongs } from './dongs.model';
+import { Budgets } from './budgets.model';
 
 @model({
   name: 'categories',
@@ -21,7 +14,7 @@ import {Budgets} from './budgets.model';
       'user_id&title': {
         name: 'user_id&title',
         columns: 'user_id, title',
-        options: {unique: true},
+        options: { unique: true },
       },
     },
     foreignKeys: {
@@ -35,7 +28,7 @@ import {Budgets} from './budgets.model';
       },
     },
   },
-  jsonSchema: {description: 'Categories model'},
+  jsonSchema: { description: 'Categories model' },
 })
 export class Categories extends Entity {
   @property({
@@ -54,7 +47,7 @@ export class Categories extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {maxLength: 255},
+    jsonSchema: { maxLength: 255 },
     mysql: {
       columnName: 'title',
       dataType: 'varchar',
@@ -67,8 +60,8 @@ export class Categories extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {minLength: 3, maxLength: 512},
-    mysql: {dataType: 'varchar', dataLength: 512, nullable: 'N'},
+    jsonSchema: { minLength: 3, maxLength: 512 },
+    mysql: { dataType: 'varchar', dataLength: 512, nullable: 'N' },
   })
   icon: string;
 
@@ -84,7 +77,7 @@ export class Categories extends Entity {
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',
@@ -93,6 +86,18 @@ export class Categories extends Entity {
     },
   )
   userId: number;
+
+  @property({
+    type: 'date',
+    required: false,
+    mysql: {
+      columnName: 'created_at',
+      dataType: 'datetime',
+      default: 'now',
+      nullable: 'N',
+    },
+  })
+  createdAt: string;
 
   @hasMany(() => BillList, {
     name: 'billLists',
