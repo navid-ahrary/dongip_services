@@ -199,6 +199,10 @@
     "fa": "متاسفانه خرید انجام شده از سمت کافه‌بازار برگشت خورده‌است. هزینه پرداخت شده حداکثر تا ۲۴ ساعت آینده به حسابتان واریز می‌شود جهت رفع هرگونه ابهام یا مغایرت، با پشتیبانی دُنگیپ تماس بگیرید",
     "en": "This purchase is dropped by CafeBazaar. contact Dongip's support"
   },
+  "CAFEBAZAAR_PURCHASE_DUPLICATION": {
+    "fa": "کد اشتراک خریداری شده، استفاده است",
+    "en": "The subscription purchase token has been used"
+  },
   "TICKET_RESPONSE": {
     "fa": "پاسخ به تیکت",
     "en": "Respond to ticket"
@@ -252,8 +256,8 @@
     "en": "User not found!"
   },
   "SERVER_MAINTENACE": {
-    "fa": "با عرض پوزش s% عزیز، در حال انجام بهبودهایی در سیستم هستیم. از صبر شما سپاسگذاریم",
-    "en": "Sorry dear %s, We are improving the system. Thanks for your patient"
+    "fa": "با عرض پوزش s% عزیز، در حال انجام بهبودهایی در زیر ساخت هستیم. از صبر شما سپاسگذاریم",
+    "en": "Sorry dear %s, We are improving the infrastructure. Thanks for your patient"
   },
   "REMINDER_TITLE": {
     "fa": "یادآوری : %s جان یه موقع یادت نره",

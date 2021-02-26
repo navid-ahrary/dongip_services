@@ -12,7 +12,7 @@ import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import _ from 'lodash';
-import moment from 'moment';
+import Moment from 'moment';
 import { PurchasesRepository, UsersRepository } from '../repositories';
 import {
   CafebazaarService,
@@ -30,6 +30,7 @@ import { LocalizedMessages, SubscriptionSpec } from '../types';
 
 export class PurchasesController {
   constructor(
+    @inject.context() private ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(SubsSpecBindings) public subsSpec: SubscriptionSpec,
     @repository(UsersRepository) public usersRepo: UsersRepository,
@@ -111,8 +112,9 @@ export class PurchasesController {
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
   ): Promise<Subscriptions | null> {
     const userId = +currentUserProfile[securityId];
+    const lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
 
-    const purchaseUTCTime = moment(inappPurchBody.purchaseUnixTime);
+    const purchaseUTCTime = Moment(inappPurchBody.purchaseUnixTime);
 
     try {
       const purchaseEnt = new Purchases({
@@ -126,7 +128,8 @@ export class PurchasesController {
       await this.purchasesRepo.create(purchaseEnt);
     } catch (err) {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-        throw new HttpErrors.Conflict(err.sqlMessage);
+        console.error(err.sqlMessage);
+        throw new HttpErrors.Conflict(this.locMsg['CAFEBAZAAR_PURCHASE_DUPLICATION'][lang]);
       }
     }
 
@@ -175,10 +178,9 @@ export class PurchasesController {
     })
     purchaseToken: string,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @inject.context() ctx: RequestContext,
   ): Promise<Purchases> {
     const userId = +currentUserProfile[securityId];
-    const lang = _.includes(ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
+    const lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
 
     let purchaseTime: moment.Moment;
 
@@ -199,7 +201,7 @@ export class PurchasesController {
         console.error(`userId ${userId} ${errMsg}`);
         throw new HttpErrors.UnprocessableEntity(errMsg);
       } else if (purchaseStatus.purchaseState === 0) {
-        purchaseTime = moment(purchaseStatus.purchaseTime).utc();
+        purchaseTime = Moment(purchaseStatus.purchaseTime).utc();
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.subsService.performSubscription(userId, planId, purchaseTime).then(async (subs) => {
@@ -254,7 +256,7 @@ export class PurchasesController {
         const purchaseAmount = +order['line_items'][0]['price'];
         const currency = order['currency'];
         const purchaseToken = order['order_key'];
-        const purchasedAt = moment(order['date_paid_gmt']);
+        const purchasedAt = Moment(order['date_paid_gmt']);
         const purchaseOrigin = order['payment_method'];
 
         let identityValue = order['billing']['phone'];

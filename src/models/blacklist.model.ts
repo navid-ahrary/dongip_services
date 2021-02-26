@@ -1,6 +1,6 @@
-import {Entity, model, property} from '@loopback/repository';
+import { Entity, model, property } from '@loopback/repository';
 
-@model({name: 'black_list', settings: {mysql: {engine: 'aria'}}})
+@model({ name: 'black_list', settings: { mysql: { engine: 'aria' } } })
 export class Blacklist extends Entity {
   @property({
     type: 'string',
@@ -20,11 +20,11 @@ export class Blacklist extends Entity {
     mysql: {
       columnName: 'created_at',
       dataType: 'datetime',
-      dataLength: null,
+      default: 'now',
       nullable: 'N',
     },
   })
-  createdAt: string = new Date().toISOString();
+  createdAt?: string;
 
   constructor(data?: Partial<Blacklist>) {
     super(data);

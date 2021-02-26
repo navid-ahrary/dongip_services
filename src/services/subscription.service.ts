@@ -1,55 +1,53 @@
 import { BindingScope, inject, injectable } from '@loopback/core';
 import { repository } from '@loopback/repository';
-
-import moment from 'moment';
-
+import Moment from 'moment';
 import { UsersRepository, SubscriptionsRepository } from '../repositories';
 import { Users, Subscriptions } from '../models';
 import { SubscriptionSpec } from '../types';
 import { SubsSpecBindings } from '../keys';
 
-@injectable({ scope: BindingScope.SINGLETON })
+@injectable({ scope: BindingScope.REQUEST })
 export class SubscriptionService {
   constructor(
-    @repository(UsersRepository) protected usersRepo: UsersRepository,
-    @repository(SubscriptionsRepository) protected subsRepo: SubscriptionsRepository,
-    @inject(SubsSpecBindings) protected subsSpec: SubscriptionSpec,
+    @inject(SubsSpecBindings) public subsSpec: SubscriptionSpec,
+    @repository(UsersRepository) public usersRepo: UsersRepository,
+    @repository(SubscriptionsRepository) public subsRepo: SubscriptionsRepository,
   ) {}
 
   /** Perform subsciption on user
    *
-   * @param userId number
-   * @param planId string
+   * @param {Number} userId
+   * @param {String} planId
    *
-   * @returns {Promise} string
+   * @returns string
    */
   async performSubscription(
     userId: typeof Users.prototype.userId,
     planId: string,
     purchaseTime: moment.Moment,
   ): Promise<Subscriptions> {
-    const durationAmount = this.subsSpec.plans[planId].period.amount;
-    const durationUnit = this.subsSpec.plans[planId].period.unit;
-
-    let sol: string, eol: string;
+    const durationAmount = this.subsSpec.plans[planId].period.amount,
+      durationUnit = this.subsSpec.plans[planId].period.unit;
 
     const lastSubs = await this.subsRepo.findOne({
       order: ['eolTime DESC'],
-      limit: 1,
+      fields: { eolTime: true },
       where: {
         userId: userId,
-        eolTime: { gte: moment.utc().toISOString() },
+        eolTime: { gte: Moment.utc().toISOString() },
       },
     });
-    // If user has a subscription, new plan'll start from subscriptino's eol
+
+    let sol: string, eol: string;
+    // If user has a subscription, new plan'll start from subscription's eol
     if (lastSubs) {
       const lastEOL = lastSubs.eolTime;
 
-      sol = moment(lastEOL).utc().toISOString();
-      eol = moment(lastEOL).utc().add(durationAmount, durationUnit).toISOString();
+      sol = Moment(lastEOL).utc().toISOString();
+      eol = Moment(lastEOL).utc().add(durationAmount, durationUnit).toISOString();
     } else {
-      sol = moment(purchaseTime).utc().toISOString();
-      eol = moment(purchaseTime).utc().add(durationAmount, durationUnit).toISOString();
+      sol = Moment(purchaseTime).utc().toISOString();
+      eol = Moment(purchaseTime).utc().add(durationAmount, durationUnit).toISOString();
     }
 
     const subs = await this.usersRepo

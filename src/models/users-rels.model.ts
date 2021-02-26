@@ -8,10 +8,7 @@ import {
   hasOne,
   hasMany,
 } from '@loopback/repository';
-
-import { Users } from './users.model';
-import { VirtualUsers } from './virtual-users.model';
-import { Budgets } from './budgets.model';
+import { Users, VirtualUsers, Budgets } from '.';
 
 @model({
   name: 'users_rels',
@@ -146,9 +143,13 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'date',
-    required: true,
-    defaultFn: 'now',
-    mysql: { columnName: 'created_at', dataType: 'datetime', nullable: 'N' },
+    required: false,
+    mysql: {
+      columnName: 'created_at',
+      default: 'now',
+      dataType: 'datetime',
+      nullable: 'N',
+    },
   })
   createdAt: string;
 
@@ -156,7 +157,11 @@ export class UsersRels extends Entity {
     type: 'date',
     required: true,
     defaultFn: 'now',
-    mysql: { columnName: 'updated_at', dataType: 'datetime', nullable: 'N' },
+    mysql: {
+      columnName: 'updated_at',
+      dataType: 'datetime',
+      nullable: 'N',
+    },
   })
   updatedAt: string;
 

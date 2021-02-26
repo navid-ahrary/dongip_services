@@ -3,7 +3,7 @@
     "plan_gm1": {
       "id": "plan_gm1",
       "grade": "golden",
-      "duration": {
+      "period": {
         "unit": "month",
         "amount": 1
       },
@@ -18,7 +18,7 @@
     "plan_gm6": {
       "id": "plan_gm6",
       "grade": "golden",
-      "duration": {
+      "period": {
         "unit": "months",
         "amount": 6
       },
@@ -33,7 +33,7 @@
     "plan_gy1": {
       "id": "plan_gy1",
       "grade": "golden",
-      "duration": {
+      "period": {
         "unit": "year",
         "amount": 1
       },

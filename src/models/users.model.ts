@@ -1,25 +1,28 @@
 import { Entity, model, property, hasMany, RelationType, hasOne } from '@loopback/repository';
-
-import { BillList } from './bill-list.model';
-import { PayerList } from './payer-list.model';
-import { VirtualUsers } from './virtual-users.model';
-import { Dongs } from './dongs.model';
-import { Categories } from './categories.model';
-import { UsersRels, UsersRelsWithRelations } from './users-rels.model';
-import { Scores } from './scores.model';
-import { Messages } from './messages.model';
-import { Notifications } from './notifications.model';
-import { Budgets } from './budgets.model';
-import { Settings, SettingsWithRelations } from './settings.model';
-import { Purchases } from './purchases.model';
-import { Subscriptions, SubscriptionsWithRelations } from './subscriptions.model';
-import { JointAccounts, JointAccountsWithRelations } from './joint-accounts.model';
 import {
+  BillList,
+  PayerList,
+  VirtualUsers,
+  Dongs,
+  Categories,
+  UsersRels,
+  UsersRelsWithRelations,
+  Scores,
+  Messages,
+  Notifications,
+  Budgets,
+  Settings,
+  SettingsWithRelations,
+  Purchases,
+  Subscriptions,
+  SubscriptionsWithRelations,
   JointAccountSubscribes,
   JointAccountSubscribesWithRelations,
-} from './joint-account-subscribes.model';
-import { RefreshTokens } from './refresh-tokens.model';
-import { Reminders } from './reminders.model';
+  JointAccounts,
+  JointAccountsWithRelations,
+  RefreshTokens,
+  Reminders,
+} from '.';
 
 @model({ name: 'users' })
 export class Users extends Entity {
@@ -94,12 +97,11 @@ export class Users extends Entity {
 
   @property({
     type: 'date',
-    required: true,
-    defaultFn: 'now',
+    required: false,
     mysql: {
       columnName: 'registered_at',
       dataType: 'datetime',
-      dataLength: null,
+      default: 'now',
       nullable: 'N',
     },
   })
