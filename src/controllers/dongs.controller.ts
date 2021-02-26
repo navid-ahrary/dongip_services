@@ -16,7 +16,7 @@ import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, service, intercept } from '@loopback/core';
 import _ from 'lodash';
-import { Dongs, PostDong, Categories } from '../models';
+import { Dongs, PostDong, Categories, BillList, PayerList } from '../models';
 import {
   UsersRepository,
   DongsRepository,
@@ -30,6 +30,7 @@ import {
   ValidateCategoryIdInterceptor,
   JointAccountsInterceptor,
   FirebaseTokenInterceptor,
+  ValidateDongIdInterceptor,
 } from '../interceptors';
 import { dongReqBody } from './specs';
 import { CategoriesSource, LocalizedMessages } from '../types';
@@ -65,6 +66,7 @@ export class DongsController {
   }
 
   @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
+  @intercept(ValidateDongIdInterceptor.BINDING_KEY)
   @patch('/dongs/{dongId}', {
     summary: 'Update Dongs description and categoryId by dongId',
     description: 'Do not send notification to dong members, just update own Dong entity',
@@ -91,13 +93,13 @@ export class DongsController {
               'originDongId',
               'userId',
               'title',
-              'pong',
               'scores',
             ],
           }),
           example: {
-            desc: 'For FUN',
+            desc: 'Just For Fun',
             categoryId: 123,
+            pong: 15000,
           },
         },
       },
@@ -105,17 +107,28 @@ export class DongsController {
     patchDong: Dongs,
   ) {
     try {
-      const res = await this.userRepo.dongs(this.userId).patch(patchDong, { dongId: dongId });
+      await this.userRepo.dongs(this.userId).patch(patchDong, { dongId: dongId });
 
-      if (res.count === 0) {
-        throw new Error(this.locMsg['DONG_NOT_VALID'][this.lang]);
+      const patchBill = new BillList();
+      const patchPayer = new PayerList();
+      if (_.has(patchDong, 'categoryId')) {
+        patchBill.categoryId = patchDong.categoryId;
+        patchPayer.categoryId = patchDong.categoryId;
       }
 
-      if (_.has(patchDong, 'categoryId')) {
+      if (_.has(patchDong, 'pong')) {
+        patchBill.dongAmount = patchDong.pong;
+        patchPayer.paidAmount = patchDong.pong;
+      }
+
+      if (_.values(patchBill).length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.dongRepository.billList(dongId).patch({ categoryId: patchDong.categoryId });
+        this.dongRepository.billList(dongId).patch(patchBill);
+      }
+
+      if (_.values(patchPayer).length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.dongRepository.payerList(dongId).patch({ categoryId: patchDong.categoryId });
+        this.dongRepository.payerList(dongId).patch(patchPayer);
       }
     } catch (err) {
       throw new HttpErrors.UnprocessableEntity(err.message);

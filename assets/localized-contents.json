@@ -262,5 +262,9 @@
   "REMINDER_TITLE": {
     "fa": "یادآوری : %s جان یه موقع یادت نره",
     "en": "Reminer : Dear %s do not forget"
+  },
+  "UPDATE_NOT_SELF_DONG_PONG": {
+    "fa": "متاسفانه در حال حاضر تنها ویرایش هزینه های شخصی ممکن است",
+    "en": "Unfortunately for now just the personal expenses could edit"
   }
 }

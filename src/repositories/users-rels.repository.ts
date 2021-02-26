@@ -6,9 +6,23 @@ import {
   HasManyRepositoryFactory,
 } from '@loopback/repository';
 import { inject, Getter } from '@loopback/core';
-import { UsersRels, UsersRelsRelations, Users, VirtualUsers, Budgets } from '../models';
+import {
+  UsersRels,
+  UsersRelsRelations,
+  Users,
+  VirtualUsers,
+  Budgets,
+  BillList,
+  PayerList,
+} from '../models';
 import { MariadbDataSource } from '../datasources';
-import { UsersRepository, VirtualUsersRepository, BudgetsRepository } from '.';
+import {
+  BillListRepository,
+  PayerListRepository,
+  UsersRepository,
+  VirtualUsersRepository,
+  BudgetsRepository,
+} from '.';
 
 export class UsersRelsRepository extends DefaultCrudRepository<
   UsersRels,
@@ -26,6 +40,16 @@ export class UsersRelsRepository extends DefaultCrudRepository<
 
   public readonly mutualUserRel: BelongsToAccessor<UsersRels, typeof UsersRels.prototype.userRelId>;
 
+  public readonly billLists: HasManyRepositoryFactory<
+    BillList,
+    typeof UsersRels.prototype.userRelId
+  >;
+
+  public readonly payerLists: HasManyRepositoryFactory<
+    PayerList,
+    typeof UsersRels.prototype.userRelId
+  >;
+
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
@@ -35,8 +59,21 @@ export class UsersRelsRepository extends DefaultCrudRepository<
     protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
     @repository.getter('UsersRelsRepository')
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
+    @repository.getter('BillListRepository')
+    protected billListRepositoryGetter: Getter<BillListRepository>,
+    @repository.getter('PayerListRepository')
+    protected payerListRepositoryGetter: Getter<PayerListRepository>,
   ) {
     super(UsersRels, dataSource);
+
+    this.payerLists = this.createHasManyRepositoryFactoryFor(
+      'payerLists',
+      payerListRepositoryGetter,
+    );
+    this.registerInclusionResolver('payerLists', this.payerLists.inclusionResolver);
+
+    this.billLists = this.createHasManyRepositoryFactoryFor('billLists', billListRepositoryGetter);
+    this.registerInclusionResolver('billLists', this.billLists.inclusionResolver);
 
     this.mutualUserRel = this.createBelongsToAccessorFor(
       'mutualUserRel',

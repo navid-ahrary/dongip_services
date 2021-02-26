@@ -25,7 +25,7 @@ export class PayerListRepository extends DefaultCrudRepository<
 > {
   public readonly dongs: BelongsToAccessor<Dongs, typeof PayerList.prototype.payerListId>;
 
-  public readonly userRels: BelongsToAccessor<UsersRels, typeof PayerList.prototype.payerListId>;
+  public readonly userRel: BelongsToAccessor<UsersRels, typeof PayerList.prototype.payerListId>;
 
   public readonly categories: BelongsToAccessor<Categories, typeof PayerList.prototype.payerListId>;
 
@@ -61,8 +61,8 @@ export class PayerListRepository extends DefaultCrudRepository<
     this.categories = this.createBelongsToAccessorFor('categories', categoryRepositoryGetter);
     this.registerInclusionResolver('categories', this.categories.inclusionResolver);
 
-    this.userRels = this.createBelongsToAccessorFor('userRels', usersRelsRepositoryGetter);
-    this.registerInclusionResolver('userRels', this.userRels.inclusionResolver);
+    this.userRel = this.createBelongsToAccessorFor('userRel', usersRelsRepositoryGetter);
+    this.registerInclusionResolver('userRel', this.userRel.inclusionResolver);
 
     this.dongs = this.createBelongsToAccessorFor('dongs', dongsRepositoryGetter);
     this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);

@@ -9,6 +9,8 @@ import {
   hasMany,
 } from '@loopback/repository';
 import { Users, VirtualUsers, Budgets } from '.';
+import {BillList} from './bill-list.model';
+import {PayerList} from './payer-list.model';
 
 @model({
   name: 'users_rels',
@@ -199,6 +201,12 @@ export class UsersRels extends Entity {
     },
   )
   mutualUserRelId?: number;
+
+  @hasMany(() => BillList, {keyTo: 'userRelId'})
+  billLists: BillList[];
+
+  @hasMany(() => PayerList, {keyTo: 'userRelId'})
+  payerLists: PayerList[];
 
   constructor(data?: Partial<UsersRels>) {
     super(data);

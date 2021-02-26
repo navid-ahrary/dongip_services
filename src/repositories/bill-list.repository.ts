@@ -25,7 +25,7 @@ export class BillListRepository extends DefaultCrudRepository<
 > {
   public readonly dongs: BelongsToAccessor<Dongs, typeof BillList.prototype.billListId>;
 
-  public readonly userRels: BelongsToAccessor<UsersRels, typeof BillList.prototype.billListId>;
+  public readonly userRel: BelongsToAccessor<UsersRels, typeof BillList.prototype.billListId>;
 
   public readonly categories: BelongsToAccessor<Categories, typeof BillList.prototype.billListId>;
 
@@ -48,6 +48,7 @@ export class BillListRepository extends DefaultCrudRepository<
     protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
   ) {
     super(BillList, dataSource);
+
     this.jointAccount = this.createBelongsToAccessorFor(
       'jointAccount',
       jointAccountsRepositoryGetter,
@@ -60,8 +61,8 @@ export class BillListRepository extends DefaultCrudRepository<
     this.categories = this.createBelongsToAccessorFor('categories', categoryRepositoryGetter);
     this.registerInclusionResolver('categories', this.categories.inclusionResolver);
 
-    this.userRels = this.createBelongsToAccessorFor('userRels', usersRelsRepositoryGetter);
-    this.registerInclusionResolver('userRels', this.userRels.inclusionResolver);
+    this.userRel = this.createBelongsToAccessorFor('userRel', usersRelsRepositoryGetter);
+    this.registerInclusionResolver('userRel', this.userRel.inclusionResolver);
 
     this.dongs = this.createBelongsToAccessorFor('dongs', dongsRepositoryGetter);
     this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
