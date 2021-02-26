@@ -58,8 +58,6 @@ export class JWTService implements TokenService {
           },
         });
 
-        if (!user) throw new Error('User is not exists');
-
         Object.assign(userProfile, {
           phone: user.phone,
           email: user.email,

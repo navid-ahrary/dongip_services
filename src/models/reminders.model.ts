@@ -186,10 +186,6 @@ export class Reminders extends Entity {
   })
   createdAt: string;
 
-  // Indexer property to allow additional data
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // [prop: string]: any;
-
   constructor(data?: Partial<Reminders>) {
     super(data);
   }

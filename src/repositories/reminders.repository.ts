@@ -61,7 +61,12 @@ export class RemindersRepository extends DefaultCrudRepository<
     return foundReminders.map((r: object) => new Reminders(r));
   }
 
-  public async updateOverride(ids: Array<number>): Promise<Count> {
+  public async updateOverride(idsList: Array<number>): Promise<Count> {
+    const questionMarks = _.join(
+      _.map(Array(idsList.length), () => '?'),
+      ',',
+    );
+
     const cmd = `
       UPDATE
         reminders
@@ -80,12 +85,9 @@ export class RemindersRepository extends DefaultCrudRepository<
             ELSE 0
           END )
       WHERE
-        id IN ( ${_.join(
-          _.map([...Array(ids.length)], () => '?'),
-          ',',
-        )} ) ;`;
+        id IN ( ${questionMarks} ) ;`;
 
-    const result = await this.execute(cmd, [...ids]);
+    const result = await this.execute(cmd, idsList);
 
     return { count: +result.changedRows };
   }

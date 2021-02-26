@@ -8,7 +8,7 @@ import _ from 'lodash';
 import Util from 'util';
 import { NotificationsRepository, RemindersRepository, UsersRepository } from '../repositories';
 import { FirebaseService, BatchMessage } from '.';
-import { Notifications } from '../models';
+import { Notifications, Users } from '../models';
 import { LocalizedMessages } from '../types';
 import { AppInstanceBinding, HostnameBinding, LocMsgsBindings, TzBindings } from '../keys';
 
@@ -62,9 +62,9 @@ export class ReminderCronjobService extends CronJob {
       ],
     });
 
-    const users = _.map(
-      _.filter(foundReminders, (r1) => _.isObjectLike(r1.user)),
-      (r2) => r2.user,
+    const users = _.filter(
+      _.map(foundReminders, (r2) => r2.user),
+      (u) => u instanceof Users,
     );
 
     const notifyEntities: Array<Notifications> = [];
