@@ -58,7 +58,7 @@ export class RemindersRepository extends DefaultCrudRepository<
 
     const foundReminders = await this.execute(cmd, [1, data.notifyTime, data.nextNotifyDate]);
 
-    return foundReminders.map((r: object) => new Reminders(r));
+    return _.map(foundReminders, (r) => new Reminders(r));
   }
 
   public async updateOverride(idsList: Array<number>): Promise<Count> {
