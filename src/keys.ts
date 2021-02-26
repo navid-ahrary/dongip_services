@@ -17,7 +17,7 @@ Dotenv.config();
 export const pkg: PackageInfo = require('../package.json');
 export const PackageKey = BindingKey.create<PackageInfo>('application.package');
 
-export const TutorialLinksListCnostants: TutorialLinks = require('../assets/tutorial-links.json');
+export const TutorialLinksListConstants: TutorialLinks = require('../assets/tutorial-links.json');
 export const TutorialLinksListBinding = BindingKey.create<TutorialLinks>(
   'application.tutorialLinksList',
 );
@@ -76,25 +76,20 @@ export namespace RefreshTokenServiceBindings {
   );
 }
 
-export namespace MariadbConstants {
-  export const MARIADB_CONFIG_VALUE = {
-    name: 'Mariadb',
-    connector: 'mysql',
-    charset: 'utf8mb4',
-    collation: 'utf8mb4_unicode_ci',
-    supportBigNumbers: true,
-    dateStrings: ['DATE'],
-    host: process.env.MARIADB_HOST!,
-    port: process.env.MARIADB_PORT!,
-    user: process.env.MARIADB_USER!,
-    password: process.env.MARIADB_PASSWORD!,
-    database: process.env.MARIADB_DATABASE!,
-  };
-}
-
-export namespace MariadbBinding {
-  export const MARIADB_CONFIG = BindingKey.create<object>('datasources.config.Mariadb');
-}
+export const MariadbConfigValue = {
+  name: 'Mariadb',
+  connector: 'mysql',
+  charset: 'utf8mb4',
+  collation: 'utf8mb4_unicode_ci',
+  supportBigNumbers: true,
+  dateStrings: ['DATE'],
+  host: process.env.MARIADB_HOST!,
+  port: process.env.MARIADB_PORT!,
+  user: process.env.MARIADB_USER!,
+  password: process.env.MARIADB_PASSWORD!,
+  database: process.env.MARIADB_DATABASE!,
+};
+export const MariadbConfigBinding = BindingKey.create<object>('datasources.config.Mariadb');
 
 export namespace FirebaseConstants {
   export const FIREBASE_DATABASEURL_VALUE = process.env.FIREBASE_APPLICATION_DATABASEURL!;
@@ -169,9 +164,11 @@ export namespace EmailBindings {
     'services.email.zoho.support.address',
   );
   export const SUPPORT_REFRESH_TOKEN = BindingKey.create<string>(
-    'serices.email.zoho.support.refreshToken',
+    'services.email.zoho.support.refreshToken',
   );
-  export const SUPPORT_CLIENT_ID = BindingKey.create<string>('serices.email.zoho.support.clientId');
+  export const SUPPORT_CLIENT_ID = BindingKey.create<string>(
+    'services.email.zoho.support.clientId',
+  );
   export const SUPPORT_CLIENT_SECRET = BindingKey.create<string>(
     'services.email.zoho.support.clientSecret',
   );
@@ -182,3 +179,12 @@ export namespace EmailBindings {
     'services.email.zoho.noreply.address',
   );
 }
+
+export const tzValue = process.env.TZ!;
+export const TzBindings = BindingKey.create<string>('application.config.tz');
+
+export const appInstance = process.env.NODE_APP_INSTANCE ?? '0';
+export const AppInstanceBinding = BindingKey.create<string>('application.appInstance');
+
+export const hostname = process.env.HOSTNAME!;
+export const HostnameBinding = BindingKey.create<string>('hostname');

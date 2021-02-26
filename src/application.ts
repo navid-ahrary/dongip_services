@@ -35,8 +35,6 @@ import {
   LocMsgsBindings,
   LocMsgsConstants,
   TutorialLinksListBinding,
-  MariadbBinding,
-  MariadbConstants,
   PasswordHasherBindings,
   FirebaseBinding,
   FirebaseConstants,
@@ -51,7 +49,15 @@ import {
   CategoriesSourceListBindings,
   categoriesSourceListConstants,
   UserServiceBindings,
-  TutorialLinksListCnostants,
+  TutorialLinksListConstants,
+  TzBindings,
+  tzValue,
+  MariadbConfigBinding,
+  MariadbConfigValue,
+  appInstance,
+  hostname,
+  HostnameBinding,
+  AppInstanceBinding,
 } from './keys';
 
 export { ApplicationConfig };
@@ -157,10 +163,10 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
 
     this.bind(CategoriesSourceListBindings).to(categoriesSourceListConstants);
 
-    this.bind(TutorialLinksListBinding).to(TutorialLinksListCnostants);
+    this.bind(TutorialLinksListBinding).to(TutorialLinksListConstants);
 
     // MariaDB datasource configs
-    this.bind(MariadbBinding.MARIADB_CONFIG).to(MariadbConstants.MARIADB_CONFIG_VALUE);
+    this.bind(MariadbConfigBinding).to(MariadbConfigValue);
 
     // JWT binding constants
     this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(TokenServiceConstants.JWT_ALGORITHM_VALUE);
@@ -228,5 +234,11 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.bind(EmailBindings.SUPPORT_EMAIL_ADDRESS).to(EmailConstants.SUPPORT_EMAIL_ADDRESS_VALUE);
     this.bind(EmailBindings.SUPPORT_MESSAGE_URL).to(EmailConstants.SUPPORT_MESSAGE_URL_VALUE);
     this.bind(EmailBindings.SUPPORT_REFRESH_TOKEN).to(EmailConstants.SUPPORT_REFRESH_TOKEN_VALUE);
+
+    this.bind(TzBindings).to(tzValue);
+
+    this.bind(AppInstanceBinding).to(appInstance);
+
+    this.bind(HostnameBinding).to(hostname);
   }
 }
