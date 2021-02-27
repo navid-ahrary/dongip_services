@@ -12,9 +12,9 @@ import { authenticate } from '@loopback/authentication';
 import { repository, Filter } from '@loopback/repository';
 import { inject, service } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
-import ct from 'countries-and-timezones';
+import Ct from 'countries-and-timezones';
 import _ from 'lodash';
-import moment from 'moment';
+import Moment from 'moment';
 import 'moment-timezone';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { Messages, Notifications, Users } from '../models';
@@ -117,8 +117,8 @@ export class SupportController {
       const token = foundTargetUser.firebaseToken ?? '';
       const lang = foundTargetUser.setting.language;
       const region = foundTargetUser.region;
-      const timezone = ct.getTimezonesForCountry(region!)[0].name;
-      const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+      const timezone = Ct.getTimezonesForCountry(region!)[0].name;
+      const time = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
       const createdMessage = await this.messagesRepository.create({
         message: newMessage.message,
