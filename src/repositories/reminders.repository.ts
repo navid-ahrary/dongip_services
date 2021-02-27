@@ -1,6 +1,5 @@
 import { DefaultCrudRepository, repository, BelongsToAccessor, Count } from '@loopback/repository';
 import { inject, Getter } from '@loopback/core';
-import _ from 'lodash';
 import { Reminders, RemindersRelations, Users } from '../models';
 import { MariadbDataSource } from '../datasources';
 import { UsersRepository } from '.';
@@ -24,49 +23,7 @@ export class RemindersRepository extends DefaultCrudRepository<
     this.registerInclusionResolver('user', this.user.inclusionResolver);
   }
 
-  public async findOverrided(data: Find): Promise<Array<Reminders>> {
-    const cmd = `
-      SELECT
-        CASE
-          WHEN period_unit = 'day'
-          AND TIMESTAMPDIFF(DAY, previous_notify_date, next_notify_date) = period_amount THEN id
-          WHEN period_unit = 'week'
-          AND TIMESTAMPDIFF(DAY, previous_notify_date, next_notify_date) / 7 = period_amount THEN id
-          WHEN period_unit = 'month'
-          AND TIMESTAMPDIFF(MONTH, previous_notify_date, next_notify_date) = period_amount THEN id
-          WHEN period_unit = 'year'
-          AND TIMESTAMPDIFF(YEAR, previous_notify_date, next_notify_date) = period_amount THEN id
-        END AS reminderId,
-        title,
-        \`desc\`,
-        period_amount AS periodAmount,
-        period_unit AS periodUnit,
-        notify_time AS notifyTime,
-        previous_notify_date AS previousNotifyDate ,
-        next_notify_date AS nextNotifyDate,
-        \`repeat\`,
-        enabled,
-        price,
-        user_id AS userId,
-        created_at AS createdAt
-      FROM
-        reminders
-      WHERE
-        enabled = ?
-        AND notify_time = ?
-        AND next_notify_date = ? ;`;
-
-    const foundReminders = await this.execute(cmd, [1, data.notifyTime, data.nextNotifyDate]);
-
-    return _.map(foundReminders, (r) => new Reminders(r));
-  }
-
   public async updateOverride(idsList: Array<number>): Promise<Count> {
-    const questionMarks = _.join(
-      _.map(Array(idsList.length), () => '?'),
-      ',',
-    );
-
     const cmd = `
       UPDATE
         reminders
@@ -85,7 +42,7 @@ export class RemindersRepository extends DefaultCrudRepository<
             ELSE 0
           END )
       WHERE
-        id IN ( ${questionMarks} ) ;`;
+        id IN ( ${[...Array(idsList.length)].map(() => '?').join(',')} ) ;`;
 
     const result = await this.execute(cmd, idsList);
 
