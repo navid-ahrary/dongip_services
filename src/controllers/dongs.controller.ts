@@ -90,11 +90,11 @@ export class DongsController {
               'jointAccountId',
               'originDongId',
               'userId',
-              'title',
               'scores',
             ],
           }),
           example: {
+            title: 'Just For Fun',
             desc: 'Just For Fun',
             categoryId: 123,
             pong: 15000,
