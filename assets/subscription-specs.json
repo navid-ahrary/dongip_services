@@ -8,10 +8,10 @@
         "amount": 1
       },
       "regular": {
-        "tomans": 8000
+        "tomans": 10000
       },
       "sale": {
-        "tomans": 1000
+        "tomans": 5000
       },
       "onSale": true
     },
@@ -23,10 +23,10 @@
         "amount": 6
       },
       "regular": {
-        "tomans": 45000
+        "tomans": 50000
       },
       "sale": {
-        "tomans": 18000
+        "tomans": 25000
       },
       "onSale": true
     },
@@ -38,10 +38,25 @@
         "amount": 1
       },
       "regular": {
-        "tomans": 80000
+        "tomans": 100000
       },
       "sale": {
-        "tomans": 30000
+        "tomans": 50000
+      },
+      "onSale": true
+    },
+    "plan_gy2": {
+      "id": "plan_gy2",
+      "grade": "golden",
+      "period": {
+        "unit": "year",
+        "amount": 2
+      },
+      "regular": {
+        "tomans": 180000
+      },
+      "sale": {
+        "tomans": 90000
       },
       "onSale": true
     }
