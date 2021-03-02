@@ -80,7 +80,7 @@ export class MessagesController {
         this.firebaseService.sendMultiCastMessage({
           tokens: users.map((u) => u.firebaseToken!),
           notification: {
-            title: `TicketId ${createdMsg.getId()} From '${this.name}', id ${this.userId}`,
+            title: `New ticket from '${this.name}', id ${this.userId}`,
             body: messageContent,
           },
         });
