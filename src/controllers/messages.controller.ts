@@ -71,7 +71,7 @@ export class MessagesController {
       .find({
         fields: { firebaseToken: true },
         where: {
-          phone: { inq: ['+989176502184', '+989197744814'] },
+          userId: { inq: [1, 28] },
           firebaseToken: { nin: [undefined, null!, 'null'] },
         },
       })
