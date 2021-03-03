@@ -104,6 +104,7 @@ export class PurchasesController {
             planId: 'plan_gm1',
             purchaseToken: 'VRFS0nyW_ZLP_7SU',
             purchaseUnixTime: 1595967742659,
+            purchaseOrigin: 'cafebazaar',
           },
         },
       },
