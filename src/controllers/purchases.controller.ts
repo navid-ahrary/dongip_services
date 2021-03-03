@@ -115,7 +115,10 @@ export class PurchasesController {
     const userId = +currentUserProfile[securityId];
     const lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
 
-    const purchaseUTCTime = Moment(inappPurchBody.purchaseUnixTime);
+    const purchaseUTCTime =
+      inappPurchBody.purchaseUnixTime % 10 ** 10 > 0
+        ? Moment(inappPurchBody.purchaseUnixTime)
+        : Moment.unix(inappPurchBody.purchaseUnixTime);
     const purchaseToken = inappPurchBody.purchaseToken;
     const purchaseOrigin = inappPurchBody.purchaseOrigin;
     const planId = inappPurchBody.planId;
