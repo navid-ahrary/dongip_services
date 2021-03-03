@@ -115,13 +115,16 @@ export class PurchasesController {
     const lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
 
     const purchaseUTCTime = Moment(inappPurchBody.purchaseUnixTime);
+    const purchaseToken = inappPurchBody.purchaseToken;
+    const purchaseOrigin = inappPurchBody.purchaseOrigin;
+    const planId = inappPurchBody.planId;
 
     try {
       const purchaseEnt = new Purchases({
         userId: userId,
-        planId: inappPurchBody.planId,
-        purchaseToken: inappPurchBody.purchaseToken,
-        purchaseOrigin: 'cafebazaar',
+        planId: planId,
+        purchaseToken: purchaseToken,
+        purchaseOrigin: purchaseOrigin ?? 'cafebazaar',
         purchasedAt: purchaseUTCTime.toISOString(),
       });
 
@@ -133,7 +136,7 @@ export class PurchasesController {
       }
     }
 
-    return this.subsService.performSubscription(userId, inappPurchBody.planId, purchaseUTCTime);
+    return this.subsService.performSubscription(userId, planId, purchaseUTCTime);
   }
 
   @authenticate('jwt.access')
