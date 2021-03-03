@@ -128,7 +128,7 @@ export class PurchasesController {
         userId: userId,
         planId: planId,
         purchaseToken: purchaseToken,
-        purchaseOrigin: purchaseOrigin ?? 'cafebazaar',
+        purchaseOrigin: purchaseOrigin,
         purchasedAt: purchaseUTCTime.toISOString(),
       });
 
