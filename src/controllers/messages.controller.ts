@@ -70,14 +70,17 @@ export class MessagesController {
     this.usersRepository
       .find({
         fields: { firebaseToken: true },
-        where: { phone: { inq: ['+989176502184', '+989197744814'] } },
+        where: {
+          userId: { inq: [1, 28] }, // Me and mr Rafei's userId
+          firebaseToken: { nin: [undefined, null!, 'null'] },
+        },
       })
       .then((users) => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.firebaseService.sendMultiCastMessage({
-          tokens: users.map((u) => u.firebaseToken ?? ' '),
+          tokens: users.map((u) => u.firebaseToken!),
           notification: {
-            title: `TicketId ${createdMsg.getId()} From '${this.name}', id ${this.userId}`,
+            title: `New ticket from '${this.name}', id ${this.userId}`,
             body: messageContent,
           },
         });
