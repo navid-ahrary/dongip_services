@@ -62,7 +62,7 @@ export class Purchases extends Entity {
     type: 'string',
     required: false,
     default: 'cafebazaar',
-    jsonSchema: { default: 'cafebazaar', enum: Object.keys(PurchaseOriginEnum) },
+    jsonSchema: { default: 'cafebazaar', enum: Object.values(PurchaseOriginEnum) },
     mysql: {
       columnName: 'purchase_origin',
       dataType: 'varchar',

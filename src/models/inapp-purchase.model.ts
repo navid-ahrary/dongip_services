@@ -15,7 +15,7 @@ export class InappPurchase extends Model {
   @property({
     type: 'string',
     required: false,
-    jsonSchema: { default: 'cafebazaar', enum: Object.keys(PurchaseOriginEnum) },
+    jsonSchema: { default: 'cafebazaar', enum: Object.values(PurchaseOriginEnum) },
   })
   purchaseOrigin?: string;
 
