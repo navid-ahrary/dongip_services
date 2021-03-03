@@ -1,11 +1,10 @@
-import {
-  model,
-  property,
-  Entity,
-  belongsTo,
-  RelationType,
-} from '@loopback/repository';
-import {Users} from './users.model';
+import { model, property, Entity, belongsTo, RelationType } from '@loopback/repository';
+import { Users } from './users.model';
+
+export enum PurchaseOriginEnum {
+  CAFEBAZAAR = 'cafebazaar',
+  MYKET = 'myket',
+}
 
 @model({
   name: 'purchases',
@@ -38,7 +37,7 @@ export class Purchases extends Entity {
   @property({
     type: 'string',
     required: true,
-    index: {unique: true},
+    index: { unique: true },
     mysql: {
       columnName: 'purchase_token',
       dataType: 'varchar',
@@ -61,7 +60,9 @@ export class Purchases extends Entity {
 
   @property({
     type: 'string',
-    required: true,
+    required: false,
+    default: 'cafebazaar',
+    jsonSchema: { default: 'cafebazaar', enum: Object.keys(PurchaseOriginEnum) },
     mysql: {
       columnName: 'purchase_origin',
       dataType: 'varchar',
@@ -126,7 +127,7 @@ export class Purchases extends Entity {
     },
     {
       type: 'number',
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',

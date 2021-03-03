@@ -1,4 +1,5 @@
 import { Model, model, property } from '@loopback/repository';
+import { PurchaseOriginEnum } from './purchases.model';
 
 @model()
 export class InappPurchase extends Model {
@@ -11,7 +12,11 @@ export class InappPurchase extends Model {
   @property({ type: 'string', required: true })
   purchaseToken: string;
 
-  @property({ type: 'string', required: false, jsonSchema: { default: 'cafebazaar' } })
+  @property({
+    type: 'string',
+    required: false,
+    jsonSchema: { default: 'cafebazaar', enum: Object.keys(PurchaseOriginEnum) },
+  })
   purchaseOrigin?: string;
 
   constructor(data?: Partial<InappPurchase>) {
