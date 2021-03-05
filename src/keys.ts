@@ -188,3 +188,17 @@ export const AppInstanceBinding = BindingKey.create<string>('application.appInst
 
 export const hostname = process.env.HOSTNAME!;
 export const HostnameBinding = BindingKey.create<string>('hostname');
+
+export namespace WoocommerceConstants {
+  export const WOOCOMMERCE_CONSUMER_KEY_VALUE = process.env.WOOCOMMERCE_CONSUMER_KEY!;
+  export const WOOCOMMERCE_CONSUMER_SECRET_VALUE = process.env.WOOCOMMERCE_CONSUMER_SECRET!;
+}
+
+export namespace WoocommerceBindings {
+  export const WOOCOMMERCE_CONSUMER_KEY = BindingKey.create<string>(
+    'services.woocommerce.consumerKey',
+  );
+  export const WOOCOMMERCE_CONSUMER_SECRET = BindingKey.create<string>(
+    'services.woocommerce.consumerSecret',
+  );
+}

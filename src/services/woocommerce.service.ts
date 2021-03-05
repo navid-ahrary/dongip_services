@@ -1,16 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { BindingScope, injectable } from '@loopback/core';
+import { BindingScope, inject, injectable } from '@loopback/core';
 import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api';
+import { WoocommerceBindings } from '../keys';
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class WoocommerceService {
   protected readonly wcRestApi: WooCommerceRestApi;
 
-  constructor() {
+  constructor(
+    @inject(WoocommerceBindings.WOOCOMMERCE_CONSUMER_KEY) consumerKey: string,
+    @inject(WoocommerceBindings.WOOCOMMERCE_CONSUMER_SECRET) consumerSecret: string,
+  ) {
     this.wcRestApi = new WooCommerceRestApi({
       url: 'https://www.dongip.ir',
-      consumerKey: process.env.WOOCOMMERCE_CONSUMER_KEY!,
-      consumerSecret: process.env.WOOCOMMERCE_CONSUMER_SECRET!,
+      consumerKey: consumerKey,
+      consumerSecret: consumerSecret,
       version: 'wc/v3',
     });
   }

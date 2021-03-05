@@ -58,6 +58,8 @@ import {
   hostname,
   HostnameBinding,
   AppInstanceBinding,
+  WoocommerceBindings,
+  WoocommerceConstants,
 } from './keys';
 
 export { ApplicationConfig };
@@ -165,6 +167,12 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
 
     this.bind(TutorialLinksListBinding).to(TutorialLinksListConstants);
 
+    this.bind(TzBindings).to(tzValue);
+
+    this.bind(AppInstanceBinding).to(appInstance);
+
+    this.bind(HostnameBinding).to(hostname);
+
     // MariaDB datasource configs
     this.bind(MariadbConfigBinding).to(MariadbConfigValue);
 
@@ -235,10 +243,12 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.bind(EmailBindings.SUPPORT_MESSAGE_URL).to(EmailConstants.SUPPORT_MESSAGE_URL_VALUE);
     this.bind(EmailBindings.SUPPORT_REFRESH_TOKEN).to(EmailConstants.SUPPORT_REFRESH_TOKEN_VALUE);
 
-    this.bind(TzBindings).to(tzValue);
-
-    this.bind(AppInstanceBinding).to(appInstance);
-
-    this.bind(HostnameBinding).to(hostname);
+    // Woocommerce
+    this.bind(WoocommerceBindings.WOOCOMMERCE_CONSUMER_KEY).to(
+      WoocommerceConstants.WOOCOMMERCE_CONSUMER_KEY_VALUE,
+    );
+    this.bind(WoocommerceBindings.WOOCOMMERCE_CONSUMER_SECRET).to(
+      WoocommerceConstants.WOOCOMMERCE_CONSUMER_SECRET_VALUE,
+    );
   }
 }
