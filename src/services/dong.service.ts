@@ -128,7 +128,7 @@ export class DongService {
       throw new HttpErrors.UnprocessableEntity(this.locMsg['JOINT_NOT_VALID'][this.lang]);
     }
 
-    if (selfUserRel?.getId() === newDong.payerList[0].userRelId) {
+    if (selfUserRel?.userRelId === newDong.payerList[0].userRelId) {
       currentUserIsPayer = true;
     }
 
@@ -150,7 +150,7 @@ export class DongService {
     try {
       const createdDong = await this.usersRepository.dongs(userId).create(dong);
 
-      payerList.forEach((item) => {
+      _.forEach(payerList, (item) => {
         item = _.assign(item, {
           userId: userId,
           dongId: createdDong.getId(),
