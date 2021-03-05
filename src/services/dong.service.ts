@@ -290,7 +290,7 @@ export class DongService {
     try {
       const firebaseMessages: BatchMessage = [];
 
-      const savedDong = _.assign({}, { ...dong, originDongId: dong.dongId });
+      const savedDong = _.clone({ ...dong, originDongId: dong.dongId });
       const billList = savedDong.billList!;
       const payerList = savedDong.payerList!;
 
