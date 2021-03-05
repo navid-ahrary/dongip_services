@@ -37,7 +37,7 @@ export class DongService {
     @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
     @repository(JointAccountsRepository) public jointAccRepository: JointAccountsRepository,
     @repository(JointAccountSubscribesRepository)
-    public jointAccSunRepository: JointAccountSubscribesRepository,
+    public jointAccSubRepository: JointAccountSubscribesRepository,
   ) {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
@@ -302,7 +302,7 @@ export class DongService {
       const JA = await this.jointAccRepository.findById(
         currentUser.jointAccountSubscribes[0].jointAccountId,
       );
-      const JASs = await this.jointAccSunRepository.find({
+      const JASs = await this.jointAccSubRepository.find({
         where: { userId: { neq: currentUser.getId() }, jointAccountId: JA.getId() },
       });
 
