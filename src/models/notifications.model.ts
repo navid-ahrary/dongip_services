@@ -219,7 +219,6 @@ export class Notifications extends Entity {
 
   @property({
     type: 'string',
-    jsonSchema: { maxLength: 10 },
     mysql: {
       columnName: 'plan_id',
       dataType: 'varchar',
@@ -231,7 +230,6 @@ export class Notifications extends Entity {
 
   @property({
     type: 'number',
-    jsonSchema: { maxLength: 10 },
     mysql: {
       columnName: 'joint_account_id',
       dataType: 'mediumint unsigned',
@@ -239,6 +237,16 @@ export class Notifications extends Entity {
     },
   })
   jointAccountId: number;
+
+  @property({
+    type: 'number',
+    mysql: {
+      columnName: 'message_id',
+      dataType: 'mediumint unsigned',
+      nullable: 'Y',
+    },
+  })
+  messageId: number;
 
   @belongsTo(
     () => Users,

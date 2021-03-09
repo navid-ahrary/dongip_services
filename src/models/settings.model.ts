@@ -207,7 +207,7 @@ export class Settings extends Entity {
 }
 
 export interface SettingsRelations {
-  user: UsersWithRelations;
+  user?: UsersWithRelations;
 }
 
 export type SettingsWithRelations = Settings & SettingsRelations;

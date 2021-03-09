@@ -2,6 +2,7 @@
 import { BindingScope, inject, injectable } from '@loopback/core';
 import { HttpErrors } from '@loopback/rest';
 import { messaging, initializeApp, credential, app } from 'firebase-admin';
+import _ from 'lodash';
 import { FirebaseBinding } from '../keys';
 
 export type MessagePayload = messaging.MessagingPayload;
@@ -71,7 +72,7 @@ export class FirebaseService {
   // send a message to multi devices
   public async sendMultiCastMessage(message: messaging.MulticastMessage, dryRun?: boolean) {
     try {
-      Object.assign(message, {
+      _.assign(message, {
         // Android options
         android: {
           notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
@@ -103,8 +104,8 @@ export class FirebaseService {
 
   //send multi message to multi devices
   public async sendAllMessage(messages: BatchMessage): Promise<messaging.BatchResponse> {
-    messages.forEach((msg) =>
-      Object.assign(msg, {
+    _.forEach(messages, (msg) =>
+      _.assign(msg, {
         android: {
           notification: {
             clickAction: 'FLUTTER_NOTIFICATION_CLICK',
