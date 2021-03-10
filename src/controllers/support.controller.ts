@@ -9,7 +9,7 @@ import {
 } from '@loopback/rest';
 import { authorize } from '@loopback/authorization';
 import { authenticate } from '@loopback/authentication';
-import { repository, Filter, Where, model, Model, property } from '@loopback/repository';
+import { repository, Filter, Where } from '@loopback/repository';
 import { inject, service } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
@@ -17,8 +17,8 @@ import Ct from 'countries-and-timezones';
 import _ from 'lodash';
 import Moment from 'moment';
 import 'moment-timezone';
-import { LanguageEnum, Messages, Settings, Users } from '../models';
-import { basicAuthorization, FirebaseService, MessagePayload } from '../services';
+import { Messages, Settings, Users } from '../models';
+import { basicAuthorization, BatchMessage, FirebaseService } from '../services';
 import {
   MessagesRepository,
   NotificationsRepository,
@@ -28,14 +28,14 @@ import {
 import { LocMsgsBindings } from '../keys';
 import { LocalizedMessages } from '../types';
 
-@model()
-class SupportMessage extends Model {
-  @property({ type: 'number', required: false })
-  userId?: typeof Users.prototype.userId;
+// @model()
+// class SupportMessage extends Model {
+//   @property({ type: 'number', required: false })
+//   userId?: typeof Users.prototype.userId;
 
-  @property({ type: 'string', required: false, jsonSchema: { enum: _.values(LanguageEnum) } })
-  language?: typeof Settings.prototype.language;
-}
+//   @property({ type: 'string', required: false, jsonSchema: { enum: _.values(LanguageEnum) } })
+//   language?: typeof Settings.prototype.language;
+// }
 
 @authorize({ allowedRoles: ['GOD'], voters: [basicAuthorization] })
 @authenticate('jwt.access')
@@ -122,31 +122,24 @@ export class SupportController {
       },
     })
     newMessage: Omit<Messages, 'messageId'>,
-    @param.filter(SupportMessage, { exclude: ['fields', 'include'] })
-    filter?: Filter<SupportMessage>,
+    @param.query.string('language', { required: true })
+    language: typeof Settings.prototype.language,
+    @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
   ): Promise<Array<Messages>> {
     try {
-      const where = filter?.where;
-      const settingWhere: Where<Settings> = {};
+      const settingWhere: Where<Settings> = { language: language };
 
-      const userId = _.get(where, 'userId');
       if (userId) _.assign(settingWhere, { userId: userId });
 
-      const language = _.get(where, 'language');
-      if (language) _.assign(settingWhere, { language: language });
-
       const foundSettings = await this.settingRepo.find({
-        limit: filter?.limit,
-        skip: filter?.skip,
-        offset: filter?.offset,
         fields: { settingId: true, userId: true, language: true },
         where: settingWhere,
         include: [
           {
             relation: 'user',
             scope: {
-              fields: { userId: true, firebaseToken: true },
-              where: { firebaseToken: { nin: [undefined, null!, 'null'] } },
+              fields: { userId: true, firebaseToken: true, region: true },
+              where: { firebaseToken: { nin: ['null', undefined] } },
             },
           },
         ],
@@ -156,21 +149,21 @@ export class SupportController {
         _.filter(foundSettings, (s) => s.user instanceof Users),
         (s) => s.user!,
       );
-      const userIdsList = _.map(foundTargetUsers, (u) => u.userId);
+
+      console.log(
+        'Valid user Id',
+        _.map(foundTargetUsers, (u) => u.userId),
+      );
+
       const firebaseTokensList = _.map(foundTargetUsers, (u) => u.firebaseToken!);
 
-      const messages = _.transform(userIdsList, (result: Array<Messages>, id) => {
-        result.push(new Messages({ ...newMessage, userId: id }));
-        return result;
-      });
+      const savedMsgs: Array<Messages> = [];
 
-      const createdMsgs = await this.messagesRepository.createAll(messages);
-
-      const notifyMessages = [];
+      const notifyMsgs: BatchMessage = [];
       for (const foundUser of foundTargetUsers) {
         const targetUserId = foundUser.userId;
         const region = foundUser.region;
-
+        const firebaseToken = foundUser.firebaseToken!;
         const setting = _.find(foundSettings, (s) => s.userId === targetUserId)!;
         const lang = setting.language;
 
@@ -183,6 +176,7 @@ export class SupportController {
           isQuestion: false,
           isAnswer: true,
         });
+        savedMsgs.push(savedMsg);
 
         const savedNotify = await this.usersRepository.notifications(targetUserId).create({
           type: 'support',
@@ -192,28 +186,28 @@ export class SupportController {
           createdAt: timestamp,
         });
 
-        const notifMsg: MessagePayload = {
+        notifyMsgs.push({
+          token: firebaseToken,
           notification: {
             title: savedNotify.title,
             body: savedNotify.body,
           },
           data: {
-            notifyId: savedNotify.notifyId.toString(),
+            notifyId: String(savedNotify.notifyId),
             title: savedNotify.title,
             body: savedNotify.body,
             type: savedNotify.type,
-            createdAt: savedNotify.createdAt,
+            createdAt: String(savedNotify.createdAt),
           },
-        };
-        notifyMessages.push(notifMsg);
+        });
       }
 
       if (firebaseTokensList.length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.firebaseService.sendMultiCastMessage({ tokens: firebaseTokensList });
+        this.firebaseService.sendAllMessage(notifyMsgs);
       }
 
-      return createdMsgs;
+      return savedMsgs;
     } catch (err) {
       console.error(err);
       throw new HttpErrors.NotImplemented(JSON.stringify(err));

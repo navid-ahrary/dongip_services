@@ -48,7 +48,7 @@ export class FirebaseTokenInterceptor implements Provider<Interceptor> {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepo.updateAll(
         { firebaseToken: token },
-        { userId: userId, firebaseToken: { inq: [undefined, null!, 'null'] } },
+        { userId: userId, firebaseToken: { inq: [undefined, 'null'] } },
       );
     }
     // Add pre-invocation logic here

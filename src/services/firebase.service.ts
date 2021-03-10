@@ -94,7 +94,7 @@ export class FirebaseService {
         throw new HttpErrors.NotImplemented(`List of tokens that caused failure ${failedTokens}`);
       }
 
-      console.log(`Successfully sent notifications, ${response}`);
+      console.log(`Successfully sent notifications, ${JSON.stringify(response)}`);
     } catch (err) {
       console.warn(`Error sending notifications, ${err}`);
 

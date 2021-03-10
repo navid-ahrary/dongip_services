@@ -72,7 +72,7 @@ export class MessagesController {
         fields: { firebaseToken: true },
         where: {
           userId: { inq: [1, 28] }, // Me and mr Rafei's userId
-          firebaseToken: { nin: [undefined, null!, 'null'] },
+          firebaseToken: { nin: [undefined, 'null'] },
         },
       })
       .then((users) => {

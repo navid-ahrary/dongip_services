@@ -53,7 +53,7 @@ export class DailyScheduleConjobService extends CronJob {
           relation: 'user',
           scope: {
             fields: { userId: true, firebaseToken: true },
-            where: { firebaseToken: { nin: [null, 'null'] } },
+            where: { firebaseToken: { nin: [undefined, 'null'] } },
           },
         },
       ],
