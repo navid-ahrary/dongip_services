@@ -159,9 +159,9 @@ export class SupportController {
       const userIdsList = _.map(foundTargetUsers, (u) => u.userId);
       const firebaseTokensList = _.map(foundTargetUsers, (u) => u.firebaseToken!);
 
-      const messages: Array<Messages> = [];
-      _.forEach(userIdsList, (id) => {
-        messages.push(new Messages({ ...newMessage, userId: id }));
+      const messages = _.transform(userIdsList, (result: Array<Messages>, id) => {
+        result.push(new Messages({ ...newMessage, userId: id }));
+        return result;
       });
 
       const createdMsgs = await this.messagesRepository.createAll(messages);
