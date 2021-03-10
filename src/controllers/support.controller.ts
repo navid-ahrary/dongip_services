@@ -162,6 +162,7 @@ export class SupportController {
         const setting = _.find(foundSettings, (s) => s.userId === targetUserId)!;
         const lang = setting.language;
 
+        console.log(region);
         const timezone = Ct.getTimezonesForCountry(region!).length
           ? Ct.getTimezonesForCountry(region!)[0].name
           : 'Asia/Tehran';
