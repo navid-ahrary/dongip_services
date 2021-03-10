@@ -9,7 +9,7 @@ import {
 } from '@loopback/rest';
 import { authorize } from '@loopback/authorization';
 import { authenticate } from '@loopback/authentication';
-import { repository, Filter, Where } from '@loopback/repository';
+import { repository, Filter, Where, model, property } from '@loopback/repository';
 import { inject, service } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
@@ -28,14 +28,11 @@ import {
 import { LocMsgsBindings } from '../keys';
 import { LocalizedMessages } from '../types';
 
-// @model()
-// class SupportMessage extends Model {
-//   @property({ type: 'number', required: false })
-//   userId?: typeof Users.prototype.userId;
-
-//   @property({ type: 'string', required: false, jsonSchema: { enum: _.values(LanguageEnum) } })
-//   language?: typeof Settings.prototype.language;
-// }
+@model()
+class MessageRequest extends Messages {
+  @property({ type: 'string', required: false })
+  subject?: string;
+}
 
 @authorize({ allowedRoles: ['GOD'], voters: [basicAuthorization] })
 @authenticate('jwt.access')
@@ -110,18 +107,19 @@ export class SupportController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Messages, {
+          schema: getModelSchemaRef(MessageRequest, {
             title: 'NewMessage',
             exclude: ['messageId', 'userId', 'createdAt', 'isQuestion', 'isAnswer'],
             includeRelations: false,
           }),
           example: {
+            subject: 'Happy valentine day',
             message: 'Visit the www.dongip.ir',
           },
         },
       },
     })
-    newMessage: Omit<Messages, 'messageId'>,
+    newMessage: Omit<MessageRequest, 'messageId'>,
     @param.query.string('language', { required: true })
     language: typeof Settings.prototype.language,
     @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
@@ -170,7 +168,7 @@ export class SupportController {
         const timezone = Ct.getTimezonesForCountry(region!)[0].name;
         const timestamp = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
-        const savedMsg = await this.messagesRepository.create({
+        const savedMsg = await this.usersRepository.messages(targetUserId).create({
           message: newMessage.message,
           userId: targetUserId,
           isQuestion: false,
@@ -180,7 +178,7 @@ export class SupportController {
 
         const savedNotify = await this.usersRepository.notifications(targetUserId).create({
           type: 'support',
-          title: this.locMsg['TICKET_RESPONSE'][lang],
+          title: newMessage.subject ?? this.locMsg['TICKET_RESPONSE'][lang],
           body: newMessage.message,
           messageId: savedMsg.messageId,
           createdAt: timestamp,
