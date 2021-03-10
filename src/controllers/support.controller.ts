@@ -9,7 +9,7 @@ import {
 } from '@loopback/rest';
 import { authorize } from '@loopback/authorization';
 import { authenticate } from '@loopback/authentication';
-import { repository, Filter, Where, model, property } from '@loopback/repository';
+import { repository, Filter, Where } from '@loopback/repository';
 import { inject, service } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
