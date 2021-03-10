@@ -134,7 +134,10 @@ export class SupportController {
             relation: 'user',
             scope: {
               fields: { userId: true, firebaseToken: true, region: true },
-              where: { firebaseToken: { nin: ['null', undefined] } },
+              where: {
+                firebaseToken: { nin: ['null', undefined] },
+                phoneLocked: true,
+              },
             },
           },
         ],
@@ -146,7 +149,8 @@ export class SupportController {
       );
 
       console.log(
-        'Valid user Id',
+        foundTargetUsers.length,
+        'Valid user with ids',
         _.map(foundTargetUsers, (u) => u.userId),
       );
 
@@ -162,8 +166,7 @@ export class SupportController {
         const setting = _.find(foundSettings, (s) => s.userId === targetUserId)!;
         const lang = setting.language;
 
-        console.log(region);
-        const timezone = Ct.getTimezonesForCountry(region!).length
+        const timezone = Ct.getTimezonesForCountry(region!)
           ? Ct.getTimezonesForCountry(region!)[0].name
           : 'Asia/Tehran';
         const timestamp = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
