@@ -29,7 +29,7 @@ import { LocMsgsBindings } from '../keys';
 import { LocalizedMessages } from '../types';
 
 @model()
-class MessageRequest extends Messages {
+class SupportRequest extends Messages {
   @property({ type: 'string', required: false })
   subject?: string;
 }
@@ -97,7 +97,7 @@ export class SupportController {
         description: 'Message model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Messages),
+            schema: { type: 'array', items: getModelSchemaRef(SupportRequest) },
           },
         },
       },
@@ -107,7 +107,7 @@ export class SupportController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(MessageRequest, {
+          schema: getModelSchemaRef(SupportRequest, {
             title: 'NewMessage',
             exclude: ['messageId', 'userId', 'createdAt', 'isQuestion', 'isAnswer'],
             includeRelations: false,
@@ -119,7 +119,7 @@ export class SupportController {
         },
       },
     })
-    newMessage: Omit<MessageRequest, 'messageId'>,
+    newMessage: Omit<SupportRequest, 'messageId'>,
     @param.query.string('language', { required: true })
     language: typeof Settings.prototype.language,
     @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
@@ -173,11 +173,12 @@ export class SupportController {
           userId: targetUserId,
           isQuestion: false,
           isAnswer: true,
+          createdAt: timestamp,
         });
         savedMsgs.push(savedMsg);
 
         const savedNotify = await this.usersRepository.notifications(targetUserId).create({
-          type: 'support',
+          type: 'supportMessage',
           title: newMessage.subject ?? this.locMsg['TICKET_RESPONSE'][lang],
           body: newMessage.message,
           messageId: savedMsg.messageId,

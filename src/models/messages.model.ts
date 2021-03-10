@@ -63,7 +63,6 @@ export class Messages extends Entity {
 
   @property({
     type: 'date',
-    required: true,
     defaultFn: 'now',
     mysql: {
       columnName: 'created_at',
