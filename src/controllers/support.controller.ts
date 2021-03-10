@@ -28,12 +28,6 @@ import {
 import { LocMsgsBindings } from '../keys';
 import { LocalizedMessages } from '../types';
 
-@model()
-class SupportRequest extends Messages {
-  @property({ type: 'string', required: false })
-  subject?: string;
-}
-
 @authorize({ allowedRoles: ['GOD'], voters: [basicAuthorization] })
 @authenticate('jwt.access')
 export class SupportController {
@@ -97,7 +91,7 @@ export class SupportController {
         description: 'Message model instance',
         content: {
           'application/json': {
-            schema: { type: 'array', items: getModelSchemaRef(SupportRequest) },
+            schema: { type: 'array', items: getModelSchemaRef(Messages) },
           },
         },
       },
@@ -107,11 +101,14 @@ export class SupportController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(SupportRequest, {
-            title: 'NewMessage',
-            exclude: ['messageId', 'userId', 'createdAt', 'isQuestion', 'isAnswer'],
-            includeRelations: false,
-          }),
+          schema: {
+            type: 'object',
+            required: ['message'],
+            properties: {
+              subject: { type: 'string' },
+              message: { type: 'string' },
+            },
+          },
           example: {
             subject: 'Happy valentine day',
             message: 'Visit the www.dongip.ir',
@@ -119,7 +116,7 @@ export class SupportController {
         },
       },
     })
-    newMessage: Omit<SupportRequest, 'messageId'>,
+    newMessage: { message: string; subject?: string },
     @param.query.string('language', { required: true })
     language: typeof Settings.prototype.language,
     @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
