@@ -121,11 +121,11 @@ export class SupportController {
     language?: typeof Settings.prototype.language,
     @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
   ): Promise<Array<Messages>> {
-    try {
-      if (!language && !userId) {
-        throw new HttpErrors.UnprocessableEntity('UserId or language must be provided');
-      }
+    if (!language && !userId) {
+      throw new HttpErrors.UnprocessableEntity('UserId or language must be provided');
+    }
 
+    try {
       const settingWhere: Where<Settings> = { language: language };
 
       if (userId) _.assign(settingWhere, { userId: userId });
