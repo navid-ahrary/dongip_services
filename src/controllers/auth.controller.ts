@@ -516,9 +516,13 @@ export class AuthController {
     try {
       const foundVerify = await this.verifyService.verifyCredentials(verifyId, newUser.password);
 
-      const countRegisteredUsers = await this.usersRepository.count();
-      const roles = countRegisteredUsers.count < 1000 ? ['GOLD'] : ['BRONZE'];
-      const planId = countRegisteredUsers.count < 1000 ? 'plan_gy1' : 'free';
+      const mamdBirth1 = '2021-03-11T23:00:00+03:30';
+      const mamdBirth2 = '2021-03-12T23:59:59+03:30';
+
+      const roles = nowUTC.isBetween(Moment(mamdBirth1), Moment(mamdBirth2))
+        ? ['GOLD']
+        : ['BRONZE'];
+      const planId = nowUTC.isBetween(Moment(mamdBirth1), Moment(mamdBirth2)) ? 'plan_gy1' : 'free';
 
       const userEntity = new Users({
         roles: roles,
