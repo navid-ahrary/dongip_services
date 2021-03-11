@@ -226,7 +226,6 @@ export class UsersRelsController {
               notification: {
                 title: notifyTitle,
                 body: notifyBody,
-                clickAction: 'FLUTTER_NOTIFICATION_CLICK',
               },
               data: {
                 notifyId: createdNotify.getId().toString(),
