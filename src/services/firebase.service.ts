@@ -71,7 +71,7 @@ export class FirebaseService {
     options?: messaging.MessagingOptions,
   ): Promise<messaging.MessagingDevicesResponse> {
     const notifPayload = {
-      ...payload,
+      data: payload.data,
       notification: {
         ...payload.notification,
         clickAction: 'FLUTTER_NOTIFICATION_CLICK',
