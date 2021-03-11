@@ -158,8 +158,6 @@ export class SupportController {
         _.map(foundTargetUsers, (u) => u.userId),
       );
 
-      const firebaseTokensList = _.map(foundTargetUsers, (u) => u.firebaseToken!);
-
       const savedMsgs: Array<Messages> = [];
 
       const notifyMsgs: BatchMessage = [];
@@ -208,9 +206,11 @@ export class SupportController {
         });
       }
 
-      if (firebaseTokensList.length) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.firebaseService.sendAllMessage(notifyMsgs);
+      if (notifyMsgs.length) {
+        _.forEach(_.chunk(notifyMsgs, 499), (msgs) => {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          this.firebaseService.sendAllMessage(msgs);
+        });
       }
 
       return savedMsgs;
