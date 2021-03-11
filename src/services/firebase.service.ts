@@ -23,23 +23,7 @@ export interface FirebaseService {
 @injectable({ scope: BindingScope.SINGLETON })
 export class FirebaseService {
   private readonly app: app.App;
-
   private readonly messagingService: messaging.Messaging;
-
-  private readonly timeToLiveSeconds = 60 * 60 * 24 * 7 * 4; // 4 weeks in seconds
-
-  private readonly androidConfigs: messaging.AndroidConfig = {
-    priority: 'high',
-    ttl: this.timeToLiveSeconds * 1000,
-    notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
-  };
-
-  private readonly apnsConfigs: messaging.ApnsConfig = {
-    headers: {
-      'apns-priority': String(10),
-      'apns-expiration': String(this.timeToLiveSeconds * 1000), // 4 weeks in milliseconds,
-    },
-  };
 
   constructor(
     @inject(FirebaseBinding.FIREBASE_APPLICATION_DATABASEURL) private baseUrl: string,
@@ -68,20 +52,9 @@ export class FirebaseService {
   public async sendToDeviceMessage(
     firebaseToken: string | string[],
     payload: messaging.MessagingPayload,
-    options?: messaging.MessagingOptions,
+    options?: messaging.MessagingOptions | undefined,
   ): Promise<messaging.MessagingDevicesResponse> {
-    payload = {
-      ...payload,
-      notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
-    };
-
-    options = {
-      ...options,
-      priority: 'high',
-      mutableContent: true,
-      contentAvailable: true,
-      timeToLive: this.timeToLiveSeconds,
-    };
+    payload['notification']!['clickAction'] = 'FLUTTER_NOTIFICATION_CLICK';
 
     const response = await this.messagingService.sendToDevice(firebaseToken, payload, options);
 
@@ -99,11 +72,12 @@ export class FirebaseService {
   // send a message to multi devices
   public async sendMultiCastMessage(message: messaging.MulticastMessage, dryRun?: boolean) {
     try {
-      message = {
-        ...message,
-        apns: this.apnsConfigs,
-        android: this.androidConfigs,
-      };
+      _.assign(message, {
+        // Android options
+        android: {
+          notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
+        },
+      });
 
       const response = await this.messagingService.sendMulticast(message, dryRun);
 
@@ -130,24 +104,15 @@ export class FirebaseService {
 
   //send multi message to multi devices
   public async sendAllMessage(messages: BatchMessage): Promise<messaging.BatchResponse> {
-    _.forEach(messages, (message) => {
-      _.assign(message, {
-        android: this.androidConfigs,
-        apns: this.apnsConfigs,
-      });
-    });
-    // msg._.assign(msg, {
-    //   android: {
-    //     priority: 'high',
-    //     ttl: 1000 * 60 * 60 * 24 * 7 * 4, // 4 weeks in miliseconds
-    //     notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
-    //   },
-    //   apns: {
-    //     headers: {
-    //       'apns-expiration': '1604750400',
-    //     },
-    //   },
-    // }),
+    _.forEach(messages, (msg) =>
+      _.assign(msg, {
+        android: {
+          notification: {
+            clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+          },
+        },
+      }),
+    );
 
     try {
       const response = await this.messagingService.sendAll(messages);
