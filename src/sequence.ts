@@ -23,12 +23,9 @@ const SequenceActions = RestBindings.SequenceActions;
 
 const middlewareList: ExpressRequestHandler[] = [
   helmet({
-    dnsPrefetchControl: true,
-    hidePoweredBy: true,
-    ieNoOpen: true,
-    xssFilter: true,
-    frameguard: true,
-    expectCt: true,
+    dnsPrefetchControl: { allow: true },
+    expectCt: { enforce: true },
+    originAgentCluster: true,
   }), // options fixed and can not be changed a runtime
   morgan('combined', { immediate: true }),
 ];
