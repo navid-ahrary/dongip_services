@@ -70,7 +70,7 @@ export class FirebaseService {
     payload: messaging.MessagingPayload,
     options?: messaging.MessagingOptions,
   ): Promise<messaging.MessagingDevicesResponse> {
-    payload = {
+    const notifPayload = {
       ...payload,
       notification: {
         ...payload.notification,
@@ -78,7 +78,7 @@ export class FirebaseService {
       },
     };
 
-    options = {
+    const notifOptions = {
       ...options,
       priority: 'high',
       mutableContent: true,
@@ -86,7 +86,11 @@ export class FirebaseService {
       timeToLive: this.timeToLiveSeconds,
     };
 
-    const response = await this.messagingService.sendToDevice(firebaseToken, payload, options);
+    const response = await this.messagingService.sendToDevice(
+      firebaseToken,
+      notifPayload,
+      notifOptions,
+    );
 
     if (response.successCount) {
       console.log(`Sucessfully sent notification: ${JSON.stringify(response)}`);
