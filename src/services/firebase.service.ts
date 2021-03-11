@@ -104,8 +104,8 @@ export class FirebaseService {
     try {
       message = {
         ...message,
-        apns: this.apnsConfigs,
         android: this.androidConfigs,
+        // apns: this.apnsConfigs,
       };
 
       const response = await this.messagingService.sendMulticast(message, dryRun);
@@ -136,7 +136,7 @@ export class FirebaseService {
     _.forEach(messages, (message) => {
       _.assign(message, {
         android: this.androidConfigs,
-        apns: this.apnsConfigs,
+        // apns: this.apnsConfigs,
       });
     });
     // msg._.assign(msg, {
