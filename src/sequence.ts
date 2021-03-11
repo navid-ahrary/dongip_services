@@ -22,11 +22,11 @@ import morgan from 'morgan'; // For http access logging
 const SequenceActions = RestBindings.SequenceActions;
 
 const middlewareList: ExpressRequestHandler[] = [
-  helmet({
-    dnsPrefetchControl: { allow: true },
-    expectCt: { enforce: true },
-    originAgentCluster: true,
-  }), // options fixed and can not be changed a runtime
+  // helmet({
+  //   dnsPrefetchControl: { allow: true },
+  //   expectCt: { enforce: true },
+  //   originAgentCluster: true,
+  // }), // options fixed and can not be changed a runtime
   morgan('combined', { immediate: true }),
 ];
 
