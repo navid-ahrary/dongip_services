@@ -39,7 +39,7 @@ import { LocMsgsBindings } from '../keys';
 @authenticate('jwt.access')
 export class UsersRelsController {
   private readonly userId: number;
-  lang: string;
+  private readonly lang: string;
 
   constructor(
     @inject.context() public ctx: RequestContext,

@@ -34,7 +34,7 @@ import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
 export class UsersController {
   private readonly userId: number;
   private readonly userName: string;
-  lang: string;
+  private readonly lang: string;
 
   constructor(
     @inject.context() public ctx: RequestContext,

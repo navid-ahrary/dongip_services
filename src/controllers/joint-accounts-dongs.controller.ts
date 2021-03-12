@@ -18,7 +18,7 @@ import { LocMsgsBindings } from '../keys';
 @intercept(FirebaseTokenInterceptor.BINDING_KEY)
 export class JointAccountsDongsController {
   private readonly userId: number;
-  lang: string;
+  private readonly lang: string;
 
   constructor(
     @inject.context() public ctx: RequestContext,

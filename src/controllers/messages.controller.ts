@@ -13,7 +13,7 @@ import { FirebaseTokenInterceptor } from '../interceptors';
 @authenticate('jwt.access')
 export class MessagesController {
   private readonly userId: number;
-  readonly name: string;
+  private readonly name: string;
 
   constructor(
     @service(FirebaseService) public firebaseService: FirebaseService,

@@ -25,7 +25,7 @@ import { LocMsgsBindings } from '../keys';
 @authenticate('jwt.access')
 export class CategoriesController {
   private readonly userId: number;
-  lang: string;
+  private readonly lang: string;
 
   constructor(
     @inject.context() private ctx: RequestContext,

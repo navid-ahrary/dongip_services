@@ -32,7 +32,7 @@ import { LocalizedMessages } from '../types';
 @authenticate('jwt.access')
 export class SupportController {
   private readonly userId: number;
-  lang: string;
+  private readonly lang: string;
 
   constructor(
     @inject.context() public ctx: RequestContext,

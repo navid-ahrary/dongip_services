@@ -52,7 +52,7 @@ import { LocMsgsBindings } from '../keys';
 export class JointAccountController {
   private readonly userId: number;
   private readonly phone: string;
-  lang: string;
+  private readonly lang: string;
 
   constructor(
     @inject.context() private ctx: RequestContext,

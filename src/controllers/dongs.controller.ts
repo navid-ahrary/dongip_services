@@ -46,13 +46,13 @@ intercept(FirebaseTokenInterceptor.BINDING_KEY);
 @authenticate('jwt.access')
 export class DongsController {
   private readonly userId: number;
-  lang: string;
+  private readonly lang: string;
 
   constructor(
     @inject.context() private ctx: RequestContext,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(CategoriesSourceListBindings) public catSrc: CategoriesSource,
+    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
     @service(DongService) public dongService: DongService,
     @repository(UsersRepository) public userRepo: UsersRepository,
     @repository(DongsRepository) public dongRepository: DongsRepository,
