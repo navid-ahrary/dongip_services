@@ -25,12 +25,12 @@ export class JointRequest extends Model {
   @property({
     type: 'array',
     itemType: 'number',
-    jsonSchema: {
-      type: 'array',
-      uniqueItems: true,
-      minItems: 1,
-      items: { type: 'number', minimum: 1 },
-    },
+    // jsonSchema: {
+    //   type: 'array',
+    //   uniqueItems: true,
+    //   minItems: 1,
+    //   items: { type: 'number', minimum: 1 },
+    // },
   })
   userRelIds: typeof UsersRels.prototype.userRelId[];
 
