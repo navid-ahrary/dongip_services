@@ -256,14 +256,18 @@
     "en": "User not found!"
   },
   "SERVER_MAINTENACE": {
-    "fa": "با عرض پوزش s% عزیز، در حال انجام بهبودهایی در زیر ساخت هستیم. از صبر شما سپاسگذاریم",
+    "fa": "با عرض پوزش %s عزیز، در حال انجام بهبودهایی در زیر ساخت هستیم. از صبر شما سپاسگذاریم",
     "en": "Sorry dear %s, We are improving the infrastructure. Thanks for your patient"
+  },
+  "UPDATE_MESSAGE": {
+    "fa": "رفع باگ های حیاتی",
+    "en": "Critical bugs fixed"
   },
   "REMINDER_TITLE": {
     "fa": "یادآوری : %s جان یه موقع یادت نره",
     "en": "Reminer : Dear %s do not forget"
   },
-  "UPDATE_NOT_SELF_DONG_PONG": {
+  "UPDATE_JUST_SELF_DONG_PONG": {
     "fa": "متاسفانه در حال حاضر تنها ویرایش هزینه های شخصی ممکن است",
     "en": "Unfortunately for now just the personal expenses could edit"
   }
