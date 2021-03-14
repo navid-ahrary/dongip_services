@@ -17,12 +17,12 @@ export class MessagesController {
 
   constructor(
     @service(FirebaseService) public firebaseService: FirebaseService,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(MessagesRepository) public messagesRepository: MessagesRepository,
   ) {
-    this.userId = +this.currentUserProfile[securityId];
-    this.name = this.currentUserProfile.name!;
+    this.userId = +currentUserProfile[securityId];
+    this.name = currentUserProfile.name!;
   }
 
   @post('/messages', {

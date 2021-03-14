@@ -14,11 +14,11 @@ export class NotificationsController {
   private readonly userId: typeof Users.prototype.userId;
 
   constructor(
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @repository(UsersRepository) protected usersRepository: UsersRepository,
     @repository(NotificationsRepository) public notifyRepo: NotificationsRepository,
   ) {
-    this.userId = +this.currentUserProfile[securityId];
+    this.userId = +currentUserProfile[securityId];
   }
 
   @get('/notifications', {

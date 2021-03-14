@@ -44,7 +44,7 @@ export class UsersRelsController {
   constructor(
     @inject.context() public ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @service(FirebaseService) public firebaseService: FirebaseService,
     @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -53,7 +53,7 @@ export class UsersRelsController {
     @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
     @repository(VirtualUsersRepository) public virtualUsersRepository: VirtualUsersRepository,
   ) {
-    this.userId = +this.currentUserProfile[securityId];
+    this.userId = +currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 

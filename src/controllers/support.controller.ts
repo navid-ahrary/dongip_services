@@ -37,14 +37,14 @@ export class SupportController {
   constructor(
     @inject.context() public ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
-    @inject(SecurityBindings.USER) public currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @service(FirebaseService) public firebaseService: FirebaseService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(SettingsRepository) public settingRepo: SettingsRepository,
     @repository(MessagesRepository) public messagesRepository: MessagesRepository,
     @repository(NotificationsRepository) public notifyRepo: NotificationsRepository,
   ) {
-    this.userId = +this.currentUserProfile[securityId];
+    this.userId = +currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 

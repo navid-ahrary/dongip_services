@@ -52,7 +52,7 @@ export class DongsController {
     @inject.context() private ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(CategoriesSourceListBindings) public catSrc: CategoriesSource,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @service(DongService) public dongService: DongService,
     @repository(UsersRepository) public userRepo: UsersRepository,
     @repository(DongsRepository) public dongRepository: DongsRepository,
@@ -61,7 +61,7 @@ export class DongsController {
     @repository(PayerListRepository) public payerListRepository: PayerListRepository,
     @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
   ) {
-    this.userId = +this.currentUserProfile[securityId];
+    this.userId = +currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 

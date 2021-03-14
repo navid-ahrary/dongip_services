@@ -16,9 +16,9 @@ export class BudgetsController {
 
   constructor(
     @repository(BudgetsRepository) public budgetsRepository: BudgetsRepository,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
   ) {
-    this.userId = +this.currentUserProfile[securityId];
+    this.userId = +currentUserProfile[securityId];
   }
 
   @get('/budgets/', {

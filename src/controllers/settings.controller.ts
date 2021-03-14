@@ -17,9 +17,9 @@ export class SettingsController {
     @repository(SettingsRepository)
     public settingsRepository: SettingsRepository,
     @repository(UsersRepository) public usersRepository: UsersRepository,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
   ) {
-    this.userId = +this.currentUserProfile[securityId];
+    this.userId = +currentUserProfile[securityId];
   }
 
   @get('/settings', {

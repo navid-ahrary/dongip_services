@@ -41,16 +41,16 @@ export class UsersController {
     @inject(PackageKey) public packageInfo: PackageInfo,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(TutorialLinksListBinding) public tutLinks: TutorialLinks,
-    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
     @inject('controllers.JointAccountController') public jointController: JointAccountController,
     @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
   ) {
-    this.userId = +this.currentUserProfile[securityId];
+    this.userId = +currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
     this.userName =
-      this.currentUserProfile.name ??
+      currentUserProfile.name ??
       (_.includes(this.ctx.request.headers['accept-language'], 'en') ? 'mate' : 'رفیق');
   }
 

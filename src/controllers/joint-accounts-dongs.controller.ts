@@ -23,12 +23,12 @@ export class JointAccountsDongsController {
   constructor(
     @inject.context() public ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
-    @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @repository(JointAccountSubscribesRepository)
     public jointAccSubRepo: JointAccountSubscribesRepository,
     @repository(JointAccountsRepository) public jointAccountsRepository: JointAccountsRepository,
   ) {
-    this.userId = +this.currentUserProfile[securityId];
+    this.userId = +currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 

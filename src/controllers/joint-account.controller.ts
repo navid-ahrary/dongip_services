@@ -58,7 +58,7 @@ export class JointAccountController {
   constructor(
     @inject.context() private ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @service(FirebaseService) public firebaseSerice: FirebaseService,
     @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
     @repository(DongsRepository) public dongRepo: DongsRepository,
@@ -68,8 +68,8 @@ export class JointAccountController {
     @repository(JointAccountSubscribesRepository)
     public jointAccSubscribesRepo: JointAccountSubscribesRepository,
   ) {
-    this.userId = +this.currentUserProfile[securityId];
-    this.phone = this.currentUserProfile.phone;
+    this.userId = +currentUserProfile[securityId];
+    this.phone = currentUserProfile.phone;
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
