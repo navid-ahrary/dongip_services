@@ -4,7 +4,7 @@ import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { post, getModelSchemaRef, requestBody, get } from '@loopback/rest';
-import { Messages } from '../models';
+import { Messages, Users } from '../models';
 import { FirebaseService } from '../services';
 import { UsersRepository, MessagesRepository } from '../repositories';
 import { FirebaseTokenInterceptor } from '../interceptors';
@@ -12,7 +12,7 @@ import { FirebaseTokenInterceptor } from '../interceptors';
 @intercept(FirebaseTokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class MessagesController {
-  private readonly userId: number;
+  private readonly userId: typeof Users.prototype.userId;
   private readonly name: string;
 
   constructor(

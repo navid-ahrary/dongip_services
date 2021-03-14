@@ -6,7 +6,7 @@ import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authorize } from '@loopback/authorization';
 import _ from 'lodash';
-import { Dongs } from '../models';
+import { Dongs, Users } from '../models';
 import { JointAccountsRepository, JointAccountSubscribesRepository } from '../repositories';
 import { basicAuthorization } from '../services';
 import { FirebaseTokenInterceptor } from '../interceptors';
@@ -17,7 +17,7 @@ import { LocMsgsBindings } from '../keys';
 @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
 @intercept(FirebaseTokenInterceptor.BINDING_KEY)
 export class JointAccountsDongsController {
-  private readonly userId: number;
+  private readonly userId: typeof Users.prototype.userId;
   private readonly lang: string;
 
   constructor(

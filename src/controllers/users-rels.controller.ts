@@ -38,7 +38,7 @@ import { LocMsgsBindings } from '../keys';
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, FirebaseTokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class UsersRelsController {
-  private readonly userId: number;
+  private readonly userId: typeof Users.prototype.userId;
   private readonly lang: string;
 
   constructor(

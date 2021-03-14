@@ -5,14 +5,14 @@ import { inject, intercept } from '@loopback/core';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import moment from 'moment';
-import { Budgets } from '../models';
+import { Budgets, Users } from '../models';
 import { BudgetsRepository } from '../repositories';
 import { FirebaseTokenInterceptor, ValidateBudgetIdInterceptor } from '../interceptors';
 
 @authenticate('jwt.access')
 @intercept(ValidateBudgetIdInterceptor.BINDING_KEY, FirebaseTokenInterceptor.BINDING_KEY)
 export class BudgetsController {
-  private readonly userId: number;
+  private readonly userId: typeof Users.prototype.userId;
 
   constructor(
     @repository(BudgetsRepository) public budgetsRepository: BudgetsRepository,

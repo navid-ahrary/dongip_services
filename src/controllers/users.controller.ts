@@ -32,7 +32,7 @@ import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
 @intercept(FirebaseTokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class UsersController {
-  private readonly userId: number;
+  private readonly userId: typeof Users.prototype.userId;
   private readonly userName: string;
   private readonly lang: string;
 

@@ -15,7 +15,7 @@ import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept } from '@loopback/core';
 import _ from 'lodash';
-import { Categories } from '../models';
+import { Categories, Users } from '../models';
 import { UsersRepository, CategoriesRepository } from '../repositories';
 import { FirebaseTokenInterceptor, ValidateCategoryIdInterceptor } from '../interceptors';
 import { LocalizedMessages } from '../types';
@@ -24,7 +24,7 @@ import { LocMsgsBindings } from '../keys';
 @intercept(ValidateCategoryIdInterceptor.BINDING_KEY, FirebaseTokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class CategoriesController {
-  private readonly userId: number;
+  private readonly userId: typeof Users.prototype.userId;
   private readonly lang: string;
 
   constructor(

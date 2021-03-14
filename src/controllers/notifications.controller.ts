@@ -4,14 +4,14 @@ import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept } from '@loopback/core';
-import { Notifications } from '../models';
+import { Notifications, Users } from '../models';
 import { NotificationsRepository, UsersRepository } from '../repositories';
 import { FirebaseTokenInterceptor } from '../interceptors';
 
 @intercept(FirebaseTokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class NotificationsController {
-  private readonly userId: number;
+  private readonly userId: typeof Users.prototype.userId;
 
   constructor(
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,

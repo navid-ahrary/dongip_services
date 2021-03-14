@@ -4,14 +4,14 @@ import { get, getModelSchemaRef, requestBody, patch } from '@loopback/rest';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import { Settings } from '../models';
+import { Settings, Users } from '../models';
 import { SettingsRepository, UsersRepository } from '../repositories';
 import { FirebaseTokenInterceptor } from '../interceptors';
 
 @intercept(FirebaseTokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class SettingsController {
-  private readonly userId: number;
+  private readonly userId: typeof Users.prototype.userId;
 
   constructor(
     @repository(SettingsRepository)

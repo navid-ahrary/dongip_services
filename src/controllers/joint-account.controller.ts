@@ -25,6 +25,7 @@ import {
   JointResponse,
   JointAccountSubscribes,
   JointAccountsWithRelations,
+  Users,
 } from '../models';
 import {
   DongsRepository,
@@ -50,7 +51,7 @@ import { LocMsgsBindings } from '../keys';
 @authenticate('jwt.access')
 @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
 export class JointAccountController {
-  private readonly userId: number;
+  private readonly userId: typeof Users.prototype.userId;
   private readonly phone: string;
   private readonly lang: string;
 

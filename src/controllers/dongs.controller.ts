@@ -16,7 +16,7 @@ import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, service, intercept } from '@loopback/core';
 import _ from 'lodash';
-import { Dongs, PostDong, Categories, BillList, PayerList } from '../models';
+import { Dongs, PostDong, Categories, BillList, PayerList, Users } from '../models';
 import {
   UsersRepository,
   DongsRepository,
@@ -45,7 +45,7 @@ export class ResponseNewDong extends Dongs {
 intercept(FirebaseTokenInterceptor.BINDING_KEY);
 @authenticate('jwt.access')
 export class DongsController {
-  private readonly userId: number;
+  private readonly userId: typeof Users.prototype.userId;
   private readonly lang: string;
 
   constructor(
