@@ -23,7 +23,7 @@ const SequenceActions = RestBindings.SequenceActions;
 
 const middlewareList: ExpressRequestHandler[] = [
   // Options fixed and can not be changed a runtime
-  helmet(),
+  helmet({ contentSecurityPolicy: false }),
   morgan('combined', { immediate: true }),
 ];
 
