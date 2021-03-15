@@ -68,7 +68,7 @@ export class SupportController {
     },
   })
   async getUsersLastMessage(
-    @param.query.number('limit', { description: 'Number of messages whould returned' })
+    @param.query.number('limit', { description: 'Number of messages whould returned, optional' })
     limit?: number,
   ): Promise<Array<Messages & Partial<Users>>> {
     let query = `
@@ -102,8 +102,6 @@ export class SupportController {
           AND users.id = M.user_id `;
 
     if (_.isNumber(limit)) query += `LIMIT ?`;
-
-    console.log(query);
 
     const result = await this.dataSource.execute(query, [limit]);
 
