@@ -6,3 +6,4 @@ export * from './validate-budget.interceptor';
 export * from './joint-accounts.interceptor';
 export * from './firebase-token.interceptor';
 export * from './validate-dong-id.interceptor';
+export * from './auth.interceptor';

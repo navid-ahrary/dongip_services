@@ -25,3 +25,4 @@ export * from './joint-request.model';
 export * from './joint-response.model';
 export * from './refresh-tokens.model';
 export * from './reminders.model';
+export * from './receiptions.model';
