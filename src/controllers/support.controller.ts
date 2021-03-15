@@ -99,7 +99,8 @@ export class SupportController {
           users
         WHERE
           M.rn = 1
-          AND users.id = M.user_id `;
+          AND users.id = M.user_id
+        ORDER BY messageId DESC `;
 
     if (_.isNumber(limit)) query += `LIMIT ?`;
 
