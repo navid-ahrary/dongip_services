@@ -4,6 +4,7 @@ import { inject } from '@loopback/core';
 import { UserProfile, securityId } from '@loopback/security';
 import { HttpErrors } from '@loopback/rest';
 import { repository } from '@loopback/repository';
+import Ct from 'countries-and-timezones';
 import { sign, verify, Algorithm } from 'jsonwebtoken';
 import { UsersRepository, BlacklistRepository } from '../repositories';
 import { TokenServiceBindings } from '../keys';
@@ -64,6 +65,7 @@ export class JWTService implements TokenService {
           email: user.email,
           name: user.name,
           region: user.region,
+          timezone: Ct.getTimezonesForCountry(user.region! ?? 'IR')[0].name,
           selfUserRelId: user.usersRels[0].userRelId,
           firebaseToken: user.firebaseToken,
         });

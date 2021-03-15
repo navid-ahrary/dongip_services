@@ -27,6 +27,7 @@ import {
 } from '../repositories';
 import { LocMsgsBindings } from '../keys';
 import { LocalizedMessages } from '../types';
+import { MariadbDataSource } from '../datasources';
 
 @authorize({ allowedRoles: ['GOD'], voters: [basicAuthorization] })
 @authenticate('jwt.access')
@@ -37,6 +38,7 @@ export class SupportController {
   constructor(
     @inject.context() public ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject('datasources.Mariadb') private dataSource: MariadbDataSource,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @service(FirebaseService) public firebaseService: FirebaseService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -46,6 +48,66 @@ export class SupportController {
   ) {
     this.userId = +currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
+  }
+
+  @get('/support/review', {
+    summary: 'GET last Messages of each Users includes some of Users properties',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '200': {
+        description: 'Array last Messages of Users',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'array',
+              items: getModelSchemaRef(Messages),
+            },
+          },
+        },
+      },
+    },
+  })
+  async getUsersLastMessage(
+    @param.query.number('limit', { description: 'Number of messages whould returned' })
+    limit?: number,
+  ): Promise<Array<Messages & Partial<Users>>> {
+    let query = `
+      WITH M AS (
+        SELECT
+          *,
+          ROW_NUMBER() OVER (PARTITION BY user_id
+        ORDER BY
+          id DESC) AS rn
+        FROM
+          messages )
+        SELECT
+          M.id AS messageId,
+          M.message,
+          M.is_answer AS isAnswer,
+          M.is_question AS isQuestion,
+          M.created_at AS createdAt,
+          M.user_id AS userId,
+          users.avatar,
+          users.phone,
+          users.name,
+          users.roles,
+          users.region,
+          users.user_agent AS userAgent,
+          users.platform
+        FROM
+          M,
+          users
+        WHERE
+          M.rn = 1
+          AND users.id = M.user_id `;
+
+    if (_.isNumber(limit)) query += `LIMIT ?`;
+
+    console.log(query);
+
+    const result = await this.dataSource.execute(query, [limit]);
+
+    return result as Array<Messages & Partial<Users>>;
   }
 
   @get('/support/messages', {
@@ -63,7 +125,7 @@ export class SupportController {
     },
   })
   async findMessages(
-    @param.query.object('filterOnMessage', {
+    @param.query.object('filter', {
       example: {
         limit: 5,
         where: { userId: 1 },
