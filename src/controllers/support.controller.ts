@@ -229,9 +229,7 @@ export class SupportController {
         const setting = _.find(foundSettings, (s) => s.userId === targetUserId)!;
         const lang = setting.language;
 
-        const timezone = Ct.getTimezonesForCountry(region!)
-          ? Ct.getTimezonesForCountry(region!)[0].name
-          : 'Asia/Tehran';
+        const timezone = Ct.getTimezonesForCountry(region ?? 'IR')[0].name;
         const timestamp = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
         const savedMsg = await this.usersRepository.messages(targetUserId).create({
