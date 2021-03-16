@@ -28,7 +28,6 @@
     "url": "./schemas/apiconnectmodels.json"
   }
 ],
-"prettier.packageManager": "yarn",
 "editor.fontSize": 13,
 "editor.fontFamily": "'IBM Plex Mono', 'IBM Plex Mono', IBM Plex Mono, 'IBM Plex Sans'",
 }
