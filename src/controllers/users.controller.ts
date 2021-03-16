@@ -354,18 +354,18 @@ export class UsersController {
       if (!foundUser.phoneLocked && cmpltSignBody.phone) {
         const postedPhone = cmpltSignBody.phone;
 
-        userProps['phoneLocked'] = true;
-        userProps['phone'] = postedPhone;
-        userProps['region'] = this.phoneNumService.getRegionCodeISO(postedPhone);
-        userRelProps['phone'] = postedPhone;
+        userProps.phoneLocked = true;
+        userProps.phone = postedPhone;
+        userProps.region = this.phoneNumService.getRegionCodeISO(postedPhone);
+        userRelProps.phone = postedPhone;
       }
 
       if (!foundUser.emailLocked && cmpltSignBody.email) {
         const postedEmail = cmpltSignBody.email;
 
-        userProps['emailLocked'] = true;
-        userProps['email'] = postedEmail;
-        userRelProps['email'] = postedEmail;
+        userProps.emailLocked = true;
+        userProps.email = postedEmail;
+        userRelProps.email = postedEmail;
       }
 
       console.log('completion userProps', JSON.stringify(userProps));
