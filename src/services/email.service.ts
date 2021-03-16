@@ -104,7 +104,7 @@ export class EmailService {
    * @returns String
    */
   public normalize(email: string): string {
-    let result = email.toLowerCase();
+    let result = email.toLowerCase().replace(/ /g, '');
 
     const splitted = result.split('@');
 
