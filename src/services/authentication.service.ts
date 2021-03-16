@@ -318,7 +318,7 @@ export class AuthenticationService {
         ...tokenObj,
       };
 
-      await this.createDemoData(savedUser.getId(), selfRel.getId(), savedSetting.getId());
+      await this.createDemoData(savedUser.getId(), selfRel.getId(), savedSetting.currency);
 
       return resp;
     } catch (err) {

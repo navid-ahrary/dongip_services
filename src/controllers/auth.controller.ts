@@ -150,8 +150,9 @@ export class AuthController {
 
     if (verifyReqBody.phone) {
       const phoneValue = verifyReqBody.phone;
+      const smsSignature = verifyReqBody.smsSignature;
 
-      return this.authService.verifyWithPhone(phoneValue);
+      return this.authService.verifyWithPhone(phoneValue, smsSignature);
     } else if (verifyReqBody.email) {
       const emailValue = verifyReqBody.email;
 
