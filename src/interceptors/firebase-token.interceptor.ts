@@ -44,7 +44,7 @@ export class FirebaseTokenInterceptor implements Provider<Interceptor> {
       httpReq = await invocationCtx.get(RestBindings.Http.REQUEST),
       token = httpReq.headers['firebase-token'];
 
-    if (typeof token === 'string') {
+    if (typeof token === 'string' && token !== 'null') {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepo.updateAll(
         { firebaseToken: token },
