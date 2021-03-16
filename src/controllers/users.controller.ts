@@ -348,6 +348,7 @@ export class UsersController {
       if (foundUser.phoneLocked && foundUser.emailLocked) throw new Error('DONE');
 
       const userProps: Partial<Users> = _.pick(cmpltSignBody, ['avatar', 'name', 'referralCode']);
+      console.log('completion', userProps);
       const settingProps: Partial<Settings> = _.pick(cmpltSignBody, ['language', 'currency']);
       const userRelProps: Partial<UsersRels> = _.pick(cmpltSignBody, ['avatar', 'name']);
 
