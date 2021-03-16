@@ -348,7 +348,6 @@ export class UsersController {
       if (foundUser.phoneLocked && foundUser.emailLocked) throw new Error('DONE');
 
       const userProps: Partial<Users> = _.pick(cmpltSignBody, ['avatar', 'name', 'referralCode']);
-      console.log('completion', userProps);
       const settingProps: Partial<Settings> = _.pick(cmpltSignBody, ['language', 'currency']);
       const userRelProps: Partial<UsersRels> = _.pick(cmpltSignBody, ['avatar', 'name']);
 
@@ -369,11 +368,14 @@ export class UsersController {
         userRelProps['email'] = postedEmail;
       }
 
+      console.log('completion userProps', JSON.stringify(userProps));
       await this.usersRepository.updateById(this.userId, userProps);
 
+      console.log('completion userRelProps', JSON.stringify(userRelProps));
       await this.usersRepository.usersRels(this.userId).patch(userRelProps, { type: 'self' });
 
       if (_.keys(settingProps).length) {
+        console.log('completion settingProps', JSON.stringify(settingProps));
         await this.usersRepository.setting(this.userId).patch(settingProps);
       }
     } catch (err) {
