@@ -8,14 +8,25 @@ import _ from 'lodash';
 import Util from 'util';
 import Fs from 'fs';
 import Path from 'path';
-import { SettingsRepository, UsersRepository, VerifyRepository } from '../repositories';
-import { LocalizedMessages } from '../types';
-import { LocMsgsBindings, TokenServiceBindings, UserServiceBindings } from '../keys';
-import { PhoneNumberService, SmsService, EmailService, FirebaseService } from '.';
-import { Settings, Users } from '../models';
+import {
+  CategoriesRepository,
+  UsersRelsRepository,
+  UsersRepository,
+  VerifyRepository,
+} from '../repositories';
+import { CategoriesSource, LocalizedMessages } from '../types';
+import {
+  CategoriesSourceListBindings,
+  LocMsgsBindings,
+  TokenServiceBindings,
+  UserServiceBindings,
+} from '../keys';
+import { PhoneNumberService, SmsService, EmailService } from '.';
+import { Categories, PostDong, Settings, Users, UsersRels } from '../models';
 import { Credentials } from '@loopback/authentication-jwt';
 import { RefreshtokenService } from './refreshtoken.service';
 import { UserScoresService } from './user-scores.service';
+import { DongService } from './dong.service';
 
 @injectable({ scope: BindingScope.REQUEST })
 export class AuthenticationService {
@@ -26,17 +37,19 @@ export class AuthenticationService {
   constructor(
     @inject.context() private ctx: RequestContext,
     @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
+    @inject(CategoriesSourceListBindings) private catSrc: CategoriesSource,
     @inject(TokenServiceBindings.TOKEN_SERVICE) private jwtService: TokenService,
     @inject(UserServiceBindings.USER_SERVICE) private userService: UserService<Users, Credentials>,
     @service(SmsService) private smsService: SmsService,
+    @service(DongService) private dongService: DongService,
     @service(EmailService) private emailService: EmailService,
     @service(UserScoresService) private userScoresService: UserScoresService,
-    @service(FirebaseService) private firebaseService: FirebaseService,
     @service(RefreshtokenService) private refreshTokenService: RefreshtokenService,
     @service(PhoneNumberService) private phoneNumberService: PhoneNumberService,
     @repository(UsersRepository) private usersRepository: UsersRepository,
     @repository(VerifyRepository) private verifyRepository: VerifyRepository,
-    @repository(SettingsRepository) public settingsRepository: SettingsRepository,
+    @repository(UsersRelsRepository) private usersRelsRepository: UsersRelsRepository,
+    @repository(CategoriesRepository) private categoriesRepository: CategoriesRepository,
   ) {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
     this.randomCode = Math.random().toFixed(7).slice(3);
@@ -124,7 +137,7 @@ export class AuthenticationService {
     const createdVerify = await this.verifyRepository
       .create({
         email: emailValue,
-        loginStrategy: 'email',
+        verifyStrategy: 'email',
         registered: _.isObjectLike(foundUser),
         password: this.randomString + this.randomCode,
         platform: this.ctx.request.headers['platform']?.toString(),
@@ -183,7 +196,7 @@ export class AuthenticationService {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.verifyRepository.create({
           email: emailValue,
-          loginStrategy: 'google',
+          verifyStrategy: 'google',
           registered: _.isObjectLike(user),
           password: this.randomString + this.randomCode,
           platform: this.ctx.request.headers['platform']?.toString(),
@@ -223,7 +236,12 @@ export class AuthenticationService {
 
         return resp;
       } else {
-        user = new Users({ email: emailValue });
+        user = new Users({
+          email: emailValue,
+          emailLocked: true,
+          userAgent: this.ctx.request.headers['user-agent'],
+          platform: this.ctx.request.headers['platform']?.toString(),
+        });
         const setting = new Settings({ language: this.lang });
 
         return await this.createUser(user, setting);
@@ -248,18 +266,26 @@ export class AuthenticationService {
 
       const userEntity = new Users({
         roles: roles,
-        name: user.name,
-        avatar: user.avatar,
-        phone: user.phone,
-        email: user.email,
-        region: user.region,
-        firebaseToken: user.firebaseToken,
-        phoneLocked: Boolean(user.phone),
-        emailLocked: Boolean(user.email),
-        platform: this.ctx.request.headers['platform']?.toString(),
-        userAgent: this.ctx.request.headers['user-agent'],
+        ...user,
       });
       const savedUser = await this.usersRepository.create(userEntity);
+
+      const savedSetting = await this.usersRepository.setting(savedUser.getId()).create({
+        language: setting.language,
+        currency: setting.currency,
+      });
+
+      const selfRel = await this.usersRepository.usersRels(savedUser.getId()).create({
+        type: 'self',
+        name: savedUser.name,
+        avatar: savedUser.avatar,
+        phone: user.phone,
+        email: user.email,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.usersRepository
+        .usersRels(savedUser.getId())
+        .patch({ mutualUserRelId: selfRel.getId() }, { userRelId: selfRel.getId() });
 
       if (roles.includes('GOLD')) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -280,23 +306,6 @@ export class AuthenticationService {
       const accessToken = await this.jwtService.generateToken(userProfile);
       const tokenObj = await this.refreshTokenService.generateToken(userProfile, accessToken);
 
-      const selfRel = await this.usersRepository.usersRels(savedUser.getId()).create({
-        type: 'self',
-        name: savedUser.name,
-        avatar: savedUser.avatar,
-        phone: user.phone,
-        email: user.email,
-      });
-      await this.usersRepository
-        .usersRels(savedUser.getId())
-        .patch({ mutualUserRelId: selfRel.getId() }, { userRelId: selfRel.getId() });
-
-      await this.settingsRepository.create({
-        userId: savedUser.userId,
-        language: setting.language,
-        currency: setting.currency,
-      });
-
       const resp = {
         userId: savedUser.getId(),
         planId: planId,
@@ -308,6 +317,8 @@ export class AuthenticationService {
         totalScores: savedScore.score,
         ...tokenObj,
       };
+
+      await this.createDemoData(savedUser.getId(), selfRel.getId(), savedSetting.getId());
 
       return resp;
     } catch (err) {
@@ -330,6 +341,94 @@ export class AuthenticationService {
       } else {
         throw new HttpErrors.NotAcceptable(err.message);
       }
+    }
+  }
+
+  async createDemoData(userId: typeof Users.prototype.userId, selfRelId: number, currency: string) {
+    try {
+      const categoriesList = this.catSrc[this.lang];
+      const initCatList: Categories[] = [];
+      _.forEach(categoriesList, (cat) => {
+        initCatList.push(new Categories({ userId: userId, icon: cat.icon, title: cat.title }));
+      });
+      const savdDemoCats = await this.categoriesRepository.createAll(initCatList);
+
+      const rel1 = new UsersRels({
+        name: this.lang === 'fa' ? 'دوست من ۱' : 'My Friend A',
+        userId: userId,
+        phone: '+989170000000',
+        avatar: 'assets/images/users/two/033-superhero.png',
+      });
+
+      const rel2 = new UsersRels({
+        name: this.lang === 'fa' ? 'دوست من ۲' : 'My Friend B',
+        userId: userId,
+        phone: '+989120000000',
+        avatar: 'assets/images/users/three/028-architect-min.png',
+      });
+
+      const savedRels = await this.usersRelsRepository.createAll([rel1, rel2]);
+
+      await this.dongService.createDongs(
+        userId,
+        new PostDong({
+          title: this.lang === 'fa' ? 'دنگ من ۱' : 'My Dong A',
+          desc: '',
+          userId: userId,
+          categoryId: savdDemoCats[0].getId(),
+          createdAt: new Date().toISOString(),
+          pong: 8000,
+          currency: currency,
+          includeBill: true,
+          includeBudget: true,
+          billList: [
+            { dongAmount: 4000, userRelId: selfRelId },
+            { dongAmount: 4000, userRelId: savedRels[0].getId() },
+          ],
+          payerList: [{ paidAmount: 8000, userRelId: selfRelId }],
+        }),
+      );
+      await this.dongService.createDongs(
+        userId,
+        new PostDong({
+          title: this.lang === 'fa' ? 'دنگ من ۲' : 'My Dong B',
+          desc: '',
+          userId: userId,
+          categoryId: savdDemoCats[1].getId(),
+          createdAt: new Date().toISOString(),
+          pong: 3000,
+          currency: currency,
+          includeBill: true,
+          includeBudget: true,
+          billList: [
+            { dongAmount: 1000, userRelId: selfRelId },
+            { dongAmount: 1000, userRelId: savedRels[0].getId() },
+            { dongAmount: 1000, userRelId: savedRels[1].getId() },
+          ],
+          payerList: [{ paidAmount: 3000, userRelId: selfRelId }],
+        }),
+      );
+      await this.dongService.createDongs(
+        userId,
+        new PostDong({
+          title: this.lang === 'fa' ? 'دنگ من ۳' : 'My Dong C',
+          desc: '',
+          userId: userId,
+          categoryId: savdDemoCats[3].getId(),
+          createdAt: new Date().toISOString(),
+          pong: 2800,
+          currency: currency,
+          includeBill: true,
+          includeBudget: true,
+          billList: [
+            { dongAmount: 1400, userRelId: savedRels[0].getId() },
+            { dongAmount: 1400, userRelId: savedRels[1].getId() },
+          ],
+          payerList: [{ paidAmount: 2800, userRelId: selfRelId }],
+        }),
+      );
+    } catch (err) {
+      console.error(err);
     }
   }
 }

@@ -175,6 +175,7 @@ export class Users extends Entity {
   @property({
     type: 'boolean',
     required: false,
+    default: false,
     mysql: {
       columnName: 'phone_locked',
       dataType: 'tinyint',
@@ -188,6 +189,7 @@ export class Users extends Entity {
   @property({
     type: 'boolean',
     required: false,
+    default: false,
     mysql: {
       columnName: 'email_locked',
       dataType: 'tinyint',

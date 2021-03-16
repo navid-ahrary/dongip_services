@@ -104,16 +104,32 @@ export class EmailService {
    * @returns String
    */
   public normalize(email: string): string {
-    let result = email.toLowerCase().replace(/ /g, '');
+    email = email.toLowerCase().replace(/ /g, '');
 
-    const splitted = result.split('@');
+    const splitted = email.split('@');
 
     if (splitted.length !== 2) throw new Error('Email value is not valid');
 
-    if (splitted[1].startsWith('gmail.')) {
-      result = splitted[0].replace(/\./g, '') + '@' + splitted[1];
+    if (this.isGmail(email)) {
+      email = splitted[0].replace(/\./g, '') + '@' + splitted[1];
     }
 
-    return result;
+    return email;
+  }
+
+  /**
+   * isGmail
+   * @param {String} emailValue
+   * @returns Boolean
+   */
+  public isGmail(emailValue: string) {
+    emailValue = emailValue.toLowerCase().replace(/ /g, '');
+    const splitted = emailValue.split('@');
+
+    if (splitted.length !== 2) return false;
+
+    if (splitted[1].startsWith('gmail.')) return true;
+
+    return false;
   }
 }

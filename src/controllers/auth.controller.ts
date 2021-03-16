@@ -14,37 +14,17 @@ import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-j
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
 import Moment from 'moment';
 import _ from 'lodash';
+import { UserServiceBindings, TokenServiceBindings, LocMsgsBindings } from '../keys';
+import { Users, Credentials, Verify, NewUser, Settings } from '../models';
+import { UsersRepository, BlacklistRepository, VerifyRepository } from '../repositories';
 import {
-  PasswordHasherBindings,
-  UserServiceBindings,
-  TokenServiceBindings,
-  CategoriesSourceListBindings,
-  LocMsgsBindings,
-} from '../keys';
-import { Users, Credentials, Verify, NewUser, Categories, UsersRels, PostDong } from '../models';
-import {
-  UsersRepository,
-  BlacklistRepository,
-  VerifyRepository,
-  CategoriesRepository,
-  SettingsRepository,
-  UsersRelsRepository,
-  RefreshTokensRepository,
-} from '../repositories';
-import {
-  FirebaseService,
-  SmsService,
-  PasswordHasher,
   VerifyService,
-  PhoneNumberService,
-  EmailService,
   RefreshtokenService,
-  DongService,
+  UserScoresService,
+  AuthenticationService,
 } from '../services';
 import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
-import { CategoriesSource, LocalizedMessages } from '../types';
-import { AuthenticationService } from '../services/authentication.service';
-import { UserScoresService } from '../services/user-scores.service';
+import { LocalizedMessages } from '../types';
 
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, ValidatePasswordInterceptor.BINDING_KEY)
 export class AuthController {
@@ -52,27 +32,16 @@ export class AuthController {
 
   constructor(
     @inject.context() private ctx: RequestContext,
-    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
-    @inject(CategoriesSourceListBindings) public catSrc: CategoriesSource,
+    @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
     @inject(TokenServiceBindings.TOKEN_SERVICE) private jwtService: TokenService,
-    @inject(PasswordHasherBindings.PASSWORD_HASHER) public passwordHasher: PasswordHasher,
-    @inject(UserServiceBindings.USER_SERVICE) public userService: UserService<Users, Credentials>,
-    @service(SmsService) public smsService: SmsService,
-    @service(DongService) public dongService: DongService,
-    @service(EmailService) public emailService: EmailService,
-    @service(VerifyService) public verifyService: VerifyService,
-    @service(FirebaseService) public firebaseService: FirebaseService,
+    @inject(UserServiceBindings.USER_SERVICE) private userService: UserService<Users, Credentials>,
+    @service(VerifyService) private verifyService: VerifyService,
     @service(UserScoresService) private userScoresService: UserScoresService,
-    @service(AuthenticationService) public authService: AuthenticationService,
-    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
-    @service(RefreshtokenService) public refreshTokenService: RefreshtokenService,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(VerifyRepository) public verifyRepository: VerifyRepository,
-    @repository(SettingsRepository) public settingsRepository: SettingsRepository,
-    @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
-    @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
-    @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
-    @repository(RefreshTokensRepository) public refreshTokenRepo: RefreshTokensRepository,
+    @service(AuthenticationService) private authService: AuthenticationService,
+    @service(RefreshtokenService) private refreshTokenService: RefreshtokenService,
+    @repository(UsersRepository) private usersRepository: UsersRepository,
+    @repository(VerifyRepository) private verifyRepository: VerifyRepository,
+    @repository(BlacklistRepository) private blacklistRepository: BlacklistRepository,
   ) {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
@@ -129,7 +98,7 @@ export class AuthController {
               'loggedIn',
               'loggedInAt',
             ],
-            optional: ['smsSignature', 'phone', 'email', 'loginStrategy'],
+            optional: ['smsSignature', 'phone', 'email', 'verifyStrategy'],
           }),
           examples: {
             phone: {
@@ -137,21 +106,21 @@ export class AuthController {
               value: {
                 phone: '+989171234567',
                 smsSignature: 'a2V5dG9vbCB',
-                loginStrategy: 'phone',
+                verifyStrategy: 'phone',
               },
             },
             email: {
               description: 'Email a verify code',
               value: {
                 email: 'dongip.supp@gmail.com',
-                loginStrategy: 'email',
+                verifyStrategy: 'email',
               },
             },
             google: {
               description: 'This email verified by google, do not email a verify code',
               value: {
                 email: 'dongip.supp@gmail.com',
-                loginStrategy: 'google',
+                verifyStrategy: 'google',
               },
             },
           },
@@ -179,18 +148,18 @@ export class AuthController {
       throw new HttpErrors.TooManyRequests(this.locMsg['TOO_MANY_REQUEST'][this.lang]);
     }
 
-    if (verifyReqBody.phone && verifyReqBody.loginStrategy === 'phone') {
+    if (verifyReqBody.phone) {
       const phoneValue = verifyReqBody.phone;
 
       return this.authService.verifyWithPhone(phoneValue);
     } else if (verifyReqBody.email) {
       const emailValue = verifyReqBody.email;
 
-      if (verifyReqBody.loginStrategy === 'email') {
-        return this.authService.verifyWithEmail(emailValue);
-      } else if (verifyReqBody.loginStrategy === 'google') {
+      if (verifyReqBody.verifyStrategy === 'google') {
         return this.authService.loginWithGoogle(emailValue);
       }
+
+      return this.authService.verifyWithEmail(emailValue);
     }
   }
 
@@ -416,16 +385,7 @@ export class AuthController {
     try {
       const foundVerify = await this.verifyService.verifyCredentials(verifyId, newUser.password);
 
-      const mamdBirth1 = '2021-03-11T23:00:00+03:30';
-      const mamdBirth2 = '2021-03-12T23:59:59+03:30';
-
-      const roles = nowUTC.isBetween(Moment(mamdBirth1), Moment(mamdBirth2))
-        ? ['GOLD']
-        : ['BRONZE'];
-      const planId = nowUTC.isBetween(Moment(mamdBirth1), Moment(mamdBirth2)) ? 'plan_gy1' : 'free';
-
       const userEntity = new Users({
-        roles: roles,
         name: newUser.name,
         avatar: newUser.avatar,
         phone: foundVerify.phone,
@@ -437,40 +397,8 @@ export class AuthController {
         platform: this.ctx.request.headers['platform']?.toString(),
         userAgent: this.ctx.request.headers['user-agent'],
       });
-      const savedUser = await this.usersRepository.create(userEntity);
 
-      if (roles.includes('GOLD')) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.usersRepository.subscriptions(savedUser.getId()).create({
-          planId: 'plan_gy1',
-          solTime: Moment(nowUTC).utc().toISOString(),
-          eolTime: Moment(nowUTC).utc().add(1, 'year').toISOString(),
-        });
-      }
-
-      const savedScore = await this.usersRepository.scores(savedUser.getId()).create({ score: 50 });
-
-      // Convert user object to a UserProfile object (reduced set of properties)
-      const userProfile = this.userService.convertToUserProfile(savedUser);
-      userProfile['aud'] = 'access';
-      userProfile['roles'] = roles;
-
-      const accessToken = await this.jwtService.generateToken(userProfile);
-      const tokenObj = await this.refreshTokenService.generateToken(userProfile, accessToken);
-
-      const selfRel = await this.usersRepository.usersRels(savedUser.getId()).create({
-        type: 'self',
-        name: savedUser.name,
-        avatar: savedUser.avatar,
-        phone: foundVerify.phone,
-        email: foundVerify.email,
-      });
-      await this.usersRepository
-        .usersRels(savedUser.getId())
-        .patch({ mutualUserRelId: selfRel.getId() }, { userRelId: selfRel.getId() });
-
-      const savedSetting = await this.settingsRepository.create({
-        userId: savedUser.userId,
+      const settingEntity = new Settings({
         language: userLanguage,
         currency: userCurrency,
       });
@@ -480,18 +408,7 @@ export class AuthController {
         loggedInAt: nowUTC.toISOString(),
       });
 
-      await this.createDemoData(savedUser.getId(), selfRel.getId(), savedSetting.currency);
-
-      const resp = {
-        userId: savedUser.getId(),
-        planId: planId,
-        solTime: roles.includes('GOLD') ? Moment(nowUTC).utc().toISOString() : null,
-        eolTime: roles.includes('GOLD') ? Moment(nowUTC).utc().add(1, 'year').toISOString() : null,
-        totalScores: savedScore.score,
-        ...tokenObj,
-      };
-
-      return resp;
+      return await this.authService.createUser(userEntity, settingEntity);
     } catch (err) {
       if (err.message === 'WRONG_VERIFY_CODE') {
         throw new HttpErrors.NotAcceptable(this.locMsg[err.message][this.lang]);
@@ -575,93 +492,5 @@ export class AuthController {
     this.usersRepository.updateById(userId, { firebaseToken: undefined });
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.refreshTokenService.revokeToken(userId);
-  }
-
-  async createDemoData(userId: typeof Users.prototype.userId, selfRelId: number, currency: string) {
-    try {
-      const categoriesList = this.catSrc[this.lang];
-      const initCatList: Categories[] = [];
-      _.forEach(categoriesList, (cat) => {
-        initCatList.push(new Categories({ userId: userId, icon: cat.icon, title: cat.title }));
-      });
-      const savdDemoCats = await this.categoriesRepository.createAll(initCatList);
-
-      const rel1 = new UsersRels({
-        name: this.lang === 'fa' ? 'دوست من ۱' : 'My Friend A',
-        userId: userId,
-        phone: '+989170000000',
-        avatar: 'assets/images/users/two/033-superhero.png',
-      });
-
-      const rel2 = new UsersRels({
-        name: this.lang === 'fa' ? 'دوست من ۲' : 'My Friend B',
-        userId: userId,
-        phone: '+989120000000',
-        avatar: 'assets/images/users/three/028-architect-min.png',
-      });
-
-      const savedRels = await this.usersRelsRepository.createAll([rel1, rel2]);
-
-      await this.dongService.createDongs(
-        userId,
-        new PostDong({
-          title: this.lang === 'fa' ? 'دنگ من ۱' : 'My Dong A',
-          desc: '',
-          userId: userId,
-          categoryId: savdDemoCats[0].getId(),
-          createdAt: new Date().toISOString(),
-          pong: 8000,
-          currency: currency,
-          includeBill: true,
-          includeBudget: true,
-          billList: [
-            { dongAmount: 4000, userRelId: selfRelId },
-            { dongAmount: 4000, userRelId: savedRels[0].getId() },
-          ],
-          payerList: [{ paidAmount: 8000, userRelId: selfRelId }],
-        }),
-      );
-      await this.dongService.createDongs(
-        userId,
-        new PostDong({
-          title: this.lang === 'fa' ? 'دنگ من ۲' : 'My Dong B',
-          desc: '',
-          userId: userId,
-          categoryId: savdDemoCats[1].getId(),
-          createdAt: new Date().toISOString(),
-          pong: 3000,
-          currency: currency,
-          includeBill: true,
-          includeBudget: true,
-          billList: [
-            { dongAmount: 1000, userRelId: selfRelId },
-            { dongAmount: 1000, userRelId: savedRels[0].getId() },
-            { dongAmount: 1000, userRelId: savedRels[1].getId() },
-          ],
-          payerList: [{ paidAmount: 3000, userRelId: selfRelId }],
-        }),
-      );
-      await this.dongService.createDongs(
-        userId,
-        new PostDong({
-          title: this.lang === 'fa' ? 'دنگ من ۳' : 'My Dong C',
-          desc: '',
-          userId: userId,
-          categoryId: savdDemoCats[3].getId(),
-          createdAt: new Date().toISOString(),
-          pong: 2800,
-          currency: currency,
-          includeBill: true,
-          includeBudget: true,
-          billList: [
-            { dongAmount: 1400, userRelId: savedRels[0].getId() },
-            { dongAmount: 1400, userRelId: savedRels[1].getId() },
-          ],
-          payerList: [{ paidAmount: 2800, userRelId: selfRelId }],
-        }),
-      );
-    } catch (err) {
-      console.error(err);
-    }
   }
 }

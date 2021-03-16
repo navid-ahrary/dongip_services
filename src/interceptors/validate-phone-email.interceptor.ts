@@ -78,6 +78,13 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
           throw new HttpErrors.UnprocessableEntity(invalidEmailValueMessage);
         }
 
+        if (
+          invocationCtx.args[0].loginStrategy === 'google' &&
+          !this.emailService.isGmail(emailValue)
+        ) {
+          throw new HttpErrors.UnprocessableEntity(invalidEmailValueMessage);
+        }
+
         invocationCtx.args[0].email = this.emailService.normalize(emailValue);
       }
     }

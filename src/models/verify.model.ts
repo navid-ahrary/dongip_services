@@ -1,6 +1,6 @@
 import { Entity, model, property } from '@loopback/repository';
 
-export enum LoginStrategy {
+export enum VerifyStrategy {
   GOOGLE = 'google',
   EMAIL = 'email',
   PHONE = 'phone',
@@ -128,16 +128,16 @@ export class Verify extends Entity {
     required: false,
     default: 'phone',
     jsonSchema: {
-      enum: Object.values(LoginStrategy),
+      enum: Object.values(VerifyStrategy),
     },
     mysql: {
-      columnName: 'login_strategy',
+      columnName: 'verify_strategy',
       dataType: 'varchar',
       dataLength: 10,
       nullable: 'N',
     },
   })
-  loginStrategy: 'google' | 'phone' | 'email';
+  verifyStrategy: 'google' | 'phone' | 'email';
 
   @property({
     type: 'date',
