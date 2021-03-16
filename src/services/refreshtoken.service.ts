@@ -82,6 +82,7 @@ export class RefreshtokenService {
   async generateToken(userProfile: UserProfile, accessToken: string): Promise<TokenObject> {
     const data = { id: userProfile[securityId], name: userProfile.name };
 
+    await this.revokeToken(+userProfile[securityId]);
     const refEnt = await this.refreshTokenRepo.create({
       refreshToken: ' ',
       userId: +userProfile[securityId],
@@ -112,7 +113,7 @@ export class RefreshtokenService {
 
   async revokeToken(userId: number) {
     try {
-      await this.refreshTokenRepo.delete(new RefreshTokens({ userId: userId }));
+      await this.refreshTokenRepo.deleteAll({ userId: userId });
     } catch (err) {
       // ignore
     }

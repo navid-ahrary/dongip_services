@@ -224,13 +224,13 @@ export class UsersController {
     },
   })
   async userInfo(): Promise<{
-    name: string;
+    name?: string;
     roles: string[] | [];
     planId: string | null;
     solTime: string | null;
     eolTime: string | null;
-    language: string;
-    currency: string;
+    language?: string;
+    currency?: string;
     registeredAt: string;
     totalScores: number;
     externalLinks: TutorialLinks;
@@ -293,7 +293,7 @@ export class UsersController {
     return {
       roles: roles,
       totalScores: this._calculateTotalUserScore(foundUser.scores),
-      name: foundUser!.name,
+      name: foundUser.name,
       planId: hasSubs ? foundUser.subscriptions[0].planId : null,
       solTime: hasSubs ? foundUser.subscriptions[0].solTime : null,
       eolTime: hasSubs ? foundUser.subscriptions[0].eolTime : null,

@@ -1,5 +1,11 @@
 import { Entity, model, property } from '@loopback/repository';
 
+export enum LoginStrategy {
+  GOOGLE = 'google',
+  EMAIL = 'email',
+  PHONE = 'phone',
+}
+
 @model({ name: 'verify' })
 export class Verify extends Entity {
   @property({
@@ -96,12 +102,12 @@ export class Verify extends Entity {
 
   @property({
     type: 'string',
-    required: true,
+    required: false,
     mysql: {
       columnName: 'sms_signature',
       dataType: 'varchar',
       dataLength: 20,
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
   smsSignature: string;
@@ -116,6 +122,22 @@ export class Verify extends Entity {
     },
   })
   loggedIn: boolean;
+
+  @property({
+    type: 'string',
+    required: false,
+    default: 'phone',
+    jsonSchema: {
+      enum: Object.values(LoginStrategy),
+    },
+    mysql: {
+      columnName: 'login_strategy',
+      dataType: 'varchar',
+      dataLength: 10,
+      nullable: 'N',
+    },
+  })
+  loginStrategy: 'google' | 'phone' | 'email';
 
   @property({
     type: 'date',

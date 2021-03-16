@@ -9,8 +9,8 @@ import {
   hasMany,
 } from '@loopback/repository';
 import { Users, VirtualUsers, Budgets } from '.';
-import {BillList} from './bill-list.model';
-import {PayerList} from './payer-list.model';
+import { BillList } from './bill-list.model';
+import { PayerList } from './payer-list.model';
 
 @model({
   name: 'users_rels',
@@ -71,15 +71,19 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'string',
-    required: true,
+    required: false,
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 512,
+    },
     mysql: {
       columnName: 'avatar',
       dataType: 'varchar',
       dataLength: 512,
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
-  avatar: string;
+  avatar?: string;
 
   @property({
     type: 'string',
@@ -202,10 +206,10 @@ export class UsersRels extends Entity {
   )
   mutualUserRelId?: number;
 
-  @hasMany(() => BillList, {keyTo: 'userRelId'})
+  @hasMany(() => BillList, { keyTo: 'userRelId' })
   billLists: BillList[];
 
-  @hasMany(() => PayerList, {keyTo: 'userRelId'})
+  @hasMany(() => PayerList, { keyTo: 'userRelId' })
   payerLists: PayerList[];
 
   constructor(data?: Partial<UsersRels>) {

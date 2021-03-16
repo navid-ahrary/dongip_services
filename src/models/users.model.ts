@@ -76,24 +76,31 @@ export class Users extends Entity {
 
   @property({
     type: 'string',
-    required: true,
+    required: false,
     jsonSchema: { minLength: 1, maxLength: 50 },
     mysql: {
       columnName: 'name',
       dataType: 'varchar',
       dataLength: 50,
-      nullable: 'N',
+      nullable: 'Y',
     },
   })
-  name: string;
+  name?: string;
 
   @property({
     type: 'string',
-    required: true,
-    jsonSchema: { minLength: 3, maxLength: 512 },
-    mysql: { dataType: 'varchar', dataLength: 512, nullable: 'N' },
+    required: false,
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 512,
+    },
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 512,
+      nullable: 'Y',
+    },
   })
-  avatar: string;
+  avatar?: string;
 
   @property({
     type: 'date',
