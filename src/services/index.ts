@@ -19,3 +19,5 @@ export * from './hash.password.bcryptjs';
 
 export * from './dong.service';
 export * from './user.service';
+export * from './authentication.service';
+export * from './user-scores.service';

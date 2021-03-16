@@ -232,9 +232,9 @@ export class UsersRelsController {
                 type: notifyType,
                 title: notifyTitle,
                 body: notifyBody,
-                name: currentUser.name,
+                name: currentUser.name!,
                 phone: currentUser.phone!,
-                avatar: currentUser.avatar,
+                avatar: currentUser.avatar!,
               },
             });
           });

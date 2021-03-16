@@ -12,9 +12,6 @@ import {
 import { authenticate, UserService, TokenService } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
-import Util from 'util';
-import Path from 'path';
-import Fs from 'fs';
 import Moment from 'moment';
 import _ from 'lodash';
 import {
@@ -46,6 +43,8 @@ import {
 } from '../services';
 import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { CategoriesSource, LocalizedMessages } from '../types';
+import { AuthenticationService } from '../services/authentication.service';
+import { UserScoresService } from '../services/user-scores.service';
 
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, ValidatePasswordInterceptor.BINDING_KEY)
 export class AuthController {
@@ -63,6 +62,8 @@ export class AuthController {
     @service(EmailService) public emailService: EmailService,
     @service(VerifyService) public verifyService: VerifyService,
     @service(FirebaseService) public firebaseService: FirebaseService,
+    @service(UserScoresService) private userScoresService: UserScoresService,
+    @service(AuthenticationService) public authService: AuthenticationService,
     @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
     @service(RefreshtokenService) public refreshTokenService: RefreshtokenService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -74,29 +75,6 @@ export class AuthController {
     @repository(RefreshTokensRepository) public refreshTokenRepo: RefreshTokensRepository,
   ) {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
-  }
-
-  generateRandomString(length: number) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&[]()_+-*~/?><:;|',
-      charsLength = chars.length;
-
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * charsLength));
-    }
-
-    return result;
-  }
-
-  async getUserScores(userId: typeof Users.prototype.userId): Promise<number> {
-    const scoresList = await this.usersRepository.scores(userId).find();
-
-    let totalScores = 0;
-    scoresList.forEach((scoreItem) => {
-      totalScores += scoreItem.score;
-    });
-
-    return totalScores;
   }
 
   @post('/auth/verify', {
@@ -151,18 +129,29 @@ export class AuthController {
               'loggedIn',
               'loggedInAt',
             ],
-            optional: ['smsSignature', 'phone', 'email'],
+            optional: ['smsSignature', 'phone', 'email', 'loginStrategy'],
           }),
           examples: {
             phone: {
+              description: 'SMS a verify code to the phone number',
               value: {
                 phone: '+989171234567',
                 smsSignature: 'a2V5dG9vbCB',
+                loginStrategy: 'phone',
               },
             },
             email: {
+              description: 'Email a verify code',
               value: {
                 email: 'dongip.supp@gmail.com',
+                loginStrategy: 'email',
+              },
+            },
+            google: {
+              description: 'This email verified by google, do not email a verify code',
+              value: {
+                email: 'dongip.supp@gmail.com',
+                loginStrategy: 'google',
               },
             },
           },
@@ -171,17 +160,7 @@ export class AuthController {
     })
     verifyReqBody: Verify,
     @param.header.string('accept-language', { required: false }) langHeader: string,
-  ): Promise<{
-    status: boolean;
-    isCompleted: boolean;
-    name: string;
-    avatar: string;
-    prefix: string;
-    verifyToken: string;
-  }> {
-    const randomCode = Math.random().toFixed(7).slice(3),
-      randomStr = this.generateRandomString(3);
-
+  ) {
     if (
       (!_.has(verifyReqBody, 'phone') && !_.has(verifyReqBody, 'email')) ||
       (_.has(verifyReqBody, 'phone') && _.has(verifyReqBody, 'email'))
@@ -200,97 +179,19 @@ export class AuthController {
       throw new HttpErrors.TooManyRequests(this.locMsg['TOO_MANY_REQUEST'][this.lang]);
     }
 
-    let user: Partial<Users> | null = null;
-    if (verifyReqBody.phone) {
-      user = await this.usersRepository.findOne({
-        fields: { name: true, avatar: true, phone: true, phoneLocked: true },
-        where: { phone: verifyReqBody.phone },
-      });
+    if (verifyReqBody.phone && verifyReqBody.loginStrategy === 'phone') {
+      const phoneValue = verifyReqBody.phone;
+
+      return this.authService.verifyWithPhone(phoneValue);
     } else if (verifyReqBody.email) {
-      user = await this.usersRepository.findOne({
-        fields: { name: true, avatar: true, phone: true, phoneLocked: true },
-        where: { email: verifyReqBody.email },
-      });
+      const emailValue = verifyReqBody.email;
+
+      if (verifyReqBody.loginStrategy === 'email') {
+        return this.authService.verifyWithEmail(emailValue);
+      } else if (verifyReqBody.loginStrategy === 'google') {
+        return this.authService.loginWithGoogle(emailValue);
+      }
     }
-
-    const createdVerify = await this.verifyRepository
-      .create({
-        phone: verifyReqBody.phone,
-        email: verifyReqBody.email,
-        password: randomStr + randomCode,
-        smsSignature: verifyReqBody.smsSignature ?? ' ',
-        registered: _.isObjectLike(user),
-        platform: this.ctx.request.headers['platform']?.toString(),
-        userAgent: this.ctx.request.headers['user-agent']?.toString(),
-        ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
-        region: verifyReqBody.phone
-          ? this.phoneNumberService.getRegionCodeISO(verifyReqBody.phone)
-          : undefined,
-      })
-      .catch((err) => {
-        throw new HttpErrors.NotAcceptable(err.message);
-      });
-
-    const userProfile = {
-      [securityId]: createdVerify.getId().toString(),
-      aud: 'verify',
-    };
-
-    const verifyToken: string = await this.jwtService.generateToken(userProfile);
-
-    if (verifyReqBody.phone) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.smsService
-        .sendSms(randomCode, verifyReqBody.phone, this.lang, verifyReqBody.smsSignature)
-        .then(async (res) => {
-          await this.verifyRepository.updateById(createdVerify.getId(), {
-            kavenegarMessageId: res.body.messageid,
-            kavenegarDate: res.body.date,
-            kavenegarSender: res.body.sender,
-            kavenegarStatusText: res.body.statustext,
-            kavenegarCost: res.body.cost,
-            kavenegarStatusCode: res.statusCode,
-          });
-        })
-        .catch(async (err) => {
-          await this.verifyRepository.updateById(createdVerify.getId(), {
-            kavenegarStatusCode: err.statusCode,
-          });
-          console.error(err.message);
-        });
-    } else if (verifyReqBody.email) {
-      let mailContent = Fs.readFileSync(
-        Path.resolve(__dirname, '../../assets/confirmation_dongip_en.html'),
-        'utf-8',
-      );
-      mailContent = Util.format(mailContent, randomCode.split('').join(' '));
-
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.emailService
-        .sendSupportMail({
-          subject: this.locMsg['VERFIY_EMAIL_SUBJECT'][this.lang],
-          toAddress: verifyReqBody.email,
-          mailFormat: 'html',
-          content: mailContent,
-        })
-        .then(async (res) => {
-          await this.verifyRepository.updateById(createdVerify.getId(), {
-            emailMessageId: res.data.messageId,
-          });
-        })
-        .catch((err) => {
-          console.error(new Date(), JSON.stringify(err), JSON.stringify(verifyReqBody));
-        });
-    }
-
-    return {
-      status: _.isObjectLike(user),
-      isCompleted: user?.phoneLocked ?? false,
-      avatar: user?.avatar ?? 'dongip',
-      name: user?.name ?? 'noob',
-      prefix: randomStr,
-      verifyToken: verifyToken,
-    };
   }
 
   @post('/auth/login', {
@@ -383,9 +284,8 @@ export class AuthController {
         userAgent: this.ctx.request.headers['user-agent'],
       });
 
-      // Get total user's scores
-      const scores = await this.getUserScores(user.getId());
-      //convert a User object to a UserProfile object (reduced set of properties)
+      const scores = await this.userScoresService.getUserScores(user.getId());
+
       const userProfile = this.userService.convertToUserProfile(user);
       userProfile['aud'] = 'access';
       userProfile['roles'] = user.roles;
