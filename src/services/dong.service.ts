@@ -162,7 +162,7 @@ export class DongService {
         });
       });
 
-      billList.forEach((item) => {
+      _.forEach(billList, (item) => {
         item = _.assign(item, {
           userId: userId,
           dongId: createdDong.getId(),
