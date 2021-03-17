@@ -191,6 +191,7 @@ export class DongService {
               and: [
                 { firebaseToken: { neq: 'null' } },
                 { firebaseToken: { neq: null! } },
+                { firebaseToken: { neq: undefined } },
                 { firebaseToken: { neq: '' } },
               ],
             },
