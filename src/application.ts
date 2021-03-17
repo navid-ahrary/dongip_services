@@ -199,17 +199,22 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
 
     this.bind(UserServiceBindings.USER_SERVICE).toClass(MyUserService);
 
-    // Firebase binding constants
     this.bind(FirebaseBinding.FIREBASE_APPLICATION_DATABASEURL).to(
-      FirebaseConstants.FIREBASE_DATABASEURL_VALUE,
+      FirebaseConstants.FIREBASE_APPLICATION_DATABASEURL_VALIE,
     );
-    this.bind(FirebaseBinding.FIREBASE_CLIENT_EMAIL).to(
-      FirebaseConstants.FIREBASE_CLIENT_EMAIL_VALUE,
+    this.bind(FirebaseBinding.FIREBASE_DONGIP_USER_APP_NAME).to(
+      FirebaseConstants.FIREBASE_DONGIP_USER_APP_NAME_VALUE,
     );
-    this.bind(FirebaseBinding.FIREBASE_PRIVATE_KEY).to(
-      FirebaseConstants.FIREBASE_PRIVATE_KEY_VALUE,
+    this.bind(FirebaseBinding.FIREBASE_DONGIP_SUPPORT_APP_NAME).to(
+      FirebaseConstants.FIREBASE_DONGIP_SUPPORT_APP_NAME_VALUE,
     );
-    this.bind(FirebaseBinding.FIREBASE_PROJECT_ID).to(FirebaseConstants.FIREBASE_PROJECT_ID_VALUE);
+    this.bind(FirebaseBinding.FIREBASE_DONGIP_USER_CERT).to(
+      FirebaseConstants.FIREBASE_DONGIP_USER_CERT_FILE,
+    );
+    // Firebase Support app binding constants
+    this.bind(FirebaseBinding.FIREBASE_DONGIP_SUPPORT_CERT).to(
+      FirebaseConstants.FIREBASE_DONGIP_SUPPORT_CERT_FILE,
+    );
 
     // Kavenegar binding constants
     this.bind(KavenegarBindings.KAVENEGAR_API_KEY).to(KavenegarConstans.KAVENEGAR_API_KEY_VALUE);

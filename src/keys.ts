@@ -1,7 +1,9 @@
 import { BindingKey } from '@loopback/context';
 import { TokenService, UserService } from '@loopback/authentication';
+import { ServiceAccount } from 'firebase-admin';
 import Dotenv from 'dotenv';
 import Util from 'util';
+import Path from 'path';
 import { Users, Credentials } from './models';
 import { PasswordHasher } from './services';
 import {
@@ -92,19 +94,44 @@ export const MariadbConfigValue = {
 export const MariadbConfigBinding = BindingKey.create<object>('datasources.config.Mariadb');
 
 export namespace FirebaseConstants {
-  export const FIREBASE_DATABASEURL_VALUE = process.env.FIREBASE_APPLICATION_DATABASEURL!;
-  export const FIREBASE_CLIENT_EMAIL_VALUE = process.env.FIREBASE_CLIENT_EMAIL!;
-  export const FIREBASE_PRIVATE_KEY_VALUE = process.env.FIREBASE_PRIVATE_KEY!;
-  export const FIREBASE_PROJECT_ID_VALUE = process.env.FIREBASE_PROJECT_ID!;
+  export const FIREBASE_APPLICATION_DATABASEURL_VALIE = process.env
+    .FIREBASE_APPLICATION_DATABASEURL!;
+
+  export const FIREBASE_DONGIP_USER_APP_NAME_VALUE = process.env.FIREBASE_DONGIP_USER_APP_NAME!;
+  export const FIREBASE_DONGIP_SUPPORT_APP_NAME_VALUE = process.env
+    .FIREBASE_DONGIP_SUPPORT_APP_NAME!;
+
+  // User app scope
+  export const FIREBASE_DONGIP_USER_CERT_FILE = require(Path.join(
+    Path.resolve(),
+    'assets',
+    'dongip-user-firebase-adminsdk.json',
+  ));
+
+  // Support app scope
+  export const FIREBASE_DONGIP_SUPPORT_CERT_FILE = require(Path.join(
+    Path.resolve(),
+    'assets',
+    'dongip-support-firebase-adminsdk.json',
+  ));
 }
 
 export namespace FirebaseBinding {
   export const FIREBASE_APPLICATION_DATABASEURL = BindingKey.create<string>(
     'services.firebase.databaseUrl',
   );
-  export const FIREBASE_CLIENT_EMAIL = BindingKey.create<string>('services.firebase.clientEmail');
-  export const FIREBASE_PRIVATE_KEY = BindingKey.create<string>('services.firebase.privateKey');
-  export const FIREBASE_PROJECT_ID = BindingKey.create<string>('services.firebase.projectId');
+  export const FIREBASE_DONGIP_USER_APP_NAME = BindingKey.create<string>(
+    'services.firebase.user.appname',
+  );
+  export const FIREBASE_DONGIP_SUPPORT_APP_NAME = BindingKey.create<string>(
+    'services.firebase.support.appname',
+  );
+  export const FIREBASE_DONGIP_USER_CERT = BindingKey.create<ServiceAccount>(
+    'services.firebase.user',
+  );
+  export const FIREBASE_DONGIP_SUPPORT_CERT = BindingKey.create<ServiceAccount>(
+    'services.firebase.support',
+  );
 }
 
 export namespace KavenegarConstans {

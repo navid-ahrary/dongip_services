@@ -63,5 +63,7 @@ typings/
 *.tsbuildinfo
 
 .directory
-dongip-firebase-adminsdk.json
 .compose.env
+
+*/dongip-support-firebase-adminsdk.json
+*/dongip-user-firebase-adminsdk.json

@@ -7,7 +7,7 @@ import { post, getModelSchemaRef, requestBody, get } from '@loopback/rest';
 import Moment from 'moment';
 import 'moment-timezone';
 import { Messages, Users } from '../models';
-import { FirebaseService } from '../services';
+import { FirebaseService, FirebaseSupportService } from '../services';
 import { UsersRepository, MessagesRepository } from '../repositories';
 import { FirebaseTokenInterceptor } from '../interceptors';
 
@@ -19,10 +19,10 @@ export class MessagesController {
   private readonly timezone: string;
 
   constructor(
-    @service(FirebaseService) public firebaseService: FirebaseService,
+    @service(FirebaseService) private firebaseService: FirebaseService,
+    @service(FirebaseSupportService) private firebaseSupportService: FirebaseSupportService,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(MessagesRepository) public messagesRepository: MessagesRepository,
+    @repository(UsersRepository) private usersRepository: UsersRepository,
   ) {
     this.userId = +currentUserProfile[securityId];
     this.name = currentUserProfile.name!;
@@ -76,19 +76,34 @@ export class MessagesController {
       .find({
         fields: { firebaseToken: true },
         where: {
-          userId: { inq: [1, 28] }, // Me and mr Rafei's userId
-          firebaseToken: { nin: [undefined, 'null'] },
+          and: [
+            {
+              or: [
+                { roles: { regexp: new RegExp('.*' + 'GOD' + '.*') } },
+                { roles: { regexp: new RegExp('.*' + 'SUPPORT' + '.*') } },
+              ],
+            },
+            {
+              or: [
+                { firebaseToken: { neq: 'null' } },
+                { firebaseToken: { neq: null! } },
+                { firebaseToken: { neq: '' } },
+              ],
+            },
+          ],
         },
       })
       .then((users) => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.firebaseService.sendMultiCastMessage({
-          tokens: users.map((u) => u.firebaseToken!),
-          notification: {
-            title: `id ${this.userId}:${this.name}`,
-            body: messageContent,
-          },
-        });
+        if (users.length) {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          this.firebaseSupportService.sendMultiCastMessage({
+            tokens: users.map((u) => u.firebaseToken!),
+            notification: {
+              title: `id ${this.userId}:${this.name}`,
+              body: messageContent,
+            },
+          });
+        }
       });
 
     return createdMsg;
@@ -109,9 +124,8 @@ export class MessagesController {
     },
   })
   async findMessages(): Promise<Messages[]> {
-    return this.messagesRepository.find({
+    return this.usersRepository.messages(this.userId).find({
       order: ['createdAt ASC'],
-      where: { userId: this.userId },
     });
   }
 }

@@ -80,27 +80,27 @@ export class SupportController {
           id DESC) AS rn
         FROM
           messages )
-        SELECT
-          M.id AS messageId,
-          M.message,
-          M.is_answer AS isAnswer,
-          M.is_question AS isQuestion,
-          M.created_at AS createdAt,
-          M.user_id AS userId,
-          users.avatar,
-          users.phone,
-          users.name,
-          users.roles,
-          users.region,
-          users.user_agent AS userAgent,
-          users.platform
-        FROM
-          M,
-          users
-        WHERE
-          M.rn = 1
-          AND users.id = M.user_id
-        ORDER BY messageId DESC `;
+      SELECT
+        M.id AS messageId,
+        M.message,
+        M.is_answer AS isAnswer,
+        M.is_question AS isQuestion,
+        M.created_at AS createdAt,
+        M.user_id AS userId,
+        users.avatar,
+        users.phone,
+        users.name,
+        users.roles,
+        users.region,
+        users.user_agent AS userAgent,
+        users.platform
+      FROM
+        M,
+        users
+      WHERE
+        M.rn = 1
+        AND users.id = M.user_id
+      ORDER BY messageId DESC `;
 
     if (_.isNumber(limit)) query += `LIMIT ?`;
 

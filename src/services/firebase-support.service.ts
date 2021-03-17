@@ -1,27 +1,12 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import { BindingScope, inject, injectable } from '@loopback/core';
 import { HttpErrors } from '@loopback/rest';
-import { messaging, initializeApp, credential, app, ServiceAccount } from 'firebase-admin';
+import { app, credential, initializeApp, messaging, ServiceAccount } from 'firebase-admin';
 import _ from 'lodash';
+import { BatchMessage } from '.';
 import { FirebaseBinding } from '../keys';
 
-export type MessagePayload = messaging.MessagingPayload;
-export type BatchMessage = Array<messaging.Message>;
-
-export interface FirebaseService {
-  sendToDeviceMessage(
-    firebaseToken: string | string[],
-    payload: MessagePayload,
-    options?: messaging.MessagingOptions | undefined,
-  ): void;
-
-  sendMultiCastMessage(message: messaging.MulticastMessage, dryRun?: boolean): void;
-
-  sendAllMessage(messages: BatchMessage): Promise<messaging.BatchResponse>;
-}
-
 @injectable({ scope: BindingScope.SINGLETON })
-export class FirebaseService {
+export class FirebaseSupportService {
   private readonly app: app.App;
 
   private readonly messagingService: messaging.Messaging;
@@ -43,8 +28,8 @@ export class FirebaseService {
 
   constructor(
     @inject(FirebaseBinding.FIREBASE_APPLICATION_DATABASEURL) baseUrl: string,
-    @inject(FirebaseBinding.FIREBASE_DONGIP_USER_CERT) certs: ServiceAccount,
-    @inject(FirebaseBinding.FIREBASE_DONGIP_USER_APP_NAME) appName: string,
+    @inject(FirebaseBinding.FIREBASE_DONGIP_SUPPORT_CERT) certs: ServiceAccount,
+    @inject(FirebaseBinding.FIREBASE_DONGIP_SUPPORT_APP_NAME) appName: string,
   ) {
     this.app = initializeApp(
       {
@@ -106,6 +91,8 @@ export class FirebaseService {
 
       const response = await this.messagingService.sendMulticast(message, dryRun);
 
+      console.log(JSON.stringify(response.responses));
+
       if (response.failureCount > 0) {
         const failedTokens: string[] = [];
 
@@ -116,12 +103,11 @@ export class FirebaseService {
         });
 
         console.warn(`List of tokens that caused failure ${failedTokens}`);
-        throw new HttpErrors.NotImplemented(`List of tokens that caused failure ${failedTokens}`);
       }
 
       console.log(`Successfully sent notifications, ${JSON.stringify(response)}`);
     } catch (err) {
-      console.warn(`Error sending notifications, ${err}`);
+      console.warn(`Error sending notifications, ${JSON.stringify(err)}`);
 
       throw new HttpErrors.NotImplemented(`Error sending notifications, ${err}`);
     }

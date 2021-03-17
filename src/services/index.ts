@@ -1,4 +1,5 @@
 export * from './firebase.service';
+export * from './firebase-support.service';
 export * from './sms.service';
 export * from './verify.service';
 
