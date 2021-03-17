@@ -57,7 +57,10 @@ export class JWTService implements TokenService {
             region: true,
             firebaseToken: true,
           },
-          include: [{ relation: 'usersRels', scope: { where: { type: 'self' } } }],
+          include: [
+            { relation: 'usersRels', scope: { where: { type: 'self' } } },
+            { relation: 'setting', scope: { fields: { userId: true, language: true } } },
+          ],
         });
 
         Object.assign(userProfile, {
@@ -65,6 +68,7 @@ export class JWTService implements TokenService {
           email: user.email,
           name: user.name,
           region: user.region,
+          language: user.setting.language,
           timezone: Ct.getTimezonesForCountry(user.region! ?? 'IR')[0].name,
           selfUserRelId: user.usersRels[0].userRelId,
           firebaseToken: user.firebaseToken,
