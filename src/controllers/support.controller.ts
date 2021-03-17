@@ -104,9 +104,13 @@ export class SupportController {
 
     if (_.isNumber(limit)) query += `LIMIT ?`;
 
-    const result = await this.dataSource.execute(query, [limit]);
+    const msgs: Array<Messages & Partial<Users>> = await this.dataSource.execute(query, [limit]);
 
-    return result as Array<Messages & Partial<Users>>;
+    return _.map(msgs, (m) => {
+      _.set(m, 'isQuestion', Boolean(m.isQuestion));
+      _.set(m, 'isAnswer', Boolean(m.isAnswer));
+      return m;
+    });
   }
 
   @get('/support/messages', {
