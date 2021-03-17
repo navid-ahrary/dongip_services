@@ -241,7 +241,7 @@ export class DongService {
 
               // Generate notification messages
               firebaseMessagesList.push({
-                token: targetUser.firebaseToken!,
+                token: targetUser.firebaseToken ?? ' ',
                 notification: {
                   title: notifyData.title,
                   body: notifyData.body,
