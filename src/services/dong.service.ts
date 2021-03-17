@@ -151,7 +151,7 @@ export class DongService {
       const createdDong = await this.usersRepository.dongs(userId).create(dong);
 
       _.forEach(payerList, (item) => {
-        item = _.assign(item, {
+        _.assign(item, {
           userId: userId,
           dongId: createdDong.getId(),
           createdAt: createdDong.createdAt,
@@ -163,7 +163,7 @@ export class DongService {
       });
 
       _.forEach(billList, (item) => {
-        item = _.assign(item, {
+        _.assign(item, {
           userId: userId,
           dongId: createdDong.getId(),
           createdAt: createdDong.createdAt,
