@@ -29,7 +29,7 @@ import { LocMsgsBindings } from '../keys';
 import { LocalizedMessages } from '../types';
 import { MariadbDataSource } from '../datasources';
 
-@authorize({ allowedRoles: ['GOD'], voters: [basicAuthorization] })
+@authorize({ allowedRoles: ['SUPPORT', 'GOD'], voters: [basicAuthorization] })
 @authenticate('jwt.access')
 export class SupportController {
   private readonly userId: typeof Users.prototype.userId;
