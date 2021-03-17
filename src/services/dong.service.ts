@@ -184,17 +184,28 @@ export class DongService {
 
       if (!currentUser.jointAccountSubscribes && currentUserIsPayer && sendNotify) {
         for (const relation of exterUserRelsList) {
-          const user = await this.usersRepository.findOne({
-            where: { phone: relation.phone },
-            include: [{ relation: 'setting' }],
+          const targetUser = await this.usersRepository.findOne({
+            fields: { userId: true, firebaseToken: true },
+            where: {
+              phone: relation.phone,
+              and: [
+                { firebaseToken: { neq: 'null' } },
+                { firebaseToken: { neq: null! } },
+                { firebaseToken: { neq: '' } },
+              ],
+            },
+            include: [{ relation: 'setting', scope: { fields: { language: true } } }],
           });
 
           // If relation is mutual, add to notification reciever list
-          if (user instanceof Users) {
+          if (targetUser instanceof Users) {
+            const targetUserLang = targetUser.setting.language;
+
             const foundMutualUsersRels = await this.usersRelsRepository.findOne({
+              fields: { userId: true },
               where: {
+                userId: targetUser.getId(),
                 phone: currentUser.phone,
-                userId: user.getId(),
               },
             });
 
@@ -213,11 +224,11 @@ export class DongService {
 
               // Notification data payload
               const notifyData = new Notifications({
-                title: this.locMsg['DONGIP_NOTIFY_TITLE'][user!.setting.language],
+                title: this.locMsg['DONGIP_NOTIFY_TITLE'][targetUserLang],
                 body: Util.format(
-                  this.locMsg['DONGIP_NOTIFY_BODY'][user!.setting.language],
+                  this.locMsg['DONGIP_NOTIFY_BODY'][targetUserLang],
                   notifyBodyDongAmount,
-                  this.locMsg['CURRENCY'][user!.setting.language][createdDong.currency],
+                  this.locMsg['CURRENCY'][targetUserLang][createdDong.currency],
                   foundMutualUsersRels.name,
                 ),
                 desc: createdDong.desc ?? '',
@@ -232,12 +243,12 @@ export class DongService {
               });
 
               const createdNotify = await this.usersRepository
-                .notifications(user!.getId())
+                .notifications(targetUser.getId())
                 .create(notifyData);
 
               // Generate notification messages
               firebaseMessagesList.push({
-                token: user.firebaseToken ?? ' ',
+                token: targetUser.firebaseToken!,
                 notification: {
                   title: notifyData.title,
                   body: notifyData.body,
