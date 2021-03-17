@@ -272,7 +272,7 @@ export class DongService {
           }
         }
 
-        if (firebaseMessagesList.length > 0) {
+        if (firebaseMessagesList.length) {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           this.firebaseSerice.sendAllMessage(firebaseMessagesList);
         }
