@@ -8,7 +8,7 @@ import Moment from 'moment';
 import 'moment-timezone';
 import { Messages, Users } from '../models';
 import { FirebaseService, FirebaseSupportService } from '../services';
-import { UsersRepository, MessagesRepository } from '../repositories';
+import { UsersRepository } from '../repositories';
 import { FirebaseTokenInterceptor } from '../interceptors';
 
 @intercept(FirebaseTokenInterceptor.BINDING_KEY)
@@ -84,7 +84,7 @@ export class MessagesController {
               ],
             },
             {
-              or: [
+              and: [
                 { firebaseToken: { neq: 'null' } },
                 { firebaseToken: { neq: null! } },
                 { firebaseToken: { neq: '' } },
