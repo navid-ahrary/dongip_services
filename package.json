@@ -87,6 +87,7 @@
     "dotenv": "^8.2.0",
     "firebase-admin": "^9.4.2",
     "helmet": "^4.4.1",
+    "jalali-moment": "^3.3.10",
     "jsonwebtoken": "^8.5.1",
     "kavenegar": "^1.1.4",
     "lodash": "^4.17.20",

@@ -13,8 +13,9 @@ import {
   HttpErrors,
 } from '@loopback/rest';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import moment, { Moment } from 'moment';
-import ct from 'countries-and-timezones';
+import Moment from 'moment';
+import Jmoment from 'jalali-moment';
+import Ct from 'countries-and-timezones';
 import 'moment-timezone';
 import { Reminders, Users } from '../models';
 import { UsersRepository } from '../repositories';
@@ -83,25 +84,36 @@ export class RemindersController {
     reminder: Omit<Reminders, 'reminderId'>,
   ): Promise<Reminders> {
     const userRegion = this.currentUserProfile.region;
-    const userTZ = ct.getTimezonesForCountry(userRegion)[0].name;
-    const nowUserLocaleMoment = moment.tz(userTZ);
+    const userTZ = Ct.getTimezonesForCountry(userRegion)[0].name;
+    const nowUserLocaleMoment = Moment.tz(userTZ);
 
     const firstNotifyDate = reminder.previousNotifyDate;
 
-    const isFirstNotifyDateAfterNowDate = this._generateMomentfromDateAndTimeBaseTz({
+    const isFirstNotifyDateAfterNow = this._generateMomentfromDateAndTimeBaseTz({
       date: firstNotifyDate,
       time: this.notifyTime,
       tz: userTZ,
     }).isAfter(nowUserLocaleMoment);
 
+    let nextNotifyDate: string;
+    if (isFirstNotifyDateAfterNow) {
+      nextNotifyDate = reminder.previousNotifyDate;
+    } else {
+      const userLang = this.currentUserProfile.language;
+
+      nextNotifyDate = Jmoment.from(
+        Jmoment(reminder.previousNotifyDate)
+          .locale(userLang)
+          .add(reminder.periodAmount, reminder.periodUnit)
+          .format(),
+        userLang,
+      ).format('YYYY-MM-DD');
+    }
+
     reminder = {
       ...reminder,
-      notifyTime: moment.tz(userTZ).hour(8).minute(0).second(0).tz(this.TZ).format('HH:mm:ss'),
-      nextNotifyDate: isFirstNotifyDateAfterNowDate
-        ? reminder.previousNotifyDate
-        : moment(reminder.previousNotifyDate)
-            .add(reminder.periodAmount, reminder.periodUnit)
-            .format('YYYY-MM-DD'),
+      notifyTime: Moment.tz(userTZ).hour(8).minute(0).second(0).tz(this.TZ).format('HH:mm:ss'),
+      nextNotifyDate: nextNotifyDate,
     };
 
     return this.usersRepository.reminders(this.userId).create(reminder);
@@ -170,8 +182,8 @@ export class RemindersController {
     }
 
     const userRegion = this.currentUserProfile.region;
-    const userTZ = ct.getTimezonesForCountry(userRegion)[0].name;
-    const nowUserLocaleMoment = moment.tz(userTZ);
+    const userTZ = Ct.getTimezonesForCountry(userRegion)[0].name;
+    const nowUserLocaleMoment = Moment.tz(userTZ);
 
     const firstNotifyDate = reminder.previousNotifyDate;
 
@@ -183,7 +195,7 @@ export class RemindersController {
 
     reminder.nextNotifyDate = isFirstNotifyDateAfterNowDate
       ? reminder.previousNotifyDate
-      : moment(reminder.previousNotifyDate)
+      : Moment(reminder.previousNotifyDate)
           .add(reminder.periodAmount, reminder.periodUnit)
           .format('YYYY-MM-DD');
 
@@ -227,7 +239,7 @@ export class RemindersController {
     date: string;
     time: string;
     tz: string;
-  }): Moment {
+  }): Moment.Moment {
     const splittedTime = data.time.split(':');
 
     if (splittedTime.length !== 3) throw new Error('time is not valid, "HH:mm:ss"');
@@ -236,6 +248,6 @@ export class RemindersController {
     const minute = +splittedTime[1];
     const second = +splittedTime[2];
 
-    return moment(data.date).tz(data.tz).hour(hour).minute(minute).second(second);
+    return Moment(data.date).tz(data.tz).hour(hour).minute(minute).second(second);
   }
 }
