@@ -186,15 +186,7 @@ export class DongService {
         for (const relation of exterUserRelsList) {
           const targetUser = await this.usersRepository.findOne({
             fields: { userId: true, firebaseToken: true },
-            where: {
-              phone: relation.phone,
-              and: [
-                { firebaseToken: { neq: 'null' } },
-                { firebaseToken: { neq: null! } },
-                { firebaseToken: { neq: undefined } },
-                { firebaseToken: { neq: '' } },
-              ],
-            },
+            where: { phone: relation.phone },
             include: [{ relation: 'setting', scope: { fields: { language: true } } }],
           });
 
