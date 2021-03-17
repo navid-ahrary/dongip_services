@@ -26,18 +26,18 @@ export class DongService {
 
   constructor(
     @inject.context() private ctx: RequestContext,
-    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
-    @inject(CategoriesSourceListBindings) public catSrc: CategoriesSource,
+    @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
+    @inject(CategoriesSourceListBindings) private catSrc: CategoriesSource,
     @service(FirebaseService) private firebaseSerice: FirebaseService,
-    @repository(DongsRepository) public dongRepository: DongsRepository,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(BillListRepository) public billListRepository: BillListRepository,
-    @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
-    @repository(PayerListRepository) public payerListRepository: PayerListRepository,
-    @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
-    @repository(JointAccountsRepository) public jointAccRepository: JointAccountsRepository,
+    @repository(DongsRepository) private dongRepository: DongsRepository,
+    @repository(UsersRepository) private usersRepository: UsersRepository,
+    @repository(BillListRepository) private billListRepository: BillListRepository,
+    @repository(UsersRelsRepository) private usersRelsRepository: UsersRelsRepository,
+    @repository(PayerListRepository) private payerListRepository: PayerListRepository,
+    @repository(CategoriesRepository) private categoriesRepository: CategoriesRepository,
+    @repository(JointAccountsRepository) private jointAccRepository: JointAccountsRepository,
     @repository(JointAccountSubscribesRepository)
-    public jointAccSubRepository: JointAccountSubscribesRepository,
+    private jointAccSubRepository: JointAccountSubscribesRepository,
   ) {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
@@ -142,7 +142,7 @@ export class DongService {
       desc: newDong.desc,
       pong: newDong.pong,
       currency: newDong.currency,
-      jointAccountId: newDong.jointAccountId ?? undefined,
+      jointAccountId: newDong.jointAccountId,
       includeBudget: newDong.includeBudget !== null ? newDong.includeBudget : undefined,
       includeBill: newDong.includeBill,
     });
@@ -180,87 +180,87 @@ export class DongService {
       createdDong.billList = createdBillList;
       createdDong.payerList = createdPayerList;
 
-      const sendNotify = _.has(newDong, 'sendNotify') ? newDong.sendNotify : true;
+      const sendNotify = Boolean(newDong.sendNotify);
 
-      if (!currentUser.jointAccountSubscribes && currentUserIsPayer && sendNotify) {
-        for (const relation of exterUserRelsList) {
-          const targetUser = await this.usersRepository.findOne({
-            fields: { userId: true, firebaseToken: true },
-            where: { phone: relation.phone },
-            include: [{ relation: 'setting', scope: { fields: { language: true } } }],
-          });
-
-          // If relation is mutual, add to notification reciever list
-          if (targetUser instanceof Users) {
-            const targetUserLang = targetUser.setting.language;
-
-            const foundMutualUsersRels = await this.usersRelsRepository.findOne({
-              fields: { userId: true, name: true },
-              where: {
-                userId: targetUser.getId(),
-                phone: currentUser.phone,
-              },
+      if (!currentUser.jointAccountSubscribes && sendNotify) {
+        if (currentUserIsPayer) {
+          for (const relation of exterUserRelsList) {
+            const targetUser = await this.usersRepository.findOne({
+              fields: { userId: true, firebaseToken: true },
+              where: { phone: relation.phone },
+              include: [{ relation: 'setting', scope: { fields: { language: true } } }],
             });
 
-            if (foundMutualUsersRels) {
-              // Increament scoreFactor for every mutual friend contribute in dong
-              mutualFactor++;
-              // Get rounded dong amount
-              const roundedDongAmount = _.find(billList, {
-                userRelId: relation.getId(),
-              })
-                ? Math.floor(_.find(billList, { userRelId: relation.getId() })!.dongAmount)
-                : 0;
+            // If relation is mutual, add to notification reciever list
+            if (targetUser instanceof Users) {
+              const targetUserLang = targetUser.setting.language;
 
-              // Seperate thousands with "," for use in notification body
-              const notifyBodyDongAmount = this.numberWithCommas(roundedDongAmount);
-
-              // Notification data payload
-              const notifyData = new Notifications({
-                title: this.locMsg['DONGIP_NOTIFY_TITLE'][targetUserLang],
-                body: Util.format(
-                  this.locMsg['DONGIP_NOTIFY_BODY'][targetUserLang],
-                  notifyBodyDongAmount,
-                  this.locMsg['CURRENCY'][targetUserLang][createdDong.currency],
-                  foundMutualUsersRels.name,
-                ),
-                desc: createdDong.desc ?? '',
-                type: 'dong',
-                categoryTitle: currentUser.categories[0].title,
-                categoryIcon: currentUser.categories[0].icon,
-                createdAt: Moment(createdDong.createdAt).utc().toISOString(),
-                userRelId: foundMutualUsersRels.getId(),
-                dongAmount: roundedDongAmount,
-                currency: createdDong.currency,
-                dongId: createdDong.getId(),
-              });
-
-              const createdNotify = await this.usersRepository
-                .notifications(targetUser.getId())
-                .create(notifyData);
-
-              // Generate notification messages
-              firebaseMessagesList.push({
-                token: targetUser.firebaseToken ?? ' ',
-                notification: {
-                  title: notifyData.title,
-                  body: notifyData.body,
-                },
-                data: {
-                  notifyId: createdNotify.getId().toString(),
-                  title: notifyData.title!,
-                  body: notifyData.body!,
-                  desc: notifyData.desc!,
-                  type: notifyData.type!,
-                  categoryTitle: notifyData.categoryTitle!,
-                  categoryIcon: notifyData.categoryIcon!,
-                  createdAt: notifyData.createdAt!,
-                  userRelId: notifyData.userRelId!.toString(),
-                  dongAmount: notifyData.dongAmount!.toString(),
-                  currency: createdNotify.currency!,
-                  dongId: notifyData.dongId!.toString(),
+              const foundMutualUsersRels = await this.usersRelsRepository.findOne({
+                fields: { userId: true, name: true },
+                where: {
+                  userId: targetUser.getId(),
+                  phone: currentUser.phone,
                 },
               });
+
+              if (foundMutualUsersRels) {
+                // Increament scoreFactor for every mutual friend contribute in dong
+                mutualFactor++;
+                // Get rounded dong amount
+                const roundedDongAmount = _.find(billList, { userRelId: relation.getId() })
+                  ? Math.floor(_.find(billList, { userRelId: relation.getId() })!.dongAmount)
+                  : 0;
+
+                // Seperate thousands with "," for use in notification body
+                const notifyBodyDongAmount = this.numberWithCommas(roundedDongAmount);
+
+                // Notification data payload
+                const notifyData = new Notifications({
+                  title: this.locMsg['DONGIP_NOTIFY_TITLE'][targetUserLang],
+                  body: Util.format(
+                    this.locMsg['DONGIP_NOTIFY_BODY'][targetUserLang],
+                    notifyBodyDongAmount,
+                    this.locMsg['CURRENCY'][targetUserLang][createdDong.currency],
+                    foundMutualUsersRels.name,
+                  ),
+                  desc: createdDong.desc ?? '',
+                  type: 'dong',
+                  categoryTitle: currentUser.categories[0].title,
+                  categoryIcon: currentUser.categories[0].icon,
+                  createdAt: Moment(createdDong.createdAt).utc().toISOString(),
+                  userRelId: foundMutualUsersRels.getId(),
+                  dongAmount: roundedDongAmount,
+                  currency: createdDong.currency,
+                  dongId: createdDong.getId(),
+                });
+
+                const createdNotify = await this.usersRepository
+                  .notifications(targetUser.getId())
+                  .create(notifyData);
+
+                // Generate notification messages
+                firebaseMessagesList.push({
+                  token: targetUser.firebaseToken ?? ' ',
+                  notification: {
+                    title: notifyData.title,
+                    body: notifyData.body,
+                  },
+                  data: {
+                    notifyId: createdNotify.getId().toString(),
+                    title: notifyData.title!,
+                    body: notifyData.body!,
+                    desc: notifyData.desc!,
+                    type: notifyData.type!,
+                    categoryTitle: notifyData.categoryTitle!,
+                    categoryIcon: notifyData.categoryIcon!,
+                    createdAt: notifyData.createdAt!,
+                    userRelId: notifyData.userRelId!.toString(),
+                    dongAmount: notifyData.dongAmount!.toString(),
+                    currency: createdNotify.currency!,
+                    dongId: notifyData.dongId!.toString(),
+                  },
+                });
+              }
             }
           }
         }
