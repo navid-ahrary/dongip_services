@@ -187,17 +187,28 @@ export class RemindersController {
 
     const firstNotifyDate = reminder.previousNotifyDate;
 
-    const isFirstNotifyDateAfterNowDate = this._generateMomentfromDateAndTimeBaseTz({
+    const isFirstNotifyDateAfterNow = this._generateMomentfromDateAndTimeBaseTz({
       date: firstNotifyDate,
       time: this.notifyTime,
       tz: userTZ,
     }).isAfter(nowUserLocaleMoment);
 
-    reminder.nextNotifyDate = isFirstNotifyDateAfterNowDate
-      ? reminder.previousNotifyDate
-      : Moment(reminder.previousNotifyDate)
+    let nextNotifyDate: string;
+    if (isFirstNotifyDateAfterNow) {
+      nextNotifyDate = reminder.previousNotifyDate;
+    } else {
+      const userLang = this.currentUserProfile.language;
+
+      nextNotifyDate = Jmoment.from(
+        Jmoment(reminder.previousNotifyDate)
+          .locale(userLang)
           .add(reminder.periodAmount, reminder.periodUnit)
-          .format('YYYY-MM-DD');
+          .format(),
+        userLang,
+      ).format('YYYY-MM-DD');
+    }
+
+    reminder.nextNotifyDate = nextNotifyDate;
 
     await this.usersRepository.reminders(this.userId).patch(reminder, { reminderId: reminderId });
   }
