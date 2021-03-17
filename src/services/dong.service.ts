@@ -202,7 +202,7 @@ export class DongService {
             const targetUserLang = targetUser.setting.language;
 
             const foundMutualUsersRels = await this.usersRelsRepository.findOne({
-              fields: { userId: true },
+              fields: { userId: true, name: true },
               where: {
                 userId: targetUser.getId(),
                 phone: currentUser.phone,
