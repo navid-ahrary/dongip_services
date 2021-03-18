@@ -1,3 +1,5 @@
+import { RequestHandler } from 'express-serve-static-core';
+
 /**
  * Information from package.json
  */
@@ -43,3 +45,5 @@ export interface TutorialLinks {
 export interface CategoriesSource {
   [language: string]: Array<{ id: number; title: string; icon: string }>;
 }
+
+export type FileUploadHandler = RequestHandler;

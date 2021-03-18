@@ -60,6 +60,8 @@ import {
   AppInstanceBinding,
   WoocommerceBindings,
   WoocommerceConstants,
+  STORAGE_DIRECTORY_BINDING,
+  STORAGE_DIRECTORY_VALUE,
 } from './keys';
 
 export { ApplicationConfig };
@@ -127,6 +129,7 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.configure(RestExplorerBindings.COMPONENT).to({
       path: '/explorer',
     });
+
     // Configure metric component
     this.configure(MetricsBindings.COMPONENT).to({
       endpoint: { basePath: '/metrics', disabled: false },
@@ -173,10 +176,10 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
 
     this.bind(HostnameBinding).to(hostname);
 
-    // MariaDB datasource configs
+    // Bind MariaDB datasource configs
     this.bind(MariadbConfigBinding).to(MariadbConfigValue);
 
-    // JWT binding constants
+    // Bind JWT constants
     this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(TokenServiceConstants.JWT_ALGORITHM_VALUE);
     this.bind(TokenServiceBindings.ACCESS_SECRET).to(TokenServiceConstants.ACCESS_SECRET_VALUE);
     this.bind(TokenServiceBindings.ACCESS_EXPIRES_IN).to(
@@ -199,6 +202,7 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
 
     this.bind(UserServiceBindings.USER_SERVICE).toClass(MyUserService);
 
+    // Bind firebase constants
     this.bind(FirebaseBinding.FIREBASE_APPLICATION_DATABASEURL).to(
       FirebaseConstants.FIREBASE_APPLICATION_DATABASEURL_VALIE,
     );
@@ -216,12 +220,12 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
       FirebaseConstants.FIREBASE_DONGIP_SUPPORT_CERT_FILE,
     );
 
-    // Kavenegar binding constants
+    // Bind Kavenegar constants
     this.bind(KavenegarBindings.KAVENEGAR_API_KEY).to(KavenegarConstans.KAVENEGAR_API_KEY_VALUE);
     this.bind(KavenegarBindings.SMS_TEMPLATE_FA).to(KavenegarConstans.SMS_TEMPLATE_FA_VALUE);
     this.bind(KavenegarBindings.SMS_TEMPLATE_EN).to(KavenegarConstans.SMS_TEMPLATE_EN_VALUE);
 
-    // Cafebazaar binding constants
+    // Bind Cafebazaar constants
     this.bind(CafebazaarBindings.CAFEBAZAAR_API_BASEURL).to(
       CafebazaarConstants.CAFEBAZAAR_API_BASEURL_VALUE,
     );
@@ -238,7 +242,7 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
       CafebazaarConstants.CAFEBAZAAR_REFRESH_TOKEN_VALUE,
     );
 
-    // Email service binding constants
+    // Bind Email service constants
     this.bind(EmailBindings.ZOHO_ACCOUNT_SCOPE_URL).to(EmailConstants.ZOHO_ACCOUNT_SCOPE_URL_VALUE);
     this.bind(EmailBindings.GMAIL_ACCOUNT).to(EmailConstants.GMAIL_ACCOUNT_VALUE);
     this.bind(EmailBindings.NOREPLY_MAIL_ADDRESS).to(EmailConstants.NOREPLY_MAIL_ADDRESS_VALUE);
@@ -248,12 +252,15 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.bind(EmailBindings.SUPPORT_MESSAGE_URL).to(EmailConstants.SUPPORT_MESSAGE_URL_VALUE);
     this.bind(EmailBindings.SUPPORT_REFRESH_TOKEN).to(EmailConstants.SUPPORT_REFRESH_TOKEN_VALUE);
 
-    // Woocommerce
+    // Bind Woocommerce
     this.bind(WoocommerceBindings.WOOCOMMERCE_CONSUMER_KEY).to(
       WoocommerceConstants.WOOCOMMERCE_CONSUMER_KEY_VALUE,
     );
     this.bind(WoocommerceBindings.WOOCOMMERCE_CONSUMER_SECRET).to(
       WoocommerceConstants.WOOCOMMERCE_CONSUMER_SECRET_VALUE,
     );
+
+    // Bind Storage directory
+    this.bind(STORAGE_DIRECTORY_BINDING).to(STORAGE_DIRECTORY_VALUE);
   }
 }

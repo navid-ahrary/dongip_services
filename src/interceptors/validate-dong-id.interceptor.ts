@@ -49,11 +49,13 @@ export class ValidateDongIdInterceptor implements Provider<Interceptor> {
    */
   async intercept(invocationCtx: InvocationContext, next: () => ValueOrPromise<InvocationResult>) {
     try {
-      if (invocationCtx.methodName === 'updateDongsById') {
-        const userId = +this.currentUserProfile[securityId],
-          selfUserRelId = +this.currentUserProfile.selfUserRelId,
-          lang = _.includes(this.req.headers['accept-language'], 'en') ? 'en' : 'fa',
-          dongId = +invocationCtx.args[0],
+      const methodName = invocationCtx.methodName,
+        userId = +this.currentUserProfile[securityId],
+        lang = _.includes(this.req.headers['accept-language'], 'en') ? 'en' : 'fa',
+        dongId = +invocationCtx.args[0];
+
+      if (methodName === 'updateDongsById') {
+        const selfUserRelId = +this.currentUserProfile.selfUserRelId,
           patchDong: Dongs = invocationCtx.args[1];
 
         const foundDong = await this.dongRepo.findOne({
@@ -89,11 +91,18 @@ export class ValidateDongIdInterceptor implements Provider<Interceptor> {
             selfUserRelId !== payerUserRelIds[0]
           ) {
             throw new HttpErrors.UnprocessableEntity(
-              this.locMsg['UPDATE_NOT_SELF_DONG_PONG'][lang],
+              this.locMsg['UPDATE_JUST_SELF_DONG_PONG'][lang],
             );
           }
         }
+      } else if (invocationCtx.targetClass.name === 'DongsReceiptsController') {
+        const foundDong = await this.dongRepo.count({ dongId: dongId, userId: userId });
+
+        if (!foundDong.count) {
+          throw new HttpErrors.UnprocessableEntity(this.locMsg['DONG_NOT_VALID'][lang]);
+        }
       }
+
       const result = await next();
       // Add post-invocation logic here
       return result;

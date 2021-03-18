@@ -8,6 +8,7 @@ import { BillList } from './bill-list.model';
 import { Scores } from './scores.model';
 import { CurrencyEnum } from './settings.model';
 import { JointAccounts, JointAccountsWithRelations } from './joint-accounts.model';
+import { Receipts } from './receipts.model';
 
 @model({
   name: 'dongs',
@@ -269,6 +270,9 @@ export class Dongs extends Entity {
     },
   })
   includeBill: boolean | null;
+
+  @hasMany(() => Receipts, { keyTo: 'dongId' })
+  receiptions: Receipts[];
 
   constructor(data?: Partial<Dongs>) {
     super(data);

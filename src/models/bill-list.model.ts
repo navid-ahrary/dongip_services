@@ -156,7 +156,7 @@ export class BillList extends Entity {
       target: () => BillList,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: { normal: true },
       mysql: {

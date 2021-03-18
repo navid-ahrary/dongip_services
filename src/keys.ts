@@ -12,6 +12,7 @@ import {
   PackageInfo,
   SubscriptionSpec,
   TutorialLinks,
+  FileUploadHandler,
 } from './types';
 
 Dotenv.config();
@@ -79,12 +80,6 @@ export namespace RefreshTokenServiceBindings {
 }
 
 export const MariadbConfigValue = {
-  name: 'Mariadb',
-  connector: 'mysql',
-  charset: 'utf8mb4',
-  collation: 'utf8mb4_unicode_ci',
-  supportBigNumbers: true,
-  dateStrings: ['DATE'],
   host: process.env.MARIADB_HOST!,
   port: process.env.MARIADB_PORT!,
   user: process.env.MARIADB_USER!,
@@ -229,3 +224,14 @@ export namespace WoocommerceBindings {
     'services.woocommerce.consumerSecret',
   );
 }
+
+/**
+ * Binding key for the file upload service
+ */
+export const FILE_UPLOAD_SERVICE = BindingKey.create<FileUploadHandler>('services.FileUpload');
+
+/**
+ * Binding key for the storage directory
+ */
+export const STORAGE_DIRECTORY_VALUE = process.env.STORAGE_DIRECTORY!;
+export const STORAGE_DIRECTORY_BINDING = BindingKey.create<string>('services.storage.directory');

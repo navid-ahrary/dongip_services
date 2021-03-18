@@ -21,6 +21,7 @@ export async function migrate(args: string[]) {
       'joint_accounts',
       'joint_account_subscribes',
       'dongs',
+      'receipts',
       'payer_list',
       'bill_list',
       'scores',

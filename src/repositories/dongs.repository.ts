@@ -15,6 +15,7 @@ import {
   Categories,
   Scores,
   JointAccounts,
+  Receipts,
 } from '../models';
 import {
   UsersRepository,
@@ -24,6 +25,7 @@ import {
   ScoresRepository,
   JointAccountsRepository,
 } from '.';
+import { ReceiptionsRepository } from './receipts.repository';
 
 export class DongsRepository extends DefaultCrudRepository<
   Dongs,
@@ -42,6 +44,8 @@ export class DongsRepository extends DefaultCrudRepository<
 
   public readonly jointAccount: BelongsToAccessor<JointAccounts, typeof Dongs.prototype.dongId>;
 
+  public readonly receipts: HasManyRepositoryFactory<Receipts, typeof Dongs.prototype.dongId>;
+
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
@@ -55,8 +59,16 @@ export class DongsRepository extends DefaultCrudRepository<
     protected scoresRepositoryGetter: Getter<ScoresRepository>,
     @repository.getter('JointAccountsRepository')
     protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
+    @repository.getter('ReceiptionsRepository')
+    protected receiptionsRepositoryGetter: Getter<ReceiptionsRepository>,
   ) {
     super(Dongs, dataSource);
+
+    this.receipts = this.createHasManyRepositoryFactoryFor(
+      'receiptions',
+      receiptionsRepositoryGetter,
+    );
+    this.registerInclusionResolver('receiptions', this.receipts.inclusionResolver);
 
     this.jointAccount = this.createBelongsToAccessorFor(
       'jointAccount',
