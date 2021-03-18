@@ -32,7 +32,6 @@ export class AuthController {
     @inject(UserServiceBindings.USER_SERVICE) private userService: UserService<Users, Credentials>,
     @service(VerifyService) private verifyService: VerifyService,
     @service(UserScoresService) private userScoresService: UserScoresService,
-    // @service(AuthenticationService) private authService: AuthenticationService,
     @service(RefreshtokenService) private refreshTokenService: RefreshtokenService,
     @repository(UsersRepository) private usersRepository: UsersRepository,
     @repository(VerifyRepository) private verifyRepository: VerifyRepository,
