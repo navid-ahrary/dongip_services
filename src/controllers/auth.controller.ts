@@ -17,12 +17,7 @@ import _ from 'lodash';
 import { UserServiceBindings, TokenServiceBindings, LocMsgsBindings } from '../keys';
 import { Users, Credentials, Verify, NewUser, Settings } from '../models';
 import { UsersRepository, BlacklistRepository, VerifyRepository } from '../repositories';
-import {
-  VerifyService,
-  RefreshtokenService,
-  UserScoresService,
-  AuthenticationService,
-} from '../services';
+import { VerifyService, RefreshtokenService, UserScoresService } from '../services';
 import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocalizedMessages } from '../types';
 
@@ -37,7 +32,7 @@ export class AuthController {
     @inject(UserServiceBindings.USER_SERVICE) private userService: UserService<Users, Credentials>,
     @service(VerifyService) private verifyService: VerifyService,
     @service(UserScoresService) private userScoresService: UserScoresService,
-    @service(AuthenticationService) private authService: AuthenticationService,
+    // @service(AuthenticationService) private authService: AuthenticationService,
     @service(RefreshtokenService) private refreshTokenService: RefreshtokenService,
     @repository(UsersRepository) private usersRepository: UsersRepository,
     @repository(VerifyRepository) private verifyRepository: VerifyRepository,
@@ -152,15 +147,15 @@ export class AuthController {
       const phoneValue = verifyReqBody.phone;
       const smsSignature = verifyReqBody.smsSignature;
 
-      return this.authService.verifyWithPhone(phoneValue, smsSignature);
+      return this.verifyService.verifyWithPhone(phoneValue, smsSignature);
     } else if (verifyReqBody.email) {
       const emailValue = verifyReqBody.email;
 
       if (verifyReqBody.verifyStrategy === 'google') {
-        return this.authService.loginWithGoogle(emailValue);
+        return this.verifyService.loginWithGoogle(emailValue);
       }
 
-      return this.authService.verifyWithEmail(emailValue);
+      return this.verifyService.verifyWithEmail(emailValue);
     }
   }
 
@@ -409,7 +404,7 @@ export class AuthController {
         loggedInAt: nowUTC.toISOString(),
       });
 
-      return await this.authService.createUser(userEntity, settingEntity);
+      return await this.verifyService.createUser(userEntity, settingEntity);
     } catch (err) {
       if (err.message === 'WRONG_VERIFY_CODE') {
         throw new HttpErrors.NotAcceptable(this.locMsg[err.message][this.lang]);
