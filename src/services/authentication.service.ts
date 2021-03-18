@@ -228,6 +228,7 @@ export class AuthenticationService {
           isCompleted: user?.phoneLocked ?? false,
           avatar: user?.avatar ?? 'dongip',
           phone: user.phone,
+          name: user.name,
           email: user.email,
           totalScores: scores,
           planId: foundPlan.length ? foundPlan[0].planId : 'free',
