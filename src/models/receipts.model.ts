@@ -3,19 +3,19 @@ import { Users } from './users.model';
 import { Dongs } from './dongs.model';
 
 @model({
-  name: 'receiptions',
+  name: 'receipts',
   settings: {
     foreignKeys: {
-      fkReceiptionsUserId: {
-        name: 'fk_receiptions_user_id',
+      fkReceiptsUserId: {
+        name: 'fk_receipts_user_id',
         entity: 'users',
         entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
       },
-      fkReceiptionsDongId: {
-        name: 'fk_receiptions_dong_id',
+      fkReceiptsDongId: {
+        name: 'fk_receipts_dong_id',
         entity: 'dongs',
         entityKey: 'id',
         foreignKey: 'dongId',
@@ -25,7 +25,7 @@ import { Dongs } from './dongs.model';
     },
   },
 })
-export class Receiptions extends Entity {
+export class Receipts extends Entity {
   @property({
     type: 'number',
     id: true,
@@ -36,19 +36,19 @@ export class Receiptions extends Entity {
       nullable: 'N',
     },
   })
-  receiptionId: number;
+  receiptId: number;
 
   @property({
     type: 'string',
     required: true,
     mysql: {
-      columnName: 'filename',
+      columnName: 'file_name',
       dataType: 'varchar',
       dataLength: 40,
       nullable: 'N',
     },
   })
-  filename: string;
+  fileName: string;
 
   @belongsTo(
     () => Users,
@@ -58,7 +58,7 @@ export class Receiptions extends Entity {
       keyTo: 'userId',
       type: RelationType.belongsTo,
       source: Users,
-      target: () => Receiptions,
+      target: () => Receipts,
     },
     {
       type: 'number',
@@ -90,13 +90,13 @@ export class Receiptions extends Entity {
   )
   dongId: number;
 
-  constructor(data?: Partial<Receiptions>) {
+  constructor(data?: Partial<Receipts>) {
     super(data);
   }
 }
 
-export interface ReceiptionsRelations {
+export interface ReceiptsRelations {
   // describe navigational properties here
 }
 
-export type ReceiptionsWithRelations = Receiptions & ReceiptionsRelations;
+export type ReceiptionsWithRelats = Receipts & ReceiptsRelations;

@@ -208,6 +208,3 @@ export const FILE_UPLOAD_SERVICE = BindingKey.create<FileUploadHandler>('service
  */
 export const STORAGE_DIRECTORY_VALUE = process.env.STORAGE_DIRECTORY!;
 export const STORAGE_DIRECTORY_BINDING = BindingKey.create<string>('services.storage.directory');
-
-export const STATIC_FILES_PATH_VALUE = process.env.STATIC_FILES_PATH!;
-export const STATIC_FLIES_PATH_BINDING = BindingKey.create<string>('application.path.staticFiles');

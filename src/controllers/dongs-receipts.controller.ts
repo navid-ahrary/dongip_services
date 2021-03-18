@@ -10,25 +10,26 @@ import {
   Request,
   Response,
   HttpErrors,
+  oas,
 } from '@loopback/rest';
 import { inject, intercept } from '@loopback/context';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
-import { CountSchema, model, property, repository } from '@loopback/repository';
+import { model, property, repository } from '@loopback/repository';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { authenticate } from '@loopback/authentication';
-import Path from 'path';
-import _ from 'lodash';
 import FileType from 'file-type';
+import _ from 'lodash';
+import Path from 'path';
 import Fs from 'fs';
 import { FileUploadHandler } from '../types';
-import { Dongs, Receiptions, Users } from '../models';
+import { Dongs, Receipts, Users } from '../models';
 import { DongsRepository } from '../repositories';
-import { FILE_UPLOAD_SERVICE, STATIC_FLIES_PATH_BINDING, STORAGE_DIRECTORY_BINDING } from '../keys';
+import { FILE_UPLOAD_SERVICE, STORAGE_DIRECTORY_BINDING } from '../keys';
 import { ValidateDongIdInterceptor } from '../interceptors';
-import { ReceiptionsRepository } from '../repositories/receiptions.repository';
+import { ReceiptionsRepository } from '../repositories/receipts.repository';
 
 @model()
-class UploadResposne extends Receiptions {
+class UploadResposne extends Receipts {
   @property({ type: 'string' }) path: string;
   @property({ type: 'string' }) mimetype: string;
   @property({ type: 'number' }) size: number;
@@ -36,7 +37,7 @@ class UploadResposne extends Receiptions {
 
 @authenticate('jwt.access')
 @intercept(ValidateDongIdInterceptor.BINDING_KEY)
-export class DongsReceiptionsController {
+export class DongsReceiptsController {
   private readonly userId: typeof Users.prototype.userId;
   private readonly lang: string;
 
@@ -46,9 +47,7 @@ export class DongsReceiptionsController {
    */
   constructor(
     @inject.context() private ctx: RequestContext,
-    @inject(RestBindings.Http.RESPONSE) private response: Response,
     @inject(FILE_UPLOAD_SERVICE) private handler: FileUploadHandler,
-    @inject(STATIC_FLIES_PATH_BINDING) private staticFilesPath: string,
     @inject(STORAGE_DIRECTORY_BINDING) private storageDirectory: string,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @repository(DongsRepository) public dongRepo: DongsRepository,
@@ -58,59 +57,51 @@ export class DongsReceiptionsController {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
-  @get('/dongs/{dongId}/receiptions', {
-    summary: "Get Dongs's receiptions by dongId",
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      '200': {
-        description: 'Dongs has many Receiptions',
-        content: {
-          'application/json': {
-            schema: getModelSchemaRef(UploadResposne),
-          },
-        },
-      },
-    },
-  })
-  async findDongsReceiptions(
+  @get('/dongs/{dongId}/receipts')
+  @oas.response.file('image/jpeg', 'image/jpg', 'image/png')
+  @authenticate('jwt.access')
+  async downloafDongsReceipts(
     @param.path.number('dongId') dongId: typeof Dongs.prototype.dongId,
-  ): Promise<object> {
+    @inject(RestBindings.Http.RESPONSE) response: Response,
+  ): Promise<Response | undefined> {
     const foundReceipts = await this.receiptRepo.findOne({
       where: { userId: this.userId, dongId: dongId },
     });
 
-    if (!foundReceipts) return {};
+    if (!foundReceipts) return;
 
-    const filename = foundReceipts.filename;
-    const file = await this.validateFileName(filename);
+    const fileName = foundReceipts.fileName;
+    const file = await this.validateFileName(fileName);
+    response.download(file.path, fileName);
 
-    return { ...foundReceipts, ...file };
+    return response;
   }
 
-  @post('/dongs/{dongId}/receiptions', {
-    summary: "Upload Dongs's receiptions by dongId",
+  @post('/dongs/{dongId}/receipts', {
+    summary: "Upload Dongs's receipts by dongId",
     security: OPERATION_SECURITY_SPEC,
     responses: {
       200: {
+        description: 'File details',
         content: {
           'application/json': {
             schema: getModelSchemaRef(UploadResposne),
           },
         },
-        description: 'File details',
       },
     },
   })
-  async uploadDongReceiption(
+  async uploadDongReceipt(
     @param.path.number('dongId') dongId: typeof Dongs.prototype.dongId,
     @requestBody.file() request: Request,
+    @inject(RestBindings.Http.RESPONSE) response: Response,
   ): Promise<object> {
     let result = {};
 
     try {
       // eslint-disable-next-line @typescript-eslint/return-await
       result = await new Promise<object>((resolve, reject) => {
-        this.handler(request, this.response, (err: unknown) => {
+        this.handler(request, response, (err: unknown) => {
           if (err) reject(err);
           else {
             resolve(this.getFiles(request));
@@ -119,8 +110,8 @@ export class DongsReceiptionsController {
       });
 
       const savedReceipt = await this.dongRepo
-        .receiptions(dongId)
-        .create({ userId: this.userId, filename: _.get(result, 'filename') });
+        .receipts(dongId)
+        .create({ userId: this.userId, fileName: _.get(result, 'fileName') });
 
       return { ...savedReceipt, ...result };
     } catch (err) {
@@ -143,19 +134,25 @@ export class DongsReceiptionsController {
     }
   }
 
-  @del('/dongs/{dongId}/receiptions', {
-    summary: "Delete Dongs's receiptions by dongId",
+  @del('/dongs/{dongId}/receipts', {
+    summary: "Delete Dongs's receipts by dongId",
     security: OPERATION_SECURITY_SPEC,
     responses: {
-      '200': {
-        description: 'Dongs.Receiptions DELETE success count',
-        content: { 'application/json': { schema: CountSchema } },
-      },
+      '204': { description: 'Dongs.Receipts DELETE success. No content' },
     },
   })
   async delete(@param.path.number('dongId') dongId: typeof Dongs.prototype.dongId) {
     try {
-      await this.dongRepo.receiptions(dongId).delete({ userId: this.userId });
+      const foundReceipt = await this.receiptRepo.findOne({
+        fields: { fileName: true },
+        where: { userId: this.userId, dongId: dongId },
+      });
+
+      if (foundReceipt) {
+        await this.dongRepo.receipts(dongId).delete({ userId: this.userId });
+        const filePath = this.getFilePath(foundReceipt.fileName);
+        Fs.unlinkSync(filePath);
+      }
     } catch (err) {
       throw new HttpErrors.UnprocessableEntity(err.message);
     }
@@ -171,7 +168,7 @@ export class DongsReceiptionsController {
     if (resolved.startsWith(this.storageDirectory)) {
       return {
         filename: filename,
-        path: this.getUrlPath(filename),
+        path: this.getFilePath(filename),
         mimetype: (await FileType.fromFile(resolved))?.mime,
         sizeBytes: Fs.statSync(resolved).size,
       };
@@ -189,8 +186,8 @@ export class DongsReceiptionsController {
     const uploadedFiles = request.files;
 
     const mapper = (f: globalThis.Express.Multer.File) => ({
-      filename: f.filename,
-      path: this.getUrlPath(f.filename),
+      fileName: f.filename,
+      path: this.getFilePath(f.filename),
       mimetype: f.mimetype,
       sizeBytes: f.size,
       // fieldname: f.fieldname,
@@ -207,10 +204,6 @@ export class DongsReceiptionsController {
       }
     }
     return filesDetails.length === 1 ? filesDetails[0] : filesDetails;
-  }
-
-  private getUrlPath(filename: string): string {
-    return Path.join(this.staticFilesPath, filename);
   }
 
   private getFilePath(filename: string): string {

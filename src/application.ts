@@ -62,8 +62,6 @@ import {
   WoocommerceConstants,
   STORAGE_DIRECTORY_BINDING,
   STORAGE_DIRECTORY_VALUE,
-  STATIC_FLIES_PATH_BINDING,
-  STATIC_FILES_PATH_VALUE,
 } from './keys';
 
 export { ApplicationConfig };
@@ -126,9 +124,6 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.add(createBindingFromClass(ReminderCronjobService));
 
     this.static('/', Path.join(__dirname, '../public'));
-    this.static(STATIC_FILES_PATH_VALUE, STORAGE_DIRECTORY_VALUE, {
-      extensions: ['png', 'jpeg', 'jpg'],
-    });
 
     // Customize @loopback/rest-explorer configuration here
     this.configure(RestExplorerBindings.COMPONENT).to({
@@ -261,7 +256,5 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
 
     // Bind Storage directory
     this.bind(STORAGE_DIRECTORY_BINDING).to(STORAGE_DIRECTORY_VALUE);
-
-    this.bind(STATIC_FLIES_PATH_BINDING).to(STATIC_FILES_PATH_VALUE);
   }
 }

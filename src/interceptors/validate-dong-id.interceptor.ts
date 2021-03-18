@@ -95,7 +95,7 @@ export class ValidateDongIdInterceptor implements Provider<Interceptor> {
             );
           }
         }
-      } else if (invocationCtx.targetClass.name === 'DongsReceiptionsController') {
+      } else if (invocationCtx.targetClass.name === 'DongsReceiptsController') {
         const foundDong = await this.dongRepo.count({ dongId: dongId, userId: userId });
 
         if (!foundDong.count) {

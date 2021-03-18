@@ -10,4 +10,4 @@ export * from './settings.controller';
 export * from './joint-account.controller';
 export * from './joint-accounts-dongs.controller';
 export * from './reminders.controller';
-export * from './dongs-receiptions.controller';
+export * from './dongs-receipts.controller';

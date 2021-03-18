@@ -14,7 +14,9 @@ import {
   PayerList,
   Categories,
   Scores,
-  JointAccounts, Receiptions} from '../models';
+  JointAccounts,
+  Receipts,
+} from '../models';
 import {
   UsersRepository,
   BillListRepository,
@@ -23,7 +25,7 @@ import {
   ScoresRepository,
   JointAccountsRepository,
 } from '.';
-import {ReceiptionsRepository} from './receiptions.repository';
+import { ReceiptionsRepository } from './receipts.repository';
 
 export class DongsRepository extends DefaultCrudRepository<
   Dongs,
@@ -42,7 +44,7 @@ export class DongsRepository extends DefaultCrudRepository<
 
   public readonly jointAccount: BelongsToAccessor<JointAccounts, typeof Dongs.prototype.dongId>;
 
-  public readonly receiptions: HasManyRepositoryFactory<Receiptions, typeof Dongs.prototype.dongId>;
+  public readonly receipts: HasManyRepositoryFactory<Receipts, typeof Dongs.prototype.dongId>;
 
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
@@ -56,11 +58,17 @@ export class DongsRepository extends DefaultCrudRepository<
     @repository.getter('ScoresRepository')
     protected scoresRepositoryGetter: Getter<ScoresRepository>,
     @repository.getter('JointAccountsRepository')
-    protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>, @repository.getter('ReceiptionsRepository') protected receiptionsRepositoryGetter: Getter<ReceiptionsRepository>,
+    protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
+    @repository.getter('ReceiptionsRepository')
+    protected receiptionsRepositoryGetter: Getter<ReceiptionsRepository>,
   ) {
     super(Dongs, dataSource);
-    this.receiptions = this.createHasManyRepositoryFactoryFor('receiptions', receiptionsRepositoryGetter,);
-    this.registerInclusionResolver('receiptions', this.receiptions.inclusionResolver);
+
+    this.receipts = this.createHasManyRepositoryFactoryFor(
+      'receiptions',
+      receiptionsRepositoryGetter,
+    );
+    this.registerInclusionResolver('receiptions', this.receipts.inclusionResolver);
 
     this.jointAccount = this.createBelongsToAccessorFor(
       'jointAccount',
