@@ -182,89 +182,93 @@ export class DongService {
 
       const sendNotify = _.has(newDong, 'sendNotify') ? newDong.sendNotify : true;
 
-      if (!currentUser.jointAccountSubscribes && currentUserIsPayer && sendNotify) {
-        for (const relation of exterUserRelsList) {
-          const targetUser = await this.usersRepository.findOne({
-            fields: { userId: true, firebaseToken: true },
-            where: { phone: relation.phone },
-            include: [{ relation: 'setting', scope: { fields: { userId: true, language: true } } }],
-          });
-
-          // If relation is mutual, add to notification reciever list
-          if (targetUser instanceof Users) {
-            const targetUserLang = targetUser.setting.language;
-
-            const foundMutualUsersRels = await this.usersRelsRepository.findOne({
-              where: {
-                phone: currentUser.phone,
-                userId: targetUser.getId(),
-              },
+      if (!currentUser.jointAccountSubscribes && sendNotify) {
+        if (currentUserIsPayer) {
+          for (const relation of exterUserRelsList) {
+            const targetUser = await this.usersRepository.findOne({
+              fields: { userId: true, firebaseToken: true },
+              where: { phone: relation.phone },
+              include: [
+                { relation: 'setting', scope: { fields: { userId: true, language: true } } },
+              ],
             });
 
-            if (foundMutualUsersRels) {
-              // Increament scoreFactor for every mutual friend contribute in dong
-              mutualFactor++;
-              // Get rounded dong amount
-              const roundedDongAmount = _.find(billList, { userRelId: relation.getId() })
-                ? Math.floor(_.find(billList, { userRelId: relation.getId() })!.dongAmount)
-                : 0;
+            // If relation is mutual, add to notification reciever list
+            if (targetUser instanceof Users) {
+              const targetUserLang = targetUser.setting.language;
 
-              // Seperate thousands with "," for use in notification body
-              const notifyBodyDongAmount = this.numberWithCommas(roundedDongAmount);
-
-              // Notification data payload
-              const notifyData = new Notifications({
-                title: this.locMsg['DONGIP_NOTIFY_TITLE'][targetUserLang],
-                body: Util.format(
-                  this.locMsg['DONGIP_NOTIFY_BODY'][targetUserLang],
-                  notifyBodyDongAmount,
-                  this.locMsg['CURRENCY'][targetUserLang][createdDong.currency],
-                  foundMutualUsersRels.name,
-                ),
-                desc: createdDong.desc ?? '',
-                type: 'dong',
-                categoryTitle: currentUser.categories[0].title,
-                categoryIcon: currentUser.categories[0].icon,
-                createdAt: Moment(createdDong.createdAt).utc().toISOString(),
-                userRelId: foundMutualUsersRels.getId(),
-                dongAmount: roundedDongAmount,
-                currency: createdDong.currency,
-                dongId: createdDong.getId(),
-              });
-
-              const createdNotify = await this.usersRepository
-                .notifications(targetUser.getId())
-                .create(notifyData);
-
-              // Generate notification messages
-              firebaseMessagesList.push({
-                token: targetUser.firebaseToken ?? ' ',
-                notification: {
-                  title: notifyData.title,
-                  body: notifyData.body,
-                },
-                data: {
-                  notifyId: createdNotify.getId().toString(),
-                  title: notifyData.title!,
-                  body: notifyData.body!,
-                  desc: notifyData.desc!,
-                  type: notifyData.type!,
-                  categoryTitle: notifyData.categoryTitle!,
-                  categoryIcon: notifyData.categoryIcon!,
-                  createdAt: notifyData.createdAt!,
-                  userRelId: notifyData.userRelId!.toString(),
-                  dongAmount: notifyData.dongAmount!.toString(),
-                  currency: createdNotify.currency!,
-                  dongId: notifyData.dongId!.toString(),
+              const foundMutualUsersRels = await this.usersRelsRepository.findOne({
+                where: {
+                  phone: currentUser.phone,
+                  userId: targetUser.getId(),
                 },
               });
+
+              if (foundMutualUsersRels) {
+                // Increament scoreFactor for every mutual friend contribute in dong
+                mutualFactor++;
+                // Get rounded dong amount
+                const roundedDongAmount = _.find(billList, { userRelId: relation.getId() })
+                  ? Math.floor(_.find(billList, { userRelId: relation.getId() })!.dongAmount)
+                  : 0;
+
+                // Seperate thousands with "," for use in notification body
+                const notifyBodyDongAmount = this.numberWithCommas(roundedDongAmount);
+
+                // Notification data payload
+                const notifyData = new Notifications({
+                  title: this.locMsg['DONGIP_NOTIFY_TITLE'][targetUserLang],
+                  body: Util.format(
+                    this.locMsg['DONGIP_NOTIFY_BODY'][targetUserLang],
+                    notifyBodyDongAmount,
+                    this.locMsg['CURRENCY'][targetUserLang][createdDong.currency],
+                    foundMutualUsersRels.name,
+                  ),
+                  desc: createdDong.desc ?? '',
+                  type: 'dong',
+                  categoryTitle: currentUser.categories[0].title,
+                  categoryIcon: currentUser.categories[0].icon,
+                  createdAt: Moment(createdDong.createdAt).utc().toISOString(),
+                  userRelId: foundMutualUsersRels.getId(),
+                  dongAmount: roundedDongAmount,
+                  currency: createdDong.currency,
+                  dongId: createdDong.getId(),
+                });
+
+                const createdNotify = await this.usersRepository
+                  .notifications(targetUser.getId())
+                  .create(notifyData);
+
+                // Generate notification messages
+                firebaseMessagesList.push({
+                  token: targetUser.firebaseToken ?? ' ',
+                  notification: {
+                    title: notifyData.title,
+                    body: notifyData.body,
+                  },
+                  data: {
+                    notifyId: createdNotify.getId().toString(),
+                    title: notifyData.title!,
+                    body: notifyData.body!,
+                    desc: notifyData.desc!,
+                    type: notifyData.type!,
+                    categoryTitle: notifyData.categoryTitle!,
+                    categoryIcon: notifyData.categoryIcon!,
+                    createdAt: notifyData.createdAt!,
+                    userRelId: notifyData.userRelId!.toString(),
+                    dongAmount: notifyData.dongAmount!.toString(),
+                    currency: createdNotify.currency!,
+                    dongId: notifyData.dongId!.toString(),
+                  },
+                });
+              }
             }
           }
-        }
 
-        if (firebaseMessagesList.length > 0) {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          this.firebaseSerice.sendAllMessage(firebaseMessagesList);
+          if (firebaseMessagesList.length > 0) {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            this.firebaseSerice.sendAllMessage(firebaseMessagesList);
+          }
         }
       } else if (currentUser.jointAccountSubscribes) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
