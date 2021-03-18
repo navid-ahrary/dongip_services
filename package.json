@@ -104,7 +104,6 @@
     "@loopback/eslint-config": "^10.1.0",
     "@loopback/testlab": "^3.3.0",
     "@types/countries-and-timezones": "^2.0.3",
-    "@types/express-serve-static-core": "^4.17.19",
     "@types/helmet": "^4.0.0",
     "@types/jsonwebtoken": "^8.5.1",
     "@types/lodash": "^4.14.149",
