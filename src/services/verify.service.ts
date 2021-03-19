@@ -52,7 +52,6 @@ export class VerifyService {
     @repository(UsersRelsRepository) private usersRelsRepository: UsersRelsRepository,
     @repository(CategoriesRepository) private categoriesRepository: CategoriesRepository,
   ) {
-    console.log(this.refreshTokenService);
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
     this.randomCode = Math.random().toFixed(7).slice(3);
     this.randomString = this.generateRandomPassword(3);
