@@ -1,9 +1,8 @@
 // Uncomment these imports to begin using these cool features!
 
 import { inject } from '@loopback/core';
-import { model, property, repository } from '@loopback/repository';
+import { repository } from '@loopback/repository';
 import {
-  getModelSchemaRef,
   HttpErrors,
   post,
   requestBody,
@@ -17,19 +16,12 @@ import _ from 'lodash';
 import FileType from 'file-type';
 import Path from 'path';
 import Fs from 'fs';
-import { Receipts, Users } from '../models';
+import { Users } from '../models';
 import { FileUploadHandler } from '../types';
 import { FILE_UPLOAD_SERVICE, STORAGE_DIRECTORY_BINDING } from '../keys';
 import { ReceiptsRepository } from '../repositories';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { authenticate } from '@loopback/authentication';
-
-@model()
-class UploadResposne extends Receipts {
-  @property({ type: 'string' }) path: string;
-  @property({ type: 'string' }) mimetype: string;
-  @property({ type: 'number' }) size: number;
-}
 
 @authenticate('jwt.access')
 export class ReceiptsController {
@@ -55,7 +47,16 @@ export class ReceiptsController {
         description: 'File details',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(UploadResposne),
+            schema: {
+              type: 'object',
+              properties: {
+                receiptId: { type: 'number' },
+                receiptName: { type: 'string' },
+                userId: { type: 'number' },
+                mimetype: { type: 'string' },
+                sizeBytes: { type: 'number' },
+              },
+            },
           },
         },
       },
