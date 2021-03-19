@@ -6,7 +6,7 @@ import { Users, Subscriptions } from '../models';
 import { SubscriptionSpec } from '../types';
 import { SubsSpecBindings } from '../keys';
 
-@injectable({ scope: BindingScope.REQUEST })
+@injectable({ scope: BindingScope.TRANSIENT })
 export class SubscriptionService {
   constructor(
     @inject(SubsSpecBindings) public subsSpec: SubscriptionSpec,

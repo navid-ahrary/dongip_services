@@ -17,7 +17,6 @@ import { Categories, PostDong, Settings, Users, UsersRels, Verify } from '../mod
 import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
 import {
   Credentials,
-  RefreshtokenService,
   TokenServiceBindings,
   UserServiceBindings,
 } from '@loopback/authentication-jwt';
@@ -28,6 +27,7 @@ import { DongService } from './dong.service';
 import { EmailService } from './email.service';
 import { UserScoresService } from './user-scores.service';
 import { PhoneNumberService } from './phone-number.service';
+import { RefreshtokenService } from './refreshtoken.service';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class VerifyService {
@@ -52,6 +52,7 @@ export class VerifyService {
     @repository(UsersRelsRepository) private usersRelsRepository: UsersRelsRepository,
     @repository(CategoriesRepository) private categoriesRepository: CategoriesRepository,
   ) {
+    console.log(this.refreshTokenService);
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
     this.randomCode = Math.random().toFixed(7).slice(3);
     this.randomString = this.generateRandomPassword(3);

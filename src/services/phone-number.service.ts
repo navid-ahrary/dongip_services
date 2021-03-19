@@ -1,15 +1,13 @@
-import {BindingScope, injectable} from '@loopback/core';
-import {repository} from '@loopback/repository';
+import { BindingScope, injectable } from '@loopback/core';
+import { repository } from '@loopback/repository';
 
 import AwesomePhoneNumber from 'awesome-phonenumber';
 
-import {UsersRepository} from '../repositories';
+import { UsersRepository } from '../repositories';
 
-@injectable({scope: BindingScope.REQUEST})
+@injectable({ scope: BindingScope.TRANSIENT })
 export class PhoneNumberService {
-  constructor(
-    @repository(UsersRepository) public usersRepository: UsersRepository,
-  ) {}
+  constructor(@repository(UsersRepository) public usersRepository: UsersRepository) {}
 
   /**
    *

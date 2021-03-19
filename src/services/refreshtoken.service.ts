@@ -7,11 +7,10 @@ import { repository } from '@loopback/repository';
 import { sign, verify, Algorithm } from 'jsonwebtoken';
 
 import { RefreshTokenServiceBindings, TokenServiceBindings, UserServiceBindings } from '../keys';
-import { RefreshTokens } from '../models/refresh-tokens.model';
 import { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
 import { MyUserService } from '.';
 
-@injectable({ scope: BindingScope.TRANSIENT })
+@injectable({ scope: BindingScope.REQUEST })
 export class RefreshtokenService {
   constructor(
     @inject(TokenServiceBindings.TOKEN_ALGORITHM) private jwtAlgorithm: Algorithm,
