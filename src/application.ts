@@ -11,7 +11,7 @@ import {
   AuthorizationComponent,
   AuthorizationBindings,
 } from '@loopback/authorization';
-import { RefreshTokenServiceBindings, SECURITY_SCHEME_SPEC } from '@loopback/authentication-jwt';
+import { SECURITY_SCHEME_SPEC } from '@loopback/authentication-jwt';
 import { MetricsComponent, MetricsBindings } from '@loopback/extension-metrics';
 import { HealthComponent, HealthBindings } from '@loopback/extension-health';
 import { CronComponent } from '@loopback/cron';
@@ -62,6 +62,7 @@ import {
   WoocommerceConstants,
   STORAGE_DIRECTORY_BINDING,
   STORAGE_DIRECTORY_VALUE,
+  RefreshTokenServiceBindings,
 } from './keys';
 
 export { ApplicationConfig };
