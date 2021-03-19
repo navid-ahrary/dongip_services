@@ -171,12 +171,60 @@ export class Settings extends Entity {
   currency: string;
 
   @property({
-    type: 'date',
-    required: true,
-    defaultFn: 'now',
-    mysql: { columnName: 'created_at', dataType: 'datetime', nullable: 'N' },
+    type: 'boolean',
+    required: false,
+    default: false,
+    mysql: {
+      columnName: 'sms_enabled',
+      dataType: 'tinyint',
+      dataLength: 1,
+      default: 0,
+      nullable: 'Y',
+    },
   })
-  createdAt: string;
+  smsEnabled?: boolean;
+
+  @property({
+    type: 'boolean',
+    required: false,
+    default: true,
+    mysql: {
+      columnName: 'show_categories_in_home_age',
+      dataType: 'tinyint',
+      dataLength: 1,
+      default: 1,
+      nullable: 'Y',
+    },
+  })
+  showCategoriesInHomePage?: boolean;
+
+  @property({
+    type: 'boolean',
+    required: false,
+    default: false,
+    mysql: {
+      columnName: 'show_budgets_in_home_age',
+      dataType: 'tinyint',
+      dataLength: 1,
+      default: 0,
+      nullable: 'Y',
+    },
+  })
+  showBudgetsInHomePage?: boolean;
+
+  @property({
+    type: 'boolean',
+    required: false,
+    default: true,
+    mysql: {
+      columnName: 'show_friends_in_home_age',
+      dataType: 'tinyint',
+      dataLength: 1,
+      default: 1,
+      nullable: 'Y',
+    },
+  })
+  showFriendsInHomePage?: boolean;
 
   @belongsTo(
     () => Users,
@@ -200,6 +248,14 @@ export class Settings extends Entity {
     },
   )
   userId: number;
+
+  @property({
+    type: 'date',
+    required: true,
+    defaultFn: 'now',
+    mysql: { columnName: 'created_at', dataType: 'datetime', nullable: 'N' },
+  })
+  createdAt: string;
 
   constructor(data?: Partial<Settings>) {
     super(data);
