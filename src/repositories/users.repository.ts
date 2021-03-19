@@ -25,6 +25,7 @@ import {
   JointAccountSubscribes,
   RefreshTokens,
   Reminders,
+  Receipts,
 } from '../models';
 import {
   PayerListRepository,
@@ -45,6 +46,7 @@ import {
   RefreshTokensRepository,
   RemindersRepository,
 } from '.';
+import { ReceiptsRepository } from './receipts.repository';
 
 export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.prototype.userId> {
   public readonly virtualUsers: HasManyRepositoryFactory<
@@ -99,6 +101,8 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
 
   public readonly reminders: HasManyRepositoryFactory<Reminders, typeof Users.prototype.userId>;
 
+  public readonly receipts: HasManyRepositoryFactory<Receipts, typeof Users.prototype.userId>;
+
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -135,8 +139,13 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
     protected refreshTokensRepositoryGetter: Getter<RefreshTokensRepository>,
     @repository.getter('RemindersRepository')
     protected remindersRepositoryGetter: Getter<RemindersRepository>,
+    @repository.getter('ReceiptsRepository')
+    protected receiptsRepositoryGetter: Getter<ReceiptsRepository>,
   ) {
     super(Users, dataSource);
+
+    this.receipts = this.createHasManyRepositoryFactoryFor('receipts', receiptsRepositoryGetter);
+    this.registerInclusionResolver('receipts', this.receipts.inclusionResolver);
 
     this.reminders = this.createHasManyRepositoryFactoryFor('reminders', remindersRepositoryGetter);
     this.registerInclusionResolver('reminders', this.reminders.inclusionResolver);

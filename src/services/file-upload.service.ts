@@ -1,6 +1,7 @@
 import { BindingScope, ContextTags, injectable, Provider } from '@loopback/core';
 import Multer from 'multer';
 import Path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 import { FILE_UPLOAD_SERVICE, STORAGE_DIRECTORY_VALUE } from '../keys';
 import { FileUploadHandler } from '../types';
 
@@ -34,7 +35,7 @@ export class FileUploadProvider implements Provider<FileUploadHandler> {
       filename: (req, file, callback) => {
         const extname = file.mimetype.split('/')[1].toLowerCase();
 
-        callback(null, Date.now() + '.' + extname);
+        callback(null, uuidv4().replace(/-/g, '') + '.' + extname);
       },
     }),
   };

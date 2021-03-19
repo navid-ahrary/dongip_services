@@ -4,7 +4,7 @@ import { Users, Dongs, Receipts, ReceiptsRelations } from '../models';
 import { MariadbDataSource } from '../datasources';
 import { DongsRepository, UsersRepository } from '.';
 
-export class ReceiptionsRepository extends DefaultCrudRepository<
+export class ReceiptsRepository extends DefaultCrudRepository<
   Receipts,
   typeof Receipts.prototype.receiptId,
   ReceiptsRelations

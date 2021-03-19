@@ -6,6 +6,7 @@ import { CurrencyEnum } from './settings.model';
 import { JointAccounts } from './joint-accounts.model';
 import { Dongs } from './dongs.model';
 import { Users } from './users.model';
+import { Receipts } from './receipts.model';
 
 @model()
 export class PostDong extends Model {
@@ -104,6 +105,12 @@ export class PostDong extends Model {
     jsonSchema: { default: true },
   })
   includeBill?: boolean;
+
+  @property({
+    type: 'number',
+    required: false,
+  })
+  receiptId?: typeof Receipts.prototype.receiptId;
 
   constructor(data?: Partial<PostDong>) {
     super(data);

@@ -148,7 +148,7 @@ export class BillList extends Entity {
   @belongsTo(
     () => Dongs,
     {
-      name: 'dongs',
+      name: 'dong',
       keyFrom: 'dongId',
       keyTo: 'dongId',
       type: RelationType.belongsTo,

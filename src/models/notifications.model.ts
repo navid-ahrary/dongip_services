@@ -1,4 +1,5 @@
 import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
+import { Receipts } from './receipts.model';
 import { Users } from './users.model';
 
 @model({
@@ -247,6 +248,16 @@ export class Notifications extends Entity {
     },
   })
   messageId: number;
+
+  @property({
+    type: 'number',
+    mysql: {
+      columnName: 'receipt_id',
+      dataType: 'mediumint unsigned',
+      nullable: 'Y',
+    },
+  })
+  receiptId?: typeof Receipts.prototype.receiptId;
 
   @belongsTo(
     () => Users,

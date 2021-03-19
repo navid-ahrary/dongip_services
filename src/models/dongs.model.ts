@@ -272,7 +272,7 @@ export class Dongs extends Entity {
   includeBill: boolean | null;
 
   @hasMany(() => Receipts, { keyTo: 'dongId' })
-  receiptions: Receipts[];
+  receipts: Receipts[];
 
   constructor(data?: Partial<Dongs>) {
     super(data);

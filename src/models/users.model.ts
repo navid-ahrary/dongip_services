@@ -23,6 +23,7 @@ import {
   RefreshTokens,
   Reminders,
 } from '.';
+import {Receipts} from './receipts.model';
 
 @model({ name: 'users' })
 export class Users extends Entity {
@@ -380,6 +381,9 @@ export class Users extends Entity {
 
   @hasMany(() => Reminders, { keyTo: 'userId' })
   reminders: Reminders[];
+
+  @hasMany(() => Receipts, {keyTo: 'userId'})
+  receipts: Receipts[];
 
   constructor(data?: Partial<Users>) {
     super(data);

@@ -24,8 +24,8 @@ import {
   CategoriesRepository,
   ScoresRepository,
   JointAccountsRepository,
+  ReceiptsRepository,
 } from '.';
-import { ReceiptionsRepository } from './receipts.repository';
 
 export class DongsRepository extends DefaultCrudRepository<
   Dongs,
@@ -59,16 +59,13 @@ export class DongsRepository extends DefaultCrudRepository<
     protected scoresRepositoryGetter: Getter<ScoresRepository>,
     @repository.getter('JointAccountsRepository')
     protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
-    @repository.getter('ReceiptionsRepository')
-    protected receiptionsRepositoryGetter: Getter<ReceiptionsRepository>,
+    @repository.getter('ReceiptsRepository')
+    protected receiptsRepositoryGetter: Getter<ReceiptsRepository>,
   ) {
     super(Dongs, dataSource);
 
-    this.receipts = this.createHasManyRepositoryFactoryFor(
-      'receiptions',
-      receiptionsRepositoryGetter,
-    );
-    this.registerInclusionResolver('receiptions', this.receipts.inclusionResolver);
+    this.receipts = this.createHasManyRepositoryFactoryFor('receipts', receiptsRepositoryGetter);
+    this.registerInclusionResolver('receipts', this.receipts.inclusionResolver);
 
     this.jointAccount = this.createBelongsToAccessorFor(
       'jointAccount',

@@ -12,7 +12,7 @@ import { Dongs } from './dongs.model';
         entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
-        onDelete: 'cascade',
+        onDelete: 'set null',
       },
       fkReceiptsDongId: {
         name: 'fk_receipts_dong_id',
@@ -20,7 +20,7 @@ import { Dongs } from './dongs.model';
         entityKey: 'id',
         foreignKey: 'dongId',
         onUpdate: 'cascade',
-        onDelete: 'cascade',
+        onDelete: 'set null',
       },
     },
   },
@@ -42,13 +42,13 @@ export class Receipts extends Entity {
     type: 'string',
     required: true,
     mysql: {
-      columnName: 'file_name',
+      columnName: 'receipt_name',
       dataType: 'varchar',
       dataLength: 40,
       nullable: 'N',
     },
   })
-  fileName: string;
+  receiptName: string;
 
   @belongsTo(
     () => Users,
@@ -62,33 +62,40 @@ export class Receipts extends Entity {
     },
     {
       type: 'number',
-      required: true,
+      required: false,
       index: { normal: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',
-        nullable: 'N',
+        nullable: 'Y',
       },
     },
   )
-  userId: number;
+  userId?: number;
 
   @belongsTo(
     () => Dongs,
-    {},
+    {
+      name: 'dong',
+      keyFrom: 'dongId',
+      keyTo: 'dongId',
+      type: RelationType.belongsTo,
+      source: Dongs,
+      target: () => Receipts,
+    },
     {
       type: 'number',
-      required: true,
+      required: false,
       index: { unique: true },
       mysql: {
         columnName: 'dong_id',
         dataType: 'mediumint unsigned',
         dataLength: null,
-        nullable: 'N',
+        nullable: 'Y',
       },
     },
   )
-  dongId: number;
+  dongId?: number;
 
   constructor(data?: Partial<Receipts>) {
     super(data);

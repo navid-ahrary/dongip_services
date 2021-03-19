@@ -23,7 +23,7 @@ export class BillListRepository extends DefaultCrudRepository<
   typeof BillList.prototype.billListId,
   BillListRelations
 > {
-  public readonly dongs: BelongsToAccessor<Dongs, typeof BillList.prototype.billListId>;
+  public readonly dong: BelongsToAccessor<Dongs, typeof BillList.prototype.billListId>;
 
   public readonly userRel: BelongsToAccessor<UsersRels, typeof BillList.prototype.billListId>;
 
@@ -64,7 +64,7 @@ export class BillListRepository extends DefaultCrudRepository<
     this.userRel = this.createBelongsToAccessorFor('userRel', usersRelsRepositoryGetter);
     this.registerInclusionResolver('userRel', this.userRel.inclusionResolver);
 
-    this.dongs = this.createBelongsToAccessorFor('dongs', dongsRepositoryGetter);
-    this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
+    this.dong = this.createBelongsToAccessorFor('dong', dongsRepositoryGetter);
+    this.registerInclusionResolver('dong', this.dong.inclusionResolver);
   }
 }

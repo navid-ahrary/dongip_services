@@ -6,14 +6,23 @@ import _ from 'lodash';
 import Util from 'util';
 import Moment from 'moment';
 import { BatchMessage, FirebaseService } from './firebase.service';
-import { BillList, Categories, Dongs, Notifications, PayerList, PostDong, Users } from '../models';
+import {
+  BillList,
+  Categories,
+  Dongs,
+  Notifications,
+  PayerList,
+  PostDong,
+  Receipts,
+  Users,
+} from '../models';
 import {
   BillListRepository,
   CategoriesRepository,
-  DongsRepository,
   JointAccountsRepository,
   JointAccountSubscribesRepository,
   PayerListRepository,
+  ReceiptsRepository,
   UsersRelsRepository,
   UsersRepository,
 } from '../repositories';
@@ -22,24 +31,26 @@ import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class DongService {
-  lang: string;
+  private readonly lang: string;
+  private readonly clientVersion?: string;
 
   constructor(
     @inject.context() private ctx: RequestContext,
-    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
-    @inject(CategoriesSourceListBindings) public catSrc: CategoriesSource,
+    @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
+    @inject(CategoriesSourceListBindings) private catSrc: CategoriesSource,
     @service(FirebaseService) private firebaseSerice: FirebaseService,
-    @repository(DongsRepository) public dongRepository: DongsRepository,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(BillListRepository) public billListRepository: BillListRepository,
-    @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
-    @repository(PayerListRepository) public payerListRepository: PayerListRepository,
-    @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
-    @repository(JointAccountsRepository) public jointAccRepository: JointAccountsRepository,
+    @repository(UsersRepository) private usersRepository: UsersRepository,
+    @repository(ReceiptsRepository) private receiptRepo: ReceiptsRepository,
+    @repository(BillListRepository) private billListRepository: BillListRepository,
+    @repository(UsersRelsRepository) private usersRelsRepository: UsersRelsRepository,
+    @repository(PayerListRepository) private payerListRepository: PayerListRepository,
+    @repository(CategoriesRepository) private categoriesRepository: CategoriesRepository,
+    @repository(JointAccountsRepository) private jointAccRepository: JointAccountsRepository,
     @repository(JointAccountSubscribesRepository)
-    public jointAccSubRepository: JointAccountSubscribesRepository,
+    private jointAccSubRepository: JointAccountSubscribesRepository,
   ) {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
+    this.clientVersion = this.ctx.request.headers['app-version']?.toString();
   }
 
   public numberWithCommas(x: number): string {
@@ -47,7 +58,7 @@ export class DongService {
   }
 
   async createDongs(
-    userId: typeof Users.prototype.userId,
+    userId: number,
     newDong: PostDong,
   ): Promise<DataObject<Dongs> & { score: number }> {
     const newDongScore = 50;
@@ -64,13 +75,13 @@ export class DongService {
       currentUserIsPayer: Boolean = false,
       firebaseMessagesList: BatchMessage = [];
 
-    payerList.forEach((item) => {
+    _.forEach(payerList, (item) => {
       if (!allUsersRelsIdList.includes(item.userRelId)) {
         allUsersRelsIdList.push(item.userRelId);
       }
     });
 
-    billList.forEach((item) => {
+    _.forEach(billList, (item) => {
       if (!allUsersRelsIdList.includes(item.userRelId)) {
         allUsersRelsIdList.push(item.userRelId);
       }
@@ -149,6 +160,15 @@ export class DongService {
 
     try {
       const createdDong = await this.usersRepository.dongs(userId).create(dong);
+
+      if (newDong.receiptId) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.applyReceipt({
+          userId: userId,
+          dongId: createdDong.getId(),
+          receiptId: newDong.receiptId,
+        });
+      }
 
       _.forEach(payerList, (item) => {
         _.assign(item, {
@@ -233,6 +253,7 @@ export class DongService {
                   dongAmount: roundedDongAmount,
                   currency: createdDong.currency,
                   dongId: createdDong.getId(),
+                  receiptId: newDong.receiptId,
                 });
 
                 const createdNotify = await this.usersRepository
@@ -259,12 +280,14 @@ export class DongService {
                     dongAmount: notifyData.dongAmount!.toString(),
                     currency: createdNotify.currency!,
                     dongId: notifyData.dongId!.toString(),
+                    receiptId: notifyData.receiptId?.toString() ?? ' ',
                   },
                 });
               }
             }
           }
 
+          console.log(firebaseMessagesList);
           if (firebaseMessagesList.length > 0) {
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
             this.firebaseSerice.sendAllMessage(firebaseMessagesList);
@@ -488,6 +511,31 @@ export class DongService {
       }
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  async applyReceipt(data: {
+    userId: typeof Users.prototype.userId;
+    dongId: typeof Dongs.prototype.dongId;
+    receiptId: typeof Receipts.prototype.receiptId;
+  }) {
+    const foundReciptRecord = await this.receiptRepo.findOne({
+      where: {
+        receiptId: data.receiptId,
+      },
+    });
+
+    // Check Receipt record has been saved with current user
+    if (foundReciptRecord) {
+      if (foundReciptRecord.userId === data.userId) {
+        await this.usersRepository
+          .receipts(data.userId)
+          .patch({ dongId: data.dongId }, { receiptId: data.receiptId });
+      } else {
+        await this.usersRepository
+          .receipts(data.userId)
+          .create({ dongId: data.dongId, receiptName: foundReciptRecord?.receiptName });
+      }
     }
   }
 }
