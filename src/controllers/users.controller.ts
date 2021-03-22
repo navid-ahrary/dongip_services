@@ -85,7 +85,7 @@ export class UsersController {
           {
             relation: 'dongs',
             scope: {
-              order: ['dongId DESC'],
+              order: ['createdAt DESC'],
               fields: { originDongId: false },
               include: [
                 { relation: 'billList' },
