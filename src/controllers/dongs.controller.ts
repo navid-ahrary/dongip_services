@@ -170,7 +170,7 @@ export class DongsController {
 
     _.forEach(foundDongs, (d, index) => {
       if (d.receipt instanceof Receipts) {
-        _.assign(d, { receiptId: d.receipt.receiptId });
+        _.assignIn(d, { receiptId: d.receipt.receiptId });
         _.unset(d, 'receipt');
 
         foundDongs[index] = d;
