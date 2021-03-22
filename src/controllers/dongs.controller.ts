@@ -44,7 +44,7 @@ export class ResponseNewDong extends Dongs {
 }
 
 @model()
-export class ReponseDongs extends Dongs {
+export class ResponseDongs extends Dongs {
   @property({ type: 'number' }) receiptId?: number;
 }
 
@@ -151,7 +151,7 @@ export class DongsController {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(ReponseDongs, {
+              items: getModelSchemaRef(ResponseDongs, {
                 includeRelations: false,
                 exclude: ['originDongId'],
               }),
@@ -161,7 +161,8 @@ export class DongsController {
       },
     },
   })
-  async findDongs(): Promise<ReponseDongs[]> {
+  async findDongs(): Promise<DataObject<ResponseDongs>[]> {
+    const result: DataObject<ResponseDongs>[] = [];
     const foundDongs = await this.userRepo.dongs(this.userId).find({
       order: ['createdAt DESC'],
       fields: { originDongId: false },
@@ -173,16 +174,16 @@ export class DongsController {
       ],
     });
 
-    _.forEach(foundDongs, (d, index) => {
+    _.forEach(foundDongs, (d) => {
       if (d.receipt instanceof Receipts) {
         _.assignIn(d, { receiptId: d.receipt.receiptId });
         _.unset(d, 'receipt');
-
-        foundDongs[index] = d;
       }
+
+      result.push(d);
     });
 
-    return foundDongs;
+    return result;
   }
 
   @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
