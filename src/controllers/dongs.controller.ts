@@ -159,7 +159,12 @@ export class DongsController {
     return this.userRepo.dongs(this.userId).find({
       order: ['createdAt DESC'],
       fields: { originDongId: false },
-      include: [{ relation: 'payerList' }, { relation: 'billList' }, { relation: 'category' }],
+      include: [
+        { relation: 'payerList' },
+        { relation: 'billList' },
+        { relation: 'category' },
+        { relation: 'receipt' },
+      ],
     });
   }
 
