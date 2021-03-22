@@ -39,6 +39,7 @@ import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
 @model()
 export class ResponseNewDong extends Dongs {
   @property({ type: 'number' }) score: number;
+  @property({ type: 'number' }) receiptId?: number;
   @property() category: Categories;
 }
 
@@ -199,15 +200,8 @@ export class DongsController {
       const result: DataObject<ResponseNewDong> = {
         ...createdDong,
         category: foundCategory!,
+        receiptId: newDong.receiptId,
       };
-
-      if (newDong.receiptId) {
-        const foundReceipt = await this.userRepo
-          .receipts(createdDong.dongId!)
-          .find({ where: { receiptId: newDong.receiptId } });
-
-        if (foundReceipt.length) result.receipt = foundReceipt[0];
-      }
 
       return result;
     } catch (err) {
