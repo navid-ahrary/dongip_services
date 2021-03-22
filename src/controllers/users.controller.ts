@@ -101,7 +101,7 @@ export class UsersController {
 
       _.forEach(user.dongs, (d) => {
         if (d.receipt instanceof Receipts) {
-          _.assign(d, { receiptId: d.receipt.receiptId });
+          _.assignIn(d, { receiptId: d.receipt.receiptId });
           _.unset(d, 'receipt');
         }
       });
