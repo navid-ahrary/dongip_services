@@ -156,7 +156,7 @@ export class DongsController {
       },
     },
   })
-  async findDongs(): Promise<Dongs & { receiptId: typeof Receipts.prototype.receiptId }[]> {
+  async findDongs(): Promise<Array<Dongs & { receiptId?: typeof Receipts.prototype.receiptId }>> {
     const foundDongs = await this.userRepo.dongs(this.userId).find({
       order: ['createdAt DESC'],
       fields: { originDongId: false },
