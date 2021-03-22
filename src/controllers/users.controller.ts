@@ -24,7 +24,7 @@ import {
   LocMsgsBindings,
   TutorialLinksListBinding,
 } from '../keys';
-import { Users, CompleteSignup, Settings, UsersRels, Scores, Receipts } from '../models';
+import { Users, CompleteSignup, Settings, UsersRels, Scores, Receipts, Dongs } from '../models';
 import { FirebaseTokenInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { JointAccountController } from './joint-account.controller';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
@@ -99,12 +99,17 @@ export class UsersController {
         ],
       });
 
+      const dongs: Dongs[] = [];
       _.forEach(user.dongs, (d) => {
-        if (d.receipt instanceof Receipts) {
-          _.set(d, 'receiptId', d.receipt.receiptId);
-          _.unset(d, 'receipt');
-        }
+        const r = {
+          ..._.omit(d, 'receipt'),
+          receiptId: d.receipt?.receiptId,
+        };
+
+        dongs.push(r);
       });
+
+      user.dongs = dongs;
 
       return _.assign(user, { jointAccounts: await this.jointController.getJointAccounts() });
     } catch (err) {

@@ -16,7 +16,7 @@ import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, service, intercept } from '@loopback/core';
 import _ from 'lodash';
-import { Dongs, PostDong, Categories, BillList, PayerList, Users, Receipts } from '../models';
+import { Dongs, PostDong, Categories, BillList, PayerList, Users } from '../models';
 import {
   UsersRepository,
   DongsRepository,
