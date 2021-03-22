@@ -153,7 +153,8 @@ export class DongsController {
               type: 'array',
               items: getModelSchemaRef(ResponseDongs, {
                 includeRelations: false,
-                exclude: ['originDongId'],
+                exclude: ['originDongId', 'receipt'],
+                optional: ['receiptId'],
               }),
             },
           },
