@@ -43,6 +43,11 @@ export class ResponseNewDong extends Dongs {
   @property() category: Categories;
 }
 
+@model()
+export class ReponseDongs extends Dongs {
+  @property({ type: 'number' }) receiptId?: number;
+}
+
 intercept(FirebaseTokenInterceptor.BINDING_KEY);
 @authenticate('jwt.access')
 export class DongsController {
@@ -146,7 +151,7 @@ export class DongsController {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(Dongs, {
+              items: getModelSchemaRef(ReponseDongs, {
                 includeRelations: false,
                 exclude: ['originDongId'],
               }),
@@ -156,7 +161,7 @@ export class DongsController {
       },
     },
   })
-  async findDongs(): Promise<Array<Dongs & { receiptId?: typeof Receipts.prototype.receiptId }>> {
+  async findDongs(): Promise<ReponseDongs[]> {
     const foundDongs = await this.userRepo.dongs(this.userId).find({
       order: ['createdAt DESC'],
       fields: { originDongId: false },
