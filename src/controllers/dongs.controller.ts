@@ -156,7 +156,7 @@ export class DongsController {
       },
     },
   })
-  async findDongs(): Promise<Dongs[]> {
+  async findDongs(): Promise<Dongs & { receiptId: typeof Receipts.prototype.receiptId }[]> {
     const foundDongs = await this.userRepo.dongs(this.userId).find({
       order: ['createdAt DESC'],
       fields: { originDongId: false },
@@ -168,10 +168,12 @@ export class DongsController {
       ],
     });
 
-    _.forEach(foundDongs, (d) => {
+    _.forEach(foundDongs, (d, index) => {
       if (d.receipt instanceof Receipts) {
         _.assign(d, { receiptId: d.receipt.receiptId });
         _.unset(d, 'receipt');
+
+        foundDongs[index] = d;
       }
     });
 
