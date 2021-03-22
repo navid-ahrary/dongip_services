@@ -176,12 +176,12 @@ export class DongsController {
     });
 
     _.forEach(foundDongs, (d) => {
-      if (d.receipt instanceof Receipts) {
-        _.set(d, 'receiptId', d.receipt.receiptId);
-        _.unset(d, 'receipt');
-      }
+      const r = {
+        ..._.omit(d, 'receipt'),
+        receiptId: d.receipt?.receiptId,
+      };
 
-      result.push(d);
+      result.push(r);
     });
 
     return result;
