@@ -16,7 +16,7 @@ import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, service, intercept } from '@loopback/core';
 import _ from 'lodash';
-import { Dongs, PostDong, Categories, BillList, PayerList, Users } from '../models';
+import { Dongs, PostDong, Categories, BillList, PayerList, Users, Receipts } from '../models';
 import {
   UsersRepository,
   DongsRepository,
@@ -157,7 +157,7 @@ export class DongsController {
     },
   })
   async findDongs(): Promise<Dongs[]> {
-    return this.userRepo.dongs(this.userId).find({
+    const foundDongs = await this.userRepo.dongs(this.userId).find({
       order: ['createdAt DESC'],
       fields: { originDongId: false },
       include: [
@@ -167,6 +167,15 @@ export class DongsController {
         { relation: 'receipt' },
       ],
     });
+
+    _.forEach(foundDongs, (d) => {
+      if (d.receipt instanceof Receipts) {
+        _.assign(d, { receiptId: d.receipt.receiptId });
+        _.unset(d, 'receipt');
+      }
+    });
+
+    return foundDongs;
   }
 
   @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
