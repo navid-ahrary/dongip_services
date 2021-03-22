@@ -202,8 +202,11 @@ export class DongsController {
       };
 
       if (newDong.receiptId) {
-        const foundReceipt = await this.dongRepository.receipt(createdDong.dongId!).get();
-        result.receipt = foundReceipt;
+        const foundReceipt = await this.userRepo
+          .receipts(createdDong.dongId!)
+          .find({ where: { receiptId: newDong.receiptId } });
+
+        if (foundReceipt.length) result.receipt = foundReceipt[0];
       }
 
       return result;

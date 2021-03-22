@@ -82,6 +82,7 @@ export class Receipts extends Entity {
       type: RelationType.belongsTo,
       source: Dongs,
       target: () => Receipts,
+      targetsMany: false,
     },
     {
       type: 'number',

@@ -207,6 +207,17 @@ export class Dongs extends Entity {
   })
   payerList: PayerList[];
 
+  @hasOne(() => Receipts, {
+    name: 'receipt',
+    keyTo: 'dongId',
+    keyFrom: 'dongId',
+    source: Dongs,
+    target: () => Receipts,
+    type: RelationType.hasOne,
+    targetsMany: false,
+  })
+  receipt?: Receipts;
+
   @hasMany(() => Scores, {
     name: 'scores',
     keyTo: 'dongId',
@@ -278,17 +289,6 @@ export class Dongs extends Entity {
     },
   })
   includeBill: boolean | null;
-
-  @hasOne(() => Receipts, {
-    name: 'receipt',
-    keyTo: 'dongId',
-    keyFrom: 'dongId',
-    source: Dongs,
-    target: () => Receipts,
-    type: RelationType.hasOne,
-    targetsMany: false,
-  })
-  receipt?: Receipts;
 
   constructor(data?: Partial<Dongs>) {
     super(data);
