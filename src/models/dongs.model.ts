@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { Entity, model, property, belongsTo, hasMany, RelationType } from '@loopback/repository';
+import {
+  Entity,
+  model,
+  property,
+  belongsTo,
+  hasMany,
+  RelationType,
+  hasOne,
+} from '@loopback/repository';
 
 import { Users } from './users.model';
 import { Categories } from './categories.model';
@@ -271,8 +279,8 @@ export class Dongs extends Entity {
   })
   includeBill: boolean | null;
 
-  @hasMany(() => Receipts, { keyTo: 'dongId' })
-  receipts: Receipts[];
+  @hasOne(() => Receipts, { keyTo: 'dongId' })
+  receipt: Receipts;
 
   constructor(data?: Partial<Dongs>) {
     super(data);

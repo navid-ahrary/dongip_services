@@ -3,6 +3,7 @@ import {
   BelongsToAccessor,
   HasManyRepositoryFactory,
   DefaultCrudRepository,
+  HasOneRepositoryFactory,
 } from '@loopback/repository';
 import { inject, Getter } from '@loopback/core';
 import { MariadbDataSource } from '../datasources';
@@ -44,7 +45,8 @@ export class DongsRepository extends DefaultCrudRepository<
 
   public readonly jointAccount: BelongsToAccessor<JointAccounts, typeof Dongs.prototype.dongId>;
 
-  public readonly receipts: HasManyRepositoryFactory<Receipts, typeof Dongs.prototype.dongId>;
+  public readonly receipt: HasOneRepositoryFactory<Receipts, typeof Dongs.prototype.dongId>;
+  // public readonly receipts: HasManyRepositoryFactory<Receipts, typeof Dongs.prototype.dongId>;
 
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
@@ -64,8 +66,8 @@ export class DongsRepository extends DefaultCrudRepository<
   ) {
     super(Dongs, dataSource);
 
-    this.receipts = this.createHasManyRepositoryFactoryFor('receipts', receiptsRepositoryGetter);
-    this.registerInclusionResolver('receipts', this.receipts.inclusionResolver);
+    this.receipt = this.createHasOneRepositoryFactoryFor('receipt', receiptsRepositoryGetter);
+    this.registerInclusionResolver('receipt', this.receipt.inclusionResolver);
 
     this.jointAccount = this.createBelongsToAccessorFor(
       'jointAccount',

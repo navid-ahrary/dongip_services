@@ -90,6 +90,7 @@ export class UsersController {
                 { relation: 'billList' },
                 { relation: 'payerList' },
                 { relation: 'category' },
+                { relation: 'receipt' },
               ],
             },
           },

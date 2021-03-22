@@ -191,7 +191,17 @@ export class DongsController {
         where: { categoryId: newDong.categoryId, userId: this.userId },
       });
 
-      return { ...createdDong, category: foundCategory! };
+      const result: DataObject<ResponseNewDong> = {
+        ...createdDong,
+        category: foundCategory!,
+      };
+
+      if (newDong.receiptId) {
+        const foundReceipt = await this.dongRepository.receipt(createdDong.dongId!).get();
+        result.receipt = foundReceipt;
+      }
+
+      return result;
     } catch (err) {
       throw err;
     }

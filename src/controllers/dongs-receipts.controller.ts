@@ -62,7 +62,7 @@ export class DongsReceiptsController {
       });
 
       if (foundReceipt) {
-        await this.dongRepo.receipts(dongId).delete({ userId: this.userId });
+        await this.dongRepo.receipt(dongId).delete({ userId: this.userId });
         const filePath = this.receiptController.getFilePath(foundReceipt.receiptName);
         Fs.unlinkSync(filePath);
       }
