@@ -519,6 +519,7 @@ export class DongService {
     receiptId: typeof Receipts.prototype.receiptId;
   }) {
     const foundReciptRecord = await this.receiptRepo.findOne({
+      fields: { userId: true, receiptName: true },
       where: {
         receiptId: data.receiptId,
       },
