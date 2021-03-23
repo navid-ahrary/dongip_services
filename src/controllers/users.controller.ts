@@ -24,7 +24,7 @@ import {
   LocMsgsBindings,
   TutorialLinksListBinding,
 } from '../keys';
-import { Users, CompleteSignup, Settings, UsersRels, Scores, Receipts, Dongs } from '../models';
+import { Users, CompleteSignup, Settings, UsersRels, Scores, Dongs } from '../models';
 import { FirebaseTokenInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { JointAccountController } from './joint-account.controller';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
