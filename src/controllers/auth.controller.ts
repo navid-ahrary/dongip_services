@@ -393,6 +393,7 @@ export class AuthController {
         emailLocked: Boolean(foundVerify.email),
         platform: this.ctx.request.headers['platform']?.toString(),
         userAgent: this.ctx.request.headers['user-agent'],
+        appVersion: this.ctx.request.headers['app-version']?.toString(),
       });
 
       const settingEntity = new Settings({

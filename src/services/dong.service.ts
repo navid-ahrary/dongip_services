@@ -32,7 +32,6 @@ import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
 @injectable({ scope: BindingScope.TRANSIENT })
 export class DongService {
   private readonly lang: string;
-  private readonly clientVersion?: string;
 
   constructor(
     @inject.context() private ctx: RequestContext,
@@ -50,7 +49,6 @@ export class DongService {
     private jointAccSubRepository: JointAccountSubscribesRepository,
   ) {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
-    this.clientVersion = this.ctx.request.headers['app-version']?.toString();
   }
 
   public numberWithCommas(x: number): string {
@@ -294,7 +292,7 @@ export class DongService {
         }
       } else if (currentUser.jointAccountSubscribes) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.submitJoint(currentUser, createdDong);
+        this.submitJoint(currentUser, createdDong, newDong.receiptId);
       }
 
       const calculatedScore = newDongScore + mutualFactor * mutualFriendScore;
@@ -313,7 +311,11 @@ export class DongService {
     }
   }
 
-  async submitJoint(currentUser: Users, dong: Partial<Dongs>) {
+  async submitJoint(
+    currentUser: Users,
+    dong: Partial<Dongs>,
+    receiptId?: typeof Receipts.prototype.receiptId,
+  ) {
     try {
       const firebaseMessages: BatchMessage = [];
 
@@ -386,7 +388,7 @@ export class DongService {
 
         const createdDong = await this.usersRepository.dongs(user.getId()).create(savedDong);
 
-        const billers: Array<BillList> = [];
+        const billers: Array<DataObject<BillList>> = [];
         for (const biller of billList) {
           const ur = _.find(currentUser.usersRels, (rel) => rel.getId() === biller.userRelId);
 
@@ -404,22 +406,20 @@ export class DongService {
             userRelName = target?.name;
           }
 
-          billers.push(
-            new BillList({
-              dongId: createdDong.getId(),
-              userId: user.getId(),
-              currency: savedDong.currency,
-              categoryId: catg.getId(),
-              createdAt: savedDong.createdAt,
-              dongAmount: biller.dongAmount,
-              jointAccountId: savedDong.jointAccountId,
-              userRelName: userRelName,
-              userRelId: mutualRel?.getId(),
-            }),
-          );
+          billers.push({
+            dongId: createdDong.getId(),
+            userId: user.getId(),
+            currency: savedDong.currency,
+            categoryId: catg.getId(),
+            createdAt: savedDong.createdAt,
+            dongAmount: biller.dongAmount,
+            jointAccountId: savedDong.jointAccountId,
+            userRelName: userRelName,
+            userRelId: mutualRel?.getId(),
+          });
         }
 
-        const payers: Array<PayerList> = [];
+        const payers: Array<DataObject<PayerList>> = [];
         for (const payer of payerList) {
           const ur = _.find(currentUser.usersRels, (rel) => rel.getId() === payer.userRelId);
 
@@ -437,19 +437,17 @@ export class DongService {
             userRelName = target?.name;
           }
 
-          payers.push(
-            new PayerList({
-              dongId: createdDong.getId(),
-              userId: user.getId(),
-              currency: savedDong.currency,
-              categoryId: catg.getId(),
-              createdAt: savedDong.createdAt,
-              paidAmount: payer.paidAmount,
-              jointAccountId: savedDong.jointAccountId,
-              userRelName: userRelName,
-              userRelId: mutualRel?.getId(),
-            }),
-          );
+          payers.push({
+            dongId: createdDong.getId(),
+            userId: user.getId(),
+            currency: savedDong.currency,
+            categoryId: catg.getId(),
+            createdAt: savedDong.createdAt,
+            paidAmount: payer.paidAmount,
+            jointAccountId: savedDong.jointAccountId,
+            userRelName: userRelName,
+            userRelId: mutualRel?.getId(),
+          });
         }
 
         const createdPayers = await this.payerListRepository.createAll(payers);

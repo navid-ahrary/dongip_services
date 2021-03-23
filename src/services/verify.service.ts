@@ -264,6 +264,7 @@ export class VerifyService {
           emailLocked: true,
           userAgent: this.ctx.request.headers['user-agent'],
           platform: this.ctx.request.headers['platform']?.toString(),
+          appVersion: this.ctx.request.headers['app-version']?.toString(),
         });
         const setting = new Settings({ language: this.lang });
 

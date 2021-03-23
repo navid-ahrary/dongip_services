@@ -23,7 +23,7 @@ import {
   RefreshTokens,
   Reminders,
 } from '.';
-import {Receipts} from './receipts.model';
+import { Receipts } from './receipts.model';
 
 @model({ name: 'users' })
 export class Users extends Entity {
@@ -212,6 +212,18 @@ export class Users extends Entity {
   })
   referralCode?: string;
 
+  @property({
+    type: 'string',
+    required: false,
+    mysql: {
+      columnName: 'app_version',
+      dataType: 'varchar',
+      dataLength: 10,
+      nullable: 'Y',
+    },
+  })
+  appVersion?: string;
+
   @hasMany(() => VirtualUsers, {
     name: 'virtualUsers',
     keyTo: 'userId',
@@ -382,7 +394,7 @@ export class Users extends Entity {
   @hasMany(() => Reminders, { keyTo: 'userId' })
   reminders: Reminders[];
 
-  @hasMany(() => Receipts, {keyTo: 'userId'})
+  @hasMany(() => Receipts, { keyTo: 'userId' })
   receipts: Receipts[];
 
   constructor(data?: Partial<Users>) {
