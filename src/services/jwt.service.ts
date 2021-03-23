@@ -61,7 +61,6 @@ export class JWTService implements TokenService {
           language: user.setting.language,
           timezone: Ct.getTimezonesForCountry(user.region! ?? 'IR')[0].name,
           selfUserRelId: user.usersRels[0].userRelId,
-          firebaseToken: user.firebaseToken,
         });
       }
 
