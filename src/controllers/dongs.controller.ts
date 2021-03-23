@@ -110,7 +110,6 @@ export class DongsController {
     })
     patchDong: Dongs,
   ) {
-    // eslint-disable-next-line no-useless-catch
     try {
       await this.userRepo.dongs(this.userId).patch(patchDong, { dongId: dongId });
 
@@ -136,7 +135,7 @@ export class DongsController {
         this.dongRepository.payerList(dongId).patch(patchPayer);
       }
     } catch (err) {
-      throw err;
+      throw new HttpErrors.UnprocessableEntity(err.message);
     }
   }
 
