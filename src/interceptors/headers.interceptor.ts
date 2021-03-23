@@ -67,10 +67,6 @@ export class HeadersInterceptor implements Provider<Interceptor> {
       patchBody.appVersion = desiredAppVersion;
     }
 
-    if (desiredAppVersion !== reportedAppVersion) {
-      patchBody.appVersion = desiredAppVersion;
-    }
-
     if (desiredPlatform !== reportedPaltform) {
       patchBody.platform = desiredPlatform;
     }
