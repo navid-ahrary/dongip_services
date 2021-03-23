@@ -23,7 +23,7 @@ export class HeadersInterceptor implements Provider<Interceptor> {
   static readonly BINDING_KEY = `interceptors.${HeadersInterceptor.name}`;
   constructor(
     @repository(UsersRepository) private usersRepo: UsersRepository,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile & DataObject<Users>,
   ) {}
 
   /**
@@ -46,8 +46,12 @@ export class HeadersInterceptor implements Provider<Interceptor> {
       httpReq = await invocationCtx.get(RestBindings.Http.REQUEST),
       reportedFirebaseToken = this.currentUserProfile.firebaseToken,
       desiredFirebaseToken = httpReq.headers['firebase-token']?.toString(),
+      reportedUserAgent = this.currentUserProfile.userAgent,
+      desiredUserAgent = httpReq.headers['user-agent']?.toString(),
       reportedAppVersion = this.currentUserProfile.appVersion,
-      desiredAppVersion = httpReq.headers['app-version']?.toString();
+      desiredAppVersion = httpReq.headers['app-version']?.toString(),
+      reportedPaltform = this.currentUserProfile.platform,
+      desiredPlatform = httpReq.headers['platform']?.toString();
 
     const patchBody: Partial<DataObject<Users>> = {};
 
@@ -55,8 +59,20 @@ export class HeadersInterceptor implements Provider<Interceptor> {
       patchBody.firebaseToken = reportedAppVersion;
     }
 
+    if (desiredUserAgent !== reportedUserAgent) {
+      patchBody.userAgent = desiredUserAgent;
+    }
+
     if (desiredAppVersion !== reportedAppVersion) {
       patchBody.appVersion = desiredAppVersion;
+    }
+
+    if (desiredAppVersion !== reportedAppVersion) {
+      patchBody.appVersion = desiredAppVersion;
+    }
+
+    if (desiredPlatform !== reportedPaltform) {
+      patchBody.platform = desiredPlatform;
     }
 
     if (_.keys(patchBody).length) {
