@@ -524,8 +524,8 @@ export class DongService {
       },
     });
 
-    // Check Receipt record has been saved with current user
     if (foundReciptRecord) {
+      // Check Receipt record has been saved with current user
       if (foundReciptRecord.userId === data.userId) {
         await this.usersRepository
           .receipts(data.userId)
