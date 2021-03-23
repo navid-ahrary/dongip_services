@@ -1,6 +1,6 @@
 import { repository, Count, CountSchema } from '@loopback/repository';
 import { param, get, getModelSchemaRef, patch, del, requestBody, post } from '@loopback/rest';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { inject, intercept } from '@loopback/core';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
@@ -8,6 +8,7 @@ import Moment from 'moment';
 import { Budgets, Users } from '../models';
 import { BudgetsRepository } from '../repositories';
 import { ValidateBudgetIdInterceptor } from '../interceptors';
+import { CurrentUserProfile } from '../interfaces';
 
 @authenticate('jwt.access')
 @intercept(ValidateBudgetIdInterceptor.BINDING_KEY)
@@ -16,7 +17,7 @@ export class BudgetsController {
 
   constructor(
     @repository(BudgetsRepository) public budgetsRepository: BudgetsRepository,
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
   ) {
     this.userId = +currentUserProfile[securityId];
   }

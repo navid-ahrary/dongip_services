@@ -10,7 +10,7 @@ import {
 import { inject, intercept, service } from '@loopback/core';
 import { repository, DataObject } from '@loopback/repository';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import _ from 'lodash';
 import Util from 'util';
@@ -28,6 +28,7 @@ import { Users, CompleteSignup, Settings, UsersRels, Scores, Dongs } from '../mo
 import { HeadersInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
 import { JointAccountController } from './';
+import { CurrentUserProfile } from '../interfaces';
 
 @intercept(HeadersInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
@@ -41,7 +42,7 @@ export class UsersController {
     @inject(PackageKey) public packageInfo: PackageInfo,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(TutorialLinksListBinding) public tutLinks: TutorialLinks,
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
     @inject('controllers.JointAccountController') public jointController: JointAccountController,
     @service(PhoneNumberService) public phoneNumService: PhoneNumberService,

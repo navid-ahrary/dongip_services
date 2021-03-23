@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 import { TokenService } from '@loopback/authentication';
 import { inject } from '@loopback/core';
-import { UserProfile, securityId } from '@loopback/security';
+import { securityId } from '@loopback/security';
 import { HttpErrors } from '@loopback/rest';
 import { repository } from '@loopback/repository';
 import Ct from 'countries-and-timezones';
@@ -9,6 +9,7 @@ import { sign, verify, Algorithm } from 'jsonwebtoken';
 import { UsersRepository, BlacklistRepository } from '../repositories';
 import { TokenServiceBindings } from '../keys';
 import _ from 'lodash';
+import { CurrentUserProfile } from '../interfaces';
 
 export class JWTService implements TokenService {
   constructor(
@@ -26,7 +27,7 @@ export class JWTService implements TokenService {
     });
   }
 
-  async verifyToken(accessToken: string): Promise<UserProfile> {
+  async verifyToken(accessToken: string): Promise<CurrentUserProfile> {
     const nullToken = 'Error verifying access token: token is null';
 
     if (!accessToken) {
@@ -36,7 +37,7 @@ export class JWTService implements TokenService {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let decryptedData: any;
-    let userProfile: UserProfile = { [securityId]: '' };
+    let userProfile: CurrentUserProfile = { [securityId]: '' };
 
     try {
       // check token is not in blacklist
@@ -79,10 +80,10 @@ export class JWTService implements TokenService {
 
   /**
    *
-   * @param userProfile UserProfile
+   * @param {CurrentUserProfile} userProfile
    * @return Promise string
    */
-  public async generateToken(userProfile: UserProfile): Promise<string> {
+  public async generateToken(userProfile: CurrentUserProfile): Promise<string> {
     const nullAudience = 'Error generating token, supported audience is not provided';
 
     const aud = userProfile.aud;
