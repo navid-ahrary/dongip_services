@@ -55,19 +55,19 @@ export class HeadersInterceptor implements Provider<Interceptor> {
 
     const patchBody: Partial<DataObject<Users>> = {};
 
-    if (desiredFirebaseToken !== reportedFirebaseToken) {
+    if (desiredFirebaseToken && desiredFirebaseToken !== reportedFirebaseToken) {
       patchBody.firebaseToken = reportedAppVersion;
     }
 
-    if (desiredUserAgent !== reportedUserAgent) {
+    if (desiredUserAgent && desiredUserAgent !== reportedUserAgent) {
       patchBody.userAgent = desiredUserAgent;
     }
 
-    if (desiredAppVersion !== reportedAppVersion) {
+    if (desiredAppVersion && desiredAppVersion !== reportedAppVersion) {
       patchBody.appVersion = desiredAppVersion;
     }
 
-    if (desiredPlatform !== reportedPaltform) {
+    if (desiredPlatform && desiredPlatform !== reportedPaltform) {
       patchBody.platform = desiredPlatform;
     }
 
