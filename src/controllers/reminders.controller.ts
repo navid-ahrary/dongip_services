@@ -1,5 +1,5 @@
 import { authenticate } from '@loopback/authentication';
-import { inject, intercept } from '@loopback/core';
+import { inject } from '@loopback/core';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { Count, CountSchema, repository } from '@loopback/repository';
 import {
@@ -19,9 +19,7 @@ import Ct from 'countries-and-timezones';
 import 'moment-timezone';
 import { Reminders, Users } from '../models';
 import { UsersRepository } from '../repositories';
-import { FirebaseTokenInterceptor } from '../interceptors';
 
-@intercept(FirebaseTokenInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class RemindersController {
   private readonly userId: typeof Users.prototype.userId;

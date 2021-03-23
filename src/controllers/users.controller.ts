@@ -25,11 +25,11 @@ import {
   TutorialLinksListBinding,
 } from '../keys';
 import { Users, CompleteSignup, Settings, UsersRels, Scores, Dongs } from '../models';
-import { FirebaseTokenInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
-import { JointAccountController } from './joint-account.controller';
+import { HeadersInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
+import { JointAccountController } from './';
 
-@intercept(FirebaseTokenInterceptor.BINDING_KEY)
+@intercept(HeadersInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class UsersController {
   private readonly userId: typeof Users.prototype.userId;

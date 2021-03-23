@@ -34,20 +34,12 @@ import {
   UsersRelsRepository,
   UsersRepository,
 } from '../repositories';
-import {
-  ValidateUsersRelsInterceptor,
-  JointAccountsInterceptor,
-  FirebaseTokenInterceptor,
-} from '../interceptors';
+import { ValidateUsersRelsInterceptor, JointAccountsInterceptor } from '../interceptors';
 import { basicAuthorization, BatchMessage, FirebaseService, PhoneNumberService } from '../services';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
 
-@intercept(
-  ValidateUsersRelsInterceptor.BINDING_KEY,
-  JointAccountsInterceptor.BINDING_KEY,
-  FirebaseTokenInterceptor.BINDING_KEY,
-)
+@intercept(ValidateUsersRelsInterceptor.BINDING_KEY, JointAccountsInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
 export class JointAccountController {

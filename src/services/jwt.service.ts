@@ -8,6 +8,7 @@ import Ct from 'countries-and-timezones';
 import { sign, verify, Algorithm } from 'jsonwebtoken';
 import { UsersRepository, BlacklistRepository } from '../repositories';
 import { TokenServiceBindings } from '../keys';
+import _ from 'lodash';
 
 export class JWTService implements TokenService {
   constructor(
@@ -49,14 +50,6 @@ export class JWTService implements TokenService {
       if (decryptedData.aud === 'access') {
         const userId = +(decryptedData.id ?? decryptedData.sub);
         const user = await this.usersRepository.findById(userId, {
-          fields: {
-            userId: true,
-            phone: true,
-            name: true,
-            email: true,
-            region: true,
-            firebaseToken: true,
-          },
           include: [
             { relation: 'usersRels', scope: { where: { type: 'self' } } },
             { relation: 'setting', scope: { fields: { userId: true, language: true } } },
@@ -64,10 +57,7 @@ export class JWTService implements TokenService {
         });
 
         Object.assign(userProfile, {
-          phone: user.phone,
-          email: user.email,
-          name: user.name,
-          region: user.region,
+          ..._.omit(user, 'userId'),
           language: user.setting.language,
           timezone: Ct.getTimezonesForCountry(user.region! ?? 'IR')[0].name,
           selfUserRelId: user.usersRels[0].userRelId,

@@ -4,13 +4,13 @@ import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { inject, intercept } from '@loopback/core';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import moment from 'moment';
+import Moment from 'moment';
 import { Budgets, Users } from '../models';
 import { BudgetsRepository } from '../repositories';
-import { FirebaseTokenInterceptor, ValidateBudgetIdInterceptor } from '../interceptors';
+import { ValidateBudgetIdInterceptor } from '../interceptors';
 
 @authenticate('jwt.access')
-@intercept(ValidateBudgetIdInterceptor.BINDING_KEY, FirebaseTokenInterceptor.BINDING_KEY)
+@intercept(ValidateBudgetIdInterceptor.BINDING_KEY)
 export class BudgetsController {
   private readonly userId: typeof Users.prototype.userId;
 
@@ -77,8 +77,8 @@ export class BudgetsController {
                 userRelId: 0,
                 categoryId: 1,
                 groupId: 0,
-                startDate: moment(),
-                endDate: moment().add(1, 'm'),
+                startDate: Moment(),
+                endDate: Moment().add(1, 'm'),
               },
             },
             UserRelBudget: {
@@ -89,8 +89,8 @@ export class BudgetsController {
                 userRelId: 1,
                 categoryId: 0,
                 groupId: 0,
-                startDate: moment(),
-                endDate: moment().add(3, 'm'),
+                startDate: Moment(),
+                endDate: Moment().add(3, 'm'),
               },
             },
             JointAccountBudget: {
@@ -101,8 +101,8 @@ export class BudgetsController {
                 userRelId: 0,
                 categoryId: 0,
                 groupId: 1,
-                startDate: moment(),
-                endDate: moment().add(1, 'y'),
+                startDate: Moment(),
+                endDate: Moment().add(1, 'y'),
               },
             },
           },

@@ -29,7 +29,6 @@ import { DongService } from '../services';
 import {
   ValidateCategoryIdInterceptor,
   JointAccountsInterceptor,
-  FirebaseTokenInterceptor,
   ValidateDongIdInterceptor,
 } from '../interceptors';
 import { dongReqBody } from './specs';
@@ -48,7 +47,6 @@ export class ResponseDongs extends Dongs {
   @property({ type: 'number' }) receiptId?: number;
 }
 
-intercept(FirebaseTokenInterceptor.BINDING_KEY);
 @authenticate('jwt.access')
 export class DongsController {
   private readonly userId: typeof Users.prototype.userId;

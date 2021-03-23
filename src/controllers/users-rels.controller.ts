@@ -27,15 +27,11 @@ import {
   DongsRepository,
 } from '../repositories';
 import { FirebaseService, PhoneNumberService } from '../services';
-import {
-  FirebaseTokenInterceptor,
-  ValidatePhoneEmailInterceptor,
-  ValidateUsersRelsInterceptor,
-} from '../interceptors';
+import { ValidatePhoneEmailInterceptor, ValidateUsersRelsInterceptor } from '../interceptors';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
 
-@intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, FirebaseTokenInterceptor.BINDING_KEY)
+@intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class UsersRelsController {
   private readonly userId: typeof Users.prototype.userId;

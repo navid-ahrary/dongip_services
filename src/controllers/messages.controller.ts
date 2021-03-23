@@ -9,9 +9,9 @@ import 'moment-timezone';
 import { Messages, Users } from '../models';
 import { FirebaseService, FirebaseSupportService } from '../services';
 import { UsersRepository } from '../repositories';
-import { FirebaseTokenInterceptor } from '../interceptors';
+import { HeadersInterceptor } from '../interceptors';
 
-@intercept(FirebaseTokenInterceptor.BINDING_KEY)
+@intercept(HeadersInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class MessagesController {
   private readonly userId: typeof Users.prototype.userId;

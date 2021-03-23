@@ -7,18 +7,20 @@ import {
   Provider,
   ValueOrPromise,
 } from '@loopback/core';
-import { repository } from '@loopback/repository';
+import { DataObject, repository } from '@loopback/repository';
 import { RestBindings } from '@loopback/rest';
 import { UserProfile, SecurityBindings, securityId } from '@loopback/security';
+import _ from 'lodash';
+import { Users } from '../models';
 import { UsersRepository } from '../repositories';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
  * `boot`
  */
-@injectable({ tags: { key: FirebaseTokenInterceptor.BINDING_KEY } })
-export class FirebaseTokenInterceptor implements Provider<Interceptor> {
-  static readonly BINDING_KEY = `interceptors.${FirebaseTokenInterceptor.name}`;
+@injectable({ tags: { key: HeadersInterceptor.BINDING_KEY } })
+export class HeadersInterceptor implements Provider<Interceptor> {
+  static readonly BINDING_KEY = `interceptors.${HeadersInterceptor.name}`;
   constructor(
     @repository(UsersRepository) private usersRepo: UsersRepository,
     @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
@@ -42,17 +44,24 @@ export class FirebaseTokenInterceptor implements Provider<Interceptor> {
   async intercept(invocationCtx: InvocationContext, next: () => ValueOrPromise<InvocationResult>) {
     const userId = +this.currentUserProfile[securityId],
       httpReq = await invocationCtx.get(RestBindings.Http.REQUEST),
-      token = httpReq.headers['firebase-token'];
+      reportedFirebaseToken = this.currentUserProfile.firebaseToken,
+      desiredFirebaseToken = httpReq.headers['firebase-token']?.toString(),
+      reportedAppVersion = this.currentUserProfile.appVersion,
+      desiredAppVersion = httpReq.headers['app-version']?.toString();
 
-    if (typeof token === 'string' && token !== 'null') {
+    const patchBody: Partial<DataObject<Users>> = {};
+
+    if (desiredFirebaseToken !== reportedFirebaseToken) {
+      patchBody.firebaseToken = reportedAppVersion;
+    }
+
+    if (desiredAppVersion !== reportedAppVersion) {
+      patchBody.appVersion = desiredAppVersion;
+    }
+
+    if (_.keys(patchBody).length) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepo.updateAll(
-        { firebaseToken: token },
-        {
-          userId: userId,
-          or: [{ firebaseToken: 'null' }, { firebaseToken: null! }, { firebaseToken: '' }],
-        },
-      );
+      this.usersRepo.updateById(userId, patchBody);
     }
     // Add pre-invocation logic here
     const result = await next();
