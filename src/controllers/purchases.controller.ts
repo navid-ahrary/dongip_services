@@ -8,7 +8,7 @@ import {
   requestBody,
 } from '@loopback/rest';
 import { service, inject, intercept } from '@loopback/core';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import _ from 'lodash';
@@ -27,6 +27,7 @@ import { Purchases, Subscriptions, Users, InappPurchase } from '../models';
 import { ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocMsgsBindings, SubsSpecBindings } from '../keys';
 import { LocalizedMessages, SubscriptionSpec } from '../types';
+import { CurrentUserProfile } from '../interfaces';
 
 export class PurchasesController {
   constructor(
@@ -110,7 +111,7 @@ export class PurchasesController {
       },
     })
     inappPurchBody: InappPurchase,
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
   ): Promise<Subscriptions | null> {
     const userId = +currentUserProfile[securityId];
     const lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
@@ -184,7 +185,7 @@ export class PurchasesController {
       example: 'AbCd_eFgHiJ',
     })
     purchaseToken: string,
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
   ): Promise<Purchases> {
     const userId = +currentUserProfile[securityId];
     const lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';

@@ -11,7 +11,7 @@ import {
   RequestContext,
   RestBindings,
 } from '@loopback/rest';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import _ from 'lodash';
 import FileType from 'file-type';
 import Path from 'path';
@@ -22,6 +22,7 @@ import { FILE_UPLOAD_SERVICE, STORAGE_DIRECTORY_BINDING } from '../keys';
 import { ReceiptsRepository } from '../repositories';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { authenticate } from '@loopback/authentication';
+import { CurrentUserProfile } from '../interfaces';
 
 @authenticate('jwt.access')
 export class ReceiptsController {
@@ -30,7 +31,7 @@ export class ReceiptsController {
 
   constructor(
     @inject.context() private ctx: RequestContext,
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
     @inject(FILE_UPLOAD_SERVICE) private handler: FileUploadHandler,
     @inject(STORAGE_DIRECTORY_BINDING) private storageDirectory: string,
     @repository(ReceiptsRepository) public receiptRepo: ReceiptsRepository,

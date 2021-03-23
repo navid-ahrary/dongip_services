@@ -10,7 +10,7 @@ import {
   del,
   RequestContext,
 } from '@loopback/rest';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept } from '@loopback/core';
@@ -20,6 +20,7 @@ import { UsersRepository, CategoriesRepository } from '../repositories';
 import { ValidateCategoryIdInterceptor } from '../interceptors';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
+import { CurrentUserProfile } from '../interfaces';
 
 @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
@@ -30,7 +31,7 @@ export class CategoriesController {
   constructor(
     @inject.context() private ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(CategoriesRepository) public categoryRepository: CategoriesRepository,
   ) {

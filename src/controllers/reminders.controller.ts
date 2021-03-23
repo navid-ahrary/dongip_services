@@ -1,6 +1,6 @@
 import { authenticate } from '@loopback/authentication';
 import { inject } from '@loopback/core';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { Count, CountSchema, repository } from '@loopback/repository';
 import {
   post,
@@ -19,6 +19,7 @@ import Ct from 'countries-and-timezones';
 import 'moment-timezone';
 import { Reminders, Users } from '../models';
 import { UsersRepository } from '../repositories';
+import { CurrentUserProfile } from '../interfaces';
 
 @authenticate('jwt.access')
 export class RemindersController {
@@ -27,8 +28,8 @@ export class RemindersController {
   private readonly notifyTime = '08:00:00';
 
   constructor(
+    @inject(SecurityBindings.USER) protected currentUserProfile: CurrentUserProfile,
     @repository(UsersRepository) public usersRepository: UsersRepository,
-    @inject(SecurityBindings.USER) protected currentUserProfile: UserProfile,
   ) {
     this.userId = +this.currentUserProfile[securityId];
   }
@@ -81,7 +82,7 @@ export class RemindersController {
     })
     reminder: Omit<Reminders, 'reminderId'>,
   ): Promise<Reminders> {
-    const userRegion = this.currentUserProfile.region;
+    const userRegion = this.currentUserProfile.region ?? 'IR';
     const userTZ = Ct.getTimezonesForCountry(userRegion)[0].name;
     const nowUserLocaleMoment = Moment.tz(userTZ);
 
@@ -179,7 +180,7 @@ export class RemindersController {
       reminder.previousNotifyDate = foundReminder.previousNotifyDate;
     }
 
-    const userRegion = this.currentUserProfile.region;
+    const userRegion = this.currentUserProfile.region ?? 'IR';
     const userTZ = Ct.getTimezonesForCountry(userRegion)[0].name;
     const nowUserLocaleMoment = Moment.tz(userTZ);
 

@@ -1,6 +1,6 @@
 import { del, get, param, RestBindings, Response, HttpErrors, oas } from '@loopback/rest';
 import { inject, intercept } from '@loopback/context';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { repository } from '@loopback/repository';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { authenticate } from '@loopback/authentication';
@@ -9,6 +9,7 @@ import { Dongs, Users } from '../models';
 import { ReceiptsRepository, DongsRepository } from '../repositories';
 import { ValidateDongIdInterceptor } from '../interceptors';
 import { ReceiptsController } from './receipts.controller';
+import { CurrentUserProfile } from '../interfaces';
 
 @authenticate('jwt.access')
 @intercept(ValidateDongIdInterceptor.BINDING_KEY)
@@ -20,7 +21,7 @@ export class DongsReceiptsController {
    * @param handler - Inject an express request handler to deal with the request
    */
   constructor(
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
     @inject('controllers.ReceiptsController') public receiptController: ReceiptsController,
     @repository(DongsRepository) private dongRepo: DongsRepository,
     @repository(ReceiptsRepository) private receiptRepo: ReceiptsRepository,

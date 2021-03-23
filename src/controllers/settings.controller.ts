@@ -1,11 +1,12 @@
 import { inject } from '@loopback/core';
 import { Count, repository } from '@loopback/repository';
 import { get, getModelSchemaRef, requestBody, patch } from '@loopback/rest';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { Settings, Users } from '../models';
 import { SettingsRepository, UsersRepository } from '../repositories';
+import { CurrentUserProfile } from '../interfaces';
 
 @authenticate('jwt.access')
 export class SettingsController {
@@ -15,7 +16,7 @@ export class SettingsController {
     @repository(SettingsRepository)
     public settingsRepository: SettingsRepository,
     @repository(UsersRepository) public usersRepository: UsersRepository,
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
   ) {
     this.userId = +currentUserProfile[securityId];
   }

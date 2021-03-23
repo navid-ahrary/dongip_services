@@ -3,7 +3,7 @@ import { repository } from '@loopback/repository';
 import { get, getModelSchemaRef, HttpErrors, param, RequestContext } from '@loopback/rest';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { authorize } from '@loopback/authorization';
 import _ from 'lodash';
 import { Dongs, Users } from '../models';
@@ -11,6 +11,7 @@ import { JointAccountsRepository, JointAccountSubscribesRepository } from '../re
 import { basicAuthorization } from '../services';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
+import { CurrentUserProfile } from '../interfaces';
 
 @authenticate('jwt.access')
 @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
@@ -21,7 +22,7 @@ export class JointAccountsDongsController {
   constructor(
     @inject.context() public ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
     @repository(JointAccountSubscribesRepository)
     public jointAccSubRepo: JointAccountSubscribesRepository,
     @repository(JointAccountsRepository) public jointAccountsRepository: JointAccountsRepository,

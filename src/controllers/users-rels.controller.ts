@@ -11,7 +11,7 @@ import {
   del,
   RequestContext,
 } from '@loopback/rest';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, service, intercept } from '@loopback/core';
@@ -30,6 +30,7 @@ import { FirebaseService, PhoneNumberService } from '../services';
 import { ValidatePhoneEmailInterceptor, ValidateUsersRelsInterceptor } from '../interceptors';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
+import { CurrentUserProfile } from '../interfaces';
 
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
@@ -40,7 +41,7 @@ export class UsersRelsController {
   constructor(
     @inject.context() public ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
     @service(FirebaseService) public firebaseService: FirebaseService,
     @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
     @repository(UsersRepository) public usersRepository: UsersRepository,

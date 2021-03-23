@@ -11,7 +11,7 @@ import {
   patch,
   HttpErrors,
 } from '@loopback/rest';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, service, intercept } from '@loopback/core';
@@ -34,6 +34,7 @@ import {
 import { dongReqBody } from './specs';
 import { CategoriesSource, LocalizedMessages } from '../types';
 import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
+import { CurrentUserProfile } from '../interfaces';
 
 @model()
 export class ResponseNewDong extends Dongs {
@@ -56,7 +57,7 @@ export class DongsController {
     @inject.context() private ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(CategoriesSourceListBindings) public catSrc: CategoriesSource,
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
     @service(DongService) public dongService: DongService,
     @repository(UsersRepository) public userRepo: UsersRepository,
     @repository(DongsRepository) public dongRepository: DongsRepository,

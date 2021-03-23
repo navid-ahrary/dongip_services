@@ -11,7 +11,7 @@ import {
   HttpErrors,
 } from '@loopback/rest';
 import { intercept, inject, service } from '@loopback/core';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
@@ -38,6 +38,7 @@ import { ValidateUsersRelsInterceptor, JointAccountsInterceptor } from '../inter
 import { basicAuthorization, BatchMessage, FirebaseService, PhoneNumberService } from '../services';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
+import { CurrentUserProfile } from '../interfaces';
 
 @intercept(ValidateUsersRelsInterceptor.BINDING_KEY, JointAccountsInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
@@ -50,7 +51,7 @@ export class JointAccountController {
   constructor(
     @inject.context() private ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
     @service(FirebaseService) public firebaseSerice: FirebaseService,
     @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
     @repository(DongsRepository) public dongRepo: DongsRepository,
@@ -61,7 +62,7 @@ export class JointAccountController {
     public jointAccSubscribesRepo: JointAccountSubscribesRepository,
   ) {
     this.userId = +currentUserProfile[securityId];
-    this.phone = currentUserProfile.phone;
+    this.phone = currentUserProfile.phone!;
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 

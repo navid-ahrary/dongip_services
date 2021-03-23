@@ -11,7 +11,7 @@ import { authorize } from '@loopback/authorization';
 import { authenticate } from '@loopback/authentication';
 import { repository, Filter, Where } from '@loopback/repository';
 import { inject, service } from '@loopback/core';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import Ct from 'countries-and-timezones';
 import _ from 'lodash';
@@ -28,6 +28,7 @@ import {
 import { LocMsgsBindings } from '../keys';
 import { LocalizedMessages } from '../types';
 import { MariadbDataSource } from '../datasources';
+import { CurrentUserProfile } from '../interfaces';
 
 @authorize({ allowedRoles: ['SUPPORT', 'GOD'], voters: [basicAuthorization] })
 @authenticate('jwt.access')
@@ -39,7 +40,7 @@ export class SupportController {
     @inject.context() public ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject('datasources.Mariadb') private dataSource: MariadbDataSource,
-    @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
+    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
     @service(FirebaseService) public firebaseService: FirebaseService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(SettingsRepository) public settingRepo: SettingsRepository,
