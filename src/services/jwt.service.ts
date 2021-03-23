@@ -57,7 +57,7 @@ export class JWTService implements TokenService {
         });
 
         Object.assign(userProfile, {
-          ..._.omit(user, 'userId'),
+          ..._.omit(user, ['userId', 'usersRels', 'setting']),
           language: user.setting.language,
           timezone: Ct.getTimezonesForCountry(user.region! ?? 'IR')[0].name,
           selfUserRelId: user.usersRels[0].userRelId,
