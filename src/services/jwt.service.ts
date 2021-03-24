@@ -7,7 +7,7 @@ import { repository } from '@loopback/repository';
 import Ct from 'countries-and-timezones';
 import { sign, verify, Algorithm } from 'jsonwebtoken';
 import { UsersRepository, BlacklistRepository } from '../repositories';
-import { TokenServiceBindings } from '../keys';
+import { EmailBindings, TokenServiceBindings } from '../keys';
 import _ from 'lodash';
 import { CurrentUserProfile } from '../interfaces';
 
@@ -17,6 +17,7 @@ export class JWTService implements TokenService {
     @inject(TokenServiceBindings.TOKEN_ALGORITHM) private jwtAlgorithm: Algorithm,
     @inject(TokenServiceBindings.VERIFY_EXPIRES_IN) private verifyExpiresIn: string,
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
+    @inject(EmailBindings.SUPPORT_EMAIL_ADDRESS) private supportEmailAdd: string,
     @inject(RestBindings.Http.REQUEST) private req: Request,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
@@ -64,7 +65,7 @@ export class JWTService implements TokenService {
       });
 
       if (!user.enabled) {
-        const errMsg = 'Your access is limited, Contact support@dongip.ir';
+        const errMsg = `Your access is limited, Contact ${this.supportEmailAdd}`;
         console.error(errMsg);
         throw new HttpErrors.UnavailableForLegalReasons(errMsg);
       }
