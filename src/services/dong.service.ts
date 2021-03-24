@@ -356,6 +356,15 @@ export class DongService {
           .filter((v) => !['and', 'or', '&', ',', '.', ';', 'و', 'یا', '،', '-'].includes(v)),
       );
 
+      let foundReceipt: Receipts | undefined;
+      if (receiptId) {
+        const receipt = await this.usersRepository
+          .receipts(currentUser.getId())
+          .find({ where: { receiptId: receiptId } });
+
+        foundReceipt = receipt.length ? receipt[0] : undefined;
+      }
+
       for (const JAS of JASs) {
         const user = await this.usersRepository.findById(JAS.userId, {
           fields: { userId: true, firebaseToken: true, name: true },
@@ -387,6 +396,13 @@ export class DongService {
         savedDong.categoryId = catg.getId();
 
         const createdDong = await this.usersRepository.dongs(user.getId()).create(savedDong);
+
+        let createdReceipt: Receipts | undefined;
+        if (foundReceipt) {
+          createdReceipt = await this.usersRepository
+            .receipts(user.getId())
+            .create({ dongId: createdDong.getId(), receiptName: foundReceipt.receiptName });
+        }
 
         const billers: Array<DataObject<BillList>> = [];
         for (const biller of billList) {
@@ -473,6 +489,7 @@ export class DongService {
           userRelId: user.usersRels[0].getId(),
           createdAt: createdDong.createdAt,
           jointAccountId: createdDong.jointAccountId,
+          receiptId: createdReceipt?.receiptId,
         });
 
         const createdNotify = await this.usersRepository
@@ -498,6 +515,7 @@ export class DongService {
             categoryIcon: notifyData.categoryIcon!,
             userRelId: notifyData.userRelId!.toString(),
             createdAt: Moment(notifyData.createdAt).toISOString(),
+            receiptId: createdNotify.receiptId?.toString() ?? ' ',
             silent: 'false',
           },
         });
