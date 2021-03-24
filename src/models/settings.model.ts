@@ -151,7 +151,7 @@ export class Settings extends Entity {
       nullable: 'N',
     },
   })
-  language: 'fa' | 'en';
+  language: string;
 
   @property({
     type: 'string',
