@@ -1,4 +1,8 @@
 import { UserProfile } from '@loopback/security';
-import { Users } from '../models';
+import { Settings, Users, UsersRels } from '../models';
 
-export interface CurrentUserProfile extends UserProfile, Partial<Users> {}
+export interface CurrentUserProfile extends UserProfile, Partial<Omit<Users, 'userId'>> {
+  selfUserRelId?: typeof UsersRels.prototype.userId;
+  language?: typeof Settings.prototype.language;
+  timezone?: string;
+}

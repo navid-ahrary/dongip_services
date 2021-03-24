@@ -37,9 +37,9 @@ export class JWTService implements TokenService {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let decryptedData: any;
-    let userProfile: CurrentUserProfile = { [securityId]: '' };
 
     try {
+      let userProfile: CurrentUserProfile = { [securityId]: '' };
       // check token is not in blacklist
       const isBlacklisted = await this.blacklistRepository.exists(accessToken);
       if (isBlacklisted) throw new Error('توکن شما بلاک شده!');
@@ -65,7 +65,7 @@ export class JWTService implements TokenService {
         });
       }
 
-      Object.assign(userProfile, {
+      return Object.assign(userProfile, {
         [securityId]: decryptedData.id ?? decryptedData.sub,
         aud: decryptedData.aud,
         roles: decryptedData.roles,
@@ -74,8 +74,6 @@ export class JWTService implements TokenService {
       console.error(new Date(), JSON.stringify(err));
       throw new HttpErrors.Unauthorized(`Error verifying token: ${err.message}`);
     }
-
-    return userProfile;
   }
 
   /**
