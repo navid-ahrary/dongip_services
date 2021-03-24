@@ -224,6 +224,19 @@ export class Users extends Entity {
   })
   appVersion?: string;
 
+  @property({
+    type: 'boolean',
+    required: true,
+    mysql: {
+      columnName: 'enabled',
+      dataType: 'tinyint',
+      dataLength: 1,
+      deafult: 1,
+      nullable: 'N',
+    },
+  })
+  enabled: boolean;
+
   @hasMany(() => VirtualUsers, {
     name: 'virtualUsers',
     keyTo: 'userId',

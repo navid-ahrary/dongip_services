@@ -311,6 +311,8 @@ export class AuthController {
                 'avatar',
                 'region',
                 'platform',
+                'appVersion',
+                'enabled',
               ],
             }),
             example: {
@@ -346,6 +348,8 @@ export class AuthController {
               'email',
               'phoneLocked',
               'emailLocked',
+              'appVersion',
+              'enabled',
             ],
             optional: ['username', 'currency', 'language', 'phone'],
           }),
