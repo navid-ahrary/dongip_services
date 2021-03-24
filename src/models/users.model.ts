@@ -226,12 +226,12 @@ export class Users extends Entity {
 
   @property({
     type: 'boolean',
-    required: true,
+    default: true,
     mysql: {
       columnName: 'enabled',
       dataType: 'tinyint',
       dataLength: 1,
-      deafult: 1,
+      dafault: 1,
       nullable: 'N',
     },
   })
