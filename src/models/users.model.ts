@@ -182,7 +182,6 @@ export class Users extends Entity {
       dataType: 'tinyint',
       dataLength: 1,
       nullable: 'N',
-      default: 1,
     },
   })
   phoneLocked?: boolean;
@@ -231,8 +230,8 @@ export class Users extends Entity {
       columnName: 'enabled',
       dataType: 'tinyint',
       dataLength: 1,
+      nullable: 'Y',
       dafault: 1,
-      nullable: 'N',
     },
   })
   enabled: boolean;
