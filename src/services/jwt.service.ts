@@ -2,7 +2,7 @@
 import { TokenService } from '@loopback/authentication';
 import { inject } from '@loopback/core';
 import { securityId } from '@loopback/security';
-import { HttpErrors } from '@loopback/rest';
+import { HttpErrors, RestBindings, Request } from '@loopback/rest';
 import { repository } from '@loopback/repository';
 import Ct from 'countries-and-timezones';
 import { sign, verify, Algorithm } from 'jsonwebtoken';
@@ -17,6 +17,7 @@ export class JWTService implements TokenService {
     @inject(TokenServiceBindings.TOKEN_ALGORITHM) private jwtAlgorithm: Algorithm,
     @inject(TokenServiceBindings.VERIFY_EXPIRES_IN) private verifyExpiresIn: string,
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
+    @inject(RestBindings.Http.REQUEST) private req: Request,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
   ) {}
@@ -28,6 +29,8 @@ export class JWTService implements TokenService {
   }
 
   async verifyToken(accessToken: string): Promise<CurrentUserProfile> {
+    // const lang = _.includes(this.req.headers['accept-language'], 'en') ? 'en' : 'fa';
+
     const nullToken = 'Error verifying access token: token is null';
 
     if (!accessToken) {
@@ -38,42 +41,47 @@ export class JWTService implements TokenService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let decryptedData: any;
 
-    try {
-      let userProfile: CurrentUserProfile = { [securityId]: '' };
-      // check token is not in blacklist
-      const isBlacklisted = await this.blacklistRepository.exists(accessToken);
-      if (isBlacklisted) throw new Error('توکن شما بلاک شده!');
+    let userProfile: CurrentUserProfile = { [securityId]: '' };
+    // check token is not in blacklist
+    const isBlacklisted = await this.blacklistRepository.exists(accessToken);
+    if (isBlacklisted) {
+      const errMsg = `Error verifying token: ${'توکن شما بلاک شده!'}`;
+      console.error(errMsg);
+      throw new HttpErrors.Unauthorized(errMsg);
+    }
 
-      // Decode user profile from token
-      decryptedData = this.decryptedToken(accessToken);
+    // Decode user profile from token
+    decryptedData = this.decryptedToken(accessToken);
 
-      // In access audience, the user should exists in database certainly
-      if (decryptedData.aud === 'access') {
-        const userId = +(decryptedData.id ?? decryptedData.sub);
-        const user = await this.usersRepository.findById(userId, {
-          include: [
-            { relation: 'usersRels', scope: { where: { type: 'self' } } },
-            { relation: 'setting', scope: { fields: { userId: true, language: true } } },
-          ],
-        });
+    // In access audience, the user should exists in database certainly
+    if (decryptedData.aud === 'access') {
+      const userId = +(decryptedData.id ?? decryptedData.sub);
+      const user = await this.usersRepository.findById(userId, {
+        include: [
+          { relation: 'usersRels', scope: { where: { type: 'self' } } },
+          { relation: 'setting', scope: { fields: { userId: true, language: true } } },
+        ],
+      });
 
-        Object.assign(userProfile, {
-          ..._.omit(user, ['userId', 'usersRels', 'setting']),
-          language: user.setting.language,
-          timezone: Ct.getTimezonesForCountry(user.region! ?? 'IR')[0].name,
-          selfUserRelId: user.usersRels[0].userRelId,
-        });
+      if (!user.enabled) {
+        const errMsg = 'Your access is limited, Contact support@dongip.ir';
+        console.error(errMsg);
+        throw new HttpErrors.UnavailableForLegalReasons(errMsg);
       }
 
-      return Object.assign(userProfile, {
-        [securityId]: decryptedData.id ?? decryptedData.sub,
-        aud: decryptedData.aud,
-        roles: decryptedData.roles,
+      _.assign(userProfile, {
+        ..._.omit(user, ['userId', 'usersRels', 'setting']),
+        language: user.setting.language,
+        timezone: Ct.getTimezonesForCountry(user.region! ?? 'IR')[0].name,
+        selfUserRelId: user.usersRels[0].userRelId,
       });
-    } catch (err) {
-      console.error(new Date(), JSON.stringify(err));
-      throw new HttpErrors.Unauthorized(`Error verifying token: ${err.message}`);
     }
+
+    return _.assign(userProfile, {
+      [securityId]: decryptedData.id ?? decryptedData.sub,
+      aud: decryptedData.aud,
+      roles: decryptedData.roles,
+    });
   }
 
   /**
