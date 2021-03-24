@@ -26,7 +26,7 @@ export class MessagesController {
   ) {
     this.userId = +currentUserProfile[securityId];
     this.name = currentUserProfile.name!;
-    this.timezone = currentUserProfile.timezone;
+    this.timezone = currentUserProfile.timezone!;
   }
 
   @post('/messages', {

@@ -98,7 +98,7 @@ export class RemindersController {
     if (isFirstNotifyDateAfterNow) {
       nextNotifyDate = reminder.previousNotifyDate;
     } else {
-      const userLang = this.currentUserProfile.language;
+      const userLang = this.currentUserProfile.language!;
 
       nextNotifyDate = Jmoment.from(
         Jmoment(reminder.previousNotifyDate)
@@ -196,7 +196,7 @@ export class RemindersController {
     if (isFirstNotifyDateAfterNow) {
       nextNotifyDate = reminder.previousNotifyDate;
     } else {
-      const userLang = this.currentUserProfile.language;
+      const userLang = this.currentUserProfile.language!;
 
       nextNotifyDate = Jmoment.from(
         Jmoment(reminder.previousNotifyDate)
