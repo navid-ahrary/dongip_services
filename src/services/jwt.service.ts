@@ -70,7 +70,7 @@ export class JWTService implements TokenService {
         throw new HttpErrors.UnavailableForLegalReasons(errMsg);
       }
 
-      _.assignIn(userProfile, {
+      Object.assign(userProfile, {
         ..._.omit(user, ['userId', 'usersRels', 'setting']),
         language: user.setting.language,
         timezone: Ct.getTimezonesForCountry(user.region! ?? 'IR')[0].name,
@@ -78,13 +78,11 @@ export class JWTService implements TokenService {
       });
     }
 
-    _.assignIn(userProfile, {
+    return Object.assign(userProfile, {
       [securityId]: decryptedData.id ?? decryptedData.sub,
       aud: decryptedData.aud,
       roles: decryptedData.roles,
     });
-
-    return userProfile;
   }
 
   /**
