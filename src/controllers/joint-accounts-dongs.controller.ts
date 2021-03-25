@@ -1,17 +1,18 @@
 import { inject } from '@loopback/core';
-import { repository } from '@loopback/repository';
+import { DataObject, repository } from '@loopback/repository';
 import { get, getModelSchemaRef, HttpErrors, param, RequestContext } from '@loopback/rest';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { authorize } from '@loopback/authorization';
 import _ from 'lodash';
-import { Dongs, Users } from '../models';
+import { Users } from '../models';
 import { JointAccountsRepository, JointAccountSubscribesRepository } from '../repositories';
 import { basicAuthorization } from '../services';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
 import { CurrentUserProfile } from '../interfaces';
+import { ResponseDongs } from '.';
 
 @authenticate('jwt.access')
 @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
@@ -39,7 +40,7 @@ export class JointAccountsDongsController {
         description: 'Array of JointAccounts has many Dongs',
         content: {
           'application/json': {
-            schema: { type: 'array', items: getModelSchemaRef(Dongs) },
+            schema: { type: 'array', items: getModelSchemaRef(ResponseDongs) },
           },
         },
       },
@@ -64,6 +65,7 @@ export class JointAccountsDongsController {
                     { relation: 'billList' },
                     { relation: 'payerList' },
                     { relation: 'category' },
+                    { relation: 'receipt' },
                   ],
                 },
               },
@@ -73,7 +75,19 @@ export class JointAccountsDongsController {
       ],
     });
 
-    if (JAS) return JAS.jointAccount.dongs;
-    else throw new HttpErrors.UnprocessableEntity('JointAccountId is not valid');
+    const result: DataObject<ResponseDongs>[] = [];
+
+    if (JAS) {
+      _.forEach(JAS.jointAccount.dongs, (d) => {
+        const r = {
+          ..._.omit(d, 'receipt'),
+          receiptId: d.receipt?.receiptId,
+        };
+
+        result.push(r);
+      });
+
+      return result;
+    } else throw new HttpErrors.UnprocessableEntity('JointAccountId is not valid');
   }
 }
