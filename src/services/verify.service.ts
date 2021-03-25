@@ -108,7 +108,7 @@ export class VerifyService {
         platform: this.ctx.request.headers['platform']?.toString(),
         region: this.phoneNumberService.getRegionCodeISO(phoneValue),
         userAgent: this.ctx.request.headers['user-agent']?.toString(),
-        ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
+        ipAddress: this.ctx.request.headers['x-real-ip']?.toString(),
       })
       .catch((err) => {
         throw new HttpErrors.NotAcceptable(err.message);
@@ -164,7 +164,7 @@ export class VerifyService {
         password: this.randomString + this.randomCode,
         platform: this.ctx.request.headers['platform']?.toString(),
         userAgent: this.ctx.request.headers['user-agent']?.toString(),
-        ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
+        ipAddress: this.ctx.request.headers['x-real-ip']?.toString(),
       })
       .catch((err) => {
         throw new HttpErrors.NotAcceptable(err.message);
@@ -223,7 +223,7 @@ export class VerifyService {
           password: this.randomString + this.randomCode,
           platform: this.ctx.request.headers['platform']?.toString(),
           userAgent: this.ctx.request.headers['user-agent']?.toString(),
-          ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
+          ipAddress: this.ctx.request.headers['x-real-ip']?.toString(),
           loggedIn: true,
           loggedInAt: Moment().format('YYYY-MM-DDTHH:mm:ss+00:00'),
         });
