@@ -16,7 +16,7 @@
     }
   },
   "TOO_MANY_REQUEST": {
-    "fa": "تعداد در خواست هایتان بیش از حد مجاز است. ۵ دقیقه منتظر بمانید",
+    "fa": "تعداد در خواست ها بیش از حد مجاز است. ۵ دقیقه منتظر بمانید",
     "en": "Too many requests, Wait for 5 minutes"
   },
   "WRONG_VERIFY_CODE": {
