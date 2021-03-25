@@ -132,7 +132,7 @@ export class AuthController {
     }
 
     const countRequstedVerifyCode = await this.verifyRepository.count({
-      ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
+      ipAddress: this.ctx.request.headers['x-real-ip']?.toString(),
       phone: { nin: ['+989197744814', '+989176502184'] },
       email: { nin: ['arefrafei92@gmail.com', 'navidarry@gmail.com'] },
       createdAt: {
