@@ -31,58 +31,61 @@ export class JWTService implements TokenService {
 
   async verifyToken(accessToken: string): Promise<CurrentUserProfile> {
     // const lang = _.includes(this.req.headers['accept-language'], 'en') ? 'en' : 'fa';
+    try {
+      const nullToken = 'Error verifying access token: token is null';
 
-    const nullToken = 'Error verifying access token: token is null';
-
-    if (!accessToken) {
-      console.error(new Date(), JSON.stringify(nullToken));
-      throw new HttpErrors.Unauthorized(nullToken);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let decryptedData: any;
-
-    let userProfile: CurrentUserProfile = { [securityId]: '' };
-    // check token is not in blacklist
-    const isBlacklisted = await this.blacklistRepository.exists(accessToken);
-    if (isBlacklisted) {
-      const errMsg = `Error verifying token: ${'توکن شما بلاک شده!'}`;
-      console.error(errMsg);
-      throw new HttpErrors.Unauthorized(errMsg);
-    }
-
-    // Decode user profile from token
-    decryptedData = this.decryptedToken(accessToken);
-
-    // In access audience, the user should exists in database certainly
-    if (decryptedData.aud === 'access') {
-      const userId = +(decryptedData.id ?? decryptedData.sub);
-      const user = await this.usersRepository.findById(userId, {
-        include: [
-          { relation: 'usersRels', scope: { where: { type: 'self' } } },
-          { relation: 'setting', scope: { fields: { userId: true, language: true } } },
-        ],
-      });
-
-      if (!user.enabled) {
-        const errMsg = `Your access is limited, Contact ${this.supportEmailAdd}`;
-        console.error(errMsg);
-        throw new HttpErrors.UnavailableForLegalReasons(errMsg);
+      if (!accessToken) {
+        console.error(new Date(), JSON.stringify(nullToken));
+        throw new HttpErrors.Unauthorized(nullToken);
       }
 
-      Object.assign(userProfile, {
-        ..._.omit(user, ['userId', 'usersRels', 'setting']),
-        language: user.setting.language,
-        timezone: Ct.getTimezonesForCountry(user.region! ?? 'IR')[0].name,
-        selfUserRelId: user.usersRels[0].userRelId,
-      });
-    }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let decryptedData: any;
 
-    return Object.assign(userProfile, {
-      [securityId]: decryptedData.id ?? decryptedData.sub,
-      aud: decryptedData.aud,
-      roles: decryptedData.roles,
-    });
+      let userProfile: CurrentUserProfile = { [securityId]: '' };
+      // check token is not in blacklist
+      const isBlacklisted = await this.blacklistRepository.exists(accessToken);
+      if (isBlacklisted) {
+        const errMsg = `Error verifying token: ${'توکن شما بلاک شده!'}`;
+        throw new Error(errMsg);
+      }
+
+      // Decode user profile from token
+      decryptedData = this.decryptedToken(accessToken);
+
+      // In access audience, the user should exists in database certainly
+      if (decryptedData.aud === 'access') {
+        const userId = +(decryptedData.id ?? decryptedData.sub);
+        const user = await this.usersRepository.findById(userId, {
+          include: [
+            { relation: 'usersRels', scope: { where: { type: 'self' } } },
+            { relation: 'setting', scope: { fields: { userId: true, language: true } } },
+          ],
+        });
+
+        if (!user.enabled) {
+          const errMsg = `Your access is limited, Contact ${this.supportEmailAdd}`;
+          console.error(errMsg);
+          throw new HttpErrors.UnavailableForLegalReasons(errMsg);
+        }
+
+        Object.assign(userProfile, {
+          ..._.omit(user, ['userId', 'usersRels', 'setting']),
+          language: user.setting.language,
+          timezone: Ct.getTimezonesForCountry(user.region! ?? 'IR')[0].name,
+          selfUserRelId: user.usersRels[0].userRelId,
+        });
+      }
+
+      return Object.assign(userProfile, {
+        [securityId]: decryptedData.id ?? decryptedData.sub,
+        aud: decryptedData.aud,
+        roles: decryptedData.roles,
+      });
+    } catch (err) {
+      console.error(new Date(), JSON.stringify(err));
+      throw new HttpErrors.Unauthorized(`Error verifying token: ${err.message}`);
+    }
   }
 
   /**
