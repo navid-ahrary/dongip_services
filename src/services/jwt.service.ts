@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 import { TokenService } from '@loopback/authentication';
 import { inject } from '@loopback/core';
-import { securityId } from '@loopback/security';
+import { UserProfile, securityId } from '@loopback/security';
 import { HttpErrors, RestBindings, Request } from '@loopback/rest';
 import { repository } from '@loopback/repository';
 import Ct from 'countries-and-timezones';
@@ -9,8 +9,13 @@ import { sign, verify, Algorithm } from 'jsonwebtoken';
 import { UsersRepository, BlacklistRepository } from '../repositories';
 import { EmailBindings, TokenServiceBindings } from '../keys';
 import _ from 'lodash';
-import { CurrentUserProfile } from '../interfaces';
+import { Settings, Users, UsersRels } from '../models';
 
+export interface CurrentUserProfile extends UserProfile, Partial<Omit<Users, 'userId'>> {
+  selfUserRelId?: typeof UsersRels.prototype.userId;
+  language?: typeof Settings.prototype.language;
+  timezone?: string;
+}
 export class JWTService implements TokenService {
   constructor(
     @inject(TokenServiceBindings.ACCESS_SECRET) private jwtSecret: string,
