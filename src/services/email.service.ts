@@ -123,7 +123,7 @@ export class EmailService {
    * @returns Boolean
    */
   public isGmail(emailValue: string) {
-    emailValue = emailValue.toLowerCase().replace(/ /g, '');
+    emailValue = emailValue.toLowerCase().trim();
     const splitted = emailValue.split('@');
 
     if (splitted.length !== 2) return false;
