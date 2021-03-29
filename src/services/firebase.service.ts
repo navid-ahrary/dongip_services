@@ -36,7 +36,7 @@ export class FirebaseService {
 
   private readonly apnsConfigs: messaging.ApnsConfig = {
     headers: {
-      'apns-priority': String(10),
+      'apns-priority': '10',
       'apns-expiration': String(this.timeToLiveSeconds * 1000), // 4 weeks in milliseconds,
     },
   };

@@ -21,7 +21,7 @@ export class FirebaseSupportService {
 
   private readonly apnsConfigs: messaging.ApnsConfig = {
     headers: {
-      'apns-priority': String(10),
+      'apns-priority': '10',
       'apns-expiration': String(this.timeToLiveSeconds * 1000), // 4 weeks in milliseconds,
     },
   };
@@ -31,14 +31,13 @@ export class FirebaseSupportService {
     @inject(FirebaseBinding.FIREBASE_DONGIP_SUPPORT_CERT) certs: ServiceAccount,
     @inject(FirebaseBinding.FIREBASE_DONGIP_SUPPORT_APP_NAME) appName: string,
   ) {
-    this.app = initializeApp(
+    this.messagingService = initializeApp(
       {
         databaseURL: baseUrl,
         credential: credential.cert(certs),
       },
       appName,
-    );
-    this.messagingService = this.app.messaging();
+    ).messaging();
   }
 
   // send a message to a device
