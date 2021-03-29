@@ -55,7 +55,7 @@ export class FirebaseSupportService {
       },
     };
 
-    const notifOptions = {
+    const notifOptions: messaging.MessagingOptions = {
       ...options,
       priority: 'high',
       mutableContent: true,
@@ -114,36 +114,27 @@ export class FirebaseSupportService {
   }
 
   //send multi message to multi devices
-  public async sendAllMessage(messages: BatchMessage): Promise<messaging.BatchResponse> {
+  public async sendAllMessage(messages: BatchMessage): Promise<Array<messaging.BatchResponse>> {
     _.forEach(messages, (message) => {
       _.assign(message, {
         android: this.androidConfigs,
         // apns: this.apnsConfigs,
       });
     });
-    // msg._.assign(msg, {
-    //   android: {
-    //     priority: 'high',
-    //     ttl: 1000 * 60 * 60 * 24 * 7 * 4, // 4 weeks in miliseconds
-    //     notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
-    //   },
-    //   apns: {
-    //     headers: {
-    //       'apns-expiration': '1604750400',
-    //     },
-    //   },
-    // }),
 
     try {
-      const response = await this.messagingService.sendAll(messages);
-
-      if (response.successCount) {
-        console.log(`Successfully sent notifications, ${JSON.stringify(response)}`);
-      } else if (response.failureCount) {
-        console.warn(`Failed sent notifications: ${JSON.stringify(response)}`);
-      } else {
-        console.warn('There is no response from firebase');
-      }
+      const response: messaging.BatchResponse[] = [];
+      _.forEach(_.chunk(messages, 500), async (msgs) => {
+        const res = await this.messagingService.sendAll(msgs);
+        response.push(res);
+        if (res.successCount) {
+          console.log(`Successfully sent notifications, ${JSON.stringify(res)}`);
+        } else if (res.failureCount) {
+          console.warn(`Failed sent notifications: ${JSON.stringify(res)}`);
+        } else {
+          console.warn('There is no response from firebase');
+        }
+      });
 
       return response;
     } catch (err) {

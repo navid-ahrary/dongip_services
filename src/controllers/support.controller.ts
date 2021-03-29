@@ -278,138 +278,136 @@ export class SupportController {
     }
   }
 
-  // @post('/support/navigate/', {
-  //   summary: "Navigate User's app",
-  //   security: OPERATION_SECURITY_SPEC,
-  //   responses: {
-  //     '200': {
-  //       description: 'Message model instance',
-  //       content: {
-  //         'application/json': {
-  //           schema: { type: 'array', items: getModelSchemaRef(Messages) },
-  //         },
-  //       },
-  //     },
-  //   },
-  // })
-  // async navigateApp(
-  //   @requestBody({
-  //     content: {
-  //       'application/json': {
-  //         schema: {
-  //           type: 'object',
-  //           required: ['message'],
-  //           properties: {
-  //             subject: { type: 'string' },
-  //             message: { type: 'string' },
-  //           },
-  //         },
-  //         example: {
-  //           subject: 'Happy VALENTINE',
-  //           message: 'Visit www.dongip.ir',
-  //         },
-  //       },
-  //     },
-  //   })
-  //   newMessage: { message: string; subject?: string },
-  //   @param.query.string('language', { required: false })
-  //   language?: typeof Settings.prototype.language,
-  //   @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
-  // ): Promise<Array<Messages>> {
-  //   if (!language && !userId) {
-  //     throw new HttpErrors.UnprocessableEntity('UserId or language must be provided');
-  //   }
+  @post('/support/navigate/', {
+    summary: "Navigate User's app",
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      '200': {
+        description: 'Message model instance',
+        content: {
+          'application/json': {
+            schema: { type: 'array', items: getModelSchemaRef(Messages) },
+          },
+        },
+      },
+    },
+  })
+  async navigateApp(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['message'],
+            properties: {
+              subject: { type: 'string' },
+              message: { type: 'string' },
+            },
+          },
+          example: {
+            subject: 'Happy VALENTINE',
+            message: 'Visit www.dongip.ir',
+          },
+        },
+      },
+    })
+    newMessage: { message: string; subject?: string },
+    @param.query.string('language', { required: false })
+    language?: typeof Settings.prototype.language,
+    @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
+  ): Promise<Array<Messages>> {
+    if (!language && !userId) {
+      throw new HttpErrors.UnprocessableEntity('UserId or language must be provided');
+    }
 
-  //   try {
-  //     const settingWhere: Where<Settings> = { language: language };
+    try {
+      const settingWhere: Where<Settings> = { language: language };
 
-  //     if (userId) _.assign(settingWhere, { userId: userId });
+      if (userId) _.assign(settingWhere, { userId: userId });
 
-  //     const foundSettings = await this.settingRepo.find({
-  //       fields: { settingId: true, userId: true, language: true },
-  //       where: settingWhere,
-  //       include: [
-  //         {
-  //           relation: 'user',
-  //           scope: {
-  //             fields: { userId: true, firebaseToken: true, region: true },
-  //             where: {
-  //               firebaseToken: { nin: ['null', undefined] },
-  //               phoneLocked: true,
-  //             },
-  //           },
-  //         },
-  //       ],
-  //     });
+      const foundSettings = await this.settingRepo.find({
+        fields: { settingId: true, userId: true, language: true },
+        where: settingWhere,
+        include: [
+          {
+            relation: 'user',
+            scope: {
+              fields: { userId: true, firebaseToken: true, region: true },
+              where: {
+                firebaseToken: { nin: ['null', undefined] },
+                phoneLocked: true,
+              },
+            },
+          },
+        ],
+      });
 
-  //     const foundTargetUsers = _.map(
-  //       _.filter(foundSettings, (s) => s.user instanceof Users),
-  //       (s) => s.user!,
-  //     );
+      const foundTargetUsers = _.map(
+        _.filter(foundSettings, (s) => s.user instanceof Users),
+        (s) => s.user!,
+      );
 
-  //     console.log(
-  //       foundTargetUsers.length,
-  //       'Valid user with ids',
-  //       _.map(foundTargetUsers, (u) => u.userId),
-  //     );
+      console.log(
+        foundTargetUsers.length,
+        'Valid user with ids',
+        _.map(foundTargetUsers, (u) => u.userId),
+      );
 
-  //     const savedMsgs: Array<Messages> = [];
+      const savedMsgs: Array<Messages> = [];
 
-  //     const notifyMsgs: BatchMessage = [];
-  //     for (const foundUser of foundTargetUsers) {
-  //       const targetUserId = foundUser.userId;
-  //       const region = foundUser.region;
-  //       const firebaseToken = foundUser.firebaseToken!;
-  //       const setting = _.find(foundSettings, (s) => s.userId === targetUserId)!;
-  //       const lang = setting.language;
+      const notifyMsgs: BatchMessage = [];
+      for (const foundUser of foundTargetUsers) {
+        const targetUserId = foundUser.userId;
+        const region = foundUser.region ?? 'IR';
+        const firebaseToken = foundUser.firebaseToken!;
+        const setting = _.find(foundSettings, (s) => s.userId === targetUserId)!;
+        const lang = setting.language;
 
-  //       const timezone = Ct.getTimezonesForCountry(region ?? 'IR')[0].name;
-  //       const timestamp = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+        const timezone = Ct.getTimezonesForCountry(region)[0].name;
+        const timestamp = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
-  //       const savedMsg = await this.usersRepository.messages(targetUserId).create({
-  //         message: newMessage.message,
-  //         userId: targetUserId,
-  //         isQuestion: false,
-  //         isAnswer: true,
-  //         createdAt: timestamp,
-  //       });
-  //       savedMsgs.push(savedMsg);
+        const savedMsg = await this.usersRepository.messages(targetUserId).create({
+          message: newMessage.message,
+          userId: targetUserId,
+          isQuestion: false,
+          isAnswer: true,
+          createdAt: timestamp,
+        });
+        savedMsgs.push(savedMsg);
 
-  //       const savedNotify = await this.usersRepository.notifications(targetUserId).create({
-  //         type: 'supportMessage',
-  //         title: newMessage.subject ?? this.locMsg['TICKET_RESPONSE'][lang],
-  //         body: newMessage.message,
-  //         messageId: savedMsg.messageId,
-  //         createdAt: timestamp,
-  //       });
+        const savedNotify = await this.usersRepository.notifications(targetUserId).create({
+          type: 'supportMessage',
+          title: newMessage.subject ?? this.locMsg['TICKET_RESPONSE'][lang],
+          body: newMessage.message,
+          messageId: savedMsg.messageId,
+          createdAt: timestamp,
+        });
 
-  //       notifyMsgs.push({
-  //         token: firebaseToken,
-  //         notification: {
-  //           title: savedNotify.title,
-  //           body: savedNotify.body,
-  //         },
-  //         data: {
-  //           notifyId: String(savedNotify.notifyId),
-  //           title: savedNotify.title,
-  //           body: savedNotify.body,
-  //           type: savedNotify.type,
-  //           createdAt: String(savedNotify.createdAt),
-  //         },
-  //       });
-  //     }
+        notifyMsgs.push({
+          token: firebaseToken,
+          notification: {
+            title: savedNotify.title,
+            body: savedNotify.body,
+          },
+          data: {
+            notifyId: String(savedNotify.notifyId),
+            title: savedNotify.title,
+            body: savedNotify.body,
+            type: savedNotify.type,
+            createdAt: String(savedNotify.createdAt),
+          },
+        });
+      }
 
-  //     if (notifyMsgs.length) {
-  //       _.forEach(_.chunk(notifyMsgs, 499), (msgs) => {
-  //         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  //         this.firebaseService.sendAllMessage(msgs);
-  //       });
-  //     }
+      if (notifyMsgs.length) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.firebaseService.sendAllMessage(notifyMsgs);
+      }
 
-  //     return savedMsgs;
-  //   } catch (err) {
-  //     console.error(err);
-  //     throw new HttpErrors.NotImplemented(JSON.stringify(err));
-  //   }
-  // }
+      return savedMsgs;
+    } catch (err) {
+      console.error(err);
+      throw new HttpErrors.NotImplemented(JSON.stringify(err));
+    }
+  }
 }
