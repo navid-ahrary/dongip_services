@@ -97,7 +97,7 @@ export class SupportController {
         AND users.id = M.user_id
       ORDER BY messageId DESC `;
 
-    if (_.isNumber(limit)) query += `LIMIT ?`;
+    if (_.isNumber(limit)) query += ` LIMIT ? `;
 
     const msgs: Array<Messages & Partial<Users>> = await this.dataSource.execute(query, [limit]);
 
