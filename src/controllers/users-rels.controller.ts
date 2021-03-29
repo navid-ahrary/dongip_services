@@ -26,11 +26,10 @@ import {
   UsersRelsRepository,
   DongsRepository,
 } from '../repositories';
-import { FirebaseService, PhoneNumberService } from '../services';
+import { CurrentUserProfile, FirebaseService, PhoneNumberService } from '../services';
 import { ValidatePhoneEmailInterceptor, ValidateUsersRelsInterceptor } from '../interceptors';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
-import { CurrentUserProfile } from '../interfaces';
 
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
 @authenticate('jwt.access')

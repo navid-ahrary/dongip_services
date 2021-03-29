@@ -19,7 +19,7 @@ import Ct from 'countries-and-timezones';
 import 'moment-timezone';
 import { Reminders, Users } from '../models';
 import { UsersRepository } from '../repositories';
-import { CurrentUserProfile } from '../interfaces';
+import { CurrentUserProfile } from '../services';
 
 @authenticate('jwt.access')
 export class RemindersController {

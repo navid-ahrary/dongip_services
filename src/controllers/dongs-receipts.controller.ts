@@ -9,7 +9,7 @@ import { Dongs, Users } from '../models';
 import { ReceiptsRepository, DongsRepository } from '../repositories';
 import { ValidateDongIdInterceptor } from '../interceptors';
 import { ReceiptsController } from './receipts.controller';
-import { CurrentUserProfile } from '../interfaces';
+import { CurrentUserProfile } from '../services';
 
 @authenticate('jwt.access')
 @intercept(ValidateDongIdInterceptor.BINDING_KEY)

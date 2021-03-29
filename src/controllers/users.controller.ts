@@ -16,7 +16,7 @@ import _ from 'lodash';
 import Util from 'util';
 import Moment from 'moment';
 import { UserPatchRequestBody } from './specs';
-import { PhoneNumberService } from '../services';
+import { CurrentUserProfile, PhoneNumberService } from '../services';
 import { UsersRepository } from '../repositories';
 import {
   TokenServiceBindings,
@@ -28,7 +28,6 @@ import { Users, CompleteSignup, Settings, UsersRels, Scores, Dongs } from '../mo
 import { HeadersInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
 import { JointAccountController } from './';
-import { CurrentUserProfile } from '../interfaces';
 
 @intercept(HeadersInterceptor.BINDING_KEY)
 @authenticate('jwt.access')

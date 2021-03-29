@@ -18,12 +18,11 @@ import _ from 'lodash';
 import Moment from 'moment';
 import 'moment-timezone';
 import { Messages, Settings, Users } from '../models';
-import { basicAuthorization, BatchMessage, FirebaseService } from '../services';
+import { basicAuthorization, BatchMessage, CurrentUserProfile, FirebaseService } from '../services';
 import { MessagesRepository, SettingsRepository, UsersRepository } from '../repositories';
 import { LocMsgsBindings } from '../keys';
 import { LocalizedMessages } from '../types';
 import { MariadbDataSource } from '../datasources';
-import { CurrentUserProfile } from '../interfaces';
 
 @authorize({ allowedRoles: ['SUPPORT', 'GOD'], voters: [basicAuthorization] })
 @authenticate('jwt.access')

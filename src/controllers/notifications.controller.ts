@@ -7,7 +7,7 @@ import { inject, intercept } from '@loopback/core';
 import { Notifications, Users } from '../models';
 import { NotificationsRepository, UsersRepository } from '../repositories';
 import { HeadersInterceptor } from '../interceptors';
-import { CurrentUserProfile } from '../interfaces';
+import { CurrentUserProfile } from '../services';
 
 @intercept(HeadersInterceptor.BINDING_KEY)
 @authenticate('jwt.access')

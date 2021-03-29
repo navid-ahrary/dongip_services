@@ -7,10 +7,9 @@ import { post, getModelSchemaRef, requestBody, get } from '@loopback/rest';
 import Moment from 'moment';
 import 'moment-timezone';
 import { Messages, Users } from '../models';
-import { FirebaseSupportService } from '../services';
+import { CurrentUserProfile, FirebaseSupportService } from '../services';
 import { UsersRepository } from '../repositories';
 import { HeadersInterceptor } from '../interceptors';
-import { CurrentUserProfile } from '../interfaces';
 
 @intercept(HeadersInterceptor.BINDING_KEY)
 @authenticate('jwt.access')

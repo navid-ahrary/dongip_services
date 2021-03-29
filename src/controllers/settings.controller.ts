@@ -6,7 +6,7 @@ import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { Settings, Users } from '../models';
 import { SettingsRepository, UsersRepository } from '../repositories';
-import { CurrentUserProfile } from '../interfaces';
+import { CurrentUserProfile } from '../services';
 
 @authenticate('jwt.access')
 export class SettingsController {

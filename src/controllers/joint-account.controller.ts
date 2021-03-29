@@ -35,10 +35,15 @@ import {
   UsersRepository,
 } from '../repositories';
 import { ValidateUsersRelsInterceptor, JointAccountsInterceptor } from '../interceptors';
-import { basicAuthorization, BatchMessage, FirebaseService, PhoneNumberService } from '../services';
+import {
+  basicAuthorization,
+  BatchMessage,
+  CurrentUserProfile,
+  FirebaseService,
+  PhoneNumberService,
+} from '../services';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
-import { CurrentUserProfile } from '../interfaces';
 
 @intercept(ValidateUsersRelsInterceptor.BINDING_KEY, JointAccountsInterceptor.BINDING_KEY)
 @authenticate('jwt.access')

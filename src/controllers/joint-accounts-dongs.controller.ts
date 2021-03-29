@@ -8,10 +8,9 @@ import { authorize } from '@loopback/authorization';
 import _ from 'lodash';
 import { Users } from '../models';
 import { JointAccountsRepository, JointAccountSubscribesRepository } from '../repositories';
-import { basicAuthorization } from '../services';
+import { basicAuthorization, CurrentUserProfile } from '../services';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
-import { CurrentUserProfile } from '../interfaces';
 import { ResponseDongs } from '.';
 
 @authenticate('jwt.access')

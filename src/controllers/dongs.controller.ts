@@ -25,7 +25,7 @@ import {
   CategoriesRepository,
   UsersRelsRepository,
 } from '../repositories';
-import { DongService } from '../services';
+import { CurrentUserProfile, DongService } from '../services';
 import {
   ValidateCategoryIdInterceptor,
   JointAccountsInterceptor,
@@ -34,7 +34,6 @@ import {
 import { dongReqBody } from './specs';
 import { CategoriesSource, LocalizedMessages } from '../types';
 import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
-import { CurrentUserProfile } from '../interfaces';
 
 @model()
 export class ResponseNewDong extends Dongs {

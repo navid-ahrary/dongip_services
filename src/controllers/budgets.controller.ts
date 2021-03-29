@@ -8,7 +8,7 @@ import Moment from 'moment';
 import { Budgets, Users } from '../models';
 import { BudgetsRepository } from '../repositories';
 import { ValidateBudgetIdInterceptor } from '../interceptors';
-import { CurrentUserProfile } from '../interfaces';
+import { CurrentUserProfile } from '../services';
 
 @authenticate('jwt.access')
 @intercept(ValidateBudgetIdInterceptor.BINDING_KEY)

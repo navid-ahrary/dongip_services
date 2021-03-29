@@ -22,7 +22,7 @@ import { FILE_UPLOAD_SERVICE, STORAGE_DIRECTORY_BINDING } from '../keys';
 import { ReceiptsRepository } from '../repositories';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { authenticate } from '@loopback/authentication';
-import { CurrentUserProfile } from '../interfaces';
+import { CurrentUserProfile } from '../services';
 
 @authenticate('jwt.access')
 export class ReceiptsController {

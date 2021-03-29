@@ -22,12 +22,12 @@ import {
   WoocommerceService,
   PhoneNumberService,
   EmailService,
+  CurrentUserProfile,
 } from '../services';
 import { Purchases, Subscriptions, Users, InappPurchase } from '../models';
 import { ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocMsgsBindings, SubsSpecBindings } from '../keys';
 import { LocalizedMessages, SubscriptionSpec } from '../types';
-import { CurrentUserProfile } from '../interfaces';
 
 export class PurchasesController {
   constructor(

@@ -20,7 +20,7 @@ import { UsersRepository, CategoriesRepository } from '../repositories';
 import { ValidateCategoryIdInterceptor } from '../interceptors';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
-import { CurrentUserProfile } from '../interfaces';
+import { CurrentUserProfile } from '../services';
 
 @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
