@@ -13,8 +13,7 @@ export class SettingsController {
   private readonly userId: typeof Users.prototype.userId;
 
   constructor(
-    @repository(SettingsRepository)
-    public settingsRepository: SettingsRepository,
+    @repository(SettingsRepository) public settingsRepository: SettingsRepository,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
   ) {
@@ -61,6 +60,6 @@ export class SettingsController {
     })
     patchSettings: Settings,
   ): Promise<Count> {
-    return this.usersRepository.setting(this.userId).patch(patchSettings);
+    await this.usersRepository.setting(this.userId).patch(patchSettings);
   }
 }
