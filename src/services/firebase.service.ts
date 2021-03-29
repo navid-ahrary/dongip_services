@@ -22,8 +22,6 @@ export interface FirebaseService {
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class FirebaseService {
-  private readonly app: app.App;
-
   private readonly messagingService: messaging.Messaging;
 
   private readonly timeToLiveSeconds = 60 * 60 * 24 * 7 * 4; // 4 weeks in seconds
@@ -46,14 +44,13 @@ export class FirebaseService {
     @inject(FirebaseBinding.FIREBASE_DONGIP_USER_CERT) certs: ServiceAccount,
     @inject(FirebaseBinding.FIREBASE_DONGIP_USER_APP_NAME) appName: string,
   ) {
-    this.app = initializeApp(
+    this.messagingService = initializeApp(
       {
         databaseURL: baseUrl,
         credential: credential.cert(certs),
       },
       appName,
-    );
-    this.messagingService = this.app.messaging();
+    ).messaging();
   }
 
   // send a message to a device
