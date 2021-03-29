@@ -19,12 +19,7 @@ import Moment from 'moment';
 import 'moment-timezone';
 import { Messages, Settings, Users } from '../models';
 import { basicAuthorization, BatchMessage, FirebaseService } from '../services';
-import {
-  MessagesRepository,
-  NotificationsRepository,
-  SettingsRepository,
-  UsersRepository,
-} from '../repositories';
+import { MessagesRepository, SettingsRepository, UsersRepository } from '../repositories';
 import { LocMsgsBindings } from '../keys';
 import { LocalizedMessages } from '../types';
 import { MariadbDataSource } from '../datasources';
@@ -37,15 +32,14 @@ export class SupportController {
   private readonly lang: string;
 
   constructor(
-    @inject.context() public ctx: RequestContext,
-    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject.context() private ctx: RequestContext,
+    @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
     @inject('datasources.Mariadb') private dataSource: MariadbDataSource,
     @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
-    @service(FirebaseService) public firebaseService: FirebaseService,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(SettingsRepository) public settingRepo: SettingsRepository,
-    @repository(MessagesRepository) public messagesRepository: MessagesRepository,
-    @repository(NotificationsRepository) public notifyRepo: NotificationsRepository,
+    @service(FirebaseService) private firebaseService: FirebaseService,
+    @repository(UsersRepository) private usersRepository: UsersRepository,
+    @repository(SettingsRepository) private settingRepo: SettingsRepository,
+    @repository(MessagesRepository) private messagesRepository: MessagesRepository,
   ) {
     this.userId = +currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
@@ -75,29 +69,29 @@ export class SupportController {
     let query = `
       WITH M AS (
         SELECT
-          *,
-          ROW_NUMBER() OVER (PARTITION BY user_id
+          *
+          , ROW_NUMBER() OVER (PARTITION BY user_id
         ORDER BY
           id DESC) AS rn
         FROM
           messages )
       SELECT
-        M.id AS messageId,
-        M.message,
-        M.is_answer AS isAnswer,
-        M.is_question AS isQuestion,
-        M.created_at AS createdAt,
-        M.user_id AS userId,
-        users.avatar,
-        users.phone,
-        users.name,
-        users.roles,
-        users.region,
-        users.user_agent AS userAgent,
-        users.platform
+        M.id AS messageId
+        , M.message
+        , M.is_answer AS isAnswer
+        , M.is_question AS isQuestion
+        , M.created_at AS createdAt
+        , M.user_id AS userId
+        , users.avatar
+        , users.phone
+        , users.name
+        , users.roles
+        , users.region
+        , users.user_agent AS userAgent
+        , users.platform
       FROM
-        M,
-        users
+        M
+        , users
       WHERE
         M.rn = 1
         AND users.id = M.user_id
@@ -176,8 +170,8 @@ export class SupportController {
             },
           },
           example: {
-            subject: 'Happy valentine day',
-            message: 'Visit the www.dongip.ir',
+            subject: 'Happy VALENTINE',
+            message: 'Visit www.dongip.ir',
           },
         },
       },
@@ -229,12 +223,12 @@ export class SupportController {
       const notifyMsgs: BatchMessage = [];
       for (const foundUser of foundTargetUsers) {
         const targetUserId = foundUser.userId;
-        const region = foundUser.region;
+        const region = foundUser.region ?? 'IR';
         const firebaseToken = foundUser.firebaseToken!;
         const setting = _.find(foundSettings, (s) => s.userId === targetUserId)!;
         const lang = setting.language;
 
-        const timezone = Ct.getTimezonesForCountry(region ?? 'IR')[0].name;
+        const timezone = Ct.getTimezonesForCountry(region)[0].name;
         const timestamp = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
         const savedMsg = await this.usersRepository.messages(targetUserId).create({
@@ -283,4 +277,139 @@ export class SupportController {
       throw new HttpErrors.NotImplemented(JSON.stringify(err));
     }
   }
+
+  // @post('/support/navigate/', {
+  //   summary: "Navigate User's app",
+  //   security: OPERATION_SECURITY_SPEC,
+  //   responses: {
+  //     '200': {
+  //       description: 'Message model instance',
+  //       content: {
+  //         'application/json': {
+  //           schema: { type: 'array', items: getModelSchemaRef(Messages) },
+  //         },
+  //       },
+  //     },
+  //   },
+  // })
+  // async navigateApp(
+  //   @requestBody({
+  //     content: {
+  //       'application/json': {
+  //         schema: {
+  //           type: 'object',
+  //           required: ['message'],
+  //           properties: {
+  //             subject: { type: 'string' },
+  //             message: { type: 'string' },
+  //           },
+  //         },
+  //         example: {
+  //           subject: 'Happy VALENTINE',
+  //           message: 'Visit www.dongip.ir',
+  //         },
+  //       },
+  //     },
+  //   })
+  //   newMessage: { message: string; subject?: string },
+  //   @param.query.string('language', { required: false })
+  //   language?: typeof Settings.prototype.language,
+  //   @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
+  // ): Promise<Array<Messages>> {
+  //   if (!language && !userId) {
+  //     throw new HttpErrors.UnprocessableEntity('UserId or language must be provided');
+  //   }
+
+  //   try {
+  //     const settingWhere: Where<Settings> = { language: language };
+
+  //     if (userId) _.assign(settingWhere, { userId: userId });
+
+  //     const foundSettings = await this.settingRepo.find({
+  //       fields: { settingId: true, userId: true, language: true },
+  //       where: settingWhere,
+  //       include: [
+  //         {
+  //           relation: 'user',
+  //           scope: {
+  //             fields: { userId: true, firebaseToken: true, region: true },
+  //             where: {
+  //               firebaseToken: { nin: ['null', undefined] },
+  //               phoneLocked: true,
+  //             },
+  //           },
+  //         },
+  //       ],
+  //     });
+
+  //     const foundTargetUsers = _.map(
+  //       _.filter(foundSettings, (s) => s.user instanceof Users),
+  //       (s) => s.user!,
+  //     );
+
+  //     console.log(
+  //       foundTargetUsers.length,
+  //       'Valid user with ids',
+  //       _.map(foundTargetUsers, (u) => u.userId),
+  //     );
+
+  //     const savedMsgs: Array<Messages> = [];
+
+  //     const notifyMsgs: BatchMessage = [];
+  //     for (const foundUser of foundTargetUsers) {
+  //       const targetUserId = foundUser.userId;
+  //       const region = foundUser.region;
+  //       const firebaseToken = foundUser.firebaseToken!;
+  //       const setting = _.find(foundSettings, (s) => s.userId === targetUserId)!;
+  //       const lang = setting.language;
+
+  //       const timezone = Ct.getTimezonesForCountry(region ?? 'IR')[0].name;
+  //       const timestamp = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+
+  //       const savedMsg = await this.usersRepository.messages(targetUserId).create({
+  //         message: newMessage.message,
+  //         userId: targetUserId,
+  //         isQuestion: false,
+  //         isAnswer: true,
+  //         createdAt: timestamp,
+  //       });
+  //       savedMsgs.push(savedMsg);
+
+  //       const savedNotify = await this.usersRepository.notifications(targetUserId).create({
+  //         type: 'supportMessage',
+  //         title: newMessage.subject ?? this.locMsg['TICKET_RESPONSE'][lang],
+  //         body: newMessage.message,
+  //         messageId: savedMsg.messageId,
+  //         createdAt: timestamp,
+  //       });
+
+  //       notifyMsgs.push({
+  //         token: firebaseToken,
+  //         notification: {
+  //           title: savedNotify.title,
+  //           body: savedNotify.body,
+  //         },
+  //         data: {
+  //           notifyId: String(savedNotify.notifyId),
+  //           title: savedNotify.title,
+  //           body: savedNotify.body,
+  //           type: savedNotify.type,
+  //           createdAt: String(savedNotify.createdAt),
+  //         },
+  //       });
+  //     }
+
+  //     if (notifyMsgs.length) {
+  //       _.forEach(_.chunk(notifyMsgs, 499), (msgs) => {
+  //         // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  //         this.firebaseService.sendAllMessage(msgs);
+  //       });
+  //     }
+
+  //     return savedMsgs;
+  //   } catch (err) {
+  //     console.error(err);
+  //     throw new HttpErrors.NotImplemented(JSON.stringify(err));
+  //   }
+  // }
 }
