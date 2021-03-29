@@ -135,18 +135,6 @@ export class FirebaseService {
         // apns: this.apnsConfigs,
       });
     });
-    // msg._.assign(msg, {
-    //   android: {
-    //     priority: 'high',
-    //     ttl: 1000 * 60 * 60 * 24 * 7 * 4, // 4 weeks in miliseconds
-    //     notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
-    //   },
-    //   apns: {
-    //     headers: {
-    //       'apns-expiration': '1604750400',
-    //     },
-    //   },
-    // }),
 
     try {
       const response = await this.messagingService.sendAll(messages);
