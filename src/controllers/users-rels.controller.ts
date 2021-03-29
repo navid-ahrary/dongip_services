@@ -300,7 +300,7 @@ export class UsersRelsController {
           .patch(vu, { userId: this.userId });
       }
 
-      if (_.has(patchUserRelReqBody, 'name')) {
+      if (patchUserRelReqBody.name) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.usersRepository
           .billList(this.userId)
