@@ -1,5 +1,5 @@
 import { inject } from '@loopback/core';
-import { Count, repository } from '@loopback/repository';
+import { repository } from '@loopback/repository';
 import { get, getModelSchemaRef, requestBody, patch } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
@@ -59,7 +59,7 @@ export class SettingsController {
       },
     })
     patchSettings: Settings,
-  ): Promise<Count> {
+  ): Promise<void> {
     await this.usersRepository.setting(this.userId).patch(patchSettings);
   }
 }
