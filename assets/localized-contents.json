@@ -260,8 +260,8 @@
     "en": "Sorry dear %s, We are improving the infrastructure. Thanks for your patient"
   },
   "UPDATE_MESSAGE": {
-    "fa": "رفع باگ های حیاتی",
-    "en": "Critical bugs fixed"
+    "fa": " نسخه ۱.۰.۴\nرفع مشکلات جزئی",
+    "en": "Minor bugs fixed\n version 1.0.4"
   },
   "REMINDER_TITLE": {
     "fa": "یادآوری : %s جان یه موقع یادت نره",
