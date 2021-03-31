@@ -1,15 +1,18 @@
-import { BindingScope, inject, injectable } from '@loopback/core';
+import { BindingScope, inject, injectable, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import Moment from 'moment';
 import { UsersRepository, SubscriptionsRepository } from '../repositories';
 import { Users, Subscriptions } from '../models';
-import { SubscriptionSpec } from '../types';
-import { SubsSpecBindings } from '../keys';
+import { LocalizedMessages, SubscriptionSpec } from '../types';
+import { LocMsgsBindings, SubsSpecBindings } from '../keys';
+import { FirebaseService, MessagePayload } from './firebase.service';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class SubscriptionService {
   constructor(
+    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(SubsSpecBindings) public subsSpec: SubscriptionSpec,
+    @service(FirebaseService) public firebaseService: FirebaseService,
     @repository(UsersRepository) public usersRepo: UsersRepository,
     @repository(SubscriptionsRepository) public subsRepo: SubscriptionsRepository,
   ) {}
@@ -58,5 +61,43 @@ export class SubscriptionService {
     this.usersRepo.updateById(userId, { roles: ['GOLD'] });
 
     return subs;
+  }
+
+  public async sendNotification(
+    userId: typeof Users.prototype.userId,
+    subscription: Subscriptions,
+  ) {
+    const user = await this.usersRepo.findById(userId, {
+      fields: { firebaseToken: true, userId: true, setting: true },
+      include: [{ relation: 'setting' }],
+    });
+
+    const lang = user.setting.language;
+    const planId = subscription.planId;
+
+    const createdNotify = await this.usersRepo.notifications(userId).create({
+      userId: userId,
+      type: 'subscription',
+      title: this.locMsg['PLAN_ID'][lang][planId],
+      body: this.locMsg['SUBSCRIPTION_NOTIFY_BODY'][lang],
+    });
+
+    const notifyPayload: MessagePayload = {
+      notification: {
+        title: createdNotify.title,
+        body: createdNotify.body,
+      },
+      data: {
+        notifyId: createdNotify.getId().toString(),
+        type: createdNotify.type,
+        title: createdNotify.title,
+        body: createdNotify.body,
+        subscriptionId: subscription.getId().toString(),
+        solTime: subscription.solTime.toString(),
+        eolTime: subscription.eolTime.toString(),
+      },
+    };
+
+    await this.firebaseService.sendToDeviceMessage(user.firebaseToken!, notifyPayload);
   }
 }

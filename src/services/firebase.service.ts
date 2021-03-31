@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { BindingScope, inject, injectable } from '@loopback/core';
 import { HttpErrors } from '@loopback/rest';
-import { messaging, initializeApp, credential, app, ServiceAccount } from 'firebase-admin';
+import { messaging, initializeApp, credential, ServiceAccount } from 'firebase-admin';
 import _ from 'lodash';
 import { FirebaseBinding } from '../keys';
 
@@ -17,7 +17,7 @@ export interface FirebaseService {
 
   sendMultiCastMessage(message: messaging.MulticastMessage, dryRun?: boolean): void;
 
-  sendAllMessage(messages: BatchMessage): Promise<messaging.BatchResponse>;
+  sendAllMessage(messages: BatchMessage): Promise<Array<messaging.BatchResponse>>;
 }
 
 @injectable({ scope: BindingScope.SINGLETON })
@@ -125,7 +125,7 @@ export class FirebaseService {
   }
 
   //send multi message to multi devices
-  public async sendAllMessage(messages: BatchMessage): Promise<messaging.BatchResponse> {
+  public async sendAllMessage(messages: BatchMessage): Promise<Array<messaging.BatchResponse>> {
     _.forEach(messages, (message) => {
       _.assign(message, {
         android: this.androidConfigs,
@@ -134,15 +134,18 @@ export class FirebaseService {
     });
 
     try {
-      const response = await this.messagingService.sendAll(messages);
-
-      if (response.successCount) {
-        console.log(`Successfully sent notifications, ${JSON.stringify(response)}`);
-      } else if (response.failureCount) {
-        console.warn(`Failed sent notifications: ${JSON.stringify(response)}`);
-      } else {
-        console.warn('There is no response from firebase');
-      }
+      const response: messaging.BatchResponse[] = [];
+      _.forEach(_.chunk(messages, 500), async (msgs) => {
+        const res = await this.messagingService.sendAll(msgs);
+        response.push(res);
+        if (res.successCount) {
+          console.log(`Successfully sent notifications, ${JSON.stringify(res)}`);
+        } else if (res.failureCount) {
+          console.warn(`Failed sent notifications: ${JSON.stringify(res)}`);
+        } else {
+          console.warn('There is no response from firebase');
+        }
+      });
 
       return response;
     } catch (err) {
