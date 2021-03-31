@@ -276,7 +276,7 @@ export class SupportController {
   }
 
   @post('/support/navigate/', {
-    summary: "Navigate User's app",
+    summary: 'Navigate app to specified page',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
@@ -295,20 +295,22 @@ export class SupportController {
         'application/json': {
           schema: {
             type: 'object',
-            required: ['message'],
             properties: {
-              subject: { type: 'string' },
+              title: { type: 'string' },
               message: { type: 'string' },
+              page: { type: 'string' },
             },
+            required: ['title', 'message', 'page'],
           },
           example: {
-            subject: 'Happy VALENTINE',
+            title: 'Happy VALENTINE',
             message: 'Visit www.dongip.ir',
+            page: 'dong',
           },
         },
       },
     })
-    reqBody: { message: string; subject?: string },
+    reqBody: { message: string; subject: string; page: string },
     @param.query.string('language', { required: false })
     language?: typeof Settings.prototype.language,
     @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
@@ -323,7 +325,7 @@ export class SupportController {
       if (userId) _.assign(settingWhere, { userId: userId });
 
       const foundSettings = await this.settingRepo.find({
-        fields: { settingId: true, userId: true, language: true },
+        fields: { settingId: true, userId: true },
         where: settingWhere,
         include: [
           {
@@ -357,9 +359,6 @@ export class SupportController {
         const targetUserId = foundUser.userId;
         const region = foundUser.region ?? 'IR';
         const firebaseToken = foundUser.firebaseToken!;
-        const setting = _.find(foundSettings, (s) => s.userId === targetUserId)!;
-        const lang = setting.language;
-
         const timezone = Ct.getTimezonesForCountry(region)[0].name;
         const timestamp = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
@@ -374,8 +373,9 @@ export class SupportController {
 
         const savedNotify = await this.usersRepository.notifications(targetUserId).create({
           type: 'navigate',
-          title: reqBody.subject ?? this.locMsg['TICKET_RESPONSE'][lang],
+          title: reqBody.subject,
           body: reqBody.message,
+          desc: reqBody.page,
           messageId: savedMsg.messageId,
           createdAt: timestamp,
         });
@@ -391,6 +391,7 @@ export class SupportController {
             title: savedNotify.title,
             body: savedNotify.body,
             type: savedNotify.type,
+            desc: savedNotify.desc!,
             createdAt: String(savedNotify.createdAt),
           },
         });
