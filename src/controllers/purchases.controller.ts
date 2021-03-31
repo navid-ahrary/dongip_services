@@ -103,104 +103,107 @@ export class PurchasesController {
         throw new HttpErrors.Conflict(this.locMsg['CAFEBAZAAR_PURCHASE_DUPLICATION'][lang]);
       }
     }
+    const subs = await this.subsService.performSubscription(userId, planId, purchaseUTCTime);
 
-    return this.subsService.performSubscription(userId, planId, purchaseUTCTime);
+    await this.subsService.sendNotification(userId, subs);
+
+    return subs;
   }
 
-  @authenticate('jwt.access')
-  @post('/purchases/in-app/validate/', {
-    summary: 'Validate in-app subscription purchase',
-    security: OPERATION_SECURITY_SPEC,
-    responses: {
-      200: {
-        description: 'Purchase model instance',
-        content: { 'application/json': { schema: getModelSchemaRef(Purchases) } },
-      },
-      422: {
-        description: 'Purchase is not valid',
-      },
-    },
-  })
-  async validateInappPurchases(
-    @param.query.string('planId', {
-      description: 'planId/productId/sku',
-      required: true,
-      schema: {
-        enum: ['plan_gm1', 'plan_gm6', 'plan_gy1'],
-      },
-      examples: {
-        oneMonth: { value: 'plan_gm1' },
-        sixMonths: { value: 'plan_gm6' },
-        oneYear: { value: 'plan_gy1' },
-      },
-    })
-    planId: string,
-    @param.query.string('purchaseOrigin', {
-      description: 'Purchase origin',
-      required: true,
-      schema: { enum: ['cafebazaar'] },
-      examples: { cafebazaar: { value: 'cafebazaar' } },
-    })
-    purchaseOrigin: string,
-    @param.query.string('purchaseToken', {
-      description: 'Purchase token',
-      required: true,
-      example: 'AbCd_eFgHiJ',
-    })
-    purchaseToken: string,
-    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
-  ): Promise<Purchases> {
-    const userId = +currentUserProfile[securityId];
-    const lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
+  // @authenticate('jwt.access')
+  // @post('/purchases/in-app/validate/', {
+  //   summary: 'Validate in-app subscription purchase',
+  //   security: OPERATION_SECURITY_SPEC,
+  //   responses: {
+  //     200: {
+  //       description: 'Purchase model instance',
+  //       content: { 'application/json': { schema: getModelSchemaRef(Purchases) } },
+  //     },
+  //     422: {
+  //       description: 'Purchase is not valid',
+  //     },
+  //   },
+  // })
+  // async validateInappPurchases(
+  //   @param.query.string('planId', {
+  //     description: 'planId/productId/sku',
+  //     required: true,
+  //     schema: {
+  //       enum: ['plan_gm1', 'plan_gm6', 'plan_gy1'],
+  //     },
+  //     examples: {
+  //       oneMonth: { value: 'plan_gm1' },
+  //       sixMonths: { value: 'plan_gm6' },
+  //       oneYear: { value: 'plan_gy1' },
+  //     },
+  //   })
+  //   planId: string,
+  //   @param.query.string('purchaseOrigin', {
+  //     description: 'Purchase origin',
+  //     required: true,
+  //     schema: { enum: ['cafebazaar', 'myket'] },
+  //     examples: { cafebazaar: { value: 'cafebazaar' } },
+  //   })
+  //   purchaseOrigin: string,
+  //   @param.query.string('purchaseToken', {
+  //     description: 'Purchase token',
+  //     required: true,
+  //     example: 'AbCd_eFgHiJ',
+  //   })
+  //   purchaseToken: string,
+  //   @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
+  // ): Promise<Purchases> {
+  //   const userId = +currentUserProfile[securityId];
+  //   const lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
 
-    let purchaseTime: moment.Moment;
+  //   let purchaseTime: moment.Moment;
 
-    if (purchaseOrigin === 'cafebazaar') {
-      const purchaseStatus = await this.cafebazaarService.getPurchaseState({
-        productId: planId,
-        purchaseToken: purchaseToken,
-      });
+  //   if (purchaseOrigin === 'cafebazaar') {
+  //     const purchaseStatus = await this.cafebazaarService.getPurchaseState({
+  //       productId: planId,
+  //       purchaseToken: purchaseToken,
+  //     });
 
-      if (
-        (purchaseStatus.error === 'not_found' &&
-          purchaseStatus.error_description === 'The requested purchase is not found!') ||
-        (purchaseStatus.error === 'invalid_value' &&
-          purchaseStatus.error_description === 'Product is not found.')
-      ) {
-        const errMsg = this.locMsg['CAFEBAZAAR_PURCHASE_NOT_VALID'][lang];
+  //     if (
+  //       (purchaseStatus.error === 'not_found' &&
+  //         purchaseStatus.error_description === 'The requested purchase is not found!') ||
+  //       (purchaseStatus.error === 'invalid_value' &&
+  //         purchaseStatus.error_description === 'Product is not found.')
+  //     ) {
+  //       const errMsg = this.locMsg['CAFEBAZAAR_PURCHASE_NOT_VALID'][lang];
 
-        console.error(`userId ${userId} ${errMsg}`);
-        throw new HttpErrors.UnprocessableEntity(errMsg);
-      } else if (purchaseStatus.purchaseState === 0) {
-        purchaseTime = Moment(purchaseStatus.purchaseTime).utc();
+  //       console.error(`userId ${userId} ${errMsg}`);
+  //       throw new HttpErrors.UnprocessableEntity(errMsg);
+  //     } else if (purchaseStatus.purchaseState === 0) {
+  //       purchaseTime = Moment(purchaseStatus.purchaseTime).utc();
 
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.subsService.performSubscription(userId, planId, purchaseTime).then(async (subs) => {
-          await this.subsService.sendNotification(userId, subs);
-        });
+  //       // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  //       this.subsService.performSubscription(userId, planId, purchaseTime).then(async (subs) => {
+  //         await this.subsService.sendNotification(userId, subs);
+  //       });
 
-        const purchaseEnt = new Purchases({
-          userId: userId,
-          planId: planId,
-          purchasedAt: purchaseTime.toISOString(),
-          purchaseToken: purchaseToken,
-          purchaseOrigin: purchaseOrigin,
-        });
+  //       const purchaseEnt = new Purchases({
+  //         userId: userId,
+  //         planId: planId,
+  //         purchasedAt: purchaseTime.toISOString(),
+  //         purchaseToken: purchaseToken,
+  //         purchaseOrigin: purchaseOrigin,
+  //       });
 
-        return this.purchasesRepo.create(purchaseEnt);
-      } else {
-        const errMsg = this.locMsg['CAFEBAZAAR_PURCHASE_DROPED'][lang];
+  //       return this.purchasesRepo.create(purchaseEnt);
+  //     } else {
+  //       const errMsg = this.locMsg['CAFEBAZAAR_PURCHASE_DROPED'][lang];
 
-        console.error(`userId ${userId} ${errMsg}`);
-        throw new HttpErrors.UnprocessableEntity(errMsg);
-      }
-    } else {
-      const errMsg = 'Purchase origin is not supported';
+  //       console.error(`userId ${userId} ${errMsg}`);
+  //       throw new HttpErrors.UnprocessableEntity(errMsg);
+  //     }
+  //   } else {
+  //     const errMsg = 'Purchase origin is not supported';
 
-      console.error(`userId ${userId}: ${errMsg}`);
-      throw new HttpErrors.NotImplemented(errMsg);
-    }
-  }
+  //     console.error(`userId ${userId}: ${errMsg}`);
+  //     throw new HttpErrors.NotImplemented(errMsg);
+  //   }
+  // }
 
   @authenticate.skip()
   @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
