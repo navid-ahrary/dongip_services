@@ -320,9 +320,9 @@ export class SupportController {
     }
 
     try {
-      const settingWhere: Where<Settings> = { language: language };
+      let settingWhere: Where<Settings> = { language: language };
 
-      if (userId) _.assign(settingWhere, { userId: userId });
+      if (userId) settingWhere = { ...settingWhere, userId: userId };
 
       const foundSettings = await this.settingRepo.find({
         fields: { settingId: true, userId: true },
