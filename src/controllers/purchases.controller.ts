@@ -18,7 +18,6 @@ import {
   CafebazaarService,
   SubscriptionService,
   FirebaseService,
-  MessagePayload,
   WoocommerceService,
   PhoneNumberService,
   EmailService,
@@ -43,42 +42,6 @@ export class PurchasesController {
     @service(PhoneNumberService) public phoneNumSerice: PhoneNumberService,
     @service(CafebazaarService) public cafebazaarService: CafebazaarService,
   ) {}
-
-  async sendNotification(userId: typeof Users.prototype.userId, subscription: Subscriptions) {
-    const user = await this.usersRepo.findById(userId, {
-      fields: { firebaseToken: true, userId: true, setting: true },
-      include: [{ relation: 'setting' }],
-    });
-
-    const lang = user.setting.language;
-    const planId = subscription.planId;
-
-    const createdNotify = await this.usersRepo.notifications(userId).create({
-      userId: userId,
-      type: 'subscription',
-      title: this.locMsg['PLAN_ID'][lang][planId],
-      body: this.locMsg['SUBSCRIPTION_NOTIFY_BODY'][lang],
-    });
-
-    const notifyPayload: MessagePayload = {
-      notification: {
-        title: createdNotify.title,
-        body: createdNotify.body,
-        clickAction: 'FLUTTER_NOTIFICATION_CLICK',
-      },
-      data: {
-        notifyId: createdNotify.getId().toString(),
-        type: createdNotify.type,
-        title: createdNotify.title,
-        body: createdNotify.body,
-        subscriptionId: subscription.getId().toString(),
-        solTime: subscription.solTime.toString(),
-        eolTime: subscription.eolTime.toString(),
-      },
-    };
-
-    await this.firebaseService.sendToDeviceMessage(user.firebaseToken!, notifyPayload);
-  }
 
   @authenticate('jwt.access')
   @post('/purchases/in-app', {
@@ -213,7 +176,7 @@ export class PurchasesController {
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.subsService.performSubscription(userId, planId, purchaseTime).then(async (subs) => {
-          await this.sendNotification(userId, subs);
+          await this.subsService.sendNotification(userId, subs);
         });
 
         const purchaseEnt = new Purchases({
@@ -260,18 +223,18 @@ export class PurchasesController {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.woocomService.getOrder(orderId).then(async (order) => {
       if (order['status'] === 'processing') {
-        const planId = order['line_items'][0]['sku'];
-        const purchaseAmount = +order['line_items'][0]['price'];
-        const currency = order['currency'];
-        const purchaseToken = order['order_key'];
-        const purchasedAt = Moment(order['date_paid_gmt']);
-        const purchaseOrigin = order['payment_method'];
+        const planId = order['line_items'][0]['sku'],
+          purchaseAmount = +order['line_items'][0]['price'],
+          currency = order['currency'],
+          purchaseToken = order['order_key'],
+          purchasedAt = Moment(order['date_paid_gmt']),
+          purchaseOrigin = order['payment_method'];
 
-        let identityValue = order['billing']['phone'];
-        let user: Users | null;
+        let identityValue = order['billing']['phone'],
+          user: Users | null;
 
-        const isMobile = this.phoneNumSerice.isValid(identityValue);
-        const isEmail = await this.emailService.isValid(identityValue);
+        const isMobile = this.phoneNumSerice.isValid(identityValue),
+          isEmail = await this.emailService.isValid(identityValue);
 
         if (isMobile) {
           user = await this.usersRepo.findOne({
@@ -307,7 +270,7 @@ export class PurchasesController {
           await this.subsService
             .performSubscription(user.getId(), planId, purchasedAt)
             .then(async (subs) => {
-              await this.sendNotification(user!.getId(), subs);
+              await this.subsService.sendNotification(user!.getId(), subs);
 
               await this.woocomService.updateOrderStatus(orderId, 'completed');
             });

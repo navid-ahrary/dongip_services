@@ -156,7 +156,7 @@ export class SupportController {
       },
     },
   })
-  async responseToMessage(
+  async sendMessage(
     @requestBody({
       content: {
         'application/json': {
@@ -185,9 +185,9 @@ export class SupportController {
     }
 
     try {
-      const settingWhere: Where<Settings> = { language: language };
+      let settingWhere: Where<Settings> = { language: language };
 
-      if (userId) _.assign(settingWhere, { userId: userId });
+      if (userId) settingWhere = { ...settingWhere, userId: userId };
 
       const foundSettings = await this.settingRepo.find({
         fields: { settingId: true, userId: true, language: true },
@@ -264,10 +264,8 @@ export class SupportController {
       }
 
       if (notifyMsgs.length) {
-        _.forEach(_.chunk(notifyMsgs, 499), (msgs) => {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          this.firebaseService.sendAllMessage(msgs);
-        });
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.firebaseService.sendAllMessage(notifyMsgs);
       }
 
       return savedMsgs;
@@ -310,7 +308,7 @@ export class SupportController {
         },
       },
     })
-    newMessage: { message: string; subject?: string },
+    reqBody: { message: string; subject?: string },
     @param.query.string('language', { required: false })
     language?: typeof Settings.prototype.language,
     @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
@@ -366,7 +364,7 @@ export class SupportController {
         const timestamp = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
         const savedMsg = await this.usersRepository.messages(targetUserId).create({
-          message: newMessage.message,
+          message: reqBody.message,
           userId: targetUserId,
           isQuestion: false,
           isAnswer: true,
@@ -375,9 +373,9 @@ export class SupportController {
         savedMsgs.push(savedMsg);
 
         const savedNotify = await this.usersRepository.notifications(targetUserId).create({
-          type: 'supportMessage',
-          title: newMessage.subject ?? this.locMsg['TICKET_RESPONSE'][lang],
-          body: newMessage.message,
+          type: 'navigate',
+          title: reqBody.subject ?? this.locMsg['TICKET_RESPONSE'][lang],
+          body: reqBody.message,
           messageId: savedMsg.messageId,
           createdAt: timestamp,
         });
