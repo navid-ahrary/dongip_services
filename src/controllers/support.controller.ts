@@ -296,14 +296,14 @@ export class SupportController {
           schema: {
             type: 'object',
             properties: {
-              title: { type: 'string' },
+              subject: { type: 'string' },
               message: { type: 'string' },
               page: { type: 'string' },
             },
             required: ['title', 'message', 'page'],
           },
           example: {
-            title: 'Happy VALENTINE',
+            subject: 'Happy VALENTINE',
             message: 'Visit www.dongip.ir',
             page: 'dong',
           },
