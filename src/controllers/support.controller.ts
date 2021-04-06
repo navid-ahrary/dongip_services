@@ -179,16 +179,27 @@ export class SupportController {
     @param.query.string('language', { required: false })
     language?: typeof Settings.prototype.language,
     @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
+    @param.query.string('platform', { required: false }) platform?: typeof Users.prototype.platform,
+    @param.query.string('appVersion', { required: false })
+    appVersion?: typeof Users.prototype.appVersion,
   ): Promise<Array<Messages>> {
     if (!language && !userId) {
       throw new HttpErrors.UnprocessableEntity('UserId or language must be provided');
     }
 
+    let settingWhere: Where<Settings> = { language: language };
+
+    if (userId) settingWhere = { ...settingWhere, userId: userId };
+
+    let userWhere: Where<Users> = {
+      firebaseToken: { nin: ['null', undefined] },
+      phoneLocked: true,
+    };
+
+    if (platform) userWhere = { ...userWhere, platform: platform };
+    if (appVersion) userWhere = { ...userWhere, appVersion: appVersion };
+
     try {
-      let settingWhere: Where<Settings> = { language: language };
-
-      if (userId) settingWhere = { ...settingWhere, userId: userId };
-
       const foundSettings = await this.settingRepo.find({
         fields: { settingId: true, userId: true, language: true },
         where: settingWhere,
@@ -197,10 +208,7 @@ export class SupportController {
             relation: 'user',
             scope: {
               fields: { userId: true, firebaseToken: true, region: true },
-              where: {
-                firebaseToken: { nin: ['null', undefined] },
-                phoneLocked: true,
-              },
+              where: userWhere,
             },
           },
         ],
@@ -314,6 +322,9 @@ export class SupportController {
     @param.query.string('language', { required: false })
     language?: typeof Settings.prototype.language,
     @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
+    @param.query.string('platform', { required: false }) platform?: typeof Users.prototype.platform,
+    @param.query.string('appVersion', { required: false })
+    appVersion?: typeof Users.prototype.appVersion,
   ): Promise<Array<Messages>> {
     if (!language && !userId) {
       throw new HttpErrors.UnprocessableEntity('UserId or language must be provided');
@@ -324,6 +335,14 @@ export class SupportController {
 
       if (userId) settingWhere = { ...settingWhere, userId: userId };
 
+      let userWhere: Where<Users> = {
+        firebaseToken: { nin: ['null', undefined] },
+        phoneLocked: true,
+      };
+
+      if (platform) userWhere = { ...userWhere, platform: platform };
+      if (appVersion) userWhere = { ...userWhere, appVersion: appVersion };
+
       const foundSettings = await this.settingRepo.find({
         fields: { settingId: true, userId: true },
         where: settingWhere,
@@ -332,10 +351,7 @@ export class SupportController {
             relation: 'user',
             scope: {
               fields: { userId: true, firebaseToken: true, region: true },
-              where: {
-                firebaseToken: { nin: ['null', undefined] },
-                phoneLocked: true,
-              },
+              where: userWhere,
             },
           },
         ],
