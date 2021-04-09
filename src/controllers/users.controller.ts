@@ -321,7 +321,10 @@ export class UsersController {
         forceUpdate: this.packageInfo.systemStatus.forceUpdate,
         maintenance: this.packageInfo.systemStatus.maintenance,
         message: Util.format(this.locMsg['SERVER_MAINTENACE'][this.lang], this.userName),
-        updateMessage: this.locMsg['UPDATE_MESSAGE'][this.lang],
+        updateMessage: Util.format(
+          this.locMsg['UPDATE_MESSAGE'][this.lang],
+          this.packageInfo.version,
+        ),
       },
     };
   }
