@@ -260,7 +260,7 @@
     "en": "Sorry dear %s, We are improving the infrastructure. Thanks for your patient"
   },
   "UPDATE_MESSAGE": {
-    "fa": "%s \nرفع مشکلات جزئی",
+    "fa": "%s نسخه \nرفع مشکلات جزئی",
     "en": "Minor bugs fixed\n version %s"
   },
   "REMINDER_TITLE": {
