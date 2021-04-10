@@ -191,10 +191,7 @@ export class SupportController {
 
     if (userId) settingWhere = { ...settingWhere, userId: userId };
 
-    let userWhere: Where<Users> = {
-      firebaseToken: { nin: ['null', undefined] },
-      phoneLocked: true,
-    };
+    let userWhere: Where<Users> = { phoneLocked: true };
 
     if (platform) userWhere = { ...userWhere, platform: platform };
     if (appVersion) userWhere = { ...userWhere, appVersion: appVersion };
