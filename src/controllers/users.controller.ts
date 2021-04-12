@@ -41,7 +41,7 @@ export class UsersController {
     @inject(PackageKey) public packageInfo: PackageInfo,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(TutorialLinksListBinding) public tutLinks: TutorialLinks,
-    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
+    @inject(SecurityBindings.USER) private currentUserProfile: CurrentUserProfile,
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
     @inject('controllers.JointAccountController') public jointController: JointAccountController,
     @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
@@ -304,6 +304,11 @@ export class UsersController {
       this.usersRepository.updateById(this.userId, { roles: roles });
     }
 
+    const updateForced =
+      this.currentUserProfile.platform === 'iOS'
+        ? false
+        : this.packageInfo.systemStatus.forceUpdate;
+
     return {
       roles: roles,
       totalScores: this._calculateTotalUserScore(foundUser.scores),
@@ -318,7 +323,7 @@ export class UsersController {
       application: {
         accessTokenExpiresIn: +this.accessExpiresIn,
         version: this.packageInfo.version,
-        forceUpdate: this.packageInfo.systemStatus.forceUpdate,
+        forceUpdate: updateForced,
         maintenance: this.packageInfo.systemStatus.maintenance,
         message: Util.format(this.locMsg['SERVER_MAINTENACE'][this.lang], this.userName),
         updateMessage: Util.format(
