@@ -27,7 +27,7 @@ import { Users, BillList, PayerList, Dongs, Budgets } from './';
         entityKey: 'id',
         foreignKey: 'parentCategoryId',
         onUpdate: 'cascade',
-        onDelete: 'set null',
+        onDelete: 'cascade',
       },
     },
   },
