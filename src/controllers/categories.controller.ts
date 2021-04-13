@@ -83,6 +83,7 @@ export class CategoriesController {
           example: {
             title: 'مسافرت',
             icon: 'assets/images/icons/travel/ic_normal_travel_03.png',
+            parentCategoryId: 1,
           },
         },
       },
@@ -137,6 +138,7 @@ export class CategoriesController {
               value: {
                 title: 'قسط',
                 icon: 'assets/cat4/icon_3.png',
+                parentCategoryId: 2,
               },
             },
           },

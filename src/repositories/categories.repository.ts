@@ -47,6 +47,16 @@ export class CategoriesRepository extends DefaultCrudRepository<
     typeof Categories.prototype.categoryId
   >;
 
+  public readonly parentCategroy: BelongsToAccessor<
+    Categories,
+    typeof Categories.prototype.categoryId
+  >;
+
+  public readonly categories: HasManyRepositoryFactory<
+    Categories,
+    typeof Categories.prototype.categoryId
+  >;
+
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
@@ -57,8 +67,21 @@ export class CategoriesRepository extends DefaultCrudRepository<
     @repository.getter('DongsRepository') protected dongsRepositoryGetter: Getter<DongsRepository>,
     @repository.getter('BudgetsRepository')
     protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
+    @repository.getter('CategoriesRepository')
+    protected categoriesRepositoryGetter: Getter<CategoriesRepository>,
   ) {
     super(Categories, dataSource);
+    this.categories = this.createHasManyRepositoryFactoryFor(
+      'categories',
+      categoriesRepositoryGetter,
+    );
+    this.registerInclusionResolver('categories', this.categories.inclusionResolver);
+
+    this.parentCategroy = this.createBelongsToAccessorFor(
+      'parentCategroy',
+      categoriesRepositoryGetter,
+    );
+    this.registerInclusionResolver('parentCategroy', this.parentCategroy.inclusionResolver);
 
     this.budgets = this.createHasManyRepositoryFactoryFor('budgets', budgetsRepositoryGetter);
     this.registerInclusionResolver('budgets', this.budgets.inclusionResolver);

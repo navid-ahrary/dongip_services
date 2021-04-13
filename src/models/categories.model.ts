@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { Entity, model, property, belongsTo, hasMany, RelationType } from '@loopback/repository';
-
-import { Users } from './';
-import { BillList } from './bill-list.model';
-import { PayerList } from './payer-list.model';
-import { Dongs } from './dongs.model';
-import { Budgets } from './budgets.model';
+import { Users, BillList, PayerList, Dongs, Budgets } from './';
 
 @model({
   name: 'categories',
@@ -26,13 +21,21 @@ import { Budgets } from './budgets.model';
         onUpdate: 'cascade',
         onDelete: 'cascade',
       },
+      fkCategoriesParentCategorId: {
+        name: 'fk_categories_parent_category_id',
+        entity: 'categories',
+        entityKey: 'id',
+        foreignKey: 'parentCategoryId',
+        onUpdate: 'cascade',
+        onDelete: 'set null',
+      },
     },
   },
   jsonSchema: { description: 'Categories model' },
 })
 export class Categories extends Entity {
   @property({
-    type: 'Number',
+    type: 'number',
     id: true,
     required: false,
     generated: true,
@@ -140,6 +143,28 @@ export class Categories extends Entity {
     targetsMany: true,
   })
   budgets: Budgets[];
+
+  @belongsTo(
+    () => Categories,
+    {
+      name: 'parentCategroy',
+      keyTo: 'categroyId',
+      source: Categories,
+    },
+    {
+      type: 'number',
+      jsonSchema: { minimum: 1 },
+      mysql: {
+        columnName: 'parent_category_id',
+        dataType: 'mediumint unsigned',
+        nullable: 'Y',
+      },
+    },
+  )
+  parentCategoryId?: number;
+
+  @hasMany(() => Categories, { keyTo: 'parentCategoryId' })
+  categories: Categories[];
 
   constructor(data?: Partial<Categories>) {
     super(data);
