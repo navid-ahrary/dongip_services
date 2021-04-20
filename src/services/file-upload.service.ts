@@ -46,20 +46,20 @@ export class FileUploadProvider implements Provider<FileUploadHandler> {
     return Multer(this.options).any();
   }
 
-  public fileFilter(
-    req: Request,
-    file: Express.Multer.File,
-    callback: Multer.FileFilterCallback,
-  ): void {
-    const filetypes = /jpeg|jpg|png/;
-    const mimetype = filetypes.test(file.mimetype);
+  // public fileFilter(
+  //   req: Request,
+  //   file: Express.Multer.File,
+  //   callback: Multer.FileFilterCallback,
+  // ): void {
+  //   const filetypes = /jpeg|jpg|png/;
+  //   const mimetype = filetypes.test(file.mimetype);
 
-    const extname = filetypes.test(Path.extname(file.originalname).toLowerCase());
+  //   const extname = filetypes.test(Path.extname(file.originalname).toLowerCase());
 
-    if (mimetype && extname) {
-      return callback(null, true);
-    } else {
-      callback(new Multer.MulterError('LIMIT_UNEXPECTED_FILE'));
-    }
-  }
+  //   if (mimetype && extname) {
+  //     return callback(null, true);
+  //   } else {
+  //     callback(new Multer.MulterError('LIMIT_UNEXPECTED_FILE'));
+  //   }
+  // }
 }
