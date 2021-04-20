@@ -1,7 +1,7 @@
 import { getModelSchemaRef, RequestBodyObject } from '@loopback/rest';
-import { PostDong } from '../../models';
+import { Dongs, PostDong } from '../../models';
 
-export const dongReqBody: RequestBodyObject = {
+export const createDongReqBodySpec: RequestBodyObject = {
   content: {
     'application/json': {
       schema: getModelSchemaRef(PostDong, {
@@ -25,6 +25,28 @@ export const dongReqBody: RequestBodyObject = {
           { userRelId: 9, dongAmount: 20000 },
         ],
       },
+    },
+  },
+};
+
+export const patchDongsReqBodySpec: RequestBodyObject = {
+  content: {
+    'application/json': {
+      schema: getModelSchemaRef(Dongs, {
+        title: 'PatchDongs',
+        optional: ['userId', 'categoryId'],
+        exclude: [
+          'createdAt',
+          'currency',
+          'originDongId',
+          'dongId',
+          'pong',
+          'jointAccountId',
+          'includeBill',
+          'includeBudget',
+        ],
+      }),
+      example: { categoryId: 202 },
     },
   },
 };

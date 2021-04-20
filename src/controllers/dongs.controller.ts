@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { repository, property, model, CountSchema, DataObject } from '@loopback/repository';
+import { repository, property, model, CountSchema, DataObject, Count } from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
@@ -31,7 +31,7 @@ import {
   JointAccountsInterceptor,
   ValidateDongIdInterceptor,
 } from '../interceptors';
-import { dongReqBody } from './specs';
+import { createDongReqBodySpec, patchDongsReqBodySpec } from './specs';
 import { CategoriesSource, LocalizedMessages } from '../types';
 import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
 
@@ -48,6 +48,7 @@ export class ResponseDongs extends Dongs {
 }
 
 @authenticate('jwt.access')
+@intercept(ValidateCategoryIdInterceptor.BINDING_KEY, ValidateDongIdInterceptor.BINDING_KEY)
 export class DongsController {
   private readonly userId: typeof Users.prototype.userId;
   private readonly lang: string;
@@ -69,8 +70,6 @@ export class DongsController {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
-  @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
-  @intercept(ValidateDongIdInterceptor.BINDING_KEY)
   @patch('/dongs/{dongId}', {
     summary: 'Update Dongs description and categoryId by dongId',
     description: 'Do not send notification to dong members, just update own Dong entity',
@@ -139,6 +138,32 @@ export class DongsController {
     }
   }
 
+  @patch('/dongs', {
+    summary: 'Update bunch of Dongs by Where query',
+    security: OPERATION_SECURITY_SPEC,
+    responses: {
+      200: {
+        description: 'Successfully, Count Updated Entites',
+        content: {
+          'application/json': {
+            schema: CountSchema,
+          },
+        },
+      },
+      422: { description: 'Unprocessable entity' },
+    },
+  })
+  async patchDongs(
+    @param.query.number('categoryId', { required: true, example: 12 }) categoryId: number,
+    @requestBody(patchDongsReqBodySpec) patchReqBody: Partial<Dongs>,
+  ): Promise<Count> {
+    await this.userRepo
+      .categories(this.userId)
+      .patch({ parentCategoryId: patchReqBody.categoryId }, { parentCategoryId: categoryId });
+
+    return this.userRepo.dongs(this.userId).patch(patchReqBody, { categoryId: categoryId });
+  }
+
   @get('/dongs/', {
     summary: 'Get array of all Dongs',
     security: OPERATION_SECURITY_SPEC,
@@ -204,7 +229,7 @@ export class DongsController {
     },
   })
   async createDongs(
-    @requestBody(dongReqBody) newDong: PostDong,
+    @requestBody(createDongReqBodySpec) newDong: PostDong,
   ): Promise<DataObject<ResponseNewDong>> {
     // eslint-disable-next-line no-useless-catch
     try {
