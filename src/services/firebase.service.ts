@@ -135,9 +135,13 @@ export class FirebaseService {
 
     try {
       const response: messaging.BatchResponse[] = [];
-      _.forEach(_.chunk(messages, 500), async (msgs) => {
+
+      const chunkedMsgs = _.chunk(messages, 499);
+      for (const msgs of chunkedMsgs) {
         const res = await this.messagingService.sendAll(msgs);
+
         response.push(res);
+
         if (res.successCount) {
           console.log(`Successfully sent notifications, ${JSON.stringify(res)}`);
         } else if (res.failureCount) {
@@ -145,7 +149,7 @@ export class FirebaseService {
         } else {
           console.warn('There is no response from firebase');
         }
-      });
+      }
 
       return response;
     } catch (err) {
