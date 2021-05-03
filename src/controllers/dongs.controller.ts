@@ -161,6 +161,8 @@ export class DongsController {
       .categories(this.userId)
       .patch({ parentCategoryId: patchReqBody.categoryId }, { parentCategoryId: categoryId });
 
+    await this.userRepo.billList(this.userId).patch(patchReqBody, { categoryId: categoryId });
+    await this.userRepo.payerList(this.userId).patch(patchReqBody, { categoryId: categoryId });
     return this.userRepo.dongs(this.userId).patch(patchReqBody, { categoryId: categoryId });
   }
 
