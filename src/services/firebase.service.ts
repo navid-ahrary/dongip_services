@@ -27,7 +27,7 @@ export class FirebaseService {
   private readonly timeToLiveSeconds = 60 * 60 * 24 * 7 * 4; // 4 weeks in seconds
 
   private readonly androidConfigs: messaging.AndroidConfig = {
-    priority: 'high',
+    priority: 'normal',
     ttl: this.timeToLiveSeconds * 1000,
     notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
   };
