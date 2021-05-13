@@ -235,3 +235,13 @@ export const FILE_UPLOAD_SERVICE = BindingKey.create<FileUploadHandler>('service
  */
 export const STORAGE_DIRECTORY_VALUE = process.env.STORAGE_DIRECTORY!;
 export const STORAGE_DIRECTORY_BINDING = BindingKey.create<string>('services.storage.directory');
+
+export namespace AppVersionConstants {
+  export const ANDROID_VERSION_VALUE = process.env.ANDROID_VERSION!;
+  export const IOS_VERSION_VALUE = process.env.IOS_VERSION!;
+}
+
+export namespace AppVersionBindings {
+  export const ANDROID_VERSION = BindingKey.create<string>('application.androidversion');
+  export const IOS_VERSION = BindingKey.create<string>('application.iosVersion');
+}

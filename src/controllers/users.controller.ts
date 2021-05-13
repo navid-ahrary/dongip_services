@@ -23,6 +23,7 @@ import {
   PackageKey,
   LocMsgsBindings,
   TutorialLinksListBinding,
+  AppVersionBindings,
 } from '../keys';
 import { Users, CompleteSignup, Settings, UsersRels, Scores, Dongs } from '../models';
 import { HeadersInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
@@ -43,6 +44,8 @@ export class UsersController {
     @inject(TutorialLinksListBinding) public tutLinks: TutorialLinks,
     @inject(SecurityBindings.USER) private currentUserProfile: CurrentUserProfile,
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
+    @inject(AppVersionBindings.ANDROID_VERSION) private androidVersion: string,
+    @inject(AppVersionBindings.IOS_VERSION) private iosVersion: string,
     @inject('controllers.JointAccountController') public jointController: JointAccountController,
     @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
@@ -308,6 +311,12 @@ export class UsersController {
       this.currentUserProfile.platform === 'iOS'
         ? false
         : this.packageInfo.systemStatus.forceUpdate;
+    const appVersion =
+      this.currentUserProfile.platform === 'Android'
+        ? this.androidVersion
+        : this.currentUserProfile.platform === 'iOS'
+        ? this.iosVersion
+        : this.packageInfo.version;
 
     return {
       roles: roles,
@@ -322,7 +331,7 @@ export class UsersController {
       externalLinks: this.tutLinks,
       application: {
         accessTokenExpiresIn: +this.accessExpiresIn,
-        version: this.packageInfo.version,
+        version: appVersion,
         forceUpdate: updateForced,
         maintenance: this.packageInfo.systemStatus.maintenance,
         message: Util.format(this.locMsg['SERVER_MAINTENACE'][this.lang], this.userName),

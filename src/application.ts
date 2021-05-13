@@ -63,6 +63,8 @@ import {
   STORAGE_DIRECTORY_BINDING,
   STORAGE_DIRECTORY_VALUE,
   RefreshTokenServiceBindings,
+  AppVersionBindings,
+  AppVersionConstants,
 } from './keys';
 
 export { ApplicationConfig };
@@ -263,5 +265,8 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
 
     // Bind Storage directory
     this.bind(STORAGE_DIRECTORY_BINDING).to(STORAGE_DIRECTORY_VALUE);
+
+    this.bind(AppVersionBindings.ANDROID_VERSION).to(AppVersionConstants.ANDROID_VERSION_VALUE);
+    this.bind(AppVersionBindings.IOS_VERSION).to(AppVersionConstants.IOS_VERSION_VALUE);
   }
 }
