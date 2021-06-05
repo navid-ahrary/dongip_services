@@ -12,7 +12,7 @@ import {
 import { authenticate, UserService, TokenService } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
-import Moment from 'moment';
+import moment from 'moment';
 import _ from 'lodash';
 import { UserServiceBindings, TokenServiceBindings, LocMsgsBindings } from '../keys';
 import { Users, Credentials, Verify, NewUser, Settings } from '../models';
@@ -136,7 +136,7 @@ export class AuthController {
       phone: { nin: ['+989197744814', '+989176502184'] },
       email: { nin: ['arefrafei92@gmail.com', 'navidarry@gmail.com'] },
       createdAt: {
-        between: [Moment.utc().subtract(5, 'minutes').toISOString(), Moment.utc().toISOString()],
+        between: [moment.utc().subtract(5, 'minutes').toISOString(), moment.utc().toISOString()],
       },
     });
 
@@ -270,7 +270,7 @@ export class AuthController {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.verifyRepository.updateById(verifyId, {
         loggedIn: true,
-        loggedInAt: Moment.utc().toISOString(),
+        loggedInAt: moment.utc().toISOString(),
       });
 
       const resp = {
@@ -379,7 +379,7 @@ export class AuthController {
     totalScores: number;
   }> {
     const verifyId = +currentUserProfile[securityId],
-      nowUTC = Moment.utc(),
+      nowUTC = moment.utc(),
       userLanguage = newUser.language,
       userCurrency = newUser.currency;
 

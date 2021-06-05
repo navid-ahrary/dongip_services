@@ -4,7 +4,7 @@ import { SecurityBindings, securityId } from '@loopback/security';
 import { inject, intercept } from '@loopback/core';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import Moment from 'moment';
+import moment from 'moment';
 import { Budgets, Users } from '../models';
 import { BudgetsRepository } from '../repositories';
 import { ValidateBudgetIdInterceptor } from '../interceptors';
@@ -78,8 +78,8 @@ export class BudgetsController {
                 userRelId: 0,
                 categoryId: 1,
                 groupId: 0,
-                startDate: Moment(),
-                endDate: Moment().add(1, 'm'),
+                startDate: moment(),
+                endDate: moment().add(1, 'm'),
               },
             },
             UserRelBudget: {
@@ -90,8 +90,8 @@ export class BudgetsController {
                 userRelId: 1,
                 categoryId: 0,
                 groupId: 0,
-                startDate: Moment(),
-                endDate: Moment().add(3, 'm'),
+                startDate: moment(),
+                endDate: moment().add(3, 'm'),
               },
             },
             JointAccountBudget: {
@@ -102,8 +102,8 @@ export class BudgetsController {
                 userRelId: 0,
                 categoryId: 0,
                 groupId: 1,
-                startDate: Moment(),
-                endDate: Moment().add(1, 'y'),
+                startDate: moment(),
+                endDate: moment().add(1, 'y'),
               },
             },
           },

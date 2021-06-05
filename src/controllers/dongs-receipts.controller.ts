@@ -4,7 +4,7 @@ import { SecurityBindings, securityId } from '@loopback/security';
 import { repository } from '@loopback/repository';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { authenticate } from '@loopback/authentication';
-import Fs from 'fs';
+import fs from 'fs';
 import { Dongs, Users } from '../models';
 import { ReceiptsRepository, DongsRepository } from '../repositories';
 import { ValidateDongIdInterceptor } from '../interceptors';
@@ -65,7 +65,7 @@ export class DongsReceiptsController {
       if (foundReceipt) {
         await this.dongRepo.receipt(dongId).delete({ userId: this.userId });
         const filePath = this.receiptController.getFilePath(foundReceipt.receiptName);
-        Fs.unlinkSync(filePath);
+        fs.unlinkSync(filePath);
       }
     } catch (err) {
       throw new HttpErrors.UnprocessableEntity(err.message);
