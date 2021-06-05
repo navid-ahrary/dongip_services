@@ -5,7 +5,6 @@ import { TokenService } from '@loopback/authentication';
 import { TokenObject } from '@loopback/authentication-jwt';
 import { repository } from '@loopback/repository';
 import { sign, verify, Algorithm } from 'jsonwebtoken';
-
 import { RefreshTokenServiceBindings, TokenServiceBindings, UserServiceBindings } from '../keys';
 import { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
 import { MyUserService } from '.';

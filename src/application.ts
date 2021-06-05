@@ -15,7 +15,7 @@ import { SECURITY_SCHEME_SPEC } from '@loopback/authentication-jwt';
 import { MetricsComponent, MetricsBindings } from '@loopback/extension-metrics';
 import { HealthComponent, HealthBindings } from '@loopback/extension-health';
 import { CronComponent } from '@loopback/cron';
-import Path from 'path';
+import path from 'path';
 import { MyAuthenticationSequence } from './sequence';
 import { UserAuthenticationComponent } from './components';
 import {
@@ -126,7 +126,7 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.add(createBindingFromClass(DailyScheduleConjobService));
     this.add(createBindingFromClass(ReminderCronjobService));
 
-    this.static('/', Path.join(__dirname, '../public'));
+    this.static('/', path.join(__dirname, '../public'));
 
     // Customize @loopback/rest-explorer configuration here
     this.configure(RestExplorerBindings.COMPONENT).to({

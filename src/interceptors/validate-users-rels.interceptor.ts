@@ -11,7 +11,6 @@ import { repository } from '@loopback/repository';
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { HttpErrors, Request, RestBindings } from '@loopback/rest';
 import _ from 'lodash';
-
 import { UsersRelsRepository, UsersRepository } from '../repositories';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';

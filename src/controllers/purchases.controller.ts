@@ -12,7 +12,7 @@ import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import _ from 'lodash';
-import Moment from 'moment';
+import moment from 'moment';
 import { PurchasesRepository, UsersRepository } from '../repositories';
 import {
   CafebazaarService,
@@ -81,8 +81,8 @@ export class PurchasesController {
 
     const purchaseUTCTime =
       inappPurchBody.purchaseUnixTime / 10 ** 10 > 0
-        ? Moment(inappPurchBody.purchaseUnixTime)
-        : Moment.unix(inappPurchBody.purchaseUnixTime);
+        ? moment(inappPurchBody.purchaseUnixTime)
+        : moment.unix(inappPurchBody.purchaseUnixTime);
     const purchaseToken = inappPurchBody.purchaseToken;
     const purchaseOrigin = inappPurchBody.purchaseOrigin;
     const planId = inappPurchBody.planId;
@@ -156,7 +156,7 @@ export class PurchasesController {
   //   const userId = +currentUserProfile[securityId];
   //   const lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
 
-  //   let purchaseTime: moment.Moment;
+  //   let purchaseTime: moment.moment;
 
   //   if (purchaseOrigin === 'cafebazaar') {
   //     const purchaseStatus = await this.cafebazaarService.getPurchaseState({
@@ -175,7 +175,7 @@ export class PurchasesController {
   //       console.error(`userId ${userId} ${errMsg}`);
   //       throw new HttpErrors.UnprocessableEntity(errMsg);
   //     } else if (purchaseStatus.purchaseState === 0) {
-  //       purchaseTime = Moment(purchaseStatus.purchaseTime).utc();
+  //       purchaseTime = moment(purchaseStatus.purchaseTime).utc();
 
   //       // eslint-disable-next-line @typescript-eslint/no-floating-promises
   //       this.subsService.performSubscription(userId, planId, purchaseTime).then(async (subs) => {
@@ -230,7 +230,7 @@ export class PurchasesController {
           purchaseAmount = +order['line_items'][0]['price'],
           currency = order['currency'],
           purchaseToken = order['order_key'],
-          purchasedAt = Moment(order['date_paid_gmt']),
+          purchasedAt = moment(order['date_paid_gmt']),
           purchaseOrigin = order['payment_method'];
 
         let identityValue = order['billing']['phone'],

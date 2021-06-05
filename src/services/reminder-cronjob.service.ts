@@ -1,11 +1,11 @@
 import { CronJob, cronJob } from '@loopback/cron';
 import { repository } from '@loopback/repository';
 import { service, BindingScope, inject } from '@loopback/core';
-import Moment from 'moment';
+import moment from 'moment';
 import 'moment-timezone';
-import Ct from 'countries-and-timezones';
+import ct from 'countries-and-timezones';
 import _ from 'lodash';
-import Util from 'util';
+import util from 'util';
 import { NotificationsRepository, RemindersRepository, UsersRepository } from '../repositories';
 import { FirebaseService, BatchMessage } from '.';
 import { Notifications, Users } from '../models';
@@ -42,7 +42,7 @@ export class ReminderCronjobService extends CronJob {
   }
 
   private async _sendReminderNotify() {
-    const now = Moment().tz(this.TZ).startOf('minute');
+    const now = moment().tz(this.TZ).startOf('minute');
 
     const foundReminders = await this.remindersRepo.find({
       where: {
@@ -75,14 +75,14 @@ export class ReminderCronjobService extends CronJob {
       const name = user.name;
       const lang = user.setting.language;
       const userRegion = user.region;
-      const userTZ = Ct.getTimezonesForCountry(userRegion ?? 'IR')[0].name;
+      const userTZ = ct.getTimezonesForCountry(userRegion ?? 'IR')[0].name;
 
       const notif = new Notifications({
         type: 'reminder',
         userId: user.userId,
-        title: Util.format(this.locMsg['REMINDER_TITLE'][lang], name),
+        title: util.format(this.locMsg['REMINDER_TITLE'][lang], name),
         body: reminder?.title ?? (lang === 'en' ? 'Reminder' : 'یادآوری'),
-        createdAt: Moment.tz(userTZ).format('YYYY-MM-DDTHH:mm:ss+00:00'),
+        createdAt: moment.tz(userTZ).format('YYYY-MM-DDTHH:mm:ss+00:00'),
       });
       notifyEntities.push(notif);
 

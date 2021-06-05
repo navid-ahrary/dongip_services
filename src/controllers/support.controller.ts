@@ -13,9 +13,9 @@ import { repository, Filter, Where } from '@loopback/repository';
 import { inject, service } from '@loopback/core';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import Ct from 'countries-and-timezones';
+import ct from 'countries-and-timezones';
 import _ from 'lodash';
-import Moment from 'moment';
+import moment from 'moment';
 import 'moment-timezone';
 import { Messages, Settings, Users } from '../models';
 import { basicAuthorization, BatchMessage, CurrentUserProfile, FirebaseService } from '../services';
@@ -232,8 +232,8 @@ export class SupportController {
         const setting = _.find(foundSettings, (s) => s.userId === targetUserId)!;
         const lang = setting.language;
 
-        const timezone = Ct.getTimezonesForCountry(region)[0].name;
-        const timestamp = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+        const timezone = ct.getTimezonesForCountry(region)[0].name;
+        const timestamp = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
         const savedMsg = await this.usersRepository.messages(targetUserId).create({
           message: newMessage.message,
@@ -372,8 +372,8 @@ export class SupportController {
         const targetUserId = foundUser.userId;
         const region = foundUser.region ?? 'IR';
         const firebaseToken = foundUser.firebaseToken!;
-        const timezone = Ct.getTimezonesForCountry(region)[0].name;
-        const timestamp = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+        const timezone = ct.getTimezonesForCountry(region)[0].name;
+        const timestamp = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
         const savedMsg = await this.usersRepository.messages(targetUserId).create({
           message: reqBody.message,

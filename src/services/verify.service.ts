@@ -2,11 +2,11 @@ import { BindingScope, inject, injectable, service } from '@loopback/core';
 import { HttpErrors, RequestContext } from '@loopback/rest';
 import { repository } from '@loopback/repository';
 import { securityId } from '@loopback/security';
-import Moment from 'moment';
+import moment from 'moment';
 import _ from 'lodash';
-import Util from 'util';
-import Fs from 'fs';
-import Path from 'path';
+import util from 'util';
+import fs from 'fs';
+import path from 'path';
 import {
   CategoriesRepository,
   UsersRelsRepository,
@@ -137,7 +137,7 @@ export class VerifyService {
         await this.verifyRepository.updateById(createdVerify.getId(), {
           kavenegarStatusCode: err.statusCode,
         });
-        console.error(Moment().format(), JSON.stringify(err));
+        console.error(moment().format(), JSON.stringify(err));
       });
 
     return {
@@ -177,11 +177,11 @@ export class VerifyService {
 
     const verifyToken: string = await this.jwtService.generateToken(userProfile);
 
-    let mailContent = Fs.readFileSync(
-      Path.resolve(__dirname, '../../assets/confirmation_dongip_en.html'),
+    let mailContent = fs.readFileSync(
+      path.resolve(__dirname, '../../assets/confirmation_dongip_en.html'),
       'utf-8',
     );
-    mailContent = Util.format(mailContent, this.randomCode);
+    mailContent = util.format(mailContent, this.randomCode);
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.emailService
@@ -197,7 +197,7 @@ export class VerifyService {
         });
       })
       .catch((err) => {
-        console.error(Moment().format(), JSON.stringify(err));
+        console.error(moment().format(), JSON.stringify(err));
       });
 
     return {
@@ -225,7 +225,7 @@ export class VerifyService {
           userAgent: this.ctx.request.headers['user-agent']?.toString(),
           ipAddress: this.ctx.request.headers['x-real-ip']?.toString(),
           loggedIn: true,
-          loggedInAt: Moment().format('YYYY-MM-DDTHH:mm:ss+00:00'),
+          loggedInAt: moment().format('YYYY-MM-DDTHH:mm:ss+00:00'),
         });
 
         // Convert user object to a UserProfile object (reduced set of properties)
@@ -238,8 +238,8 @@ export class VerifyService {
 
         const foundPlan = await this.usersRepository.subscriptions(user.getId()).find({
           where: {
-            solTime: { lte: Moment.utc().toISOString() },
-            eolTime: { gte: Moment.utc().toISOString() },
+            solTime: { lte: moment.utc().toISOString() },
+            eolTime: { gte: moment.utc().toISOString() },
           },
         });
         const scores = await this.userScoresService.getUserScores(user.getId());
@@ -279,14 +279,14 @@ export class VerifyService {
 
   public async createUser(user: Partial<Users>, setting: Partial<Settings>) {
     try {
-      const nowUTC = Moment.utc();
+      const nowUTC = moment.utc();
       const mamdBirth1 = '2021-03-11T23:00:00+03:30';
       const mamdBirth2 = '2021-03-12T23:59:59+03:30';
 
-      const roles = nowUTC.isBetween(Moment(mamdBirth1), Moment(mamdBirth2))
+      const roles = nowUTC.isBetween(moment(mamdBirth1), moment(mamdBirth2))
         ? ['GOLD']
         : ['BRONZE'];
-      const planId = nowUTC.isBetween(Moment(mamdBirth1), Moment(mamdBirth2)) ? 'plan_gy1' : 'free';
+      const planId = nowUTC.isBetween(moment(mamdBirth1), moment(mamdBirth2)) ? 'plan_gy1' : 'free';
 
       const userEntity = new Users({
         roles: roles,
@@ -315,8 +315,8 @@ export class VerifyService {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.usersRepository.subscriptions(savedUser.getId()).create({
           planId: 'plan_gy1',
-          solTime: Moment(nowUTC).utc().toISOString(),
-          eolTime: Moment(nowUTC).utc().add(1, 'year').toISOString(),
+          solTime: moment(nowUTC).utc().toISOString(),
+          eolTime: moment(nowUTC).utc().add(1, 'year').toISOString(),
         });
       }
 
@@ -336,8 +336,8 @@ export class VerifyService {
         status: _.isObjectLike(user),
         isCompleted: savedUser?.phoneLocked ?? false,
         avatar: savedUser?.avatar ?? 'dongip',
-        solTime: roles.includes('GOLD') ? Moment(nowUTC).utc().toISOString() : null,
-        eolTime: roles.includes('GOLD') ? Moment(nowUTC).utc().add(1, 'year').toISOString() : null,
+        solTime: roles.includes('GOLD') ? moment(nowUTC).utc().toISOString() : null,
+        eolTime: roles.includes('GOLD') ? moment(nowUTC).utc().add(1, 'year').toISOString() : null,
         totalScores: savedScore.score,
         ...tokenObj,
       };

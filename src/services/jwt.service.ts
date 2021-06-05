@@ -4,7 +4,7 @@ import { inject } from '@loopback/core';
 import { UserProfile, securityId } from '@loopback/security';
 import { HttpErrors, RestBindings, Request } from '@loopback/rest';
 import { repository } from '@loopback/repository';
-import Ct from 'countries-and-timezones';
+import ct from 'countries-and-timezones';
 import { sign, verify, Algorithm } from 'jsonwebtoken';
 import { UsersRepository, BlacklistRepository } from '../repositories';
 import { EmailBindings, TokenServiceBindings } from '../keys';
@@ -77,7 +77,7 @@ export class JWTService implements TokenService {
         Object.assign(userProfile, {
           ..._.omit(user, ['userId', 'usersRels', 'setting']),
           language: user.setting.language,
-          timezone: Ct.getTimezonesForCountry(user.region ?? 'IR')[0].name,
+          timezone: ct.getTimezonesForCountry(user.region ?? 'IR')[0].name,
           selfUserRelId: user.usersRels[0].userRelId,
         });
       }

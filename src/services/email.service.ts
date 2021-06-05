@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { BindingScope, inject, injectable } from '@loopback/core';
 import EmailValidator from 'deep-email-validator';
-import Axios from 'axios';
+import axios from 'axios';
 import { EmailBindings } from '../keys';
 
 export interface MailOptions {
@@ -45,7 +45,7 @@ export class EmailService {
     };
 
     try {
-      const res = await Axios({
+      const res = await axios({
         method: 'POST',
         url: this.accountURL,
         params: queryParam,
@@ -64,7 +64,7 @@ export class EmailService {
   async sendSupportMail(mailOptions: MailOptions): Promise<SentEmail> {
     const accessToken = await this.refreshSupportAccessToken();
 
-    const res = await Axios({
+    const res = await axios({
       method: 'POST',
       url: this.supportMessageURL,
       headers: {

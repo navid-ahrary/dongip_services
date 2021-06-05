@@ -1,8 +1,6 @@
 import { BindingScope, injectable } from '@loopback/core';
 import { repository } from '@loopback/repository';
-
 import AwesomePhoneNumber from 'awesome-phonenumber';
-
 import { UsersRepository } from '../repositories';
 
 @injectable({ scope: BindingScope.TRANSIENT })

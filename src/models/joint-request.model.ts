@@ -1,5 +1,4 @@
 import { Model, model, property } from '@loopback/repository';
-
 import { UsersRels } from './users-rels.model';
 
 @model({ jsonSchema: { description: 'Joint Account Request model' } })

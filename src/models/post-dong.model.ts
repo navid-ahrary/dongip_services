@@ -1,5 +1,4 @@
 import { property, model, Model } from '@loopback/repository';
-
 import { UsersRels } from './users-rels.model';
 import { Categories } from './categories.model';
 import { CurrencyEnum } from './settings.model';

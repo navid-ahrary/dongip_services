@@ -13,8 +13,8 @@ import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import _ from 'lodash';
-import Util from 'util';
-import Moment from 'moment';
+import util from 'util';
+import moment from 'moment';
 import { UserPatchRequestBody } from './specs';
 import { CurrentUserProfile, PhoneNumberService } from '../services';
 import { UsersRepository } from '../repositories';
@@ -260,7 +260,7 @@ export class UsersController {
       updateMessage: string;
     };
   }> {
-    const nowUTC = Moment.utc();
+    const nowUTC = moment.utc();
 
     const foundUser = await this.usersRepository.findById(this.userId, {
       fields: {
@@ -334,8 +334,8 @@ export class UsersController {
         version: appVersion,
         forceUpdate: updateForced,
         maintenance: this.packageInfo.systemStatus.maintenance,
-        message: Util.format(this.locMsg['SERVER_MAINTENACE'][this.lang], this.userName),
-        updateMessage: Util.format(this.locMsg['UPDATE_MESSAGE'][this.lang], appVersion),
+        message: util.format(this.locMsg['SERVER_MAINTENACE'][this.lang], this.userName),
+        updateMessage: util.format(this.locMsg['UPDATE_MESSAGE'][this.lang], appVersion),
       },
     };
   }

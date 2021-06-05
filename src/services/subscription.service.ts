@@ -1,6 +1,6 @@
 import { BindingScope, inject, injectable, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
-import Moment from 'moment';
+import moment from 'moment';
 import { UsersRepository, SubscriptionsRepository } from '../repositories';
 import { Users, Subscriptions } from '../models';
 import { LocalizedMessages, SubscriptionSpec } from '../types';
@@ -37,7 +37,7 @@ export class SubscriptionService {
       fields: { eolTime: true },
       where: {
         userId: userId,
-        eolTime: { gte: Moment.utc().toISOString() },
+        eolTime: { gte: moment.utc().toISOString() },
       },
     });
 
@@ -46,11 +46,11 @@ export class SubscriptionService {
     if (lastSubs) {
       const lastEOL = lastSubs.eolTime;
 
-      sol = Moment(lastEOL).utc().toISOString();
-      eol = Moment(lastEOL).utc().add(durationAmount, durationUnit).toISOString();
+      sol = moment(lastEOL).utc().toISOString();
+      eol = moment(lastEOL).utc().add(durationAmount, durationUnit).toISOString();
     } else {
-      sol = Moment(purchaseTime).utc().toISOString();
-      eol = Moment(purchaseTime).utc().add(durationAmount, durationUnit).toISOString();
+      sol = moment(purchaseTime).utc().toISOString();
+      eol = moment(purchaseTime).utc().add(durationAmount, durationUnit).toISOString();
     }
 
     const subs = await this.usersRepo

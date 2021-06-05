@@ -13,9 +13,9 @@ import {
   HttpErrors,
 } from '@loopback/rest';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import Moment from 'moment';
-import Jmoment from 'jalali-moment';
-import Ct from 'countries-and-timezones';
+import moment from 'moment';
+import jmoment from 'jalali-moment';
+import ct from 'countries-and-timezones';
 import 'moment-timezone';
 import { Reminders, Users } from '../models';
 import { UsersRepository } from '../repositories';
@@ -83,8 +83,8 @@ export class RemindersController {
     reminder: Omit<Reminders, 'reminderId'>,
   ): Promise<Reminders> {
     const userRegion = this.currentUserProfile.region ?? 'IR';
-    const userTZ = Ct.getTimezonesForCountry(userRegion)[0].name;
-    const nowUserLocaleMoment = Moment.tz(userTZ);
+    const userTZ = ct.getTimezonesForCountry(userRegion)[0].name;
+    const nowUserLocaleMoment = moment.tz(userTZ);
 
     const firstNotifyDate = reminder.previousNotifyDate;
 
@@ -100,18 +100,20 @@ export class RemindersController {
     } else {
       const userLang = this.currentUserProfile.language!;
 
-      nextNotifyDate = Jmoment.from(
-        Jmoment(reminder.previousNotifyDate)
-          .locale(userLang)
-          .add(reminder.periodAmount, reminder.periodUnit)
-          .format(),
-        userLang,
-      ).format('YYYY-MM-DD');
+      nextNotifyDate = jmoment
+        .from(
+          jmoment(reminder.previousNotifyDate)
+            .locale(userLang)
+            .add(reminder.periodAmount, reminder.periodUnit)
+            .format(),
+          userLang,
+        )
+        .format('YYYY-MM-DD');
     }
 
     reminder = {
       ...reminder,
-      notifyTime: Moment.tz(userTZ).hour(8).minute(0).second(0).tz(this.TZ).format('HH:mm:ss'),
+      notifyTime: moment.tz(userTZ).hour(8).minute(0).second(0).tz(this.TZ).format('HH:mm:ss'),
       nextNotifyDate: nextNotifyDate,
     };
 
@@ -181,8 +183,8 @@ export class RemindersController {
     }
 
     const userRegion = this.currentUserProfile.region ?? 'IR';
-    const userTZ = Ct.getTimezonesForCountry(userRegion)[0].name;
-    const nowUserLocaleMoment = Moment.tz(userTZ);
+    const userTZ = ct.getTimezonesForCountry(userRegion)[0].name;
+    const nowUserLocaleMoment = moment.tz(userTZ);
 
     const firstNotifyDate = reminder.previousNotifyDate;
 
@@ -198,13 +200,15 @@ export class RemindersController {
     } else {
       const userLang = this.currentUserProfile.language!;
 
-      nextNotifyDate = Jmoment.from(
-        Jmoment(reminder.previousNotifyDate)
-          .locale(userLang)
-          .add(reminder.periodAmount, reminder.periodUnit)
-          .format(),
-        userLang,
-      ).format('YYYY-MM-DD');
+      nextNotifyDate = jmoment
+        .from(
+          jmoment(reminder.previousNotifyDate)
+            .locale(userLang)
+            .add(reminder.periodAmount, reminder.periodUnit)
+            .format(),
+          userLang,
+        )
+        .format('YYYY-MM-DD');
     }
 
     reminder.nextNotifyDate = nextNotifyDate;
@@ -249,7 +253,7 @@ export class RemindersController {
     date: string;
     time: string;
     tz: string;
-  }): Moment.Moment {
+  }): moment.Moment {
     const splittedTime = data.time.split(':');
 
     if (splittedTime.length !== 3) throw new Error('time is not valid, "HH:mm:ss"');
@@ -258,6 +262,6 @@ export class RemindersController {
     const minute = +splittedTime[1];
     const second = +splittedTime[2];
 
-    return Moment(data.date).tz(data.tz).hour(hour).minute(minute).second(second);
+    return moment(data.date).tz(data.tz).hour(hour).minute(minute).second(second);
   }
 }

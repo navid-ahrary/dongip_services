@@ -1,5 +1,4 @@
 import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
-
 import { Users } from './users.model';
 import { Categories } from './categories.model';
 import { UsersRels } from './users-rels.model';

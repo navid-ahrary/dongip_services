@@ -1,5 +1,4 @@
 import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
-
 import { JointAccounts, JointAccountsWithRelations } from './joint-accounts.model';
 import { UsersWithRelations, Users } from './users.model';
 

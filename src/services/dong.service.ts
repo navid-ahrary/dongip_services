@@ -3,8 +3,8 @@ import { injectable, inject, BindingScope, service } from '@loopback/core';
 import { DataObject, repository } from '@loopback/repository';
 import { HttpErrors, RequestContext } from '@loopback/rest';
 import _ from 'lodash';
-import Util from 'util';
-import Moment from 'moment';
+import util from 'util';
+import moment from 'moment';
 import { BatchMessage, FirebaseService } from './firebase.service';
 import {
   BillList,
@@ -236,7 +236,7 @@ export class DongService {
                 // Notification data payload
                 const notifyData = new Notifications({
                   title: this.locMsg['DONGIP_NOTIFY_TITLE'][targetUserLang],
-                  body: Util.format(
+                  body: util.format(
                     this.locMsg['DONGIP_NOTIFY_BODY'][targetUserLang],
                     notifyBodyDongAmount,
                     this.locMsg['CURRENCY'][targetUserLang][createdDong.currency],
@@ -246,7 +246,7 @@ export class DongService {
                   type: 'dong',
                   categoryTitle: currentUser.categories[0].title,
                   categoryIcon: currentUser.categories[0].icon,
-                  createdAt: Moment(createdDong.createdAt).utc().toISOString(),
+                  createdAt: moment(createdDong.createdAt).utc().toISOString(),
                   userRelId: foundMutualUsersRels.getId(),
                   dongAmount: roundedDongAmount,
                   currency: createdDong.currency,
@@ -475,8 +475,8 @@ export class DongService {
         const lang = user.setting.language;
 
         const notifyData = new Notifications({
-          title: Util.format(this.locMsg['DONGIP_IN_GROUP_NOTIFY_TITLE'][lang], JA.title),
-          body: Util.format(
+          title: util.format(this.locMsg['DONGIP_IN_GROUP_NOTIFY_TITLE'][lang], JA.title),
+          body: util.format(
             this.locMsg['DONGIP_IN_GROUP_NOTIFY_BODY'][lang],
             this.numberWithCommas(createdDong.pong!),
             this.locMsg['CURRENCY'][lang][createdDong.currency!],
@@ -514,7 +514,7 @@ export class DongService {
             categoryTitle: notifyData.categoryTitle!,
             categoryIcon: notifyData.categoryIcon!,
             userRelId: notifyData.userRelId!.toString(),
-            createdAt: Moment(notifyData.createdAt).toISOString(),
+            createdAt: moment(notifyData.createdAt).toISOString(),
             receiptId: createdNotify.receiptId?.toString() ?? ' ',
             silent: 'false',
           },

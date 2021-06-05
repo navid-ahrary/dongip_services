@@ -1,6 +1,6 @@
 import { BindingScope, ContextTags, injectable, Provider } from '@loopback/core';
-import Multer from 'multer';
-import Path from 'path';
+import multer from 'multer';
+import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { FILE_UPLOAD_SERVICE, STORAGE_DIRECTORY_VALUE } from '../keys';
 import { FileUploadHandler } from '../types';
@@ -13,7 +13,7 @@ import { FileUploadHandler } from '../types';
   tags: { [ContextTags.KEY]: FILE_UPLOAD_SERVICE },
 })
 export class FileUploadProvider implements Provider<FileUploadHandler> {
-  private readonly options: Multer.Options = {
+  private readonly options: multer.Options = {
     limits: {
       files: 1, // Max number of files
       fileSize: 200000, // Max size of each file in bytes
@@ -22,15 +22,15 @@ export class FileUploadProvider implements Provider<FileUploadHandler> {
       const filetypes = /jpeg|jpg|png/;
       const mimetype = filetypes.test(file.mimetype);
 
-      const extname = filetypes.test(Path.extname(file.originalname).toLowerCase());
+      const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
 
       if (mimetype && extname) {
         return callback(null, true);
       } else {
-        callback(new Multer.MulterError('LIMIT_UNEXPECTED_FILE'));
+        callback(new multer.MulterError('LIMIT_UNEXPECTED_FILE'));
       }
     },
-    storage: Multer.diskStorage({
+    storage: multer.diskStorage({
       destination: STORAGE_DIRECTORY_VALUE,
       filename: (req, file, callback) => {
         const extname = file.mimetype.split('/')[1].toLowerCase();
@@ -43,23 +43,23 @@ export class FileUploadProvider implements Provider<FileUploadHandler> {
   constructor() {}
 
   value(): FileUploadHandler {
-    return Multer(this.options).any();
+    return multer(this.options).any();
   }
 
   // public fileFilter(
   //   req: Request,
-  //   file: Express.Multer.File,
-  //   callback: Multer.FileFilterCallback,
+  //   file: Express.multer.File,
+  //   callback: multer.FileFilterCallback,
   // ): void {
   //   const filetypes = /jpeg|jpg|png/;
   //   const mimetype = filetypes.test(file.mimetype);
 
-  //   const extname = filetypes.test(Path.extname(file.originalname).toLowerCase());
+  //   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
 
   //   if (mimetype && extname) {
   //     return callback(null, true);
   //   } else {
-  //     callback(new Multer.MulterError('LIMIT_UNEXPECTED_FILE'));
+  //     callback(new multer.MulterError('LIMIT_UNEXPECTED_FILE'));
   //   }
   // }
 }

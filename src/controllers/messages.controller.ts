@@ -4,7 +4,7 @@ import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { post, getModelSchemaRef, requestBody, get } from '@loopback/rest';
-import Moment from 'moment';
+import moment from 'moment';
 import 'moment-timezone';
 import { Messages, Users } from '../models';
 import { CurrentUserProfile, FirebaseSupportService } from '../services';
@@ -65,7 +65,7 @@ export class MessagesController {
       message: messageContent,
       isQuestion: true,
       isAnswer: false,
-      createdAt: Moment().tz(this.timezone).format('YYYY-MM-DDTHH:mm:ss+00:00'),
+      createdAt: moment().tz(this.timezone).format('YYYY-MM-DDTHH:mm:ss+00:00'),
     });
 
     const createdMsg = await this.usersRepository.messages(this.userId).create(messageEntity);

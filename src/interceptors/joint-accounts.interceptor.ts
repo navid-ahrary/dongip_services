@@ -11,10 +11,10 @@ import {
 import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { repository } from '@loopback/repository';
 import _ from 'lodash';
-import Util from 'util';
-import Moment from 'moment';
+import util from 'util';
+import moment from 'moment';
 import 'moment-timezone';
-import Ct from 'countries-and-timezones';
+import ct from 'countries-and-timezones';
 
 import {
   DongsRepository,
@@ -117,8 +117,8 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
 
             for (const JAS of externalJASs) {
               const targetUser = JAS.user;
-              const timezone = Ct.getTimezonesForCountry(targetUser.region!)[0].name;
-              const time = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+              const timezone = ct.getTimezonesForCountry(targetUser.region!)[0].name;
+              const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
               const mutualRel = await this.usersRelsRepo.findOne({
                 fields: { name: true },
@@ -129,7 +129,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
                 jointAccountId: JA.getId(),
                 type: 'jointAccount',
                 title: this.locMsg['DELETE_JOINT_NOTIFY_TITLE'][targetUser.setting.language],
-                body: Util.format(
+                body: util.format(
                   this.locMsg['DELETE_JOINT_NOTIFY_BODY'][targetUser.setting.language],
                   JA.title,
                   mutualRel!.name,
@@ -199,8 +199,8 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
           for (const sub of subscribes) {
             const user = sub.user;
             const setting = sub.user.setting;
-            const timezone = Ct.getTimezonesForCountry(user.region!)[0].name;
-            const time = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+            const timezone = ct.getTimezonesForCountry(user.region!)[0].name;
+            const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
             const mutualRel = await this.usersRelsRepo.findOne({
               fields: { name: true },
@@ -210,8 +210,8 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
             const savedNotify = await this.usersRepo.notifications(user.getId()).create({
               jointAccountId: j.getId(),
               type: 'jointAccount',
-              title: Util.format(this.locMsg['LEAVE_JOINT_NOTIFY_TITLE'][setting.language]),
-              body: Util.format(
+              title: util.format(this.locMsg['LEAVE_JOINT_NOTIFY_TITLE'][setting.language]),
+              body: util.format(
                 this.locMsg['LEAVE_JOINT_NOTIFY_BODY'][setting.language],
                 mutualRel!.name,
                 j.title,
@@ -300,7 +300,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
             where: { userId: this.userId, jointAccountId: jointAcc.getId() },
           });
           if (foundDong.originDongId && jointSub) {
-            throw Util.format(this.locMsg['JOINT_ADMIN_DELETE_DONG_ERROR'][lang], jointAcc.title);
+            throw util.format(this.locMsg['JOINT_ADMIN_DELETE_DONG_ERROR'][lang], jointAcc.title);
           }
         }
 
@@ -314,19 +314,19 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
           _.remove(users, (user) => typeof user !== 'object');
 
           for (const user of users) {
-            const timezone = Ct.getTimezonesForCountry(
+            const timezone = ct.getTimezonesForCountry(
               user.region ?? this.phoneNumService.getRegionCodeISO(user.phone!),
             )[0].name;
-            const time = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+            const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
             const savedNotify = await this.usersRepo.notifications(user.getId()).create({
               dongId: dongId,
               jointAccountId: jointAcc!.getId(),
               type: 'dong-jointAccount',
-              title: Util.format(
+              title: util.format(
                 this.locMsg['DELETE_DONG_BELONG_TO_JOINT_TITLE'][user.setting.language],
               ),
-              body: Util.format(
+              body: util.format(
                 this.locMsg['DELETE_DONG_BELONG_TO_JOINT_BODY'][user.setting.language],
                 jointAcc.title,
                 user.usersRels[0].name,
@@ -417,20 +417,20 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
           _.remove(users, (user) => typeof user !== 'object');
 
           for (const user of users) {
-            const timezone = Ct.getTimezonesForCountry(
+            const timezone = ct.getTimezonesForCountry(
               user.region ?? this.phoneNumService.getRegionCodeISO(user.phone!),
             )[0].name;
 
-            const time = Moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+            const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
             const savedNotify = await this.usersRepo.notifications(user.getId()).create({
               dongId: dongId,
               jointAccountId: jointAcc!.getId(),
               type: 'dong-jointAccount',
-              title: Util.format(
+              title: util.format(
                 this.locMsg['DELETE_DONG_BELONG_TO_JOINT_TITLE'][user.setting.language],
               ),
-              body: Util.format(
+              body: util.format(
                 this.locMsg['DELETE_DONG_BELONG_TO_JOINT_BODY'][user.setting.language],
                 jointAcc.title,
                 user.usersRels[0].name,
