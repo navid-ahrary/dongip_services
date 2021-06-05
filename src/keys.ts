@@ -1,9 +1,9 @@
 import { BindingKey } from '@loopback/context';
 import { TokenService, UserService } from '@loopback/authentication';
 import { ServiceAccount } from 'firebase-admin';
-import Dotenv from 'dotenv';
-import Util from 'util';
-import Path from 'path';
+import dotenv from 'dotenv';
+import util from 'util';
+import path from 'path';
 import { Users, Credentials } from './models';
 import { PasswordHasher } from './services';
 import {
@@ -15,7 +15,7 @@ import {
   FileUploadHandler,
 } from './types';
 
-Dotenv.config();
+dotenv.config();
 
 export const pkg: PackageInfo = require('../package.json');
 export const PackageKey = BindingKey.create<PackageInfo>('application.package');
@@ -97,15 +97,15 @@ export namespace FirebaseConstants {
     .FIREBASE_DONGIP_SUPPORT_APP_NAME!;
 
   // User app scope
-  export const FIREBASE_DONGIP_USER_CERT_FILE = require(Path.join(
-    Path.resolve(),
+  export const FIREBASE_DONGIP_USER_CERT_FILE = require(path.join(
+    path.resolve(),
     'assets',
     'dongip-user-firebase-adminsdk.json',
   ));
 
   // Support app scope
-  export const FIREBASE_DONGIP_SUPPORT_CERT_FILE = require(Path.join(
-    Path.resolve(),
+  export const FIREBASE_DONGIP_SUPPORT_CERT_FILE = require(path.join(
+    path.resolve(),
     'assets',
     'dongip-support-firebase-adminsdk.json',
   ));
@@ -169,7 +169,7 @@ export namespace EmailConstants {
   export const SUPPORT_REFRESH_TOKEN_VALUE = process.env.ZOHO_SUPPRT_ACCOUNT_REFRESH_TOKEN!;
   export const SUPPORT_CLIENT_ID_VALUE = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_ID!;
   export const SUPPORT_CLIENT_SECRET_VALUE = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_SECRET!;
-  export const SUPPORT_MESSAGE_URL_VALUE = Util.format(
+  export const SUPPORT_MESSAGE_URL_VALUE = util.format(
     process.env.ZOHO_MESSAGE_SCOPE_URL!,
     process.env.ZOHO_SUPPORT_ACCOUNT_ID!,
   );
