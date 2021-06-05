@@ -32,7 +32,7 @@ export class JointAccountsDongsController {
   }
 
   @get('/joint-accounts/{jointAccountId}/dongs', {
-    summary: 'Get Dongs belogs to JointAccount by jointAccountId',
+    summary: 'Get Dongs belongs to JointAccount by jointAccountId',
     security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
