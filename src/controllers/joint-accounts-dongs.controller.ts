@@ -1,6 +1,6 @@
 import { inject } from '@loopback/core';
 import { DataObject, repository } from '@loopback/repository';
-import { get, getModelSchemaRef, HttpErrors, param, RequestContext } from '@loopback/rest';
+import { get, getModelSchemaRef, HttpErrors, param } from '@loopback/rest';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId } from '@loopback/security';
@@ -17,10 +17,8 @@ import { ResponseDongs } from '.';
 @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
 export class JointAccountsDongsController {
   private readonly userId: typeof Users.prototype.userId;
-  private readonly lang: string;
 
   constructor(
-    @inject.context() public ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
     @repository(JointAccountSubscribesRepository)
@@ -28,7 +26,6 @@ export class JointAccountsDongsController {
     @repository(JointAccountsRepository) public jointAccountsRepository: JointAccountsRepository,
   ) {
     this.userId = +currentUserProfile[securityId];
-    this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
   @get('/joint-accounts/{jointAccountId}/dongs', {
