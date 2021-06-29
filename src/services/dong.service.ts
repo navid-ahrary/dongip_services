@@ -64,8 +64,8 @@ export class DongService {
 
     let mutualFactor = 0;
 
-    delete newDong?.userId;
-    delete newDong?.dongId;
+    delete newDong.userId;
+    delete newDong.dongId;
 
     let billList = newDong.billList,
       payerList = newDong.payerList,
@@ -151,9 +151,10 @@ export class DongService {
       desc: newDong.desc,
       pong: newDong.pong,
       currency: newDong.currency,
-      jointAccountId: newDong.jointAccountId ?? undefined,
-      includeBudget: newDong.includeBudget !== null ? newDong.includeBudget : undefined,
-      includeBill: newDong.includeBill,
+      jointAccountId: newDong.jointAccountId,
+      includeBudget: _.isNull(newDong.includeBudget) ? undefined : newDong.includeBudget,
+      includeBill: _.isNull(newDong.includeBill) ? undefined : newDong.includeBill,
+      income: _.isNull(newDong.income) ? undefined : newDong.income,
     });
 
     try {

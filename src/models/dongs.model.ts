@@ -290,6 +290,20 @@ export class Dongs extends Entity {
   })
   includeBill: boolean | null;
 
+  @property({
+    type: 'boolean',
+    required: true,
+    default: false,
+    mysql: {
+      columnName: 'income',
+      dataType: 'tinyint',
+      dataLength: 1,
+      nullable: 'N',
+      default: 0,
+    },
+  })
+  income?: boolean | null;
+
   constructor(data?: Partial<Dongs>) {
     super(data);
   }

@@ -111,6 +111,16 @@ export class PostDong extends Model {
   })
   receiptId?: typeof Receipts.prototype.receiptId;
 
+  @property({
+    type: 'any',
+    default: false,
+    jsonSchema: {
+      default: false,
+      oneOf: [{ type: 'null' }, { type: 'boolean' }],
+    },
+  })
+  income?: boolean | null;
+
   constructor(data?: Partial<PostDong>) {
     super(data);
   }
