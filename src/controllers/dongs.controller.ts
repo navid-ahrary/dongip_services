@@ -51,7 +51,6 @@ export class ResponseDongs extends Dongs {
 @intercept(ValidateCategoryIdInterceptor.BINDING_KEY, ValidateDongIdInterceptor.BINDING_KEY)
 export class DongsController {
   private readonly userId: typeof Users.prototype.userId;
-  private readonly lang: string;
 
   constructor(
     @inject.context() private ctx: RequestContext,
@@ -67,7 +66,6 @@ export class DongsController {
     @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
   ) {
     this.userId = +currentUserProfile[securityId];
-    this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
   @patch('/dongs/{dongId}', {
