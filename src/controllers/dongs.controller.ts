@@ -119,17 +119,17 @@ export class DongsController {
         patchPayer.categoryId = patchDong.categoryId;
       }
 
-      if (_.has(patchDong, 'pong')) {
+      if (Object.has(patchDong, 'pong')) {
         patchBill.dongAmount = patchDong.pong;
         patchPayer.paidAmount = patchDong.pong;
       }
 
-      if (_.values(patchBill).length) {
+      if (Object.values(patchBill).length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.dongRepository.billList(dongId).patch(patchBill);
       }
 
-      if (_.values(patchPayer).length) {
+      if (Object.values(patchPayer).length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.dongRepository.payerList(dongId).patch(patchPayer);
       }
@@ -200,7 +200,7 @@ export class DongsController {
       ],
     });
 
-    _.forEach(foundDongs, (d) => {
+    foundDongs.forEach((d) => {
       const r = {
         ..._.omit(d, 'receipt'),
         receiptId: d.receipt?.receiptId,
