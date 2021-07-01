@@ -7,7 +7,6 @@ import {
   requestBody,
   param,
   del,
-  RequestContext,
   patch,
   HttpErrors,
 } from '@loopback/rest';
@@ -53,7 +52,6 @@ export class DongsController {
   private readonly userId: typeof Users.prototype.userId;
 
   constructor(
-    @inject.context() private ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(CategoriesSourceListBindings) public catSrc: CategoriesSource,
     @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
