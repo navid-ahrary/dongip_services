@@ -119,7 +119,7 @@ export class DongsController {
         patchPayer.categoryId = patchDong.categoryId;
       }
 
-      if (Object.has(patchDong, 'pong')) {
+      if (_.has(patchDong, 'pong')) {
         patchBill.dongAmount = patchDong.pong;
         patchPayer.paidAmount = patchDong.pong;
       }
