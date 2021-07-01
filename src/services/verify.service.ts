@@ -372,7 +372,7 @@ export class VerifyService {
     try {
       const categoriesList = this.catSrc[this.lang];
       const initCatList: Categories[] = [];
-      _.forEach(categoriesList, (cat) => {
+      categoriesList.forEach((cat) => {
         initCatList.push(new Categories({ userId: userId, icon: cat.icon, title: cat.title }));
       });
       const savdDemoCats = await this.categoriesRepository.createAll(initCatList);

@@ -4,7 +4,6 @@ import { service, BindingScope, inject } from '@loopback/core';
 import moment from 'moment';
 import 'moment-timezone';
 import ct from 'countries-and-timezones';
-import _ from 'lodash';
 import util from 'util';
 import { NotificationsRepository, RemindersRepository, UsersRepository } from '../repositories';
 import { FirebaseService, BatchMessage } from '.';
@@ -62,15 +61,12 @@ export class ReminderCronjobService extends CronJob {
       ],
     });
 
-    const users = _.filter(
-      _.map(foundReminders, (r2) => r2.user),
-      (u) => u instanceof Users,
-    );
+    const users = foundReminders.map((r2) => r2.user).filter((u) => u instanceof Users);
 
     const notifyEntities: Array<Notifications> = [];
     const firebaseMessages: BatchMessage = [];
     for (const user of users) {
-      const reminder = _.find(foundReminders, (r) => r.userId === user.userId);
+      const reminder = foundReminders.find((r) => r.userId === user.userId);
 
       const name = user.name;
       const lang = user.setting.language;
@@ -100,10 +96,7 @@ export class ReminderCronjobService extends CronJob {
     if (notifyEntities.length) await this.notifRepo.createAll(notifyEntities);
 
     if (foundReminders.length) {
-      const reminderIds = _.map(
-        _.filter(foundReminders, (r) => r.repeat),
-        (r) => r.reminderId,
-      );
+      const reminderIds = foundReminders.filter((r) => r.repeat).map((r) => r.reminderId);
 
       await this.remindersRepo.updateOverride(reminderIds);
     }
