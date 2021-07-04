@@ -90,6 +90,8 @@ export class DongsController {
               'originDongId',
               'userId',
               'scores',
+              'income',
+              'walletId',
             ],
           }),
           example: {
