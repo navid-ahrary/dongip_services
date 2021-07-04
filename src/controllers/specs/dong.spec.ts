@@ -41,6 +41,7 @@ export const createDongReqBodySpec: RequestBodyObject = {
             includeBill: false,
             income: true,
             receiptId: 100,
+            walletId: 223,
             payerList: [{ userRelId: 1, paidAmount: 20000 }],
             billList: [{ userRelId: 1, dongAmount: 20000 }],
           },
