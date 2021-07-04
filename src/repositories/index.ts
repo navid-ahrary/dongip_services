@@ -19,3 +19,4 @@ export * from './joint-account-subscribes.repository';
 export * from './refresh-tokens.repository';
 export * from './reminders.repository';
 export * from './receipts.repository';
+export * from './wallets.repository';

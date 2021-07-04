@@ -155,6 +155,7 @@ export class DongService {
       includeBudget: _.isNull(newDong.includeBudget) ? undefined : newDong.includeBudget,
       includeBill: _.isNull(newDong.includeBill) ? undefined : newDong.includeBill,
       income: _.isNull(newDong.income) ? undefined : newDong.income,
+      walletId: newDong.walletId,
     });
 
     try {

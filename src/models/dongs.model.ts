@@ -8,15 +8,18 @@ import {
   RelationType,
   hasOne,
 } from '@loopback/repository';
-
-import { Users } from './users.model';
-import { Categories } from './categories.model';
-import { PayerList } from './payer-list.model';
-import { BillList } from './bill-list.model';
-import { Scores } from './scores.model';
+import {
+  Users,
+  Categories,
+  BillList,
+  PayerList,
+  Receipts,
+  Scores,
+  JointAccounts,
+  Wallets,
+  JointAccountsWithRelations,
+} from '.';
 import { CurrencyEnum } from './settings.model';
-import { JointAccounts, JointAccountsWithRelations } from './joint-accounts.model';
-import { Receipts } from './receipts.model';
 
 @model({
   name: 'dongs',
@@ -51,6 +54,14 @@ import { Receipts } from './receipts.model';
         entity: 'dongs',
         entityKey: 'id',
         foreignKey: 'originDongId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
+      },
+      fkDongsWalletId: {
+        name: 'fk_dongs_wallet_id',
+        entity: 'wallets',
+        entityKey: 'id',
+        foreignKey: 'walletId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
       },
@@ -303,6 +314,29 @@ export class Dongs extends Entity {
     },
   })
   income?: boolean | null;
+
+  @belongsTo(
+    () => Wallets,
+    {
+      source: Wallets,
+      name: 'wallet',
+      type: RelationType.belongsTo,
+      keyFrom: 'walletId',
+      keyTo: 'walletId',
+      target: () => Dongs,
+    },
+    {
+      type: 'number',
+      required: false,
+      index: { normal: true },
+      mysql: {
+        columnName: 'wallet_id',
+        dataType: 'mediumint unsigned',
+        nullable: 'Y',
+      },
+    },
+  )
+  walletId?: number;
 
   constructor(data?: Partial<Dongs>) {
     super(data);

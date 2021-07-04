@@ -17,12 +17,14 @@ import {
   Scores,
   JointAccounts,
   Receipts,
+  Wallets,
 } from '../models';
 import {
+  WalletsRepository,
   UsersRepository,
+  CategoriesRepository,
   BillListRepository,
   PayerListRepository,
-  CategoriesRepository,
   ScoresRepository,
   JointAccountsRepository,
   ReceiptsRepository,
@@ -47,6 +49,8 @@ export class DongsRepository extends DefaultCrudRepository<
 
   public readonly receipt: HasOneRepositoryFactory<Receipts, typeof Dongs.prototype.dongId>;
 
+  public readonly wallet: BelongsToAccessor<Wallets, typeof Dongs.prototype.dongId>;
+
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
@@ -62,8 +66,13 @@ export class DongsRepository extends DefaultCrudRepository<
     protected jointAccountsRepositoryGetter: Getter<JointAccountsRepository>,
     @repository.getter('ReceiptsRepository')
     protected receiptsRepositoryGetter: Getter<ReceiptsRepository>,
+    @repository.getter('WalletsRepository')
+    protected walletsRepositoryGetter: Getter<WalletsRepository>,
   ) {
     super(Dongs, dataSource);
+
+    this.wallet = this.createBelongsToAccessorFor('wallet', walletsRepositoryGetter);
+    this.registerInclusionResolver('wallet', this.wallet.inclusionResolver);
 
     this.receipt = this.createHasOneRepositoryFactoryFor('receipt', receiptsRepositoryGetter);
     this.registerInclusionResolver('receipt', this.receipt.inclusionResolver);

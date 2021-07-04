@@ -121,6 +121,12 @@ export class PostDong extends Model {
   })
   income?: boolean | null;
 
+  @property({
+    type: 'number',
+    required: false,
+  })
+  walletId?: number;
+
   constructor(data?: Partial<PostDong>) {
     super(data);
   }

@@ -26,27 +26,27 @@ import {
   RefreshTokens,
   Reminders,
   Receipts,
+  Wallets,
 } from '../models';
-import {
-  PayerListRepository,
-  BillListRepository,
-  ScoresRepository,
-  MessagesRepository,
-  NotificationsRepository,
-  BudgetsRepository,
-  SettingsRepository,
-  PurchasesRepository,
-  CategoriesRepository,
-  SubscriptionsRepository,
-  VirtualUsersRepository,
-  UsersRelsRepository,
-  JointAccountsRepository,
-  JointAccountSubscribesRepository,
-  DongsRepository,
-  RefreshTokensRepository,
-  RemindersRepository,
-} from '.';
 import { ReceiptsRepository } from './receipts.repository';
+import { WalletsRepository } from './wallets.repository';
+import { VirtualUsersRepository } from './virtual-users.repository';
+import { DongsRepository } from './dongs.repository';
+import { CategoriesRepository } from './categories.repository';
+import { UsersRelsRepository } from './users-rels.repository';
+import { BillListRepository } from './bill-list.repository';
+import { PayerListRepository } from './payer-list.repository';
+import { ScoresRepository } from './scores.repository';
+import { MessagesRepository } from './messages.repository';
+import { NotificationsRepository } from './notifications.repository';
+import { BudgetsRepository } from './budgets.repository';
+import { SettingsRepository } from './settings.repository';
+import { PurchasesRepository } from './purchases.repository';
+import { SubscriptionsRepository } from './subscriptions.repository';
+import { JointAccountsRepository } from './joint-accounts.repository';
+import { JointAccountSubscribesRepository } from './joint-account-subscribes.repository';
+import { RefreshTokensRepository } from './refresh-tokens.repository';
+import { RemindersRepository } from './reminders.repository';
 
 export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.prototype.userId> {
   public readonly virtualUsers: HasManyRepositoryFactory<
@@ -103,6 +103,8 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
 
   public readonly receipts: HasManyRepositoryFactory<Receipts, typeof Users.prototype.userId>;
 
+  public readonly wallets: HasManyRepositoryFactory<Wallets, typeof Users.prototype.userId>;
+
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -141,8 +143,13 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
     protected remindersRepositoryGetter: Getter<RemindersRepository>,
     @repository.getter('ReceiptsRepository')
     protected receiptsRepositoryGetter: Getter<ReceiptsRepository>,
+    @repository.getter('WalletsRepository')
+    protected walletsRepositoryGetter: Getter<WalletsRepository>,
   ) {
     super(Users, dataSource);
+
+    this.wallets = this.createHasManyRepositoryFactoryFor('wallets', walletsRepositoryGetter);
+    this.registerInclusionResolver('wallets', this.wallets.inclusionResolver);
 
     this.receipts = this.createHasManyRepositoryFactoryFor('receipts', receiptsRepositoryGetter);
     this.registerInclusionResolver('receipts', this.receipts.inclusionResolver);

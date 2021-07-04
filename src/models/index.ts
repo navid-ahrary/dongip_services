@@ -26,3 +26,4 @@ export * from './joint-response.model';
 export * from './refresh-tokens.model';
 export * from './reminders.model';
 export * from './receipts.model';
+export * from './wallets.model';

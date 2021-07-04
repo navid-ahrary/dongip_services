@@ -24,6 +24,8 @@ import {
   Reminders,
 } from '.';
 import { Receipts } from './receipts.model';
+import { RemindersWithRelations } from './reminders.model';
+import { Wallets, WalletsWithRelations } from './wallets.model';
 
 @model({ name: 'users' })
 export class Users extends Entity {
@@ -409,6 +411,9 @@ export class Users extends Entity {
   @hasMany(() => Receipts, { keyTo: 'userId' })
   receipts: Receipts[];
 
+  @hasMany(() => Wallets, { keyTo: 'userId' })
+  wallets: Wallets[];
+
   constructor(data?: Partial<Users>) {
     super(data);
   }
@@ -420,7 +425,8 @@ export interface UsersRelations {
   subscriptions?: SubscriptionsWithRelations[];
   jointAccounts?: JointAccountsWithRelations[];
   jointAccountSubscribes?: JointAccountSubscribesWithRelations[];
-  reminders?: Reminders[];
+  reminders?: RemindersWithRelations[];
+  wallets?: WalletsWithRelations[];
 }
 
 export type UsersWithRelations = Users & UsersRelations;
