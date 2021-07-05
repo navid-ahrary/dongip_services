@@ -28,7 +28,21 @@ export class Wallets extends Entity {
       nullable: 'N',
     },
   })
-  walletId?: number;
+  walletId: number;
+
+  @property({
+    type: 'number',
+    default: 0,
+    jsonSchema: {
+      type: 'number',
+      minimum: 0,
+    },
+    mysql: {
+      dataType: 'bigint unsigned',
+      default: 0,
+    },
+  })
+  initial: number;
 
   @property({
     type: 'string',
@@ -45,9 +59,28 @@ export class Wallets extends Entity {
 
   @property({
     type: 'string',
+    jsonSchema: { maxLength: 255 },
+    mysql: {
+      columnName: 'desc',
+      dataType: 'varchar',
+      dataLength: 255,
+      nullable: 'Y',
+    },
+  })
+  desc?: string;
+
+  @property({
+    type: 'string',
     required: true,
-    jsonSchema: { minLength: 3, maxLength: 512 },
-    mysql: { dataType: 'varchar', dataLength: 512, nullable: 'Y' },
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 512,
+    },
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 512,
+      nullable: 'Y',
+    },
   })
   icon?: string;
 

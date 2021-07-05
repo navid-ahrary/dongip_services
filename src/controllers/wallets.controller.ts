@@ -30,8 +30,8 @@ export class WalletsController {
     @inject.context() public ctx: RequestContext,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
-    @repository(WalletsRepository) public walletsRepository: WalletsRepository,
     @repository(UsersRepository) public userRepo: UsersRepository,
+    @repository(WalletsRepository) public walletsRepository: WalletsRepository,
   ) {
     this.userId = +currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
@@ -100,7 +100,7 @@ export class WalletsController {
         'application/json': {
           schema: getModelSchemaRef(Wallets, {
             partial: true,
-            exclude: ['createdAt', 'updatedAt', 'walletId'],
+            exclude: ['createdAt', 'updatedAt', 'walletId', 'initial'],
           }),
         },
       },

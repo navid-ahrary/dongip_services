@@ -119,7 +119,7 @@ export class Dongs extends Entity {
   createdAt: string;
 
   @property({
-    type: 'Number',
+    type: 'number',
     required: true,
     mysql: {
       columnName: 'pong',
