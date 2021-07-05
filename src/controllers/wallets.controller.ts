@@ -100,7 +100,7 @@ export class WalletsController {
         'application/json': {
           schema: getModelSchemaRef(Wallets, {
             partial: true,
-            exclude: ['createdAt', 'updatedAt', 'walletId', 'initial'],
+            exclude: ['createdAt', 'updatedAt', 'walletId', 'initial', 'userId'],
           }),
         },
       },
