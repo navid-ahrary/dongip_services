@@ -99,6 +99,7 @@ export class UsersController {
             },
           },
           { relation: 'reminders' },
+          { relation: 'wallets' },
         ],
       });
 
