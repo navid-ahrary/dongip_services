@@ -63,7 +63,7 @@ import { CurrencyEnum } from './settings.model';
         entityKey: 'id',
         foreignKey: 'walletId',
         onUpdate: 'cascade',
-        onDelete: 'cascade',
+        onDelete: 'set null',
       },
     },
   },
