@@ -124,7 +124,16 @@ export class WalletsController {
     security: OPERATION_SECURITY_SPEC,
     responses: { 204: { description: 'Wallets DELETE success' } },
   })
-  async deleteById(@param.path.number('walletId') walletId: number): Promise<void> {
+  async deleteById(
+    @param.path.number('walletId') walletId: number,
+    @param.query.number('walletIdUpdate', { required: false }) walletIdUpdate?: number,
+  ): Promise<void> {
+    if (walletIdUpdate) {
+      await this.userRepo
+        .dongs(this.userId)
+        .patch({ walletId: walletIdUpdate }, { walletId: walletId });
+    }
+
     const countDeleted = await this.userRepo.wallets(this.userId).delete({ walletId: walletId });
 
     if (countDeleted.count === 0) {
