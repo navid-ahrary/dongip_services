@@ -12,7 +12,7 @@ import { Dongs } from './dongs.model';
         entityKey: 'id',
         foreignKey: 'userId',
         onUpdate: 'cascade',
-        onDelete: 'cascade',
+        onDelete: 'set null',
       },
     },
   },
