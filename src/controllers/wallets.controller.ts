@@ -127,11 +127,14 @@ export class WalletsController {
   async deleteById(
     @param.path.number('walletId') walletId: number,
     @param.query.number('walletIdUpdate', { required: false }) walletIdUpdate?: number,
+    @param.query.boolean('deleteDongs', { required: false }) deleteDongs?: boolean,
   ): Promise<void> {
     if (walletIdUpdate) {
       await this.userRepo
         .dongs(this.userId)
         .patch({ walletId: walletIdUpdate }, { walletId: walletId });
+    } else if (deleteDongs) {
+      await this.walletsRepository.dongs(walletId).delete({ userId: this.userId });
     }
 
     const countDeleted = await this.userRepo.wallets(this.userId).delete({ walletId: walletId });
@@ -151,7 +154,10 @@ export class WalletsController {
       },
     },
   })
-  async deleteAllWallets(): Promise<Count> {
+  async deleteAllWallets(
+    @param.query.boolean('deleteDongs', { required: false }) deleteDongs?: boolean,
+  ): Promise<Count> {
+    if (deleteDongs) await this.userRepo.dongs(this.userId).delete({ walletId: { neq: null! } });
     return this.userRepo.wallets(this.userId).delete();
   }
 }
