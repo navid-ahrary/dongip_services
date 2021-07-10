@@ -37,24 +37,33 @@ export class SmsService {
     @inject(KavenegarBindings.KAVENEGAR_API_KEY) private apiKey: string,
     @inject(KavenegarBindings.SMS_TEMPLATE_EN) private tempEn: string,
     @inject(KavenegarBindings.SMS_TEMPLATE_FA) private tempFa: string,
+    @inject(KavenegarBindings.SMS_SURVEY_TEMPLATE) private surveyTemp: string,
   ) {
     this.kavenegarApi = Kavenegar.KavenegarApi({ apikey: this.apiKey });
   }
 
-  public async sendSms(
-    token1: string,
-    receptor: string,
-    lang: string,
-    token2?: string,
-  ): Promise<KavenegarResponse> {
-    receptor = this.phoneNumService.formatForSendSMSFromIran(receptor);
+  public async sendSms(data: {
+    token1: string;
+    receptor: string;
+    lang: string;
+    type: 'verify' | 'survey';
+    token2?: string;
+  }): Promise<KavenegarResponse> {
+    data.receptor = this.phoneNumService.formatForSendSMSFromIran(data.receptor);
+
+    let template = '';
+    if (data.type === 'verify') {
+      template = data.lang === 'fa' ? this.tempFa : this.tempEn;
+    } else if (data.type === 'survey') {
+      template = this.surveyTemp;
+    }
 
     const sms: VerifyLookupSMS = {
-      token: token1,
-      token2: token2 ? token2 : undefined,
-      template: lang === 'fa' ? this.tempFa : this.tempEn,
+      token: data.token1,
+      token2: data.token2,
+      template: template,
       type: this.LOOKUP_TYPE,
-      receptor: receptor,
+      receptor: data.receptor,
     };
 
     return new Promise((resolve, reject) => {

@@ -67,9 +67,8 @@ export namespace PasswordHasherBindings {
 }
 
 export namespace UserServiceBindings {
-  export const USER_SERVICE = BindingKey.create<UserService<Users, Credentials>>(
-    'services.user.service',
-  );
+  export const USER_SERVICE =
+    BindingKey.create<UserService<Users, Credentials>>('services.user.service');
 }
 
 export namespace RefreshTokenServiceBindings {
@@ -89,12 +88,12 @@ export const MariadbConfigValue = {
 export const MariadbConfigBinding = BindingKey.create<object>('datasources.config.Mariadb');
 
 export namespace FirebaseConstants {
-  export const FIREBASE_APPLICATION_DATABASEURL_VALIE = process.env
-    .FIREBASE_APPLICATION_DATABASEURL!;
+  export const FIREBASE_APPLICATION_DATABASEURL_VALIE =
+    process.env.FIREBASE_APPLICATION_DATABASEURL!;
 
   export const FIREBASE_DONGIP_USER_APP_NAME_VALUE = process.env.FIREBASE_DONGIP_USER_APP_NAME!;
-  export const FIREBASE_DONGIP_SUPPORT_APP_NAME_VALUE = process.env
-    .FIREBASE_DONGIP_SUPPORT_APP_NAME!;
+  export const FIREBASE_DONGIP_SUPPORT_APP_NAME_VALUE =
+    process.env.FIREBASE_DONGIP_SUPPORT_APP_NAME!;
 
   // User app scope
   export const FIREBASE_DONGIP_USER_CERT_FILE = require(path.join(
@@ -121,9 +120,8 @@ export namespace FirebaseBinding {
   export const FIREBASE_DONGIP_SUPPORT_APP_NAME = BindingKey.create<string>(
     'services.firebase.support.appname',
   );
-  export const FIREBASE_DONGIP_USER_CERT = BindingKey.create<ServiceAccount>(
-    'services.firebase.user',
-  );
+  export const FIREBASE_DONGIP_USER_CERT =
+    BindingKey.create<ServiceAccount>('services.firebase.user');
   export const FIREBASE_DONGIP_SUPPORT_CERT = BindingKey.create<ServiceAccount>(
     'services.firebase.support',
   );
@@ -133,12 +131,14 @@ export namespace KavenegarConstans {
   export const KAVENEGAR_API_KEY_VALUE = process.env.KAVENEGAR_API_KEY!;
   export const SMS_TEMPLATE_FA_VALUE = process.env.SMS_TEMPLATE_FA!;
   export const SMS_TEMPLATE_EN_VALUE = process.env.SMS_TEMPLATE_EN!;
+  export const SMS_SURVEY_TEMPLATE_VALUE = process.env.SMS_SURVEY_TEMPLATE!;
 }
 
 export namespace KavenegarBindings {
   export const KAVENEGAR_API_KEY = BindingKey.create<string>('services.kavenegar.apiKey');
   export const SMS_TEMPLATE_FA = BindingKey.create<string>('services.kavenegar.smsTemplateFa');
   export const SMS_TEMPLATE_EN = BindingKey.create<string>('services.kavenegar.smsTemplateEn');
+  export const SMS_SURVEY_TEMPLATE = BindingKey.create<string>('services.kavenegar.surveyTemplate');
 }
 
 export namespace CafebazaarConstants {

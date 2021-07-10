@@ -227,6 +227,9 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.bind(KavenegarBindings.KAVENEGAR_API_KEY).to(KavenegarConstans.KAVENEGAR_API_KEY_VALUE);
     this.bind(KavenegarBindings.SMS_TEMPLATE_FA).to(KavenegarConstans.SMS_TEMPLATE_FA_VALUE);
     this.bind(KavenegarBindings.SMS_TEMPLATE_EN).to(KavenegarConstans.SMS_TEMPLATE_EN_VALUE);
+    this.bind(KavenegarBindings.SMS_SURVEY_TEMPLATE).to(
+      KavenegarConstans.SMS_SURVEY_TEMPLATE_VALUE,
+    );
 
     // Bind Cafebazaar constants
     this.bind(CafebazaarBindings.CAFEBAZAAR_API_BASEURL).to(

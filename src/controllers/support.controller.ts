@@ -17,9 +17,20 @@ import ct from 'countries-and-timezones';
 import _ from 'lodash';
 import moment from 'moment';
 import 'moment-timezone';
-import { Messages, Settings, Users } from '../models';
-import { basicAuthorization, BatchMessage, CurrentUserProfile, FirebaseService } from '../services';
-import { MessagesRepository, SettingsRepository, UsersRepository } from '../repositories';
+import { Messages, Settings, Users, Verify } from '../models';
+import {
+  basicAuthorization,
+  BatchMessage,
+  CurrentUserProfile,
+  FirebaseService,
+  SmsService,
+} from '../services';
+import {
+  MessagesRepository,
+  SettingsRepository,
+  UsersRepository,
+  VerifyRepository,
+} from '../repositories';
 import { LocMsgsBindings } from '../keys';
 import { LocalizedMessages } from '../types';
 import { MariadbDataSource } from '../datasources';
@@ -35,8 +46,10 @@ export class SupportController {
     @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
     @inject('datasources.Mariadb') private dataSource: MariadbDataSource,
     @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
+    @service(SmsService) private smsService: SmsService,
     @service(FirebaseService) private firebaseService: FirebaseService,
     @repository(UsersRepository) private usersRepository: UsersRepository,
+    @repository(VerifyRepository) private verifyRepo: VerifyRepository,
     @repository(SettingsRepository) private settingRepo: SettingsRepository,
     @repository(MessagesRepository) private messagesRepository: MessagesRepository,
   ) {
@@ -420,5 +433,70 @@ export class SupportController {
       console.error(err);
       throw new HttpErrors.NotImplemented(JSON.stringify(err));
     }
+  }
+
+  @post('/support/sms/', {
+    summary: 'Send sms to active users',
+    security: OPERATION_SECURITY_SPEC,
+    responses: { 204: { description: 'No content' } },
+  })
+  async sendSms(
+    @param.query.string('type', { required: true, schema: { enum: ['survey'] } }) type: 'survey',
+    @param.query.string('surveyURL', { required: true }) surveyURL: string,
+    @param.query.number('numberOfUsers', {
+      description: 'How many active users got the sms.',
+      required: true,
+    })
+    numberOfUsers: number,
+  ) {
+    const query = `
+      SELECT
+        u.id userId
+        , s.language
+        , u.phone
+        , u.name
+        , count(d.id) numberOfDongs
+      from users u
+      inner join dongs d ON u.id = d.user_id
+      inner join settings s ON u.id = s.user_id
+      where u.id = 1
+      group by u.phone
+      order by count(d.id) desc
+      limit ?`;
+
+    const foundUsers: {
+      userId: number;
+      language: string;
+      phone: string;
+      name: string;
+      numberOfDongs: number;
+    }[] = await this.dataSource.execute(query, [numberOfUsers]);
+
+    const verifyEntites: Verify[] = [];
+    for (const u of foundUsers) {
+      await this.smsService
+        .sendSms({
+          receptor: u.phone,
+          lang: u.language,
+          type: type,
+          token1: u.name,
+          token2: surveyURL,
+        })
+        .then(async (res) => {
+          verifyEntites.push(
+            new Verify({
+              phone: u.phone,
+              kavenegarMessageId: res.body.messageid,
+              kavenegarDate: res.body.date,
+              kavenegarSender: res.body.sender,
+              kavenegarStatusText: res.body.statustext,
+              kavenegarCost: res.body.cost,
+              kavenegarStatusCode: res.statusCode,
+            }),
+          );
+        });
+    }
+
+    await this.verifyRepo.createAll(verifyEntites);
   }
 }

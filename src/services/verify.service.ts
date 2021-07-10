@@ -122,7 +122,13 @@ export class VerifyService {
     const verifyToken: string = await this.jwtService.generateToken(userProfile);
 
     this.smsService
-      .sendSms(this.randomCode, phoneValue, this.lang, smsSignature)
+      .sendSms({
+        lang: this.lang,
+        token1: this.randomCode,
+        token2: smsSignature,
+        receptor: phoneValue,
+        type: 'verify',
+      })
       .then(async (res) => {
         await this.verifyRepository.updateById(createdVerify.getId(), {
           kavenegarMessageId: res.body.messageid,
