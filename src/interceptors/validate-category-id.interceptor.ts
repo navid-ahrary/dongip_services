@@ -79,14 +79,7 @@ export class ValidateCategoryIdInterceptor implements Provider<Interceptor> {
       }
     }
 
-    if (
-      [
-        'deleteCategoriesById',
-        'patchCategoriesById',
-        'createCategoriesBudgets',
-        'findCategoriesBudgets',
-      ].includes(invocationCtx.methodName)
-    ) {
+    if (['createCategoriesBudgets', 'findCategoriesBudgets'].includes(invocationCtx.methodName)) {
       const categoryId = invocationCtx.args[0];
 
       const countCategory = await this.categoriesRepo.count({
