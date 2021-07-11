@@ -180,7 +180,7 @@ export class CategoriesController {
     @param.path.number('categoryId', { required: true, allowEmptyValue: false })
     categoryId: typeof Categories.prototype.categoryId,
   ): Promise<void> {
-    return this.categoryRepository.deleteById(categoryId);
+    await this.usersRepository.categories(this.userId).delete({ categoryId: categoryId });
   }
 
   @del('/categories', {
