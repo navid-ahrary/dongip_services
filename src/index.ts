@@ -1,6 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import { ApplicationConfig, DongipApplication } from './application';
 export * from './application';
 
