@@ -13,16 +13,14 @@ import {
 import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import { inject, intercept } from '@loopback/core';
+import { inject } from '@loopback/core';
 import _ from 'lodash';
 import { Categories, Users } from '../models';
 import { UsersRepository, CategoriesRepository } from '../repositories';
-import { ValidateCategoryIdInterceptor } from '../interceptors';
 import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
 import { CurrentUserProfile } from '../services';
 
-@intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class CategoriesController {
   private readonly userId: typeof Users.prototype.userId;
@@ -180,7 +178,7 @@ export class CategoriesController {
     @param.path.number('categoryId', { required: true, allowEmptyValue: false })
     categoryId: typeof Categories.prototype.categoryId,
   ): Promise<void> {
-    return this.categoryRepository.deleteById(categoryId);
+    await this.usersRepository.categories(this.userId).delete({ categoryId: categoryId });
   }
 
   @del('/categories', {
