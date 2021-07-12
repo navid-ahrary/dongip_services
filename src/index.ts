@@ -1,5 +1,7 @@
-import { ApplicationConfig, DongipApplication } from './application';
+import dotenv from 'dotenv';
+dotenv.config();
 
+import { ApplicationConfig, DongipApplication } from './application';
 export * from './application';
 
 export async function main(options: ApplicationConfig = {}) {
