@@ -238,20 +238,6 @@ export class BillList extends Entity {
   )
   jointAccountId?: number;
 
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
-
   constructor(data?: Partial<BillList>) {
     super(data);
   }

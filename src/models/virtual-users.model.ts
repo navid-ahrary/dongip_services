@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
-import { Users, UsersRels } from './';
+import {
+  Entity,
+  model,
+  property,
+  belongsTo,
+  RelationType,
+} from '@loopback/repository';
+import {Users} from './';
+import {UsersRels} from './users-rels.model';
 
 @model({
   name: 'virtual_users',
@@ -9,12 +16,12 @@ import { Users, UsersRels } from './';
       'user_id&phone': {
         name: 'user_id&phone',
         columns: 'user_id, phone',
-        options: { unique: true },
+        options: {unique: true},
       },
       'user_id&user_rel_id': {
         name: 'user_id&user_rel_id',
         columns: 'user_id, user_rel_id',
-        options: { unique: true },
+        options: {unique: true},
       },
     },
     foreignKeys: {
@@ -54,15 +61,15 @@ export class VirtualUsers extends Entity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: { maxLength: 20 },
-    mysql: { dataType: 'varchar', dataLength: 20, nullable: 'N' },
+    jsonSchema: {maxLength: 20},
+    mysql: {dataType: 'varchar', dataLength: 20, nullable: 'N'},
   })
   phone: string;
 
   @property({
     type: 'string',
-    jsonSchema: { maxLength: 100 },
-    mysql: { dataType: 'varchar', dataLength: 100, nullable: 'Y' },
+    jsonSchema: {maxLength: 100},
+    mysql: {dataType: 'varchar', dataLength: 100, nullable: 'Y'},
   })
   email?: string;
 
@@ -92,7 +99,7 @@ export class VirtualUsers extends Entity {
     {
       type: 'number',
       required: true,
-      index: { normal: true },
+      index: {normal: true},
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',
@@ -116,7 +123,7 @@ export class VirtualUsers extends Entity {
     {
       type: 'number',
       required: true,
-      index: { normal: true },
+      index: {normal: true},
       mysql: {
         columnName: 'user_rel_id',
         dataType: 'mediumint unsigned',
@@ -126,20 +133,6 @@ export class VirtualUsers extends Entity {
     },
   )
   userRelId: number;
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<VirtualUsers>) {
     super(data);

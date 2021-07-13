@@ -123,20 +123,6 @@ export class JointAccounts extends Entity {
   @hasMany(() => Dongs, { keyTo: 'jointAccountId' })
   dongs: Dongs[];
 
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
-
   constructor(data?: Partial<JointAccounts>) {
     super(data);
   }
