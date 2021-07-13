@@ -260,3 +260,4 @@ export class BillList extends Entity {
 export interface BillListRelations {}
 
 export type BillListWithRelations = BillList & BillListRelations;
+/// sdsd
