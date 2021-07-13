@@ -256,6 +256,20 @@ export class Settings extends Entity {
   })
   createdAt: string;
 
+  @property({
+    type: 'boolean',
+    default: false,
+    required: true,
+    hidden: true,
+    mysql: {
+      dataType: 'tinyint',
+      dataLength: 1,
+      default: 0,
+      nullable: 'N',
+    },
+  })
+  deleted: boolean;
+
   constructor(data?: Partial<Settings>) {
     super(data);
   }

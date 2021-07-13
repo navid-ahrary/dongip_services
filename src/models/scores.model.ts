@@ -1,12 +1,5 @@
-import {
-  Entity,
-  model,
-  property,
-  belongsTo,
-  RelationType,
-} from '@loopback/repository';
-import {Users} from './users.model';
-import {Dongs} from './dongs.model';
+import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
+import { Dongs, Users } from '.';
 
 @model({
   name: 'scores',
@@ -48,7 +41,7 @@ export class Scores extends Entity {
   @property({
     type: 'Number',
     required: true,
-    jsonSchema: {maxLength: 3},
+    jsonSchema: { maxLength: 3 },
     mysql: {
       dataType: 'smallint',
       dataLength: 3,
@@ -84,7 +77,7 @@ export class Scores extends Entity {
     {
       type: 'number',
       required: true,
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'user_id',
         dataType: 'mediumint unsigned',
@@ -107,7 +100,7 @@ export class Scores extends Entity {
     },
     {
       type: 'number',
-      index: {normal: true},
+      index: { normal: true },
       mysql: {
         columnName: 'dong_id',
         dataType: 'mediumint unsigned',
@@ -116,6 +109,20 @@ export class Scores extends Entity {
     },
   )
   dongId: number;
+
+  @property({
+    type: 'boolean',
+    default: false,
+    required: true,
+    hidden: true,
+    mysql: {
+      dataType: 'tinyint',
+      dataLength: 1,
+      default: 0,
+      nullable: 'N',
+    },
+  })
+  deleted: boolean;
 
   constructor(data?: Partial<Scores>) {
     super(data);
