@@ -151,6 +151,10 @@ export class Notifications extends Entity {
   @property({
     type: 'string',
     required: true,
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 10000,
+    },
   })
   body: string;
 
