@@ -111,7 +111,7 @@ export class RefreshtokenService {
 
   async revokeToken(userId: number) {
     try {
-      await this.refreshTokenRepo.deleteAll({ userId: userId });
+      await this.refreshTokenRepo.updateAll({ deleted: true }, { userId: userId });
     } catch (err) {
       // ignore
     }

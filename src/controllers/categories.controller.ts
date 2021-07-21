@@ -76,7 +76,7 @@ export class CategoriesController {
           schema: getModelSchemaRef(Categories, {
             title: 'NewCategories',
             partial: false,
-            exclude: ['categoryId', 'userId'],
+            exclude: ['categoryId', 'userId', 'deleted'],
           }),
           example: {
             title: 'مسافرت',
@@ -122,7 +122,7 @@ export class CategoriesController {
         'application/json': {
           schema: getModelSchemaRef(Categories, {
             partial: true,
-            exclude: ['categoryId', 'userId'],
+            exclude: ['categoryId', 'userId', 'deleted'],
           }),
           examples: {
             oneProp: {
@@ -178,7 +178,9 @@ export class CategoriesController {
     @param.path.number('categoryId', { required: true, allowEmptyValue: false })
     categoryId: typeof Categories.prototype.categoryId,
   ): Promise<void> {
-    await this.usersRepository.categories(this.userId).delete({ categoryId: categoryId });
+    await this.usersRepository
+      .categories(this.userId)
+      .patch({ deleted: true }, { categoryId: categoryId });
   }
 
   @del('/categories', {
@@ -187,6 +189,6 @@ export class CategoriesController {
     responses: { '200': { description: 'Count deleted Categories' } },
   })
   async deleteAllCategories() {
-    return this.usersRepository.categories(this.userId).delete();
+    return this.usersRepository.categories(this.userId).patch({ deleted: true });
   }
 }

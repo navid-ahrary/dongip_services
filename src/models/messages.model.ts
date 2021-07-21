@@ -4,6 +4,9 @@ import { Users } from './users.model';
 @model({
   name: 'messages',
   settings: {
+    scope: {
+      where: { deleted: false },
+    },
     foreignKeys: {
       fkMessagesUserId: {
         name: 'fk_messages_user_id',

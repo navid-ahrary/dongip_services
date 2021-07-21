@@ -65,7 +65,7 @@ export class BudgetsController {
         'application/json': {
           schema: getModelSchemaRef(Budgets, {
             title: 'NewBudgets',
-            exclude: ['budgetId', 'createdAt'],
+            exclude: ['budgetId', 'createdAt', 'deleted'],
             optional: ['userId'],
           }),
 
@@ -135,7 +135,7 @@ export class BudgetsController {
         'application/json': {
           schema: getModelSchemaRef(Budgets, {
             partial: true,
-            exclude: ['budgetId', 'createdAt'],
+            exclude: ['budgetId', 'createdAt', 'deleted'],
             optional: ['userId'],
           }),
           examples: {
@@ -199,7 +199,7 @@ export class BudgetsController {
     @param.path.number('budgetId', { required: true, example: 1 })
     budgetId: typeof Budgets.prototype.budgetId,
   ): Promise<void> {
-    await this.budgetsRepository.deleteById(budgetId);
+    await this.budgetsRepository.updateById(budgetId, { deleted: true });
   }
 
   @del('/budgets/', {
@@ -218,6 +218,6 @@ export class BudgetsController {
     },
   })
   async deleteAllBudgets(): Promise<Count> {
-    return this.budgetsRepository.deleteAll({ userId: this.userId });
+    return this.budgetsRepository.updateAll({ deleted: true }, { userId: this.userId });
   }
 }

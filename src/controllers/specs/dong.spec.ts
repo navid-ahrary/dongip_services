@@ -50,15 +50,3 @@ export const createDongReqBodySpec: RequestBodyObject = {
     },
   },
 };
-
-export const patchDongsReqBodySpec: RequestBodyObject = {
-  content: {
-    'application/json': {
-      schema: {
-        type: 'object',
-        properties: { categoryId: { type: 'number' } },
-        example: { categoryId: 202 },
-      },
-    },
-  },
-};

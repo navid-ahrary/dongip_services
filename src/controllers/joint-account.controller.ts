@@ -274,9 +274,13 @@ export class JointAccountController {
   ): Promise<void> {
     try {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepo.jointAccounts(this.userId).delete({ jointAccountId: jointAccountId });
+      this.usersRepo
+        .jointAccounts(this.userId)
+        .patch({ deleted: true }, { jointAccountId: jointAccountId });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepo.jointAccountSubscribes(this.userId).delete({ jointAccountId: jointAccountId });
+      this.usersRepo
+        .jointAccountSubscribes(this.userId)
+        .patch({ deleted: true }, { jointAccountId: jointAccountId });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepo
         .dongs(this.userId)
@@ -302,9 +306,9 @@ export class JointAccountController {
   async deleteAllJointAccounts(): Promise<void> {
     try {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepo.jointAccountSubscribes(this.userId).delete();
+      this.usersRepo.jointAccountSubscribes(this.userId).patch({ deleted: true });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepo.jointAccounts(this.userId).delete();
+      this.usersRepo.jointAccounts(this.userId).patch({ deleted: true });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepo
         .dongs(this.userId)
@@ -507,7 +511,7 @@ export class JointAccountController {
 
         await this.jointAccountsRepo
           .jointAccountSubscribes(jointAccountId)
-          .delete({ userId: { inq: deletedUsersIds } });
+          .patch({ deleted: true }, { userId: { inq: deletedUsersIds } });
 
         await this.dongRepo.updateAll(
           { jointAccountId: undefined, originDongId: undefined },
@@ -695,135 +699,9 @@ export class JointAccountController {
   }
 
   @del('/groups/', {
+    deprecated: true,
     security: OPERATION_SECURITY_SPEC,
     responses: { '204': { description: 'No content' } },
   })
   del() {}
-
-  // @patch('/joint-account/{jointAccountId}/delete/{userRelId}', { responses: { 204: '' } })
-  // async deleteRelFromJointAccount() {}
-
-  // @patch('/joint-account/{jointAccountId}/add/{userRelId}', {
-  //   security: OPERATION_SECURITY_SPEC,
-  //   responses: { 200: '' },
-  // })
-  // async addRelFromJointAccount(
-  //   @param.path.number('jointAccountId', { required: true }) jointAccountId: number,
-  //   @param.path.number('userRelId', { required: true }) userRelId: number,
-  // ) {
-  //   const notifyMsgs: BatchMessage = [];
-  //   const JA = await this.jointAccountsRepo.findOne({
-  //     where: { jointAccountId: jointAccountId, userId: this.userId },
-  //     include: [
-  //       {
-  //         relation: 'jointAccountSubscribes',
-  //         scope: {
-  //           include: [
-  //             {
-  //               relation: 'user',
-  //               scope: {
-  //                 fields: { userId: true, region: true, phone: true, firebaseToken: true },
-  //                 include: [
-  //                   {
-  //                     relation: 'setting',
-  //                     scope: { fields: { userId: true, language: true } },
-  //                   },
-  //                   {
-  //                     relation: 'usersRels',
-  //                     scope: {
-  //                       fields: {
-  //                         userRelId: true,
-  //                         mutualUserRelId: true,
-  //                         userId: true,
-  //                         phone: true,
-  //                         name: true,
-  //                       },
-  //                       where: { phone: this.phone },
-  //                     },
-  //                   },
-  //                 ],
-  //               },
-  //             },
-  //           ],
-  //         },
-  //       },
-  //     ],
-  //   });
-
-  //   if (!JA) {
-  //     throw new HttpErrors.UnprocessableEntity(this.locMsg['JOINT_NOT_VALID'][this.lang]);
-  //   }
-
-  //   const JASs = JA.jointAccountSubscribes;
-  //   const currentUsers = _.map(JASs, (jass) => jass.user);
-
-  //   const userRel = await this.usersRelsRepo.findOne({
-  //     fields: { mutualUserRelId: true, phone: true },
-  //     where: { userId: this.userId, userRelId: userRelId },
-  //   });
-
-  //   const targetUser = await this.usersRepo.findOne({
-  //     fields: { userId: true, region: true, phone: true },
-  //     where: { phone: userRel?.phone },
-  //     include: [
-  //       {
-  //         relation: 'usersRels',
-  //         scope: {
-  //           where: { userRelId: userRel?.mutualUserRelId },
-  //           fields: { userId: true, name: true, phone: true },
-  //         },
-  //       },
-  //       { relation: 'setting', scope: { fields: { language: true, userId: true } } },
-  //     ],
-  //   });
-
-  //   const jointSub = new JointAccountSubscribes({
-  //     userId: targetUser?.getId(),
-  //     jointAccountId: jointAccountId,
-  //   });
-  //   await this.jointAccSubscribesRepo.create(jointSub);
-
-  //   // Notify for joint memebers instead of current user
-  //   for (const user of currentUsers.filter((u) => u.userId !== this.userId)) {
-  //     const timezone = ct.getTimezonesForCountry(user.region!)[0].name;
-  //     const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
-
-  //     const targetRel = await this.usersRelsRepo.findOne({
-  //       fields: { userId: true, name: true },
-  //       where: { userId: user.getId(), phone: targetUser!.phone },
-  //     });
-  //     const savedNotify = await this.usersRepo.notifications(user.getId()).create({
-  //       jointAccountId: JA.getId(),
-  //       type: 'jointAccount',
-  //       title: util.format(
-  //         this.locMsg['UPDATE_JOINT_ACCOUNT_NOTIFY_TITLE'][user.setting.language],
-  //         JA.title,
-  //       ),
-  //       body: util.format(
-  //         this.locMsg['ADD_MEMBERS_JOINT_ACCOUNT_NOTIFY_BODY'][user.setting.language],
-  //         targetRel?.name ?? targetUser!.name,
-  //       ),
-  //       createdAt: time,
-  //     });
-
-  //     notifyMsgs.push({
-  //       token: user.firebaseToken ?? '',
-  //       notification: {
-  //         title: savedNotify.title,
-  //         body: savedNotify.body,
-  //       },
-  //       data: {
-  //         notifyId: savedNotify.getId().toString(),
-  //         title: savedNotify.title,
-  //         body: savedNotify.body,
-  //         jointAccountId: JA.getId().toString(),
-  //         type: savedNotify.type,
-  //         silent: 'false',
-  //       },
-  //     });
-  //   }
-
-  //   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  //   if (notifyMsgs.length) this.firebaseSerice.sendAllMessage(notifyMsgs);
-  // }
 }

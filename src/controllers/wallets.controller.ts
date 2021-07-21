@@ -57,7 +57,7 @@ export class WalletsController {
         'application/json': {
           schema: getModelSchemaRef(Wallets, {
             title: 'NewWallets',
-            exclude: ['walletId', 'userId', 'createdAt', 'updatedAt'],
+            exclude: ['walletId', 'userId', 'createdAt', 'updatedAt', 'deleted'],
           }),
         },
       },
@@ -100,7 +100,7 @@ export class WalletsController {
         'application/json': {
           schema: getModelSchemaRef(Wallets, {
             partial: true,
-            exclude: ['createdAt', 'updatedAt', 'walletId', 'initial', 'userId'],
+            exclude: ['createdAt', 'updatedAt', 'walletId', 'initial', 'userId', 'deleted'],
           }),
         },
       },
@@ -134,10 +134,14 @@ export class WalletsController {
         .dongs(this.userId)
         .patch({ walletId: walletIdUpdate }, { walletId: walletId });
     } else if (deleteDongs) {
-      await this.walletsRepository.dongs(walletId).delete({ userId: this.userId });
+      await this.walletsRepository
+        .dongs(walletId)
+        .patch({ deleted: true }, { userId: this.userId });
     }
 
-    const countDeleted = await this.userRepo.wallets(this.userId).delete({ walletId: walletId });
+    const countDeleted = await this.userRepo
+      .wallets(this.userId)
+      .patch({ deleted: true }, { walletId: walletId });
 
     if (countDeleted.count === 0) {
       throw new HttpErrors.UnprocessableEntity('wlletId not valid');
@@ -157,7 +161,10 @@ export class WalletsController {
   async deleteAllWallets(
     @param.query.boolean('deleteDongs', { required: false }) deleteDongs?: boolean,
   ): Promise<Count> {
-    if (deleteDongs) await this.userRepo.dongs(this.userId).delete({ walletId: { neq: null! } });
-    return this.userRepo.wallets(this.userId).delete();
+    if (deleteDongs) {
+      await this.userRepo.dongs(this.userId).patch({ deleted: true }, { walletId: { neq: null! } });
+    }
+
+    return this.userRepo.wallets(this.userId).patch({ deleted: true });
   }
 }

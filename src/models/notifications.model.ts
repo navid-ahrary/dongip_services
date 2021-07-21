@@ -5,6 +5,9 @@ import { Users } from './users.model';
 @model({
   name: 'notifications',
   settings: {
+    scope: {
+      where: { deleted: false },
+    },
     foreignKeys: {
       fkNotificationsUserId: {
         name: 'fk_notifications_user_id',

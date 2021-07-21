@@ -17,6 +17,9 @@ export enum LanguageEnum {
 @model({
   name: 'settings',
   settings: {
+    scope: {
+      where: { deleted: false },
+    },
     foreignKeys: {
       fkSettingsUserId: {
         name: 'fk_settings_user_id',

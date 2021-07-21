@@ -58,7 +58,7 @@ export class NotificationsController {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.usersRepository
       .notifications(this.userId)
-      .delete({ notifyId: { inq: foundNotify.map((n) => n.getId()) } });
+      .patch({ deleted: true }, { notifyId: { inq: foundNotify.map((n) => n.getId()) } });
 
     return foundNotify;
   }

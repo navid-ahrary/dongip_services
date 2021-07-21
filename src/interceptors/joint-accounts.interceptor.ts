@@ -307,7 +307,9 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
         const result = await next();
 
         if (jointAcc) {
-          if (foundDong.originDongId) await this.dongRepo.deleteById(foundDong.originDongId);
+          if (foundDong.originDongId) {
+            await this.dongRepo.updateById(foundDong.originDongId, { deleted: true });
+          }
 
           const jointAccountSubs = jointAcc.jointAccountSubscribes;
           const users = _.map(jointAccountSubs, (j) => j.user);
@@ -410,7 +412,9 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
           const jointAcc = foundDong.jointAccount!;
           const dongId = foundDong.getId();
 
-          if (foundDong.originDongId) await this.dongRepo.deleteById(foundDong.originDongId);
+          if (foundDong.originDongId) {
+            await this.dongRepo.updateById(foundDong.originDongId, { deleted: true });
+          }
 
           const jointAccountSubs = jointAcc.jointAccountSubscribes;
           const users = _.map(jointAccountSubs, (j) => j.user);

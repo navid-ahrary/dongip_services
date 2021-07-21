@@ -30,7 +30,7 @@ import {
   JointAccountsInterceptor,
   ValidateDongIdInterceptor,
 } from '../interceptors';
-import { createDongReqBodySpec, patchDongsReqBodySpec } from './specs';
+import { createDongReqBodySpec } from './specs';
 import { CategoriesSource, LocalizedMessages } from '../types';
 import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
 
@@ -153,7 +153,18 @@ export class DongsController {
   })
   async patchDongs(
     @param.query.number('categoryId', { required: true, example: 12 }) categoryId: number,
-    @requestBody(patchDongsReqBodySpec) patchReqBody: Partial<Dongs>,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: { categoryId: { type: 'number' } },
+            example: { categoryId: 202 },
+          },
+        },
+      },
+    })
+    patchReqBody: Partial<Dongs>,
   ): Promise<Count> {
     await this.userRepo
       .categories(this.userId)
@@ -259,7 +270,7 @@ export class DongsController {
   async deleteDongsById(
     @param.path.number('dongId', { required: true }) dongId: typeof Dongs.prototype.dongId,
   ): Promise<void> {
-    return this.dongRepository.deleteById(dongId);
+    await this.userRepo.dongs(this.userId).patch({ deleted: true });
   }
 
   @intercept(JointAccountsInterceptor.BINDING_KEY)
@@ -278,6 +289,6 @@ export class DongsController {
     },
   })
   async deleteAllDongs() {
-    return this.userRepo.dongs(this.userId).delete({ originDongId: null! });
+    return this.userRepo.dongs(this.userId).patch({ deleted: true }, { originDongId: null! });
   }
 }

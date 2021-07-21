@@ -100,7 +100,7 @@ export class UsersRelsController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
-            exclude: ['userRelId', 'userId', 'type', 'createdAt', 'updatedAt'],
+            exclude: ['userRelId', 'userId', 'type', 'createdAt', 'updatedAt', 'deleted'],
           }),
           example: {
             phone: '+989171234567',
@@ -172,9 +172,8 @@ export class UsersRelsController {
 
         if (!foundBiUserRel) {
           notifyType = 'userRel';
-          notifyTitle = this.locMsg['NEW_USERS_RELS_NOTIFY_TITLE'][
-            foundTargetUser.setting.language
-          ];
+          notifyTitle =
+            this.locMsg['NEW_USERS_RELS_NOTIFY_TITLE'][foundTargetUser.setting.language];
           notifyBody = util.format(
             this.locMsg['NEW_USERS_RELS_NOTIFY_BODY'][foundTargetUser.setting.language],
             currentUser.name,
@@ -260,7 +259,15 @@ export class UsersRelsController {
         'application/json': {
           schema: getModelSchemaRef(UsersRels, {
             partial: true,
-            exclude: ['userId', 'type', 'createdAt', 'updatedAt', 'email', 'mutualUserRelId'],
+            exclude: [
+              'userId',
+              'type',
+              'createdAt',
+              'updatedAt',
+              'email',
+              'mutualUserRelId',
+              'deleted',
+            ],
           }),
           examples: {
             someProps: {
@@ -336,7 +343,7 @@ export class UsersRelsController {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.usersRepository
       .usersRels(this.userId)
-      .delete({ and: [{ userRelId: userRelId }, { type: { neq: 'self' } }] });
+      .patch({ deleted: true }, { and: [{ userRelId: userRelId }, { type: { neq: 'self' } }] });
   }
 
   @post('/users-rels/find-friends', {
@@ -419,10 +426,13 @@ export class UsersRelsController {
   })
   async deleteAllUsersRels() {
     try {
-      const countDeletedUsersRels = await this.usersRelsRepository.deleteAll({
-        type: { neq: 'self' },
-        userId: this.userId,
-      });
+      const countDeletedUsersRels = await this.usersRelsRepository.updateAll(
+        { deleted: true },
+        {
+          type: { neq: 'self' },
+          userId: this.userId,
+        },
+      );
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.dongsRepository.updateAll({ jointAccountId: undefined }, { userId: this.userId });

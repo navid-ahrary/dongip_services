@@ -5,6 +5,9 @@ import { Dongs } from './dongs.model';
 @model({
   name: 'receipts',
   settings: {
+    scope: {
+      where: { deleted: false },
+    },
     foreignKeys: {
       fkReceiptsUserId: {
         name: 'fk_receipts_user_id',

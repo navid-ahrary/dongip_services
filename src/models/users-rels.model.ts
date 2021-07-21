@@ -8,13 +8,14 @@ import {
   hasOne,
   hasMany,
 } from '@loopback/repository';
-import { Users, VirtualUsers, Budgets } from '.';
-import { BillList } from './bill-list.model';
-import { PayerList } from './payer-list.model';
+import { Users, VirtualUsers, Budgets, BillList, PayerList } from '.';
 
 @model({
   name: 'users_rels',
   settings: {
+    scope: {
+      where: { deleted: false },
+    },
     indexes: {
       'user_id&phone': {
         name: 'user_id&phone',

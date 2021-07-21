@@ -5,6 +5,9 @@ import { Users, BillList, PayerList, Dongs, Budgets } from './';
 @model({
   name: 'categories',
   settings: {
+    scope: {
+      where: { deleted: false },
+    },
     indexes: {
       'user_id&title': {
         name: 'user_id&title',

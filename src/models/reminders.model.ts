@@ -4,6 +4,9 @@ import { Users, UsersWithRelations } from './users.model';
 @model({
   name: 'reminders',
   settings: {
+    scope: {
+      where: { deleted: false },
+    },
     foreignKeys: {
       fkRemindersUserId: {
         name: 'fk_reminders_user_id',

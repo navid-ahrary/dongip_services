@@ -53,7 +53,7 @@ export class SettingsController {
         'application/json': {
           schema: getModelSchemaRef(Settings, {
             partial: true,
-            exclude: ['userId', 'createdAt'],
+            exclude: ['userId', 'createdAt', 'deleted'],
           }),
         },
       },

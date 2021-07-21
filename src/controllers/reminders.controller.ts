@@ -66,7 +66,14 @@ export class RemindersController {
         'application/json': {
           schema: getModelSchemaRef(Reminders, {
             title: 'NewReminders',
-            exclude: ['reminderId', 'createdAt', 'userId', 'nextNotifyDate', 'notifyTime'],
+            exclude: [
+              'reminderId',
+              'createdAt',
+              'userId',
+              'nextNotifyDate',
+              'notifyTime',
+              'deleted',
+            ],
           }),
           example: {
             title: 'Settle up',
@@ -159,7 +166,14 @@ export class RemindersController {
         'application/json': {
           schema: getModelSchemaRef(Reminders, {
             partial: true,
-            exclude: ['reminderId', 'createdAt', 'userId', 'nextNotifyDate', 'notifyTime'],
+            exclude: [
+              'reminderId',
+              'createdAt',
+              'userId',
+              'nextNotifyDate',
+              'notifyTime',
+              'deleted',
+            ],
           }),
         },
       },
@@ -228,7 +242,9 @@ export class RemindersController {
   async deleteById(
     @param.path.number('reminderId') reminderId: typeof Reminders.prototype.reminderId,
   ): Promise<void> {
-    await this.usersRepository.reminders(this.userId).delete({ reminderId: reminderId });
+    await this.usersRepository
+      .reminders(this.userId)
+      .patch({ deleted: true }, { reminderId: reminderId });
   }
 
   @del('/reminders', {
@@ -246,7 +262,7 @@ export class RemindersController {
     },
   })
   async deleteAll(): Promise<Count> {
-    return this.usersRepository.reminders(this.userId).delete();
+    return this.usersRepository.reminders(this.userId).patch({ deleted: true });
   }
 
   private _generateMomentfromDateAndTimeBaseTz(data: {

@@ -5,6 +5,9 @@ import { Users, UsersRels } from './';
 @model({
   name: 'virtual_users',
   settings: {
+    scope: {
+      where: { deleted: false },
+    },
     indexes: {
       'user_id&phone': {
         name: 'user_id&phone',

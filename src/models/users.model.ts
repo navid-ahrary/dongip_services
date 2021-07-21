@@ -27,7 +27,14 @@ import { Receipts } from './receipts.model';
 import { RemindersWithRelations } from './reminders.model';
 import { Wallets, WalletsWithRelations } from './wallets.model';
 
-@model({ name: 'users' })
+@model({
+  name: 'users',
+  settings: {
+    scope: {
+      where: { deleted: false },
+    },
+  },
+})
 export class Users extends Entity {
   @property({
     type: 'number',

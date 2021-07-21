@@ -24,6 +24,9 @@ import { CurrencyEnum } from './settings.model';
 @model({
   name: 'dongs',
   settings: {
+    scope: {
+      where: { deleted: false },
+    },
     foreignKeys: {
       fkDongsUserId: {
         name: 'fk_dongs_user_id',
