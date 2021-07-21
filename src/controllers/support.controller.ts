@@ -101,6 +101,7 @@ export class SupportController {
         , users.region
         , users.user_agent AS userAgent
         , users.platform
+        , users.app_version AS appVersion
       FROM
         M
         , users
