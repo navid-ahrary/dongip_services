@@ -350,8 +350,15 @@ export class UsersRelsController {
     @param.path.number('userRelId', { required: true, example: 36 })
     userRelId: typeof UsersRels.prototype.userRelId,
   ): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRepository
+    await this.usersRepository
+      .billList(this.userId)
+      .patch({ userRelId: undefined }, { userRelId: userRelId });
+
+    await this.usersRepository
+      .payerList(this.userId)
+      .patch({ userRelId: undefined }, { userRelId: userRelId });
+
+    await this.usersRepository
       .usersRels(this.userId)
       .patch({ deleted: true }, { and: [{ userRelId: userRelId }, { type: { neq: 'self' } }] });
   }
@@ -436,6 +443,9 @@ export class UsersRelsController {
   })
   async deleteAllUsersRels() {
     try {
+      await this.usersRepository.billList(this.userId).patch({ userRelId: undefined });
+      await this.usersRepository.payerList(this.userId).patch({ userRelId: undefined });
+
       const countDeletedUsersRels = await this.usersRelsRepository.updateAll(
         { deleted: true },
         {
