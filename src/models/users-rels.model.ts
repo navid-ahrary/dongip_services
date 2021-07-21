@@ -213,20 +213,6 @@ export class UsersRels extends Entity {
   @hasMany(() => PayerList, { keyTo: 'userRelId' })
   payerLists: PayerList[];
 
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
-
   constructor(data?: Partial<UsersRels>) {
     super(data);
   }
