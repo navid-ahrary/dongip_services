@@ -270,7 +270,8 @@ export class DongsController {
   async deleteDongsById(
     @param.path.number('dongId', { required: true }) dongId: typeof Dongs.prototype.dongId,
   ): Promise<void> {
-    await this.userRepo.dongs(this.userId).patch({ deleted: true });
+    await this.userRepo.scores(this.userId).patch({ deleted: true }, { dongId: dongId });
+    await this.userRepo.dongs(this.userId).patch({ deleted: true }, { dongId: dongId });
   }
 
   @intercept(JointAccountsInterceptor.BINDING_KEY)
@@ -289,6 +290,7 @@ export class DongsController {
     },
   })
   async deleteAllDongs() {
+    await this.userRepo.scores(this.userId).patch({ deleted: true });
     return this.userRepo.dongs(this.userId).patch({ deleted: true }, { originDongId: null! });
   }
 }

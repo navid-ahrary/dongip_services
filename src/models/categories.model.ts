@@ -169,6 +169,20 @@ export class Categories extends Entity {
   @hasMany(() => Categories, { keyTo: 'parentCategoryId' })
   categories: Categories[];
 
+  @property({
+    type: 'boolean',
+    default: false,
+    required: true,
+    hidden: true,
+    mysql: {
+      dataType: 'tinyint',
+      dataLength: 1,
+      default: 0,
+      nullable: 'N',
+    },
+  })
+  deleted: boolean;
+
   constructor(data?: Partial<Categories>) {
     super(data);
   }
