@@ -272,6 +272,8 @@ export class DongsController {
     @param.path.number('dongId', { required: true }) dongId: typeof Dongs.prototype.dongId,
   ): Promise<void> {
     await this.userRepo.scores(this.userId).patch({ deleted: true }, { dongId: dongId });
+    await this.userRepo.billList(this.userId).patch({ deleted: true }, { dongId: dongId });
+    await this.userRepo.payerList(this.userId).patch({ deleted: true }, { dongId: dongId });
     await this.userRepo.dongs(this.userId).patch({ deleted: true }, { dongId: dongId });
   }
 
@@ -292,6 +294,8 @@ export class DongsController {
   })
   async deleteAllDongs() {
     await this.userRepo.scores(this.userId).patch({ deleted: true });
+    await this.userRepo.billList(this.userId).patch({ deleted: true });
+    await this.userRepo.payerList(this.userId).patch({ deleted: true });
     return this.userRepo.dongs(this.userId).patch({ deleted: true }, { originDongId: null! });
   }
 }
