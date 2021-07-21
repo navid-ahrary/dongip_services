@@ -179,6 +179,10 @@ export class CategoriesController {
     categoryId: typeof Categories.prototype.categoryId,
   ): Promise<void> {
     await this.usersRepository
+      .dongs(this.userId)
+      .patch({ deleted: true }, { categoryId: categoryId });
+
+    await this.usersRepository
       .categories(this.userId)
       .patch({ deleted: true }, { categoryId: categoryId });
   }
@@ -189,6 +193,7 @@ export class CategoriesController {
     responses: { '200': { description: 'Count deleted Categories' } },
   })
   async deleteAllCategories() {
+    await this.usersRepository.dongs(this.userId).patch({ deleted: true });
     return this.usersRepository.categories(this.userId).patch({ deleted: true });
   }
 }
