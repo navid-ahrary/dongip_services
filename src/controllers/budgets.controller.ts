@@ -41,7 +41,7 @@ export class BudgetsController {
     },
   })
   async findBudgets(): Promise<Budgets[]> {
-    return this.budgetsRepository.find({ where: { userId: this.userId } });
+    return this.budgetsRepository.find({ where: { userId: this.userId, deleted: false } });
   }
 
   @post('/budgets/', {

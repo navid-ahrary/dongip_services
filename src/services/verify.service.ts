@@ -96,7 +96,7 @@ export class VerifyService {
   public async verifyWithPhone(phoneValue: string, smsSignature = ' ') {
     const foundUser = await this.usersRepository.findOne({
       fields: { name: true, avatar: true, phone: true, phoneLocked: true },
-      where: { phone: phoneValue },
+      where: { phone: phoneValue, deleted: false },
     });
 
     const createdVerify = await this.verifyRepository
@@ -159,7 +159,7 @@ export class VerifyService {
   public async verifyWithEmail(emailValue: string) {
     const foundUser = await this.usersRepository.findOne({
       fields: { name: true, avatar: true, phone: true, phoneLocked: true },
-      where: { email: emailValue },
+      where: { email: emailValue, deleted: false },
     });
 
     const createdVerify = await this.verifyRepository
@@ -218,7 +218,9 @@ export class VerifyService {
 
   public async loginWithGoogle(emailValue: string) {
     try {
-      let user = await this.usersRepository.findOne({ where: { email: emailValue } });
+      let user = await this.usersRepository.findOne({
+        where: { email: emailValue, deleted: false },
+      });
 
       if (user) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -246,6 +248,7 @@ export class VerifyService {
           where: {
             solTime: { lte: moment.utc().toISOString() },
             eolTime: { gte: moment.utc().toISOString() },
+            deleted: false,
           },
         });
         const scores = await this.userScoresService.getUserScores(user.getId());
@@ -379,7 +382,13 @@ export class VerifyService {
       const categoriesList = this.catSrc[this.lang];
       const initCatList: Categories[] = [];
       categoriesList.forEach((cat) => {
-        initCatList.push(new Categories({ userId: userId, icon: cat.icon, title: cat.title }));
+        initCatList.push(
+          new Categories({
+            userId: userId,
+            icon: cat.icon,
+            title: cat.title,
+          }),
+        );
       });
       const savdDemoCats = await this.categoriesRepository.createAll(initCatList);
 

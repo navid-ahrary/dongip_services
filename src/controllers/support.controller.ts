@@ -139,7 +139,7 @@ export class SupportController {
     @param.query.object('filter', {
       example: {
         limit: 5,
-        where: { userId: 1 },
+        where: { userId: 1, deleted: false },
         order: ['createdAt DESC'],
         fields: {
           messageId: true,
@@ -203,9 +203,9 @@ export class SupportController {
 
     let settingWhere: Where<Settings> = { language: language };
 
-    if (userId) settingWhere = { ...settingWhere, userId: userId };
+    if (userId) settingWhere = { ...settingWhere, userId: userId, deleted: false };
 
-    let userWhere: Where<Users> = { phoneLocked: true };
+    let userWhere: Where<Users> = { phoneLocked: true, deleted: false };
 
     if (platform) userWhere = { ...userWhere, platform: platform };
     if (appVersion) userWhere = { ...userWhere, appVersion: appVersion };
@@ -344,11 +344,12 @@ export class SupportController {
     try {
       let settingWhere: Where<Settings> = { language: language };
 
-      if (userId) settingWhere = { ...settingWhere, userId: userId };
+      if (userId) settingWhere = { ...settingWhere, userId: userId, deleted: false };
 
       let userWhere: Where<Users> = {
         firebaseToken: { nin: ['null', undefined] },
         phoneLocked: true,
+        deleted: false,
       };
 
       if (platform) userWhere = { ...userWhere, platform: platform };
@@ -371,12 +372,6 @@ export class SupportController {
       const foundTargetUsers = _.map(
         _.filter(foundSettings, (s) => s.user instanceof Users),
         (s) => s.user!,
-      );
-
-      console.log(
-        foundTargetUsers.length,
-        'Valid user with ids',
-        _.map(foundTargetUsers, (u) => u.userId),
       );
 
       const savedMsgs: Array<Messages> = [];

@@ -36,7 +36,7 @@ export class DongsReceiptsController {
     @inject(RestBindings.Http.RESPONSE) response: Response,
   ): Promise<Response | undefined> {
     const foundReceipts = await this.receiptRepo.findOne({
-      where: { userId: this.userId, dongId: dongId },
+      where: { userId: this.userId, dongId: dongId, deleted: false },
     });
 
     if (!foundReceipts) return;
@@ -59,11 +59,11 @@ export class DongsReceiptsController {
     try {
       const foundReceipt = await this.receiptRepo.findOne({
         fields: { receiptName: true },
-        where: { userId: this.userId, dongId: dongId },
+        where: { userId: this.userId, dongId: dongId, deleted: false },
       });
 
       if (foundReceipt) {
-        await this.dongRepo.receipt(dongId).delete({ userId: this.userId });
+        await this.dongRepo.receipt(dongId).patch({ deleted: true }, { userId: this.userId });
         const filePath = this.receiptController.getFilePath(foundReceipt.receiptName);
         fs.unlinkSync(filePath);
       }

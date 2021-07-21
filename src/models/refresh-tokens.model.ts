@@ -4,9 +4,6 @@ import { Users } from './users.model';
 @model({
   name: 'refresh_tokens',
   settings: {
-    scope: {
-      where: { deleted: false },
-    },
     mysql: { engine: 'aria' },
   },
 })

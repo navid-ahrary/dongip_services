@@ -81,15 +81,19 @@ export class UsersController {
           referralCode: false,
         },
         include: [
-          { relation: 'setting' },
-          { relation: 'budgets' },
-          { relation: 'categories' },
-          { relation: 'usersRels', scope: { fields: { mutualUserRelId: false } } },
+          { relation: 'setting', scope: { where: { deleted: false } } },
+          { relation: 'budgets', scope: { where: { deleted: false } } },
+          { relation: 'categories', scope: { where: { deleted: false } } },
+          {
+            relation: 'usersRels',
+            scope: { fields: { mutualUserRelId: false }, where: { deleted: false } },
+          },
           {
             relation: 'dongs',
             scope: {
               order: ['createdAt DESC'],
               fields: { originDongId: false },
+              where: { deleted: false },
               include: [
                 { relation: 'billList' },
                 { relation: 'payerList' },
@@ -98,8 +102,8 @@ export class UsersController {
               ],
             },
           },
-          { relation: 'reminders' },
-          { relation: 'wallets' },
+          { relation: 'reminders', scope: { where: { deleted: false } } },
+          { relation: 'wallets', scope: { where: { deleted: false } } },
         ],
       });
 
@@ -146,7 +150,7 @@ export class UsersController {
       const phone = updateUserReqBody.phone;
 
       const user = await this.usersRepository.findOne({
-        where: { userId: this.userId, phoneLocked: true },
+        where: { userId: this.userId, phoneLocked: true, deleted: false },
       });
 
       if (user) {
@@ -161,7 +165,7 @@ export class UsersController {
 
     if (updateUserReqBody.email) {
       const user = await this.usersRepository.findOne({
-        where: { userId: this.userId, emailLocked: true },
+        where: { userId: this.userId, emailLocked: true, deleted: false },
       });
 
       if (user) {
@@ -275,7 +279,10 @@ export class UsersController {
       include: [
         {
           relation: 'setting',
-          scope: { fields: { userId: true, language: true, currency: true } },
+          scope: {
+            fields: { userId: true, language: true, currency: true },
+            where: { deleted: false },
+          },
         },
         {
           relation: 'subscriptions',
@@ -285,10 +292,17 @@ export class UsersController {
             where: {
               solTime: { lte: nowUTC.toISOString() },
               eolTime: { gte: nowUTC.toISOString() },
+              deleted: false,
             },
           },
         },
-        { relation: 'scores', scope: { fields: { userId: true, score: true } } },
+        {
+          relation: 'scores',
+          scope: {
+            fields: { userId: true, score: true },
+            where: { deleted: false },
+          },
+        },
       ],
     });
 

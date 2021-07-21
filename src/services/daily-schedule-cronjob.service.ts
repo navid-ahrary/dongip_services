@@ -41,6 +41,7 @@ export class DailyScheduleConjobService extends CronJob {
       fields: { userId: true, language: true },
       where: {
         scheduleNotify: true,
+        deleted: false,
         scheduleTime: {
           between: [
             moment(utcTime).startOf('minute').subtract(4, 'minutes').format('HH:mm:ss.00000'),
@@ -53,7 +54,10 @@ export class DailyScheduleConjobService extends CronJob {
           relation: 'user',
           scope: {
             fields: { userId: true, firebaseToken: true },
-            where: { firebaseToken: { nin: [undefined, 'null'] } },
+            where: {
+              firebaseToken: { nin: [undefined, 'null'] },
+              deleted: false,
+            },
           },
         },
       ],

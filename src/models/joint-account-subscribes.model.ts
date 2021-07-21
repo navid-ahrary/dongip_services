@@ -5,9 +5,6 @@ import { UsersWithRelations, Users } from './users.model';
 @model({
   name: 'joint_account_subscribes',
   settings: {
-    scope: {
-      where: { deleted: false },
-    },
     foreignKeys: {
       fkJointAccountSubscribeJointAccountId: {
         name: 'fk_joint_account_subscribe_joint_account_id',

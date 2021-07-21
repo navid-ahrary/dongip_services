@@ -21,11 +21,11 @@ export class MyUserService implements UserService<Users, Credentials> {
 
     if (credentials.phone) {
       foundUser = await this.userRepository.findOne({
-        where: { phone: credentials.phone },
+        where: { phone: credentials.phone, deleted: false },
       });
     } else {
       foundUser = await this.userRepository.findOne({
-        where: { email: credentials.email },
+        where: { email: credentials.email, deleted: false },
       });
     }
 
@@ -46,7 +46,7 @@ export class MyUserService implements UserService<Users, Credentials> {
   async findUserById(id: typeof Users.prototype.userId): Promise<Users> {
     const userNotfound = 'invalid User';
     const foundUser = await this.userRepository.findOne({
-      where: { userId: id },
+      where: { userId: id, deleted: false },
     });
 
     if (!foundUser) {

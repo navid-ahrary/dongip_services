@@ -9,9 +9,6 @@ export enum PurchaseOriginEnum {
 @model({
   name: 'purchases',
   settings: {
-    scope: {
-      where: { deleted: false },
-    },
     foreignKeys: {
       fkPayerListUserId: {
         name: 'fk_purchases_user_id',

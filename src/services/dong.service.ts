@@ -98,7 +98,10 @@ export class DongService {
         {
           relation: 'categories',
           scope: {
-            where: { categoryId: newDong.categoryId },
+            where: {
+              categoryId: newDong.categoryId,
+              deleted: false,
+            },
           },
         },
         {
@@ -114,13 +117,17 @@ export class DongService {
             },
             where: {
               userRelId: { inq: allUsersRelsIdList },
+              deleted: false,
             },
           },
         },
         {
           relation: 'jointAccountSubscribes',
           scope: {
-            where: { jointAccountId: newDong.jointAccountId ?? null },
+            where: {
+              jointAccountId: newDong.jointAccountId ?? null,
+              deleted: false,
+            },
           },
         },
       ],
@@ -209,7 +216,16 @@ export class DongService {
               fields: { userId: true, firebaseToken: true },
               where: { phone: relation.phone },
               include: [
-                { relation: 'setting', scope: { fields: { userId: true, language: true } } },
+                {
+                  relation: 'setting',
+                  scope: {
+                    fields: {
+                      userId: true,
+                      language: true,
+                    },
+                    where: { deleted: false },
+                  },
+                },
               ],
             });
 
@@ -221,6 +237,7 @@ export class DongService {
                 where: {
                   phone: currentUser.phone,
                   userId: targetUser.getId(),
+                  deleted: false,
                 },
               });
 
@@ -334,7 +351,7 @@ export class DongService {
         currentUser.jointAccountSubscribes[0].jointAccountId,
       );
       const JASs = await this.jointAccSubRepository.find({
-        where: { userId: { neq: currentUser.getId() }, jointAccountId: JA.getId() },
+        where: { userId: { neq: currentUser.getId() }, jointAccountId: JA.getId(), deleted: false },
       });
 
       const currentUserCateg = currentUser.categories[0];
@@ -362,7 +379,7 @@ export class DongService {
       if (receiptId) {
         const receipt = await this.usersRepository
           .receipts(currentUser.getId())
-          .find({ where: { receiptId: receiptId } });
+          .find({ where: { receiptId: receiptId, deleted: false } });
 
         foundReceipt = receipt.length ? receipt[0] : undefined;
       }
@@ -371,16 +388,23 @@ export class DongService {
         const user = await this.usersRepository.findById(JAS.userId, {
           fields: { userId: true, firebaseToken: true, name: true },
           include: [
-            { relation: 'setting', scope: { fields: { userId: true, language: true } } },
+            {
+              relation: 'setting',
+              scope: { fields: { userId: true, language: true }, where: { deleted: false } },
+            },
             {
               relation: 'categories',
               scope: {
                 where: {
                   or: [{ title: currentUserCateg.title }, { title: { inq: splittedCatgTitle } }],
+                  deleted: false,
                 },
               },
             },
-            { relation: 'usersRels', scope: { where: { phone: currentUser.phone } } },
+            {
+              relation: 'usersRels',
+              scope: { where: { phone: currentUser.phone, deleted: false } },
+            },
           ],
         });
 
@@ -411,13 +435,13 @@ export class DongService {
           const ur = _.find(currentUser.usersRels, (rel) => rel.getId() === biller.userRelId);
 
           const mutualRel = await this.usersRelsRepository.findOne({
-            where: { userId: user.getId(), phone: ur!.phone },
+            where: { userId: user.getId(), phone: ur!.phone, deleted: false },
           });
 
           let userRelName = mutualRel?.name;
           if (!userRelName) {
             const target = await this.usersRepository.findOne({
-              where: { phone: ur!.phone },
+              where: { phone: ur!.phone, deleted: false },
               fields: { name: true },
             });
 
@@ -442,13 +466,13 @@ export class DongService {
           const ur = _.find(currentUser.usersRels, (rel) => rel.getId() === payer.userRelId);
 
           const mutualRel = await this.usersRelsRepository.findOne({
-            where: { userId: user.getId(), phone: ur?.phone },
+            where: { userId: user.getId(), phone: ur?.phone, deleted: false },
           });
 
           let userRelName = mutualRel?.name;
           if (!userRelName) {
             const target = await this.usersRepository.findOne({
-              where: { phone: ur!.phone },
+              where: { phone: ur!.phone, deleted: false },
               fields: { name: true },
             });
 
@@ -538,9 +562,7 @@ export class DongService {
   }) {
     const foundReciptRecord = await this.receiptRepo.findOne({
       fields: { userId: true, receiptName: true },
-      where: {
-        receiptId: data.receiptId,
-      },
+      where: { receiptId: data.receiptId, deleted: false },
     });
 
     if (foundReciptRecord) {

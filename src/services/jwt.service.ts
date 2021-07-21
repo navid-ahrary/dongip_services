@@ -63,8 +63,11 @@ export class JWTService implements TokenService {
         const userId = +(decryptedData.id ?? decryptedData.sub);
         const user = await this.usersRepository.findById(userId, {
           include: [
-            { relation: 'usersRels', scope: { where: { type: 'self' } } },
-            { relation: 'setting', scope: { fields: { userId: true, language: true } } },
+            { relation: 'usersRels', scope: { where: { type: 'self', deleted: false } } },
+            {
+              relation: 'setting',
+              scope: { fields: { userId: true, language: true, deleted: false } },
+            },
           ],
         });
 

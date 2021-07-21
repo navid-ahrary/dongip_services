@@ -85,7 +85,7 @@ export class WalletsController {
     },
   })
   async findWallets(): Promise<Wallets[]> {
-    return this.userRepo.wallets(this.userId).find();
+    return this.userRepo.wallets(this.userId).find({ where: { deleted: false } });
   }
 
   @patch('/wallets/{walletId}', {

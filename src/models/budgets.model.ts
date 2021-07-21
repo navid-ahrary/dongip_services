@@ -8,9 +8,6 @@ import { JointAccounts } from './joint-accounts.model';
 @model({
   name: 'budgets',
   settings: {
-    scope: {
-      where: { deleted: false },
-    },
     foreignKeys: {
       fkBudgetsCategoryId: {
         name: 'fk_budgets_category_id',

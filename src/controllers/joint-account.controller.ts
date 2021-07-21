@@ -212,11 +212,13 @@ export class JointAccountController {
   async getJointAccounts(): Promise<JointResponse[]> {
     const result: Array<JointResponse> = [];
 
-    const JSAs = await this.usersRepo.jointAccountSubscribes(this.userId).find();
+    const JSAs = await this.usersRepo
+      .jointAccountSubscribes(this.userId)
+      .find({ where: { deleted: false } });
 
     const jaIds = JSAs.map((jsa) => jsa.jointAccountId);
     const JAs = await this.jointAccountsRepo.find({
-      where: { jointAccountId: { inq: jaIds } },
+      where: { jointAccountId: { inq: jaIds }, deleted: false },
       include: [{ relation: 'jointAccountSubscribes' }],
     });
 
@@ -229,7 +231,7 @@ export class JointAccountController {
         });
 
         const userRel = await this.usersRelsRepo.findOne({
-          where: { userId: this.userId, phone: u.phone },
+          where: { userId: this.userId, phone: u.phone, deleted: false },
         });
 
         usersRels.push({

@@ -75,6 +75,7 @@ export class MessagesController {
       .find({
         fields: { firebaseToken: true },
         where: {
+          deleted: false,
           and: [
             {
               or: [
@@ -125,6 +126,7 @@ export class MessagesController {
   async findMessages(): Promise<Messages[]> {
     return this.usersRepository.messages(this.userId).find({
       order: ['createdAt ASC'],
+      where: { deleted: false },
     });
   }
 }

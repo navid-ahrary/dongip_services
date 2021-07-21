@@ -147,7 +147,7 @@ export class RemindersController {
     },
   })
   async find(): Promise<Reminders[]> {
-    return this.usersRepository.reminders(this.userId).find();
+    return this.usersRepository.reminders(this.userId).find({ where: { deleted: false } });
   }
 
   @patch('/reminders/{reminderId}', {
@@ -182,7 +182,7 @@ export class RemindersController {
   ): Promise<void> {
     const foundReminders = await this.usersRepository
       .reminders(this.userId)
-      .find({ where: { reminderId: reminderId } });
+      .find({ where: { reminderId: reminderId, deleted: false } });
 
     if (!foundReminders.length) throw new HttpErrors.UnprocessableEntity('reminder not found');
 

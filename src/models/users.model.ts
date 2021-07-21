@@ -29,11 +29,7 @@ import { Wallets, WalletsWithRelations } from './wallets.model';
 
 @model({
   name: 'users',
-  settings: {
-    scope: {
-      where: { deleted: false },
-    },
-  },
+  settings: {},
 })
 export class Users extends Entity {
   @property({

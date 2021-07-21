@@ -78,7 +78,9 @@ export class UsersRelsController {
     },
   })
   async find(): Promise<UsersRels[]> {
-    return this.usersRepository.usersRels(this.userId).find({ fields: { mutualUserRelId: false } });
+    return this.usersRepository
+      .usersRels(this.userId)
+      .find({ fields: { mutualUserRelId: false }, where: { deleted: false } });
   }
 
   @post('/users-rels', {
@@ -148,12 +150,13 @@ export class UsersRelsController {
       });
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRepository
-      .virtualUsers(this.userId)
-      .create({ phone: userRelReqBody.phone, userRelId: createdUserRel.getId() });
+    this.usersRepository.virtualUsers(this.userId).create({
+      phone: userRelReqBody.phone,
+      userRelId: createdUserRel.getId(),
+    });
 
     const foundTargetUser = await this.usersRepository.findOne({
-      where: { phone: userRelReqBody.phone },
+      where: { phone: userRelReqBody.phone, deleted: false },
       fields: { userId: true, firebaseToken: true, setting: true },
       include: [{ relation: 'setting' }],
     });
@@ -166,8 +169,15 @@ export class UsersRelsController {
         let notifyType: string;
 
         const foundBiUserRel = await this.usersRelsRepository.findOne({
-          where: { userId: foundTargetUser.getId(), phone: currentUser.phone },
-          fields: { userRelId: true, name: true },
+          where: {
+            userId: foundTargetUser.getId(),
+            phone: currentUser.phone,
+            deleted: false,
+          },
+          fields: {
+            userRelId: true,
+            name: true,
+          },
         });
 
         if (!foundBiUserRel) {
@@ -415,7 +425,7 @@ export class UsersRelsController {
     return this.usersRepository.find({
       order: ['name ASC'],
       fields: { name: true, phone: true, avatar: true },
-      where: { phone: { inq: normalizedPhonesList } },
+      where: { phone: { inq: normalizedPhonesList }, deleted: false },
     });
   }
 

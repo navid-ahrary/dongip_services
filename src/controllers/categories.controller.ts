@@ -52,7 +52,7 @@ export class CategoriesController {
     },
   })
   async find(): Promise<Categories[]> {
-    return this.usersRepository.categories(this.userId).find();
+    return this.usersRepository.categories(this.userId).find({ where: { deleted: false } });
   }
 
   @post('/categories', {

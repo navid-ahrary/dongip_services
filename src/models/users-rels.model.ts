@@ -13,9 +13,6 @@ import { Users, VirtualUsers, Budgets, BillList, PayerList } from '.';
 @model({
   name: 'users_rels',
   settings: {
-    scope: {
-      where: { deleted: false },
-    },
     indexes: {
       'user_id&phone': {
         name: 'user_id&phone',

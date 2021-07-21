@@ -4,9 +4,6 @@ import { Users } from './users.model';
 @model({
   name: 'subscriptions',
   settings: {
-    scope: {
-      where: { deleted: false },
-    },
     foreignKeys: {
       fkSettingsUserId: {
         name: 'fk_subscriptions_user_id',

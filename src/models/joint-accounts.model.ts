@@ -9,9 +9,6 @@ import { Dongs } from './dongs.model';
 @model({
   name: 'joint_accounts',
   settings: {
-    scope: {
-      where: { deleted: false },
-    },
     foreignKeys: {
       fkNotificationsUserId: {
         name: 'fk_joint_accounts_user_id',

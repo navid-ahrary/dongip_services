@@ -35,7 +35,10 @@ export class SettingsController {
     },
   })
   async findSettings(): Promise<Settings> {
-    return this.usersRepository.setting(this.userId).get();
+    const set = await this.settingsRepository.findOne({
+      where: { deleted: false, userId: this.userId },
+    });
+    return set!;
   }
 
   @patch('/settings', {

@@ -201,6 +201,7 @@ export class DongsController {
     const foundDongs = await this.userRepo.dongs(this.userId).find({
       order: ['createdAt DESC'],
       fields: { originDongId: false },
+      where: { deleted: false },
       include: [
         { relation: 'payerList' },
         { relation: 'billList' },

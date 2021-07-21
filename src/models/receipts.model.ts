@@ -5,9 +5,6 @@ import { Dongs } from './dongs.model';
 @model({
   name: 'receipts',
   settings: {
-    scope: {
-      where: { deleted: false },
-    },
     foreignKeys: {
       fkReceiptsUserId: {
         name: 'fk_receipts_user_id',
@@ -100,6 +97,20 @@ export class Receipts extends Entity {
     },
   )
   dongId?: number;
+
+  @property({
+    type: 'boolean',
+    default: false,
+    required: true,
+    hidden: true,
+    mysql: {
+      dataType: 'tinyint',
+      dataLength: 1,
+      default: 0,
+      nullable: 'N',
+    },
+  })
+  deleted: boolean;
 
   constructor(data?: Partial<Receipts>) {
     super(data);

@@ -4,9 +4,6 @@ import { Dongs, Users } from '.';
 @model({
   name: 'scores',
   settings: {
-    scope: {
-      where: { deleted: false },
-    },
     foreignKeys: {
       fkScoresUserId: {
         name: 'fk_scores_user_id',

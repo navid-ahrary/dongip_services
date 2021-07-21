@@ -46,12 +46,12 @@ export class JointAccountsDongsController {
     @param.path.number('jointAccountId') jointAccountId: number,
   ) {
     const JAS = await this.jointAccSubRepo.findOne({
-      where: { userId: this.userId, jointAccountId: jointAccountId },
+      where: { userId: this.userId, jointAccountId: jointAccountId, deleted: false },
       include: [
         {
           relation: 'jointAccount',
           scope: {
-            where: { jointAccountId: jointAccountId },
+            where: { jointAccountId: jointAccountId, deleted: false },
             include: [
               {
                 relation: 'dongs',
