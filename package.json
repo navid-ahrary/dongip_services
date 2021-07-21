@@ -92,7 +92,7 @@
     "jsonwebtoken": "^8.5.1",
     "kavenegar": "^1.1.4",
     "lodash": "^4.17.21",
-    "loopback-connector-mysql": "^6.0.0",
+    "loopback-connector-mysql": "^6.0.2",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
     "morgan": "^1.10.0",
