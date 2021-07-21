@@ -203,8 +203,8 @@ export class DongsController {
       fields: { originDongId: false },
       where: { deleted: false },
       include: [
-        { relation: 'payerList', scope: { where: { deleted: false } } },
-        { relation: 'billList', scope: { where: { deleted: false } } },
+        { relation: 'payerList' },
+        { relation: 'billList' },
         { relation: 'category', scope: { where: { deleted: false } } },
         { relation: 'receipt', scope: { where: { deleted: false } } },
       ],
