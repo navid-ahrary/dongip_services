@@ -2,13 +2,8 @@
   "$schema": "http://json.schemastore.org/tsconfig",
   "extends": "@loopback/build/config/tsconfig.common.json",
   "compilerOptions": {
-    "experimentalDecorators": true,
     "outDir": "dist",
-    "rootDir": "src",
-    "strict": true,
-    "target": "ES2019",
-    "allowJs": true,
-    "declaration": false
+    "rootDir": "src"
   },
-  "include": ["./src"]
+  "include": ["src"]
 }

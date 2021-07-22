@@ -9,6 +9,10 @@
   "editor.tabSize": 2,
   "editor.trimAutoWhitespace": true,
   "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true,
+    "source.fixAll.eslint": true
+  },
   "files.exclude": {
     "**/.DS_Store": true,
     "**/.git": true,
