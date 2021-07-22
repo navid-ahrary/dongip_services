@@ -1,9 +1,9 @@
-import { inject } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { get, getModelSchemaRef, requestBody, patch } from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
+import { inject } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import { get, getModelSchemaRef, patch, requestBody } from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { Settings, Users } from '../models';
 import { SettingsRepository, UsersRepository } from '../repositories';
 import { CurrentUserProfile } from '../services';

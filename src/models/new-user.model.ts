@@ -1,6 +1,6 @@
 import { model, property } from '@loopback/repository';
+import { CurrencyEnum, LanguageEnum } from './settings.model';
 import { Users } from './users.model';
-import { LanguageEnum, CurrencyEnum } from './settings.model';
 
 @model()
 export class NewUser extends Users {

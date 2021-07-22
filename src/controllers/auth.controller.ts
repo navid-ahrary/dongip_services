@@ -1,24 +1,24 @@
-import { inject, service, intercept } from '@loopback/core';
+import { authenticate, TokenService, UserService } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-jwt';
+import { inject, intercept, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import {
+  get,
+  getModelSchemaRef,
+  HttpErrors,
+  param,
   post,
   requestBody,
-  HttpErrors,
-  get,
-  param,
   RequestContext,
-  getModelSchemaRef,
 } from '@loopback/rest';
-import { authenticate, UserService, TokenService } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
-import moment from 'moment';
 import _ from 'lodash';
-import { UserServiceBindings, TokenServiceBindings, LocMsgsBindings } from '../keys';
-import { Users, Credentials, Verify, NewUser, Settings } from '../models';
-import { UsersRepository, BlacklistRepository, VerifyRepository } from '../repositories';
-import { VerifyService, RefreshtokenService, UserScoresService } from '../services';
+import moment from 'moment';
 import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
+import { LocMsgsBindings, TokenServiceBindings, UserServiceBindings } from '../keys';
+import { Credentials, NewUser, Settings, Users, Verify } from '../models';
+import { BlacklistRepository, UsersRepository, VerifyRepository } from '../repositories';
+import { RefreshtokenService, UserScoresService, VerifyService } from '../services';
 import { LocalizedMessages } from '../types';
 
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, ValidatePasswordInterceptor.BINDING_KEY)

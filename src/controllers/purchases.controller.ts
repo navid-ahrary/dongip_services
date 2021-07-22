@@ -1,31 +1,31 @@
-import { repository } from '@loopback/repository';
-import {
-  param,
-  HttpErrors,
-  getModelSchemaRef,
-  post,
-  RequestContext,
-  requestBody,
-} from '@loopback/rest';
-import { service, inject, intercept } from '@loopback/core';
-import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
+import { inject, intercept, service } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import {
+  getModelSchemaRef,
+  HttpErrors,
+  param,
+  post,
+  requestBody,
+  RequestContext,
+} from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
 import _ from 'lodash';
 import moment from 'moment';
+import { ValidatePhoneEmailInterceptor } from '../interceptors';
+import { LocMsgsBindings, SubsSpecBindings } from '../keys';
+import { InappPurchase, Purchases, Subscriptions, Users } from '../models';
 import { PurchasesRepository, UsersRepository } from '../repositories';
 import {
   CafebazaarService,
-  SubscriptionService,
-  FirebaseService,
-  WoocommerceService,
-  PhoneNumberService,
-  EmailService,
   CurrentUserProfile,
+  EmailService,
+  FirebaseService,
+  PhoneNumberService,
+  SubscriptionService,
+  WoocommerceService,
 } from '../services';
-import { Purchases, Subscriptions, Users, InappPurchase } from '../models';
-import { ValidatePhoneEmailInterceptor } from '../interceptors';
-import { LocMsgsBindings, SubsSpecBindings } from '../keys';
 import { LocalizedMessages, SubscriptionSpec } from '../types';
 
 export class PurchasesController {
@@ -224,7 +224,7 @@ export class PurchasesController {
     orderId: number,
   ) {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.woocomService.getOrder(orderId).then(async (order) => {
+    this.woocomService.getOrder(orderId).then(async order => {
       if (order['status'] === 'processing') {
         const planId = order['line_items'][0]['sku'],
           purchaseAmount = +order['line_items'][0]['price'],
@@ -272,7 +272,7 @@ export class PurchasesController {
 
           await this.subsService
             .performSubscription(user.getId(), planId, purchasedAt)
-            .then(async (subs) => {
+            .then(async subs => {
               await this.subsService.sendNotification(user!.getId(), subs);
 
               await this.woocomService.updateOrderStatus(orderId, 'completed');

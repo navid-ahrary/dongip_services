@@ -1,18 +1,18 @@
 import {
   bind,
+  inject,
   Interceptor,
   InvocationContext,
   InvocationResult,
   Provider,
   ValueOrPromise,
-  inject,
 } from '@loopback/context';
-import { HttpErrors, RestBindings, Request } from '@loopback/rest';
 import { service } from '@loopback/core';
+import { HttpErrors, Request, RestBindings } from '@loopback/rest';
 import _ from 'lodash';
+import { LocMsgsBindings } from '../keys';
 import { EmailService, PhoneNumberService } from '../services';
 import { LocalizedMessages } from '../types';
-import { LocMsgsBindings } from '../keys';
 
 /**
  * This class will be bound to the application as an `Interceptor` during

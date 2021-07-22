@@ -1,10 +1,10 @@
-import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
-import { Dongs } from './dongs.model';
-import { UsersRels } from './users-rels.model';
+import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
 import { Categories } from './categories.model';
-import { Users } from './users.model';
-import { CurrencyEnum } from './settings.model';
+import { Dongs } from './dongs.model';
 import { JointAccounts } from './joint-accounts.model';
+import { CurrencyEnum } from './settings.model';
+import { UsersRels } from './users-rels.model';
+import { Users } from './users.model';
 
 @model({
   name: 'payer_list',

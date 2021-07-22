@@ -1,12 +1,12 @@
+import { BindingScope, inject, service } from '@loopback/core';
 import { CronJob, cronJob } from '@loopback/cron';
 import { repository } from '@loopback/repository';
-import { service, BindingScope, inject } from '@loopback/core';
-import moment from 'moment';
 import _ from 'lodash';
-import { RemindersRepository, SettingsRepository, UsersRepository } from '../repositories';
-import { FirebaseService, BatchMessage } from '.';
-import { LocalizedMessages } from '../types';
+import moment from 'moment';
+import { BatchMessage, FirebaseService } from '.';
 import { LocMsgsBindings } from '../keys';
+import { RemindersRepository, SettingsRepository, UsersRepository } from '../repositories';
+import { LocalizedMessages } from '../types';
 
 @cronJob({ scope: BindingScope.TRANSIENT })
 export class DailyScheduleConjobService extends CronJob {

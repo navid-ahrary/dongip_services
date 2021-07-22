@@ -1,7 +1,7 @@
 import {
-  AuthenticationComponent,
-  AuthenticationBindings,
   AuthenticateActionProvider,
+  AuthenticationBindings,
+  AuthenticationComponent,
   AuthenticationStrategyProvider,
   AuthMetadataProvider,
 } from '@loopback/authentication';

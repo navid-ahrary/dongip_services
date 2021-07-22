@@ -1,4 +1,4 @@
-import { model, property, Entity, belongsTo, RelationType } from '@loopback/repository';
+import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
 import { Users } from './users.model';
 
 export enum PurchaseOriginEnum {

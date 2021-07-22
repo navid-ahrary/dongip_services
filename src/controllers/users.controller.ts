@@ -1,34 +1,34 @@
+import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
+import { inject, intercept, service } from '@loopback/core';
+import { DataObject, repository } from '@loopback/repository';
 import {
-  requestBody,
-  HttpErrors,
   get,
-  patch,
-  param,
   getModelSchemaRef,
+  HttpErrors,
+  param,
+  patch,
+  requestBody,
   RequestContext,
 } from '@loopback/rest';
-import { inject, intercept, service } from '@loopback/core';
-import { repository, DataObject } from '@loopback/repository';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { authenticate } from '@loopback/authentication';
 import _ from 'lodash';
-import util from 'util';
 import moment from 'moment';
-import { UserPatchRequestBody } from './specs';
-import { CurrentUserProfile, PhoneNumberService } from '../services';
-import { UsersRepository } from '../repositories';
-import {
-  TokenServiceBindings,
-  PackageKey,
-  LocMsgsBindings,
-  TutorialLinksListBinding,
-  AppVersionBindings,
-} from '../keys';
-import { Users, CompleteSignup, Settings, UsersRels, Scores, Dongs } from '../models';
+import util from 'util';
 import { HeadersInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
+import {
+  AppVersionBindings,
+  LocMsgsBindings,
+  PackageKey,
+  TokenServiceBindings,
+  TutorialLinksListBinding,
+} from '../keys';
+import { CompleteSignup, Dongs, Scores, Settings, Users, UsersRels } from '../models';
+import { UsersRepository } from '../repositories';
+import { CurrentUserProfile, PhoneNumberService } from '../services';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
 import { JointAccountController } from './';
+import { UserPatchRequestBody } from './specs';
 
 @intercept(HeadersInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
@@ -108,7 +108,7 @@ export class UsersController {
       });
 
       const dongs: Dongs[] = [];
-      _.forEach(user.dongs, (d) => {
+      _.forEach(user.dongs, d => {
         const r = {
           ..._.omit(d, 'receipt'),
           receiptId: d.receipt?.receiptId,
@@ -176,7 +176,7 @@ export class UsersController {
       }
     }
 
-    return this.usersRepository.updateById(this.userId, updateUserReqBody).catch((err) => {
+    return this.usersRepository.updateById(this.userId, updateUserReqBody).catch(err => {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         if (err.sqlMessage.endsWith("'users.username'")) {
           throw new HttpErrors.Conflict(this.locMsg['USERNAME_UNAVAILABLE'][this.lang]);
@@ -462,7 +462,7 @@ export class UsersController {
 
   private _calculateTotalUserScore(scores: Array<Scores>): number {
     let result = 0;
-    scores.forEach((s) => (result += s.score));
+    scores.forEach(s => (result += s.score));
     return result;
   }
 }

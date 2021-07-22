@@ -1,33 +1,33 @@
+import { TokenService, UserService } from '@loopback/authentication';
+import {
+  Credentials,
+  TokenServiceBindings,
+  UserServiceBindings,
+} from '@loopback/authentication-jwt';
 import { BindingScope, inject, injectable, service } from '@loopback/core';
-import { HttpErrors, RequestContext } from '@loopback/rest';
 import { repository } from '@loopback/repository';
+import { HttpErrors, RequestContext } from '@loopback/rest';
 import { securityId } from '@loopback/security';
-import moment from 'moment';
-import _ from 'lodash';
-import util from 'util';
 import fs from 'fs';
+import _ from 'lodash';
+import moment from 'moment';
 import path from 'path';
+import util from 'util';
+import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
+import { Categories, PostDong, Settings, Users, UsersRels, Verify } from '../models';
 import {
   CategoriesRepository,
   UsersRelsRepository,
   UsersRepository,
   VerifyRepository,
 } from '../repositories';
-import { Categories, PostDong, Settings, Users, UsersRels, Verify } from '../models';
-import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
-import {
-  Credentials,
-  TokenServiceBindings,
-  UserServiceBindings,
-} from '@loopback/authentication-jwt';
 import { CategoriesSource, LocalizedMessages } from '../types';
-import { TokenService, UserService } from '@loopback/authentication';
-import { SmsService } from './sms.service';
 import { DongService } from './dong.service';
 import { EmailService } from './email.service';
-import { UserScoresService } from './user-scores.service';
 import { PhoneNumberService } from './phone-number.service';
 import { RefreshtokenService } from './refreshtoken.service';
+import { SmsService } from './sms.service';
+import { UserScoresService } from './user-scores.service';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class VerifyService {
@@ -110,7 +110,7 @@ export class VerifyService {
         userAgent: this.ctx.request.headers['user-agent']?.toString(),
         ipAddress: this.ctx.request.headers['x-real-ip']?.toString(),
       })
-      .catch((err) => {
+      .catch(err => {
         throw new HttpErrors.NotAcceptable(err.message);
       });
 
@@ -129,7 +129,7 @@ export class VerifyService {
         receptor: phoneValue,
         type: 'verify',
       })
-      .then(async (res) => {
+      .then(async res => {
         await this.verifyRepository.updateById(createdVerify.getId(), {
           kavenegarMessageId: res.body.messageid,
           kavenegarDate: res.body.date,
@@ -139,7 +139,7 @@ export class VerifyService {
           kavenegarStatusCode: res.statusCode,
         });
       })
-      .catch(async (err) => {
+      .catch(async err => {
         await this.verifyRepository.updateById(createdVerify.getId(), {
           kavenegarStatusCode: err.statusCode,
         });
@@ -172,7 +172,7 @@ export class VerifyService {
         userAgent: this.ctx.request.headers['user-agent']?.toString(),
         ipAddress: this.ctx.request.headers['derak-real-ip']?.toString(),
       })
-      .catch((err) => {
+      .catch(err => {
         throw new HttpErrors.NotAcceptable(err.message);
       });
 
@@ -197,12 +197,12 @@ export class VerifyService {
         mailFormat: 'html',
         content: mailContent,
       })
-      .then(async (res) => {
+      .then(async res => {
         await this.verifyRepository.updateById(createdVerify.getId(), {
           emailMessageId: res.data.messageId,
         });
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(moment().format(), JSON.stringify(err));
       });
 
@@ -381,7 +381,7 @@ export class VerifyService {
     try {
       const categoriesList = this.catSrc[this.lang];
       const initCatList: Categories[] = [];
-      categoriesList.forEach((cat) => {
+      categoriesList.forEach(cat => {
         initCatList.push(
           new Categories({
             userId: userId,

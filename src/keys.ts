@@ -1,18 +1,18 @@
-import { BindingKey } from '@loopback/context';
 import { TokenService, UserService } from '@loopback/authentication';
-import { ServiceAccount } from 'firebase-admin';
+import { BindingKey } from '@loopback/context';
 import dotenv from 'dotenv';
-import util from 'util';
+import { ServiceAccount } from 'firebase-admin';
 import path from 'path';
-import { Users, Credentials } from './models';
+import util from 'util';
+import { Credentials, Users } from './models';
 import { PasswordHasher } from './services';
 import {
   CategoriesSource,
+  FileUploadHandler,
   LocalizedMessages,
   PackageInfo,
   SubscriptionSpec,
   TutorialLinks,
-  FileUploadHandler,
 } from './types';
 
 dotenv.config();

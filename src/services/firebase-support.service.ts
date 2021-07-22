@@ -114,7 +114,7 @@ export class FirebaseSupportService {
 
   //send multi message to multi devices
   public async sendAllMessage(messages: BatchMessage): Promise<Array<messaging.BatchResponse>> {
-    messages.forEach((message) => {
+    messages.forEach(message => {
       _.assign(message, {
         android: this.androidConfigs,
         // apns: this.apnsConfigs,
@@ -123,7 +123,7 @@ export class FirebaseSupportService {
 
     try {
       const response: messaging.BatchResponse[] = [];
-      _.forEach(_.chunk(messages, 500), async (msgs) => {
+      _.forEach(_.chunk(messages, 500), async msgs => {
         const res = await this.messagingService.sendAll(msgs);
         response.push(res);
         if (res.successCount) {

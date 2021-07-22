@@ -1,71 +1,71 @@
-import { BootMixin } from '@loopback/boot';
-import { ApplicationConfig, createBindingFromClass } from '@loopback/core';
-import { RestExplorerBindings, RestExplorerComponent } from '@loopback/rest-explorer';
-import { RepositoryMixin } from '@loopback/repository';
-import { RestApplication } from '@loopback/rest';
-import { ServiceMixin } from '@loopback/service-proxy';
 import { registerAuthenticationStrategy } from '@loopback/authentication';
+import { SECURITY_SCHEME_SPEC } from '@loopback/authentication-jwt';
 import {
+  AuthorizationBindings,
+  AuthorizationComponent,
   AuthorizationDecision,
   AuthorizationOptions,
-  AuthorizationComponent,
-  AuthorizationBindings,
 } from '@loopback/authorization';
-import { SECURITY_SCHEME_SPEC } from '@loopback/authentication-jwt';
-import { MetricsComponent, MetricsBindings } from '@loopback/extension-metrics';
-import { HealthComponent, HealthBindings } from '@loopback/extension-health';
+import { BootMixin } from '@loopback/boot';
+import { ApplicationConfig, createBindingFromClass } from '@loopback/core';
 import { CronComponent } from '@loopback/cron';
+import { HealthBindings, HealthComponent } from '@loopback/extension-health';
+import { MetricsBindings, MetricsComponent } from '@loopback/extension-metrics';
+import { RepositoryMixin } from '@loopback/repository';
+import { RestApplication } from '@loopback/rest';
+import { RestExplorerBindings, RestExplorerComponent } from '@loopback/rest-explorer';
+import { ServiceMixin } from '@loopback/service-proxy';
 import path from 'path';
-import { MyAuthenticationSequence } from './sequence';
 import { UserAuthenticationComponent } from './components';
 import {
-  JWTService,
-  BcryptHasher,
-  MyUserService,
-  DailyScheduleConjobService,
-  ReminderCronjobService,
-  JWTVerifyAutenticationStrategy,
-  JWTAccessAutenticationStrategy,
-} from './services';
-import {
-  pkg,
-  PackageKey,
-  SubsSpecBindings,
-  SubsSpecConstants,
-  LocMsgsBindings,
-  LocMsgsConstants,
-  TutorialLinksListBinding,
-  PasswordHasherBindings,
-  FirebaseBinding,
-  FirebaseConstants,
-  KavenegarBindings,
-  KavenegarConstans,
+  appInstance,
+  AppInstanceBinding,
+  AppVersionBindings,
+  AppVersionConstants,
   CafebazaarBindings,
   CafebazaarConstants,
-  EmailBindings,
-  EmailConstants,
-  TokenServiceBindings,
-  TokenServiceConstants,
   CategoriesSourceListBindings,
   categoriesSourceListConstants,
-  UserServiceBindings,
+  EmailBindings,
+  EmailConstants,
+  FirebaseBinding,
+  FirebaseConstants,
+  hostname,
+  HostnameBinding,
+  KavenegarBindings,
+  KavenegarConstans,
+  LocMsgsBindings,
+  LocMsgsConstants,
+  MariadbConfigBinding,
+  MariadbConfigValue,
+  PackageKey,
+  PasswordHasherBindings,
+  pkg,
+  RefreshTokenServiceBindings,
+  STORAGE_DIRECTORY_BINDING,
+  STORAGE_DIRECTORY_VALUE,
+  SubsSpecBindings,
+  SubsSpecConstants,
+  TokenServiceBindings,
+  TokenServiceConstants,
+  TutorialLinksListBinding,
   TutorialLinksListConstants,
   TzBindings,
   tzValue,
-  MariadbConfigBinding,
-  MariadbConfigValue,
-  appInstance,
-  hostname,
-  HostnameBinding,
-  AppInstanceBinding,
+  UserServiceBindings,
   WoocommerceBindings,
   WoocommerceConstants,
-  STORAGE_DIRECTORY_BINDING,
-  STORAGE_DIRECTORY_VALUE,
-  RefreshTokenServiceBindings,
-  AppVersionBindings,
-  AppVersionConstants,
 } from './keys';
+import { MyAuthenticationSequence } from './sequence';
+import {
+  BcryptHasher,
+  DailyScheduleConjobService,
+  JWTAccessAutenticationStrategy,
+  JWTService,
+  JWTVerifyAutenticationStrategy,
+  MyUserService,
+  ReminderCronjobService,
+} from './services';
 
 export { ApplicationConfig };
 

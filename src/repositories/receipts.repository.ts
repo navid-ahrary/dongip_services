@@ -1,8 +1,8 @@
-import { DefaultCrudRepository, repository, BelongsToAccessor } from '@loopback/repository';
-import { inject, Getter } from '@loopback/core';
-import { Users, Dongs, Receipts, ReceiptsRelations } from '../models';
-import { MariadbDataSource } from '../datasources';
+import { Getter, inject } from '@loopback/core';
+import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
 import { DongsRepository, UsersRepository } from '.';
+import { MariadbDataSource } from '../datasources';
+import { Dongs, Receipts, ReceiptsRelations, Users } from '../models';
 
 export class ReceiptsRepository extends DefaultCrudRepository<
   Receipts,

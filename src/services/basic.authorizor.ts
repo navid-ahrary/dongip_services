@@ -1,9 +1,9 @@
 import {
   AuthorizationContext,
-  AuthorizationMetadata,
   AuthorizationDecision,
+  AuthorizationMetadata,
 } from '@loopback/authorization';
-import { UserProfile, securityId } from '@loopback/security';
+import { securityId, UserProfile } from '@loopback/security';
 import _ from 'lodash';
 
 export async function basicAuthorization(

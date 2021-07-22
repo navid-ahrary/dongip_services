@@ -1,25 +1,25 @@
+import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
+import { inject } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import {
+  del,
   get,
   getModelSchemaRef,
+  HttpErrors,
   param,
   patch,
   post,
   requestBody,
-  HttpErrors,
-  del,
   RequestContext,
 } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import { inject } from '@loopback/core';
 import _ from 'lodash';
-import { Categories, Users } from '../models';
-import { UsersRepository, CategoriesRepository } from '../repositories';
-import { LocalizedMessages } from '../types';
 import { LocMsgsBindings } from '../keys';
+import { Categories, Users } from '../models';
+import { CategoriesRepository, UsersRepository } from '../repositories';
 import { CurrentUserProfile } from '../services';
+import { LocalizedMessages } from '../types';
 
 @authenticate('jwt.access')
 export class CategoriesController {
@@ -91,7 +91,7 @@ export class CategoriesController {
     const createdCat: Categories = await this.usersRepository
       .categories(this.userId)
       .create(newCategories)
-      .catch((err) => {
+      .catch(err => {
         // Duplicate title error handling
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
           throw new HttpErrors.Conflict(this.locMsg['CONFLICT_CATEGORY_NAME'][this.lang]);
@@ -148,13 +148,13 @@ export class CategoriesController {
     await this.usersRepository
       .categories(this.userId)
       .patch(category, { categoryId: categoryId })
-      .then((result) => {
+      .then(result => {
         if (!result.count) {
           const errMsg = this.locMsg['CATEGORY_NOT_VALID'][this.lang];
           throw new HttpErrors.UnprocessableEntity(errMsg);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         // Duplicate title error handling
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
           const errMsg = this.locMsg['CONFLICT_CATEGORY_NAME'][this.lang];

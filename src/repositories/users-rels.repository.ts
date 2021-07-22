@@ -1,28 +1,28 @@
+import { Getter, inject } from '@loopback/core';
 import {
-  repository,
   BelongsToAccessor,
-  HasOneRepositoryFactory,
   DefaultCrudRepository,
   HasManyRepositoryFactory,
+  HasOneRepositoryFactory,
+  repository,
 } from '@loopback/repository';
-import { inject, Getter } from '@loopback/core';
-import {
-  UsersRels,
-  UsersRelsRelations,
-  Users,
-  VirtualUsers,
-  Budgets,
-  BillList,
-  PayerList,
-} from '../models';
-import { MariadbDataSource } from '../datasources';
 import {
   BillListRepository,
+  BudgetsRepository,
   PayerListRepository,
   UsersRepository,
   VirtualUsersRepository,
-  BudgetsRepository,
 } from '.';
+import { MariadbDataSource } from '../datasources';
+import {
+  BillList,
+  Budgets,
+  PayerList,
+  Users,
+  UsersRels,
+  UsersRelsRelations,
+  VirtualUsers,
+} from '../models';
 
 export class UsersRelsRepository extends DefaultCrudRepository<
   UsersRels,

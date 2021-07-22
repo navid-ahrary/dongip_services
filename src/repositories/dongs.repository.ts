@@ -1,34 +1,34 @@
+import { Getter, inject } from '@loopback/core';
 import {
-  repository,
   BelongsToAccessor,
-  HasManyRepositoryFactory,
   DefaultCrudRepository,
+  HasManyRepositoryFactory,
   HasOneRepositoryFactory,
+  repository,
 } from '@loopback/repository';
-import { inject, Getter } from '@loopback/core';
+import {
+  BillListRepository,
+  CategoriesRepository,
+  JointAccountsRepository,
+  PayerListRepository,
+  ReceiptsRepository,
+  ScoresRepository,
+  UsersRepository,
+  WalletsRepository,
+} from '.';
 import { MariadbDataSource } from '../datasources';
 import {
+  BillList,
+  Categories,
   Dongs,
   DongsRelations,
-  Users,
-  BillList,
-  PayerList,
-  Categories,
-  Scores,
   JointAccounts,
+  PayerList,
   Receipts,
+  Scores,
+  Users,
   Wallets,
 } from '../models';
-import {
-  WalletsRepository,
-  UsersRepository,
-  CategoriesRepository,
-  BillListRepository,
-  PayerListRepository,
-  ScoresRepository,
-  JointAccountsRepository,
-  ReceiptsRepository,
-} from '.';
 
 export class DongsRepository extends DefaultCrudRepository<
   Dongs,

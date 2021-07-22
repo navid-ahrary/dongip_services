@@ -1,10 +1,10 @@
-import { Entity, model, property, belongsTo, RelationType, hasMany } from '@loopback/repository';
-import { Users } from './users.model';
+import { belongsTo, Entity, hasMany, model, property, RelationType } from '@loopback/repository';
+import { Dongs } from './dongs.model';
 import {
   JointAccountSubscribes,
   JointAccountSubscribesWithRelations,
 } from './joint-account-subscribes.model';
-import { Dongs } from './dongs.model';
+import { Users } from './users.model';
 
 @model({
   name: 'joint_accounts',

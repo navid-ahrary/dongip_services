@@ -1,15 +1,15 @@
-import { inject, intercept, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
+import { inject, intercept, service } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import { get, getModelSchemaRef, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { post, getModelSchemaRef, requestBody, get } from '@loopback/rest';
 import moment from 'moment';
 import 'moment-timezone';
-import { Messages, Users } from '../models';
-import { CurrentUserProfile, FirebaseSupportService } from '../services';
-import { UsersRepository } from '../repositories';
 import { HeadersInterceptor } from '../interceptors';
+import { Messages, Users } from '../models';
+import { UsersRepository } from '../repositories';
+import { CurrentUserProfile, FirebaseSupportService } from '../services';
 
 @intercept(HeadersInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
@@ -93,11 +93,11 @@ export class MessagesController {
           ],
         },
       })
-      .then((users) => {
+      .then(users => {
         if (users.length) {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           this.firebaseSupportService.sendMultiCastMessage({
-            tokens: users.map((u) => u.firebaseToken!),
+            tokens: users.map(u => u.firebaseToken!),
             notification: {
               title: `id ${this.userId}:${this.name}`,
               body: messageContent,

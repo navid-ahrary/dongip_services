@@ -1,19 +1,19 @@
+import { Getter, inject } from '@loopback/core';
 import {
-  DefaultCrudRepository,
-  repository,
   BelongsToAccessor,
+  DefaultCrudRepository,
   HasManyRepositoryFactory,
+  repository,
 } from '@loopback/repository';
-import { inject, Getter } from '@loopback/core';
+import { DongsRepository, JointAccountSubscribesRepository, UsersRepository } from '.';
+import { MariadbDataSource } from '../datasources';
 import {
+  Dongs,
   JointAccounts,
   JointAccountsRelations,
-  Users,
   JointAccountSubscribes,
-  Dongs,
+  Users,
 } from '../models';
-import { MariadbDataSource } from '../datasources';
-import { UsersRepository, JointAccountSubscribesRepository, DongsRepository } from '.';
 
 export class JointAccountsRepository extends DefaultCrudRepository<
   JointAccounts,

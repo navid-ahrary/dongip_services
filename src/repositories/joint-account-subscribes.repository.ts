@@ -1,13 +1,13 @@
-import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
 import { Getter, inject } from '@loopback/core';
+import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
+import { JointAccountsRepository, UsersRepository } from '.';
+import { MariadbDataSource } from '../datasources';
 import {
   JointAccounts,
   JointAccountSubscribes,
   JointAccountSubscribesRelations,
   Users,
 } from '../models';
-import { MariadbDataSource } from '../datasources';
-import { JointAccountsRepository, UsersRepository } from '.';
 
 export class JointAccountSubscribesRepository extends DefaultCrudRepository<
   JointAccountSubscribes,

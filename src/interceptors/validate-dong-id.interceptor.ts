@@ -8,13 +8,13 @@ import {
   Provider,
   ValueOrPromise,
 } from '@loopback/core';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { repository } from '@loopback/repository';
-import { HttpErrors, RestBindings, Request } from '@loopback/rest';
+import { HttpErrors, Request, RestBindings } from '@loopback/rest';
+import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
 import _ from 'lodash';
-import { DongsRepository } from '../repositories';
-import { Dongs } from '../models';
 import { LocMsgsBindings } from '../keys';
+import { Dongs } from '../models';
+import { DongsRepository } from '../repositories';
 import { LocalizedMessages } from '../types';
 
 /**
@@ -79,10 +79,10 @@ export class ValidateDongIdInterceptor implements Provider<Interceptor> {
 
         if (_.has(patchDong, 'pong')) {
           const billList = foundDong.billList;
-          const billUserRelIds = _.map(billList, (b) => b.userRelId);
+          const billUserRelIds = _.map(billList, b => b.userRelId);
 
           const payerList = foundDong.payerList;
-          const payerUserRelIds = _.map(payerList, (p) => p.userRelId);
+          const payerUserRelIds = _.map(payerList, p => p.userRelId);
 
           if (
             billUserRelIds.length !== 1 ||

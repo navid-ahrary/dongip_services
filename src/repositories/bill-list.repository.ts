@@ -1,22 +1,22 @@
-import { inject, Getter } from '@loopback/core';
-import { repository, BelongsToAccessor, DefaultCrudRepository } from '@loopback/repository';
+import { Getter, inject } from '@loopback/core';
+import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
 import {
-  Dongs,
-  UsersRels,
+  CategoriesRepository,
+  DongsRepository,
+  JointAccountsRepository,
+  UsersRelsRepository,
+  UsersRepository,
+} from '.';
+import { MariadbDataSource } from '../datasources';
+import {
   BillList,
   BillListRelations,
   Categories,
-  Users,
+  Dongs,
   JointAccounts,
+  Users,
+  UsersRels,
 } from '../models';
-import { MariadbDataSource } from '../datasources';
-import {
-  JointAccountsRepository,
-  UsersRepository,
-  CategoriesRepository,
-  UsersRelsRepository,
-  DongsRepository,
-} from '.';
 
 export class BillListRepository extends DefaultCrudRepository<
   BillList,

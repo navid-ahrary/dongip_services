@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { BindingScope, inject, injectable } from '@loopback/core';
-import EmailValidator from 'deep-email-validator';
 import axios from 'axios';
+import EmailValidator from 'deep-email-validator';
 import { EmailBindings } from '../keys';
 
 export interface MailOptions {

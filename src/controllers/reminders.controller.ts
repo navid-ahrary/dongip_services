@@ -1,21 +1,21 @@
 import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject } from '@loopback/core';
-import { SecurityBindings, securityId } from '@loopback/security';
 import { Count, CountSchema, repository } from '@loopback/repository';
 import {
-  post,
-  param,
+  del,
   get,
   getModelSchemaRef,
-  patch,
-  del,
-  requestBody,
   HttpErrors,
+  param,
+  patch,
+  post,
+  requestBody,
 } from '@loopback/rest';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import moment from 'moment';
-import jmoment from 'jalali-moment';
+import { SecurityBindings, securityId } from '@loopback/security';
 import ct from 'countries-and-timezones';
+import jmoment from 'jalali-moment';
+import moment from 'moment';
 import 'moment-timezone';
 import { Reminders, Users } from '../models';
 import { UsersRepository } from '../repositories';

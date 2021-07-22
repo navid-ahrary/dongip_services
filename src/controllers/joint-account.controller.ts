@@ -1,30 +1,32 @@
-import { repository, DataObject } from '@loopback/repository';
+import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
+import { authorize } from '@loopback/authorization';
+import { inject, intercept, service } from '@loopback/core';
+import { DataObject, repository } from '@loopback/repository';
 import {
-  post,
+  del,
   get,
   getModelSchemaRef,
-  requestBody,
-  param,
-  del,
-  RequestContext,
-  patch,
   HttpErrors,
+  param,
+  patch,
+  post,
+  requestBody,
+  RequestContext,
 } from '@loopback/rest';
-import { intercept, inject, service } from '@loopback/core';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import util from 'util';
-import moment from 'moment';
-import _ from 'lodash';
-import 'moment-timezone';
 import ct from 'countries-and-timezones';
+import _ from 'lodash';
+import moment from 'moment';
+import 'moment-timezone';
+import util from 'util';
+import { JointAccountsInterceptor, ValidateUsersRelsInterceptor } from '../interceptors';
+import { LocMsgsBindings } from '../keys';
 import {
-  JointRequest,
-  JointResponse,
   JointAccountSubscribes,
   JointAccountsWithRelations,
+  JointRequest,
+  JointResponse,
   Users,
 } from '../models';
 import {
@@ -34,7 +36,6 @@ import {
   UsersRelsRepository,
   UsersRepository,
 } from '../repositories';
-import { ValidateUsersRelsInterceptor, JointAccountsInterceptor } from '../interceptors';
 import {
   basicAuthorization,
   BatchMessage,
@@ -43,7 +44,6 @@ import {
   PhoneNumberService,
 } from '../services';
 import { LocalizedMessages } from '../types';
-import { LocMsgsBindings } from '../keys';
 
 @intercept(ValidateUsersRelsInterceptor.BINDING_KEY, JointAccountsInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
@@ -189,7 +189,7 @@ export class JointAccountController {
       description: JA.description,
       admin: true,
       family: JA.family,
-      userRels: currentUser.usersRels.map((ur) => {
+      userRels: currentUser.usersRels.map(ur => {
         return { userRelId: ur.getId(), name: ur.name, avatar: ur.avatar, type: ur.type };
       }),
     });
@@ -216,7 +216,7 @@ export class JointAccountController {
       .jointAccountSubscribes(this.userId)
       .find({ where: { deleted: false } });
 
-    const jaIds = JSAs.map((jsa) => jsa.jointAccountId);
+    const jaIds = JSAs.map(jsa => jsa.jointAccountId);
     const JAs = await this.jointAccountsRepo.find({
       where: { jointAccountId: { inq: jaIds }, deleted: false },
       include: [{ relation: 'jointAccountSubscribes' }],
@@ -397,7 +397,7 @@ export class JointAccountController {
 
     const jointAccountId = JA.getId();
     const JASs = JA.jointAccountSubscribes;
-    const currentUsers = _.map(JASs, (jass) => jass.user);
+    const currentUsers = _.map(JASs, jass => jass.user);
 
     const props = _.pick(patchReqBody, ['title', 'description', 'family']);
     if (_.has(props, 'title') || _.has(props, 'family')) {
@@ -406,7 +406,7 @@ export class JointAccountController {
         .patch(props, { jointAccountId: jointAccountId });
 
       // Notify for joint memebers instead of current user
-      for (const user of currentUsers.filter((u) => u.userId !== this.userId)) {
+      for (const user of currentUsers.filter(u => u.userId !== this.userId)) {
         const timezone = ct.getTimezonesForCountry(
           user!.region ?? this.phoneNumService.getRegionCodeISO(user.phone!),
         )[0].name;
@@ -484,18 +484,18 @@ export class JointAccountController {
     }
 
     if (_.has(patchReqBody, 'userRelIds')) {
-      const currentUsersPhones: string[] = _.map(currentUsers, (user) => user.phone!);
+      const currentUsersPhones: string[] = _.map(currentUsers, user => user.phone!);
 
       const desiredUsersRels = await this.usersRepo.usersRels(this.userId).find({
         fields: { userId: true, userRelId: true, phone: true, name: true },
         where: { userRelId: { inq: patchReqBody.userRelIds } },
       });
-      const desiredUsersPhones: string[] = _.map(desiredUsersRels, (rel) => rel.phone);
+      const desiredUsersPhones: string[] = _.map(desiredUsersRels, rel => rel.phone);
 
       const deletedUserPhones: string[] = _.difference(currentUsersPhones, desiredUsersPhones);
       const addedUserPhones: string[] = _.difference(desiredUsersPhones, currentUsersPhones);
 
-      const deletedUsers = _.filter(currentUsers, (user) =>
+      const deletedUsers = _.filter(currentUsers, user =>
         _.includes(deletedUserPhones, user.phone!),
       );
       const addedUsers = await this.usersRepo.find({
@@ -503,13 +503,10 @@ export class JointAccountController {
         where: { phone: { inq: addedUserPhones } },
         include: [{ relation: 'setting' }],
       });
-      const fixedUsers = _.filter(
-        currentUsers,
-        (user) => !_.includes(deletedUserPhones, user.phone),
-      );
+      const fixedUsers = _.filter(currentUsers, user => !_.includes(deletedUserPhones, user.phone));
 
       if (deletedUsers.length) {
-        const deletedUsersIds = _.map(deletedUsers, (user) => user.userId);
+        const deletedUsersIds = _.map(deletedUsers, user => user.userId);
 
         await this.jointAccountsRepo
           .jointAccountSubscribes(jointAccountId)
@@ -521,9 +518,9 @@ export class JointAccountController {
         );
       }
 
-      const addedUsersIds = _.map(addedUsers, (user) => user.userId);
+      const addedUsersIds = _.map(addedUsers, user => user.userId);
       const jointSubs: JointAccountSubscribes[] = [];
-      addedUsersIds.forEach((id) => {
+      addedUsersIds.forEach(id => {
         jointSubs.push(
           new JointAccountSubscribes({
             userId: id,
@@ -536,7 +533,7 @@ export class JointAccountController {
       }
 
       // Notify for joint memebers except current user
-      for (const user of fixedUsers.filter((u) => u.userId !== this.userId)) {
+      for (const user of fixedUsers.filter(u => u.userId !== this.userId)) {
         const timezone = ct.getTimezonesForCountry(user.region!)[0].name;
         const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 

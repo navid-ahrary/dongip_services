@@ -1,4 +1,4 @@
-import { injectable, BindingScope } from '@loopback/core';
+import { BindingScope, injectable } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { Users } from '../models';
 import { UsersRepository } from '../repositories';
@@ -11,7 +11,7 @@ export class UserScoresService {
     const scoresList = await this.userRepo.scores(userId).find({ where: { deleted: false } });
 
     let totalScores = 0;
-    scoresList.forEach((scoreItem) => {
+    scoresList.forEach(scoreItem => {
       totalScores += scoreItem.score;
     });
 

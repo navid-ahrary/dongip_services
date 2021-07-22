@@ -1,7 +1,7 @@
-import { DefaultCrudRepository } from '@loopback/repository';
-import { Blacklist, BlacklistRelations } from '../models';
-import { MariadbDataSource } from '../datasources';
 import { inject } from '@loopback/core';
+import { DefaultCrudRepository } from '@loopback/repository';
+import { MariadbDataSource } from '../datasources';
+import { Blacklist, BlacklistRelations } from '../models';
 
 export class BlacklistRepository extends DefaultCrudRepository<
   Blacklist,

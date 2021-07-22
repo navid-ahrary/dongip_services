@@ -1,35 +1,35 @@
 /* eslint-disable prefer-const */
+import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
+import { inject, intercept, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import {
+  del,
   get,
   getModelSchemaRef,
+  HttpErrors,
   param,
   patch,
   post,
   requestBody,
-  HttpErrors,
-  del,
   RequestContext,
 } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import { inject, service, intercept } from '@loopback/core';
 import _ from 'lodash';
 import moment from 'moment';
 import util from 'util';
-import { UsersRels, Users } from '../models';
+import { ValidatePhoneEmailInterceptor, ValidateUsersRelsInterceptor } from '../interceptors';
+import { LocMsgsBindings } from '../keys';
+import { Users, UsersRels } from '../models';
 import {
+  BlacklistRepository,
+  DongsRepository,
+  UsersRelsRepository,
   UsersRepository,
   VirtualUsersRepository,
-  BlacklistRepository,
-  UsersRelsRepository,
-  DongsRepository,
 } from '../repositories';
 import { CurrentUserProfile, FirebaseService, PhoneNumberService } from '../services';
-import { ValidatePhoneEmailInterceptor, ValidateUsersRelsInterceptor } from '../interceptors';
 import { LocalizedMessages } from '../types';
-import { LocMsgsBindings } from '../keys';
 
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
@@ -133,7 +133,7 @@ export class UsersRelsController {
     const createdUserRel = await this.usersRepository
       .usersRels(this.userId)
       .create(userRelObject)
-      .catch((err) => {
+      .catch(err => {
         // Duplicate error handling
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
           let errorMessage: string;
@@ -225,7 +225,7 @@ export class UsersRelsController {
               timeZone: 'Asia/Tehran',
             }),
           })
-          .then(async (createdNotify) => {
+          .then(async createdNotify => {
             const token = foundTargetUser.firebaseToken ?? '';
             await this.firebaseService.sendToDeviceMessage(token, {
               notification: {

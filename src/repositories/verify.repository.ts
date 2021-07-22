@@ -1,7 +1,7 @@
-import { DefaultCrudRepository } from '@loopback/repository';
 import { inject } from '@loopback/core';
-import { Verify, VerifyRelations } from '../models';
+import { DefaultCrudRepository } from '@loopback/repository';
 import { MariadbDataSource } from '../datasources';
+import { Verify, VerifyRelations } from '../models';
 
 export class VerifyRepository extends DefaultCrudRepository<
   Verify,

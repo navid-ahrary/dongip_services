@@ -1,13 +1,13 @@
-import { injectable, inject, BindingScope } from '@loopback/core';
-import { HttpErrors } from '@loopback/rest';
-import { UserProfile, securityId } from '@loopback/security';
 import { TokenService } from '@loopback/authentication';
 import { TokenObject } from '@loopback/authentication-jwt';
+import { BindingScope, inject, injectable } from '@loopback/core';
 import { repository } from '@loopback/repository';
-import { sign, verify, Algorithm } from 'jsonwebtoken';
+import { HttpErrors } from '@loopback/rest';
+import { securityId, UserProfile } from '@loopback/security';
+import { Algorithm, sign, verify } from 'jsonwebtoken';
+import { MyUserService } from '.';
 import { RefreshTokenServiceBindings, TokenServiceBindings, UserServiceBindings } from '../keys';
 import { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
-import { MyUserService } from '.';
 
 @injectable({ scope: BindingScope.REQUEST })
 export class RefreshtokenService {

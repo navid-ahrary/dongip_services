@@ -1,4 +1,11 @@
+import {
+  AuthenticateFn,
+  AuthenticationBindings,
+  AUTHENTICATION_STRATEGY_NOT_FOUND,
+  USER_PROFILE_NOT_FOUND,
+} from '@loopback/authentication';
 import { inject } from '@loopback/context';
+import { ExpressRequestHandler, InvokeMiddleware } from '@loopback/express';
 import {
   FindRoute,
   InvokeMethod,
@@ -9,13 +16,6 @@ import {
   Send,
   SequenceHandler,
 } from '@loopback/rest';
-import {
-  AuthenticationBindings,
-  AuthenticateFn,
-  AUTHENTICATION_STRATEGY_NOT_FOUND,
-  USER_PROFILE_NOT_FOUND,
-} from '@loopback/authentication';
-import { ExpressRequestHandler, InvokeMiddleware } from '@loopback/express';
 import helmet from 'helmet'; // For security
 import morgan from 'morgan'; // For http access logging
 

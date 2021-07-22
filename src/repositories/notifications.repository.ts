@@ -1,8 +1,8 @@
-import { DefaultCrudRepository, repository, BelongsToAccessor } from '@loopback/repository';
-import { inject, Getter } from '@loopback/core';
-import { Notifications, NotificationsRelations, Users } from '../models';
-import { MariadbDataSource } from '../datasources';
+import { Getter, inject } from '@loopback/core';
+import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
 import { UsersRepository } from '.';
+import { MariadbDataSource } from '../datasources';
+import { Notifications, NotificationsRelations, Users } from '../models';
 
 export class NotificationsRepository extends DefaultCrudRepository<
   Notifications,

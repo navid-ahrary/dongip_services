@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { Entity, model, property, belongsTo, hasMany, RelationType } from '@loopback/repository';
-import { Users, BillList, PayerList, Dongs, Budgets } from './';
+import { belongsTo, Entity, hasMany, model, property, RelationType } from '@loopback/repository';
+import { BillList, Budgets, Dongs, PayerList, Users } from './';
 
 @model({
   name: 'categories',

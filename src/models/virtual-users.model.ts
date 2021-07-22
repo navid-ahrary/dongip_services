@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
+import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
 import { Users, UsersRels } from './';
 
 @model({

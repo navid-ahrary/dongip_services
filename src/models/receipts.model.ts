@@ -1,6 +1,6 @@
-import { Entity, model, property, belongsTo, RelationType } from '@loopback/repository';
-import { Users } from './users.model';
+import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
 import { Dongs } from './dongs.model';
+import { Users } from './users.model';
 
 @model({
   name: 'receipts',

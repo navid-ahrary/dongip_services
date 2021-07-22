@@ -1,10 +1,10 @@
 import { BindingScope, inject, injectable, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import moment from 'moment';
-import { UsersRepository, SubscriptionsRepository } from '../repositories';
-import { Users, Subscriptions } from '../models';
-import { LocalizedMessages, SubscriptionSpec } from '../types';
 import { LocMsgsBindings, SubsSpecBindings } from '../keys';
+import { Subscriptions, Users } from '../models';
+import { SubscriptionsRepository, UsersRepository } from '../repositories';
+import { LocalizedMessages, SubscriptionSpec } from '../types';
 import { FirebaseService, MessagePayload } from './firebase.service';
 
 @injectable({ scope: BindingScope.TRANSIENT })

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { UserService } from '@loopback/authentication';
-import { repository } from '@loopback/repository';
-import { securityId, UserProfile } from '@loopback/security';
-import { HttpErrors } from '@loopback/rest';
 import { inject } from '@loopback/core';
-import { Users, Credentials } from '../models';
-import { UsersRepository } from '../repositories';
+import { repository } from '@loopback/repository';
+import { HttpErrors } from '@loopback/rest';
+import { securityId, UserProfile } from '@loopback/security';
 import { PasswordHasherBindings } from '../keys';
+import { Credentials, Users } from '../models';
+import { UsersRepository } from '../repositories';
 import { PasswordHasher } from '../services';
 
 export class MyUserService implements UserService<Users, Credentials> {

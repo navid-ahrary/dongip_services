@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {
+  belongsTo,
   Entity,
+  hasMany,
+  hasOne,
   model,
   property,
-  belongsTo,
   RelationType,
-  hasOne,
-  hasMany,
 } from '@loopback/repository';
-import { Users, VirtualUsers, Budgets, BillList, PayerList } from '.';
+import { BillList, Budgets, PayerList, Users, VirtualUsers } from '.';
 
 @model({
   name: 'users_rels',

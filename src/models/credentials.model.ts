@@ -1,23 +1,23 @@
-import {Model, model, property} from '@loopback/repository';
+import { Model, model, property } from '@loopback/repository';
 
 @model()
 export class Credentials extends Model {
   @property({
     type: 'string',
-    jsonSchema: {minLength: 10, maxLength: 20},
+    jsonSchema: { minLength: 10, maxLength: 20 },
   })
   phone?: string;
 
   @property({
     type: 'string',
-    jsonSchema: {maxLength: 100},
+    jsonSchema: { maxLength: 100 },
   })
   email?: string;
 
   @property({
     type: 'string',
     required: true,
-    jsonSchema: {minLength: 9, maxLength: 9},
+    jsonSchema: { minLength: 9, maxLength: 9 },
   })
   password: string;
 

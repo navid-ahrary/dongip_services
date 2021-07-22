@@ -1,8 +1,8 @@
-import { DefaultCrudRepository, repository, BelongsToAccessor } from '@loopback/repository';
-import { inject, Getter } from '@loopback/core';
-import { RefreshTokens, RefreshTokensRelations, Users } from '../models';
-import { MariadbDataSource } from '../datasources';
+import { Getter, inject } from '@loopback/core';
+import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
 import { UsersRepository } from '.';
+import { MariadbDataSource } from '../datasources';
+import { RefreshTokens, RefreshTokensRelations, Users } from '../models';
 
 export class RefreshTokensRepository extends DefaultCrudRepository<
   RefreshTokens,

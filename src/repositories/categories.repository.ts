@@ -1,27 +1,27 @@
+import { Getter, inject } from '@loopback/core';
 import {
-  repository,
   BelongsToAccessor,
-  HasManyRepositoryFactory,
   DefaultCrudRepository,
+  HasManyRepositoryFactory,
+  repository,
 } from '@loopback/repository';
-import { inject, Getter } from '@loopback/core';
 import {
-  Categories,
-  CategoriesRelations,
-  Users,
-  BillList,
-  PayerList,
-  Dongs,
-  Budgets,
-} from '../models';
+  BillListRepository,
+  BudgetsRepository,
+  DongsRepository,
+  PayerListRepository,
+  UsersRepository,
+} from '.';
 import { MariadbDataSource } from '../datasources';
 import {
-  UsersRepository,
-  BillListRepository,
-  PayerListRepository,
-  DongsRepository,
-  BudgetsRepository,
-} from '.';
+  BillList,
+  Budgets,
+  Categories,
+  CategoriesRelations,
+  Dongs,
+  PayerList,
+  Users,
+} from '../models';
 
 export class CategoriesRepository extends DefaultCrudRepository<
   Categories,

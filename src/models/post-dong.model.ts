@@ -1,11 +1,11 @@
-import { property, model, Model } from '@loopback/repository';
-import { UsersRels } from './users-rels.model';
+import { model, Model, property } from '@loopback/repository';
 import { Categories } from './categories.model';
-import { CurrencyEnum } from './settings.model';
-import { JointAccounts } from './joint-accounts.model';
 import { Dongs } from './dongs.model';
-import { Users } from './users.model';
+import { JointAccounts } from './joint-accounts.model';
 import { Receipts } from './receipts.model';
+import { CurrencyEnum } from './settings.model';
+import { UsersRels } from './users-rels.model';
+import { Users } from './users.model';
 
 @model()
 export class PostDong extends Model {

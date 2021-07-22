@@ -1,15 +1,15 @@
+import { BindingScope, inject, service } from '@loopback/core';
 import { CronJob, cronJob } from '@loopback/cron';
 import { repository } from '@loopback/repository';
-import { service, BindingScope, inject } from '@loopback/core';
+import ct from 'countries-and-timezones';
 import moment from 'moment';
 import 'moment-timezone';
-import ct from 'countries-and-timezones';
 import util from 'util';
-import { NotificationsRepository, RemindersRepository, UsersRepository } from '../repositories';
-import { FirebaseService, BatchMessage } from '.';
-import { Notifications, Users } from '../models';
-import { LocalizedMessages } from '../types';
+import { BatchMessage, FirebaseService } from '.';
 import { AppInstanceBinding, HostnameBinding, LocMsgsBindings, TzBindings } from '../keys';
+import { Notifications, Users } from '../models';
+import { NotificationsRepository, RemindersRepository, UsersRepository } from '../repositories';
+import { LocalizedMessages } from '../types';
 
 @cronJob({ scope: BindingScope.APPLICATION })
 export class ReminderCronjobService extends CronJob {
@@ -61,12 +61,12 @@ export class ReminderCronjobService extends CronJob {
       ],
     });
 
-    const users = foundReminders.map((r2) => r2.user).filter((u) => u instanceof Users);
+    const users = foundReminders.map(r2 => r2.user).filter(u => u instanceof Users);
 
     const notifyEntities: Array<Notifications> = [];
     const firebaseMessages: BatchMessage = [];
     for (const user of users) {
-      const reminder = foundReminders.find((r) => r.userId === user.userId);
+      const reminder = foundReminders.find(r => r.userId === user.userId);
 
       const name = user.name;
       const lang = user.setting.language;
@@ -96,7 +96,7 @@ export class ReminderCronjobService extends CronJob {
     if (notifyEntities.length) await this.notifRepo.createAll(notifyEntities);
 
     if (foundReminders.length) {
-      const reminderIds = foundReminders.filter((r) => r.repeat).map((r) => r.reminderId);
+      const reminderIds = foundReminders.filter(r => r.repeat).map(r => r.reminderId);
 
       await this.remindersRepo.updateOverride(reminderIds);
     }

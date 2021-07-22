@@ -1,23 +1,23 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {
+  belongsTo,
   Entity,
+  hasMany,
+  hasOne,
   model,
   property,
-  belongsTo,
-  hasMany,
   RelationType,
-  hasOne,
 } from '@loopback/repository';
 import {
-  Users,
-  Categories,
   BillList,
+  Categories,
+  JointAccounts,
+  JointAccountsWithRelations,
   PayerList,
   Receipts,
   Scores,
-  JointAccounts,
+  Users,
   Wallets,
-  JointAccountsWithRelations,
 } from '.';
 import { CurrencyEnum } from './settings.model';
 

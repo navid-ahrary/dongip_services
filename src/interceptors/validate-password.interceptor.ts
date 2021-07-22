@@ -1,11 +1,11 @@
 import {
   bind,
+  inject,
   Interceptor,
   InvocationContext,
   InvocationResult,
   Provider,
   ValueOrPromise,
-  inject,
 } from '@loopback/core';
 import { HttpErrors, Request, RestBindings } from '@loopback/rest';
 import _ from 'lodash';

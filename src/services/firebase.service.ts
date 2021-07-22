@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { BindingScope, inject, injectable } from '@loopback/core';
 import { HttpErrors } from '@loopback/rest';
-import { messaging, initializeApp, credential, ServiceAccount } from 'firebase-admin';
+import { credential, initializeApp, messaging, ServiceAccount } from 'firebase-admin';
 import _ from 'lodash';
 import { FirebaseBinding } from '../keys';
 
@@ -126,7 +126,7 @@ export class FirebaseService {
 
   //send multi message to multi devices
   public async sendAllMessage(messages: BatchMessage): Promise<Array<messaging.BatchResponse>> {
-    _.forEach(messages, (message) => {
+    _.forEach(messages, message => {
       _.assign(message, {
         android: this.androidConfigs,
         // apns: this.apnsConfigs,

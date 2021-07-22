@@ -1,23 +1,31 @@
+import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
+import { authorize } from '@loopback/authorization';
+import { inject, service } from '@loopback/core';
+import { Filter, repository, Where } from '@loopback/repository';
 import {
   get,
   getModelSchemaRef,
+  HttpErrors,
   param,
   post,
   requestBody,
   RequestContext,
-  HttpErrors,
 } from '@loopback/rest';
-import { authorize } from '@loopback/authorization';
-import { authenticate } from '@loopback/authentication';
-import { repository, Filter, Where } from '@loopback/repository';
-import { inject, service } from '@loopback/core';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import ct from 'countries-and-timezones';
 import _ from 'lodash';
 import moment from 'moment';
 import 'moment-timezone';
+import { MariadbDataSource } from '../datasources';
+import { LocMsgsBindings } from '../keys';
 import { Messages, Settings, Users, Verify } from '../models';
+import {
+  MessagesRepository,
+  SettingsRepository,
+  UsersRepository,
+  VerifyRepository,
+} from '../repositories';
 import {
   basicAuthorization,
   BatchMessage,
@@ -25,15 +33,7 @@ import {
   FirebaseService,
   SmsService,
 } from '../services';
-import {
-  MessagesRepository,
-  SettingsRepository,
-  UsersRepository,
-  VerifyRepository,
-} from '../repositories';
-import { LocMsgsBindings } from '../keys';
 import { LocalizedMessages } from '../types';
-import { MariadbDataSource } from '../datasources';
 
 @authorize({ allowedRoles: ['SUPPORT', 'GOD'], voters: [basicAuthorization] })
 @authenticate('jwt.access')
@@ -119,7 +119,7 @@ export class SupportController {
 
     const msgs: Array<Messages & Partial<Users>> = await this.dataSource.execute(query, [limit]);
 
-    return _.map(msgs, (m) => {
+    return _.map(msgs, m => {
       _.set(m, 'isQuestion', Boolean(m.isQuestion));
       _.set(m, 'isAnswer', Boolean(m.isAnswer));
       return m;
@@ -231,14 +231,14 @@ export class SupportController {
       });
 
       const foundTargetUsers = _.map(
-        _.filter(foundSettings, (s) => s.user instanceof Users),
-        (s) => s.user!,
+        _.filter(foundSettings, s => s.user instanceof Users),
+        s => s.user!,
       );
 
       console.log(
         foundTargetUsers.length,
         'Valid user with ids',
-        _.map(foundTargetUsers, (u) => u.userId),
+        _.map(foundTargetUsers, u => u.userId),
       );
 
       const savedMsgs: Array<Messages> = [];
@@ -248,7 +248,7 @@ export class SupportController {
         const targetUserId = foundUser.userId;
         const region = foundUser.region ?? 'IR';
         const firebaseToken = foundUser.firebaseToken!;
-        const setting = _.find(foundSettings, (s) => s.userId === targetUserId)!;
+        const setting = _.find(foundSettings, s => s.userId === targetUserId)!;
         const lang = setting.language;
 
         const timezone = ct.getTimezonesForCountry(region)[0].name;
@@ -375,8 +375,8 @@ export class SupportController {
       });
 
       const foundTargetUsers = _.map(
-        _.filter(foundSettings, (s) => s.user instanceof Users),
-        (s) => s.user!,
+        _.filter(foundSettings, s => s.user instanceof Users),
+        s => s.user!,
       );
 
       const savedMsgs: Array<Messages> = [];
@@ -483,7 +483,7 @@ export class SupportController {
           token1: u.name,
           token2: surveyURL,
         })
-        .then(async (res) => {
+        .then(async res => {
           verifyEntites.push(
             new Verify({
               phone: u.phone,

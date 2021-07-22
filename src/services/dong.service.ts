@@ -1,11 +1,11 @@
 /* eslint-disable prefer-const */
-import { injectable, inject, BindingScope, service } from '@loopback/core';
+import { BindingScope, inject, injectable, service } from '@loopback/core';
 import { DataObject, repository } from '@loopback/repository';
 import { HttpErrors, RequestContext } from '@loopback/rest';
 import _ from 'lodash';
-import util from 'util';
 import moment from 'moment';
-import { BatchMessage, FirebaseService } from './firebase.service';
+import util from 'util';
+import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
 import {
   BillList,
   Categories,
@@ -27,7 +27,7 @@ import {
   UsersRepository,
 } from '../repositories';
 import { CategoriesSource, LocalizedMessages } from '../types';
-import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
+import { BatchMessage, FirebaseService } from './firebase.service';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class DongService {
@@ -73,13 +73,13 @@ export class DongService {
       currentUserIsPayer: Boolean = false,
       firebaseMessagesList: BatchMessage = [];
 
-    _.forEach(payerList, (item) => {
+    _.forEach(payerList, item => {
       if (!allUsersRelsIdList.includes(item.userRelId)) {
         allUsersRelsIdList.push(item.userRelId);
       }
     });
 
-    _.forEach(billList, (item) => {
+    _.forEach(billList, item => {
       if (!allUsersRelsIdList.includes(item.userRelId)) {
         allUsersRelsIdList.push(item.userRelId);
       }
@@ -134,8 +134,8 @@ export class DongService {
     });
 
     const usersRels = currentUser.usersRels;
-    const exterUserRelsList = _.filter(usersRels, (ur) => ur.type !== 'self');
-    const selfUserRel = _.find(usersRels, (ur) => ur.type === 'self');
+    const exterUserRelsList = _.filter(usersRels, ur => ur.type !== 'self');
+    const selfUserRel = _.find(usersRels, ur => ur.type === 'self');
 
     if (usersRels?.length !== allUsersRelsIdList.length) {
       throw new HttpErrors.UnprocessableEntity(this.locMsg['SOME_USERS_RELS_NOT_VALID'][this.lang]);
@@ -177,7 +177,7 @@ export class DongService {
         });
       }
 
-      _.forEach(payerList, (item) => {
+      _.forEach(payerList, item => {
         _.assign(item, {
           userId: userId,
           dongId: createdDong.getId(),
@@ -185,11 +185,11 @@ export class DongService {
           categoryId: createdDong.categoryId,
           currency: createdDong.currency,
           jointAccountId: createdDong.jointAccountId,
-          userRelName: _.find(usersRels, (rel) => rel.getId() === item.userRelId)?.name,
+          userRelName: _.find(usersRels, rel => rel.getId() === item.userRelId)?.name,
         });
       });
 
-      _.forEach(billList, (item) => {
+      _.forEach(billList, item => {
         _.assign(item, {
           userId: userId,
           dongId: createdDong.getId(),
@@ -197,7 +197,7 @@ export class DongService {
           categoryId: createdDong.categoryId,
           currency: createdDong.currency,
           jointAccountId: createdDong.jointAccountId,
-          userRelName: _.find(usersRels, (rel) => rel.getId() === item.userRelId)?.name,
+          userRelName: _.find(usersRels, rel => rel.getId() === item.userRelId)?.name,
         });
       });
 
@@ -358,21 +358,21 @@ export class DongService {
       const catsFa = this.catSrc['fa'];
       const catsEn = this.catSrc['en'];
       let splittedCatgTitle: string[] = [];
-      const cFa = _.find(catsFa, (c) => c.title === currentUserCateg.title);
+      const cFa = _.find(catsFa, c => c.title === currentUserCateg.title);
       if (cFa) {
-        const titleEn = _.find(catsEn, (c) => c.id === cFa.id)?.title ?? '';
+        const titleEn = _.find(catsEn, c => c.id === cFa.id)?.title ?? '';
         splittedCatgTitle.push(titleEn);
       }
-      const cEn = _.find(catsEn, (c) => c.title === currentUserCateg.title);
+      const cEn = _.find(catsEn, c => c.title === currentUserCateg.title);
       if (cEn) {
-        const titleFa = _.find(catsFa, (c) => c.id === cEn.id)?.title ?? '';
+        const titleFa = _.find(catsFa, c => c.id === cEn.id)?.title ?? '';
         splittedCatgTitle.push(titleFa);
       }
       splittedCatgTitle = _.concat(
         splittedCatgTitle,
         currentUserCateg.title
           .split(' ')
-          .filter((v) => !['and', 'or', '&', ',', '.', ';', 'و', 'یا', '،', '-'].includes(v)),
+          .filter(v => !['and', 'or', '&', ',', '.', ';', 'و', 'یا', '،', '-'].includes(v)),
       );
 
       let foundReceipt: Receipts | undefined;
@@ -432,7 +432,7 @@ export class DongService {
 
         const billers: Array<DataObject<BillList>> = [];
         for (const biller of billList) {
-          const ur = _.find(currentUser.usersRels, (rel) => rel.getId() === biller.userRelId);
+          const ur = _.find(currentUser.usersRels, rel => rel.getId() === biller.userRelId);
 
           const mutualRel = await this.usersRelsRepository.findOne({
             where: { userId: user.getId(), phone: ur!.phone, deleted: false },
@@ -463,7 +463,7 @@ export class DongService {
 
         const payers: Array<DataObject<PayerList>> = [];
         for (const payer of payerList) {
-          const ur = _.find(currentUser.usersRels, (rel) => rel.getId() === payer.userRelId);
+          const ur = _.find(currentUser.usersRels, rel => rel.getId() === payer.userRelId);
 
           const mutualRel = await this.usersRelsRepository.findOne({
             where: { userId: user.getId(), phone: ur?.phone, deleted: false },

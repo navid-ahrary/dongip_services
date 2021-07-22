@@ -1,38 +1,38 @@
 /* eslint-disable prefer-const */
-import { repository, property, model, CountSchema, DataObject, Count } from '@loopback/repository';
-import {
-  get,
-  getModelSchemaRef,
-  post,
-  requestBody,
-  param,
-  del,
-  patch,
-  HttpErrors,
-} from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import { inject, service, intercept } from '@loopback/core';
+import { inject, intercept, service } from '@loopback/core';
+import { Count, CountSchema, DataObject, model, property, repository } from '@loopback/repository';
+import {
+  del,
+  get,
+  getModelSchemaRef,
+  HttpErrors,
+  param,
+  patch,
+  post,
+  requestBody,
+} from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
 import _ from 'lodash';
-import { Dongs, PostDong, Categories, BillList, PayerList, Users } from '../models';
 import {
-  UsersRepository,
-  DongsRepository,
-  BillListRepository,
-  PayerListRepository,
-  CategoriesRepository,
-  UsersRelsRepository,
-} from '../repositories';
-import { CurrentUserProfile, DongService } from '../services';
-import {
-  ValidateCategoryIdInterceptor,
   JointAccountsInterceptor,
+  ValidateCategoryIdInterceptor,
   ValidateDongIdInterceptor,
 } from '../interceptors';
-import { createDongReqBodySpec } from './specs';
-import { CategoriesSource, LocalizedMessages } from '../types';
 import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
+import { BillList, Categories, Dongs, PayerList, PostDong, Users } from '../models';
+import {
+  BillListRepository,
+  CategoriesRepository,
+  DongsRepository,
+  PayerListRepository,
+  UsersRelsRepository,
+  UsersRepository,
+} from '../repositories';
+import { CurrentUserProfile, DongService } from '../services';
+import { CategoriesSource, LocalizedMessages } from '../types';
+import { createDongReqBodySpec } from './specs';
 
 @model()
 export class ResponseNewDong extends Dongs {
@@ -210,7 +210,7 @@ export class DongsController {
       ],
     });
 
-    foundDongs.forEach((d) => {
+    foundDongs.forEach(d => {
       const r = {
         ..._.omit(d, 'receipt'),
         receiptId: d.receipt?.receiptId,

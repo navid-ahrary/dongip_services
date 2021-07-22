@@ -1,28 +1,28 @@
 // Uncomment these imports to begin using these cool features!
 
+import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import {
   HttpErrors,
   post,
-  requestBody,
   Request,
-  Response,
+  requestBody,
   RequestContext,
+  Response,
   RestBindings,
 } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
-import _ from 'lodash';
 import FileType from 'file-type';
-import Path from 'path';
 import Fs from 'fs';
-import { Users } from '../models';
-import { FileUploadHandler } from '../types';
+import _ from 'lodash';
+import Path from 'path';
 import { FILE_UPLOAD_SERVICE, STORAGE_DIRECTORY_BINDING } from '../keys';
+import { Users } from '../models';
 import { ReceiptsRepository } from '../repositories';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
-import { authenticate } from '@loopback/authentication';
 import { CurrentUserProfile } from '../services';
+import { FileUploadHandler } from '../types';
 
 @authenticate('jwt.access')
 export class ReceiptsController {

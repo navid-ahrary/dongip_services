@@ -1,15 +1,15 @@
 /* eslint-disable prefer-const */
 import { TokenService } from '@loopback/authentication';
 import { inject } from '@loopback/core';
-import { UserProfile, securityId } from '@loopback/security';
-import { HttpErrors, RestBindings, Request } from '@loopback/rest';
 import { repository } from '@loopback/repository';
+import { HttpErrors, Request, RestBindings } from '@loopback/rest';
+import { securityId, UserProfile } from '@loopback/security';
 import ct from 'countries-and-timezones';
-import { sign, verify, Algorithm } from 'jsonwebtoken';
-import { UsersRepository, BlacklistRepository } from '../repositories';
-import { EmailBindings, TokenServiceBindings } from '../keys';
+import { Algorithm, sign, verify } from 'jsonwebtoken';
 import _ from 'lodash';
+import { EmailBindings, TokenServiceBindings } from '../keys';
 import { Settings, Users, UsersRels } from '../models';
+import { BlacklistRepository, UsersRepository } from '../repositories';
 
 export interface CurrentUserProfile extends UserProfile, Partial<Omit<Users, 'userId'>> {
   selfUserRelId?: typeof UsersRels.prototype.userId;

@@ -9,7 +9,7 @@ import {
 } from '@loopback/core';
 import { DataObject, repository } from '@loopback/repository';
 import { RestBindings } from '@loopback/rest';
-import { UserProfile, SecurityBindings, securityId } from '@loopback/security';
+import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
 import _ from 'lodash';
 import { Users } from '../models';
 import { UsersRepository } from '../repositories';

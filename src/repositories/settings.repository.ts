@@ -1,8 +1,8 @@
-import { DefaultCrudRepository, repository, BelongsToAccessor } from '@loopback/repository';
-import { inject, Getter } from '@loopback/core';
-import { Settings, SettingsRelations, Users } from '../models';
-import { MariadbDataSource } from '../datasources';
+import { Getter, inject } from '@loopback/core';
+import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
 import { UsersRepository } from '.';
+import { MariadbDataSource } from '../datasources';
+import { Settings, SettingsRelations, Users } from '../models';
 
 export class SettingsRepository extends DefaultCrudRepository<
   Settings,

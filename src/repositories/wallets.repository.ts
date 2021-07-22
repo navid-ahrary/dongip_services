@@ -1,14 +1,14 @@
-import { inject, Getter } from '@loopback/core';
+import { Getter, inject } from '@loopback/core';
 import {
-  DefaultCrudRepository,
-  repository,
   BelongsToAccessor,
+  DefaultCrudRepository,
   HasManyRepositoryFactory,
+  repository,
 } from '@loopback/repository';
 import { MariadbDataSource } from '../datasources';
-import { Wallets, WalletsRelations, Users, Dongs } from '../models';
-import { UsersRepository } from './users.repository';
+import { Dongs, Users, Wallets, WalletsRelations } from '../models';
 import { DongsRepository } from './dongs.repository';
+import { UsersRepository } from './users.repository';
 
 export class WalletsRepository extends DefaultCrudRepository<
   Wallets,

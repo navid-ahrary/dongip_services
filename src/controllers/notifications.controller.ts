@@ -1,12 +1,12 @@
-import { Filter, repository } from '@loopback/repository';
-import { get, getModelSchemaRef, param } from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept } from '@loopback/core';
+import { Filter, repository } from '@loopback/repository';
+import { get, getModelSchemaRef, param } from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
+import { HeadersInterceptor } from '../interceptors';
 import { Notifications, Users } from '../models';
 import { NotificationsRepository, UsersRepository } from '../repositories';
-import { HeadersInterceptor } from '../interceptors';
 import { CurrentUserProfile } from '../services';
 
 @intercept(HeadersInterceptor.BINDING_KEY)
@@ -62,7 +62,7 @@ export class NotificationsController {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.usersRepository
       .notifications(this.userId)
-      .patch({ deleted: true }, { notifyId: { inq: foundNotify.map((n) => n.getId()) } });
+      .patch({ deleted: true }, { notifyId: { inq: foundNotify.map(n => n.getId()) } });
 
     return foundNotify;
   }

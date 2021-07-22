@@ -1,6 +1,6 @@
 import {
-  inject,
   bind,
+  inject,
   Interceptor,
   InvocationContext,
   InvocationResult,
@@ -8,12 +8,12 @@ import {
   ValueOrPromise,
 } from '@loopback/core';
 import { repository } from '@loopback/repository';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { HttpErrors, Request, RestBindings } from '@loopback/rest';
+import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
 import _ from 'lodash';
+import { LocMsgsBindings } from '../keys';
 import { UsersRelsRepository, UsersRepository } from '../repositories';
 import { LocalizedMessages } from '../types';
-import { LocMsgsBindings } from '../keys';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -121,7 +121,7 @@ export class ValidateUsersRelsInterceptor implements Provider<Interceptor> {
             throw new Error(errMsg);
           }
 
-          const invalidRels = user.usersRels.filter((rel) => rel.mutualUserRelId === null);
+          const invalidRels = user.usersRels.filter(rel => rel.mutualUserRelId === null);
           if (invalidRels.length) {
             for (const rel of invalidRels) {
               const phone = rel.phone;

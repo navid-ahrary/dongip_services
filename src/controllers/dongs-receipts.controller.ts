@@ -1,15 +1,15 @@
-import { del, get, param, RestBindings, Response, HttpErrors, oas } from '@loopback/rest';
-import { inject, intercept } from '@loopback/context';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { repository } from '@loopback/repository';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { authenticate } from '@loopback/authentication';
+import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
+import { inject, intercept } from '@loopback/context';
+import { repository } from '@loopback/repository';
+import { del, get, HttpErrors, oas, param, Response, RestBindings } from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
 import fs from 'fs';
-import { Dongs, Users } from '../models';
-import { ReceiptsRepository, DongsRepository } from '../repositories';
 import { ValidateDongIdInterceptor } from '../interceptors';
-import { ReceiptsController } from './receipts.controller';
+import { Dongs, Users } from '../models';
+import { DongsRepository, ReceiptsRepository } from '../repositories';
 import { CurrentUserProfile } from '../services';
+import { ReceiptsController } from './receipts.controller';
 
 @authenticate('jwt.access')
 @intercept(ValidateDongIdInterceptor.BINDING_KEY)

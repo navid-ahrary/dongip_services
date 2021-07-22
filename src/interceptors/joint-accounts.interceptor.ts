@@ -8,14 +8,15 @@ import {
   service,
   ValueOrPromise,
 } from '@loopback/core';
-import { SecurityBindings, UserProfile, securityId } from '@loopback/security';
 import { repository } from '@loopback/repository';
+import { HttpErrors, Request, RestBindings } from '@loopback/rest';
+import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
+import ct from 'countries-and-timezones';
 import _ from 'lodash';
-import util from 'util';
 import moment from 'moment';
 import 'moment-timezone';
-import ct from 'countries-and-timezones';
-
+import util from 'util';
+import { LocMsgsBindings } from '../keys';
 import {
   DongsRepository,
   JointAccountsRepository,
@@ -24,8 +25,6 @@ import {
   UsersRepository,
 } from '../repositories';
 import { BatchMessage, FirebaseService, PhoneNumberService } from '../services';
-import { HttpErrors, RestBindings, Request } from '@loopback/rest';
-import { LocMsgsBindings } from '../keys';
 import { LocalizedMessages } from '../types';
 
 /**
@@ -107,13 +106,13 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
         if (JAs.length && JAs[0].jointAccountSubscribes) {
           const currentUserJAS = _.find(
             JAs[0].jointAccountSubscribes,
-            (jass) => jass.userId === this.userId,
+            jass => jass.userId === this.userId,
           );
           const currentUser = currentUserJAS!.user;
 
           for (const JA of JAs) {
             const JASs = JA.jointAccountSubscribes;
-            const externalJASs = _.filter(JASs, (jass) => jass.userId !== this.userId);
+            const externalJASs = _.filter(JASs, jass => jass.userId !== this.userId);
 
             for (const JAS of externalJASs) {
               const targetUser = JAS.user;
@@ -164,8 +163,8 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
           ],
         });
 
-        const JASsValid = JASs.filter((jass) => jass.jointAccount);
-        const jointIds = _.map(JASsValid, (jass) => jass.jointAccountId);
+        const JASsValid = JASs.filter(jass => jass.jointAccount);
+        const jointIds = _.map(JASsValid, jass => jass.jointAccountId);
 
         const joints = await this.jointAccountsRepo.find({
           where: { jointAccountId: { inq: jointIds } },
@@ -312,8 +311,8 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
           }
 
           const jointAccountSubs = jointAcc.jointAccountSubscribes;
-          const users = _.map(jointAccountSubs, (j) => j.user);
-          _.remove(users, (user) => typeof user !== 'object');
+          const users = _.map(jointAccountSubs, j => j.user);
+          _.remove(users, user => typeof user !== 'object');
 
           for (const user of users) {
             const timezone = ct.getTimezonesForCountry(
@@ -417,8 +416,8 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
           }
 
           const jointAccountSubs = jointAcc.jointAccountSubscribes;
-          const users = _.map(jointAccountSubs, (j) => j.user);
-          _.remove(users, (user) => typeof user !== 'object');
+          const users = _.map(jointAccountSubs, j => j.user);
+          _.remove(users, user => typeof user !== 'object');
 
           for (const user of users) {
             const timezone = ct.getTimezonesForCountry(
