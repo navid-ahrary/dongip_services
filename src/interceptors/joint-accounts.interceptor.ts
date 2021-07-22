@@ -6,7 +6,7 @@ import {
   InvocationResult,
   Provider,
   service,
-  ValueOrPromise,
+  ValueOrPromise
 } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { HttpErrors, Request, RestBindings } from '@loopback/rest';
@@ -22,7 +22,7 @@ import {
   JointAccountsRepository,
   JointAccountSubscribesRepository,
   UsersRelsRepository,
-  UsersRepository,
+  UsersRepository
 } from '../repositories';
 import { BatchMessage, FirebaseService, PhoneNumberService } from '../services';
 import { LocalizedMessages } from '../types';
@@ -121,7 +121,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
 
               const mutualRel = await this.usersRelsRepo.findOne({
                 fields: { name: true },
-                where: { userId: targetUser.getId(), phone: currentUser.phone },
+                where: { userId: targetUser.getId(), phone: currentUser.phone, deleted: false },
               });
 
               const savedNotify = await this.usersRepo.notifications(targetUser.getId()).create({
@@ -203,7 +203,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
 
             const mutualRel = await this.usersRelsRepo.findOne({
               fields: { name: true },
-              where: { userId: user.getId(), phone: this.phone },
+              where: { userId: user.getId(), phone: this.phone, deleted: false },
             });
 
             const savedNotify = await this.usersRepo.notifications(user.getId()).create({
