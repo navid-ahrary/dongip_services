@@ -1,8 +1,8 @@
 import { Getter, inject } from '@loopback/core';
 import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
-import { UsersRepository } from '.';
 import { MariadbDataSource } from '../datasources';
 import { Messages, MessagesRelations, Users } from '../models';
+import { UsersRepository } from './users.repository';
 
 export class MessagesRepository extends DefaultCrudRepository<
   Messages,

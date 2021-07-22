@@ -1,8 +1,9 @@
 import { Getter, inject } from '@loopback/core';
 import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
-import { UsersRelsRepository, UsersRepository } from '.';
 import { MariadbDataSource } from '../datasources';
 import { Users, UsersRels, VirtualUsers, VirtualUsersRelations } from '../models';
+import { UsersRelsRepository } from './users-rels.repository';
+import { UsersRepository } from './users.repository';
 
 export class VirtualUsersRepository extends DefaultCrudRepository<
   VirtualUsers,

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
-import { Users, UsersRels } from './';
+import { UsersRels } from './users-rels.model';
+import { Users } from './users.model';
 
 @model({
   name: 'virtual_users',

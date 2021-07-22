@@ -5,11 +5,11 @@ import ct from 'countries-and-timezones';
 import moment from 'moment';
 import 'moment-timezone';
 import util from 'util';
-import { BatchMessage, FirebaseService } from '.';
 import { AppInstanceBinding, HostnameBinding, LocMsgsBindings, TzBindings } from '../keys';
 import { Notifications, Users } from '../models';
 import { NotificationsRepository, RemindersRepository, UsersRepository } from '../repositories';
 import { LocalizedMessages } from '../types';
+import { BatchMessage, FirebaseService } from './firebase.service';
 
 @cronJob({ scope: BindingScope.APPLICATION })
 export class ReminderCronjobService extends CronJob {

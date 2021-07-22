@@ -1,6 +1,5 @@
 import { Getter, inject } from '@loopback/core';
 import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
-import { JointAccountsRepository, UsersRepository } from '.';
 import { MariadbDataSource } from '../datasources';
 import {
   JointAccounts,
@@ -8,6 +7,8 @@ import {
   JointAccountSubscribesRelations,
   Users,
 } from '../models';
+import { JointAccountsRepository } from './joint-accounts.repository';
+import { UsersRepository } from './users.repository';
 
 export class JointAccountSubscribesRepository extends DefaultCrudRepository<
   JointAccountSubscribes,

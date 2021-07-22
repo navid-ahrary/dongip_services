@@ -8,7 +8,11 @@ import {
   property,
   RelationType,
 } from '@loopback/repository';
-import { BillList, Budgets, PayerList, Users, VirtualUsers } from '.';
+import { BillList } from './bill-list.model';
+import { Budgets } from './budgets.model';
+import { PayerList } from './payer-list.model';
+import { Users } from './users.model';
+import { VirtualUsers } from './virtual-users.model';
 
 @model({
   name: 'users_rels',

@@ -1,32 +1,26 @@
 import { Entity, hasMany, hasOne, model, property, RelationType } from '@loopback/repository';
+import { BillList } from './bill-list.model';
+import { Budgets } from './budgets.model';
+import { Categories } from './categories.model';
+import { Dongs } from './dongs.model';
 import {
-  BillList,
-  Budgets,
-  Categories,
-  Dongs,
-  JointAccounts,
   JointAccountSubscribes,
   JointAccountSubscribesWithRelations,
-  JointAccountsWithRelations,
-  Messages,
-  Notifications,
-  PayerList,
-  Purchases,
-  RefreshTokens,
-  Reminders,
-  Scores,
-  Settings,
-  SettingsWithRelations,
-  Subscriptions,
-  SubscriptionsWithRelations,
-  UsersRels,
-  UsersRelsWithRelations,
-  VirtualUsers,
-} from '.';
+} from './joint-account-subscribes.model';
+import { JointAccounts, JointAccountsWithRelations } from './joint-accounts.model';
+import { Messages } from './messages.model';
+import { Notifications } from './notifications.model';
+import { PayerList } from './payer-list.model';
+import { Purchases } from './purchases.model';
 import { Receipts } from './receipts.model';
-import { RemindersWithRelations } from './reminders.model';
+import { RefreshTokens } from './refresh-tokens.model';
+import { Reminders, RemindersWithRelations } from './reminders.model';
+import { Scores } from './scores.model';
+import { Settings, SettingsWithRelations } from './settings.model';
+import { Subscriptions, SubscriptionsWithRelations } from './subscriptions.model';
+import { UsersRels, UsersRelsWithRelations } from './users-rels.model';
+import { VirtualUsers } from './virtual-users.model';
 import { Wallets, WalletsWithRelations } from './wallets.model';
-
 @model({
   name: 'users',
   settings: {},

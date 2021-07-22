@@ -2,8 +2,8 @@ import { BindingScope, inject, injectable } from '@loopback/core';
 import { HttpErrors } from '@loopback/rest';
 import { app, credential, initializeApp, messaging, ServiceAccount } from 'firebase-admin';
 import _ from 'lodash';
-import { BatchMessage } from '.';
 import { FirebaseBinding } from '../keys';
+import { BatchMessage } from './firebase.service';
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class FirebaseSupportService {

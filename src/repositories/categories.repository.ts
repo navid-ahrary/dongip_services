@@ -5,13 +5,6 @@ import {
   HasManyRepositoryFactory,
   repository,
 } from '@loopback/repository';
-import {
-  BillListRepository,
-  BudgetsRepository,
-  DongsRepository,
-  PayerListRepository,
-  UsersRepository,
-} from '.';
 import { MariadbDataSource } from '../datasources';
 import {
   BillList,
@@ -22,6 +15,11 @@ import {
   PayerList,
   Users,
 } from '../models';
+import { BillListRepository } from './bill-list.repository';
+import { BudgetsRepository } from './budgets.repository';
+import { DongsRepository } from './dongs.repository';
+import { PayerListRepository } from './payer-list.repository';
+import { UsersRepository } from './users.repository';
 
 export class CategoriesRepository extends DefaultCrudRepository<
   Categories,

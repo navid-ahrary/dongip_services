@@ -1,8 +1,8 @@
 import { Getter, inject } from '@loopback/core';
 import { BelongsToAccessor, Count, DefaultCrudRepository, repository } from '@loopback/repository';
-import { UsersRepository } from '.';
 import { MariadbDataSource } from '../datasources';
 import { Reminders, RemindersRelations, Users } from '../models';
+import { UsersRepository } from './users.repository';
 
 export type Find = { notifyTime: string; nextNotifyDate: string };
 

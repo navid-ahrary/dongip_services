@@ -5,9 +5,9 @@ import { repository } from '@loopback/repository';
 import { HttpErrors } from '@loopback/rest';
 import { securityId, UserProfile } from '@loopback/security';
 import { Algorithm, sign, verify } from 'jsonwebtoken';
-import { MyUserService } from '.';
 import { RefreshTokenServiceBindings, TokenServiceBindings, UserServiceBindings } from '../keys';
 import { RefreshTokensRepository } from '../repositories/refresh-tokens.repository';
+import { MyUserService } from './user.service';
 
 @injectable({ scope: BindingScope.REQUEST })
 export class RefreshtokenService {

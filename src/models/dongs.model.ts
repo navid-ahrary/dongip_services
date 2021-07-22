@@ -8,18 +8,15 @@ import {
   property,
   RelationType,
 } from '@loopback/repository';
-import {
-  BillList,
-  Categories,
-  JointAccounts,
-  JointAccountsWithRelations,
-  PayerList,
-  Receipts,
-  Scores,
-  Users,
-  Wallets,
-} from '.';
+import { BillList } from './bill-list.model';
+import { Categories } from './categories.model';
+import { JointAccounts, JointAccountsWithRelations } from './joint-accounts.model';
+import { PayerList } from './payer-list.model';
+import { Receipts } from './receipts.model';
+import { Scores } from './scores.model';
 import { CurrencyEnum } from './settings.model';
+import { Users } from './users.model';
+import { Wallets } from './wallets.model';
 
 @model({
   name: 'dongs',

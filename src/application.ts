@@ -59,13 +59,13 @@ import {
 import { MyAuthenticationSequence } from './sequence';
 import {
   BcryptHasher,
+  DailyScheduleConjobService,
   JWTAccessAutenticationStrategy,
   JWTService,
   JWTVerifyAutenticationStrategy,
   MyUserService,
   ReminderCronjobService,
 } from './services';
-import { DailyScheduleConjobService } from './services/daily-schedule-cronjob.service';
 
 export { ApplicationConfig };
 

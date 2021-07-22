@@ -3,10 +3,10 @@ import { CronJob, cronJob } from '@loopback/cron';
 import { repository } from '@loopback/repository';
 import _ from 'lodash';
 import moment from 'moment';
-import { BatchMessage, FirebaseService } from '.';
 import { LocMsgsBindings } from '../keys';
 import { RemindersRepository, SettingsRepository, UsersRepository } from '../repositories';
 import { LocalizedMessages } from '../types';
+import { BatchMessage, FirebaseService } from './firebase.service';
 
 @cronJob({ scope: BindingScope.TRANSIENT })
 export class DailyScheduleConjobService extends CronJob {

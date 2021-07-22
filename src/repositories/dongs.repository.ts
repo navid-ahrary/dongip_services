@@ -6,16 +6,6 @@ import {
   HasOneRepositoryFactory,
   repository,
 } from '@loopback/repository';
-import {
-  BillListRepository,
-  CategoriesRepository,
-  JointAccountsRepository,
-  PayerListRepository,
-  ReceiptsRepository,
-  ScoresRepository,
-  UsersRepository,
-  WalletsRepository,
-} from '.';
 import { MariadbDataSource } from '../datasources';
 import {
   BillList,
@@ -29,6 +19,14 @@ import {
   Users,
   Wallets,
 } from '../models';
+import { BillListRepository } from './bill-list.repository';
+import { CategoriesRepository } from './categories.repository';
+import { JointAccountsRepository } from './joint-accounts.repository';
+import { PayerListRepository } from './payer-list.repository';
+import { ReceiptsRepository } from './receipts.repository';
+import { ScoresRepository } from './scores.repository';
+import { UsersRepository } from './users.repository';
+import { WalletsRepository } from './wallets.repository';
 
 export class DongsRepository extends DefaultCrudRepository<
   Dongs,

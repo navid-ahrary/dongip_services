@@ -5,7 +5,6 @@ import {
   HasManyRepositoryFactory,
   repository,
 } from '@loopback/repository';
-import { DongsRepository, JointAccountSubscribesRepository, UsersRepository } from '.';
 import { MariadbDataSource } from '../datasources';
 import {
   Dongs,
@@ -14,6 +13,9 @@ import {
   JointAccountSubscribes,
   Users,
 } from '../models';
+import { DongsRepository } from './dongs.repository';
+import { JointAccountSubscribesRepository } from './joint-account-subscribes.repository';
+import { UsersRepository } from './users.repository';
 
 export class JointAccountsRepository extends DefaultCrudRepository<
   JointAccounts,

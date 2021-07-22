@@ -6,13 +6,6 @@ import {
   HasOneRepositoryFactory,
   repository,
 } from '@loopback/repository';
-import {
-  BillListRepository,
-  BudgetsRepository,
-  PayerListRepository,
-  UsersRepository,
-  VirtualUsersRepository,
-} from '.';
 import { MariadbDataSource } from '../datasources';
 import {
   BillList,
@@ -23,6 +16,11 @@ import {
   UsersRelsRelations,
   VirtualUsers,
 } from '../models';
+import { BillListRepository } from './bill-list.repository';
+import { BudgetsRepository } from './budgets.repository';
+import { PayerListRepository } from './payer-list.repository';
+import { UsersRepository } from './users.repository';
+import { VirtualUsersRepository } from './virtual-users.repository';
 
 export class UsersRelsRepository extends DefaultCrudRepository<
   UsersRels,
