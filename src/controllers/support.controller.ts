@@ -81,19 +81,24 @@ export class SupportController {
     let query = `
       WITH M AS (
         SELECT
-          *
+          id AS messageId
+          , message
+          , is_answer AS isAnswer
+          , is_question AS isQuestion
+          , created_at AS createdAt
+          , user_id AS userId
           , ROW_NUMBER() OVER (PARTITION BY user_id
         ORDER BY
           id DESC) AS rn
         FROM
           messages )
       SELECT
-        M.id AS messageId
+        M.messageId
         , M.message
-        , M.is_answer AS isAnswer
-        , M.is_question AS isQuestion
-        , M.created_at AS createdAt
-        , M.user_id AS userId
+        , M.isAnswer
+        , M.isQuestion
+        , M.createdAt
+        , M.userId
         , users.avatar
         , users.phone
         , users.name
@@ -107,7 +112,7 @@ export class SupportController {
         , users
       WHERE
         M.rn = 1
-        AND users.id = M.user_id
+        AND users.id = M.userId
       ORDER BY messageId DESC `;
 
     if (_.isNumber(limit)) query += ` LIMIT ? `;
