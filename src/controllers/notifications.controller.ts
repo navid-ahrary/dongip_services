@@ -53,11 +53,13 @@ export class NotificationsController {
     })
     filter?: Filter<Notifications>,
   ): Promise<Notifications[]> {
-    const foundNotify = await this.usersRepository.notifications(this.userId).find({
+    filter = {
       where: { ...filter?.where, deleted: false },
       limit: filter?.limit,
       order: filter?.order,
-    });
+    };
+
+    const foundNotify = await this.usersRepository.notifications(this.userId).find(filter);
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.usersRepository
