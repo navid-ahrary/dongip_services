@@ -1,6 +1,6 @@
 export * from './basic.authorizor';
 export * from './cafebazaar.service';
-export * from './daily-schedule-cronjob.service';
+// export * from './daily-schedule-cronjob.service';
 export * from './dong.service';
 export * from './email.service';
 export * from './file-upload.service';
