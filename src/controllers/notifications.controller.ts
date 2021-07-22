@@ -51,13 +51,9 @@ export class NotificationsController {
         },
       },
     })
-    filter?: Filter<Notifications>,
+    filter: Filter<Notifications>,
   ): Promise<Notifications[]> {
-    filter = {
-      where: { ...filter?.where, deleted: false },
-      limit: filter?.limit,
-      order: filter?.order,
-    };
+    filter.where = { ...filter.where, deleted: false };
 
     const foundNotify = await this.usersRepository.notifications(this.userId).find(filter);
 
