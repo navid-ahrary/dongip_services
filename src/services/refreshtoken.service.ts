@@ -32,7 +32,7 @@ export class RefreshtokenService {
       });
 
       const userRefreshData = await this.refreshTokenRepo.findOne({
-        where: { refreshToken: refreshToken, refreshId: +decryptedToken.jti, deleted: false },
+        where: { refreshToken: refreshToken, refreshId: +decryptedToken.jti },
       });
 
       if (!userRefreshData) {
@@ -103,7 +103,7 @@ export class RefreshtokenService {
 
   async getToken(userProfile: UserProfile): Promise<{ refreshToken?: string }> {
     const userRefreshData = await this.refreshTokenRepo.findOne({
-      where: { userId: +userProfile[securityId], deleted: false },
+      where: { userId: +userProfile[securityId] },
     });
 
     return { refreshToken: userRefreshData?.refreshToken };
@@ -111,7 +111,7 @@ export class RefreshtokenService {
 
   async revokeToken(userId: number) {
     try {
-      await this.refreshTokenRepo.updateAll({ deleted: true }, { userId: userId });
+      await this.refreshTokenRepo.deleteAll({ userId: userId });
     } catch (err) {
       // ignore
     }
