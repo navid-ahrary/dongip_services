@@ -17,13 +17,13 @@ import { VirtualUsers } from './virtual-users.model';
 @model({
   name: 'users_rels',
   settings: {
-    indexes: {
-      'user_id&phone': {
-        name: 'user_id&phone',
-        columns: 'user_id, phone',
-        options: { unique: true },
-      },
-    },
+    // indexes: {
+    //   'user_id&phone': {
+    //     name: 'user_id&phone',
+    //     columns: 'user_id, phone',
+    //     options: { unique: true },
+    //   },
+    // },
     foreignKeys: {
       fkUsersRelsUserId: {
         name: 'fk_users_rels_user_id',

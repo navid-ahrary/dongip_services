@@ -129,6 +129,17 @@ export class UsersRelsController {
       throw new HttpErrors.UnprocessableEntity(this.locMsg['YOURE_YOUR_FRIEND'][this.lang]);
     }
 
+    const isAlreadyFriend = await this.usersRelsRepository.count({
+      userId: this.userId,
+      phone: userRelObject.phone,
+      deleted: false,
+    });
+
+    if (isAlreadyFriend.count) {
+      const errorMessage = this.locMsg['USERS_RELS_CONFILICT_PHONE'][this.lang];
+      throw new HttpErrors.Conflict(errorMessage);
+    }
+
     // Create a UserRel belongs to current user
     const createdUserRel = await this.usersRepository
       .usersRels(this.userId)
@@ -136,12 +147,7 @@ export class UsersRelsController {
       .catch(err => {
         // Duplicate error handling
         if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          let errorMessage: string;
-
-          // Duplicate phone error handling
-          if (err.sqlMessage.endsWith("'user_id&phone'")) {
-            errorMessage = this.locMsg['USERS_RELS_CONFILICT_PHONE'][this.lang];
-          } else errorMessage = ' unmanaged error ' + err.message; // Otherwise
+          let errorMessage = ' unmanaged error ' + err.message; // Otherwise
 
           throw new HttpErrors.Conflict(errorMessage);
         }
