@@ -460,9 +460,9 @@ export class UsersController {
       throw new HttpErrors.Conflict(this.locMsg['USERNAME_UNAVAILABLE'][this.lang]);
   }
 
-  private _calculateTotalUserScore(scores: Array<Scores>): number {
+  private _calculateTotalUserScore(scores?: Array<Scores>): number {
     let result = 0;
-    scores.forEach(s => (result += s.score));
+    scores?.forEach(s => (result += s.score));
     return result;
   }
 }
