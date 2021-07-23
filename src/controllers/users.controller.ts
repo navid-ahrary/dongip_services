@@ -23,7 +23,7 @@ import {
   TokenServiceBindings,
   TutorialLinksListBinding,
 } from '../keys';
-import { CompleteSignup, Dongs, Scores, Settings, Users, UsersRels } from '../models';
+import { CompleteSignup, Dongs, Settings, Users, UsersRels } from '../models';
 import { UsersRepository } from '../repositories';
 import { CurrentUserProfile, PhoneNumberService } from '../services';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
@@ -254,7 +254,7 @@ export class UsersController {
     language?: string;
     currency?: string;
     registeredAt: string;
-    totalScores: number;
+    totalScores?: number;
     externalLinks: TutorialLinks;
     application: {
       accessTokenExpiresIn: number;
@@ -335,7 +335,7 @@ export class UsersController {
 
     return {
       roles: roles,
-      totalScores: this._calculateTotalUserScore(foundUser.scores),
+      totalScores: this.currentUserProfile.totalScores,
       name: foundUser.name,
       planId: hasSubs ? foundUser.subscriptions[0].planId : null,
       solTime: hasSubs ? foundUser.subscriptions[0].solTime : null,
@@ -458,11 +458,5 @@ export class UsersController {
 
     if (foundUsername.count)
       throw new HttpErrors.Conflict(this.locMsg['USERNAME_UNAVAILABLE'][this.lang]);
-  }
-
-  private _calculateTotalUserScore(scores?: Array<Scores>): number {
-    let result = 0;
-    scores?.forEach(s => (result += s.score));
-    return result;
   }
 }

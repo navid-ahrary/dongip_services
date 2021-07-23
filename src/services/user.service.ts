@@ -2,10 +2,9 @@
 import { UserService } from '@loopback/authentication';
 import { inject } from '@loopback/core';
 import { repository } from '@loopback/repository';
-import { HttpErrors } from '@loopback/rest';
 import { securityId, UserProfile } from '@loopback/security';
 import { PasswordHasherBindings } from '../keys';
-import { Credentials, Users } from '../models';
+import { Credentials, Scores, Users } from '../models';
 import { UsersRepository } from '../repositories';
 import { PasswordHasher } from '../services';
 
@@ -47,11 +46,26 @@ export class MyUserService implements UserService<Users, Credentials> {
     const userNotfound = 'invalid User';
     const foundUser = await this.userRepository.findOne({
       where: { userId: id, deleted: false },
+      include: [
+        { relation: 'usersRels', scope: { where: { type: 'self', deleted: false } } },
+        {
+          relation: 'setting',
+          scope: { fields: { userId: true, language: true, deleted: false } },
+        },
+        { relation: 'scores', scope: { where: { deleted: false } } },
+      ],
     });
 
-    if (!foundUser) {
-      throw new HttpErrors.Unauthorized(userNotfound);
-    }
+    if (!foundUser) throw new Error(userNotfound);
+
     return foundUser;
+  }
+
+  public calculateTotalScores(scoresList: Scores[]): number {
+    let totalScores = 0;
+    scoresList?.forEach(scoreItem => {
+      totalScores += scoreItem.score;
+    });
+    return totalScores;
   }
 }

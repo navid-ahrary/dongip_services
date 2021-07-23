@@ -2,19 +2,21 @@
 import { TokenService } from '@loopback/authentication';
 import { inject } from '@loopback/core';
 import { repository } from '@loopback/repository';
-import { HttpErrors, Request, RestBindings } from '@loopback/rest';
+import { HttpErrors } from '@loopback/rest';
 import { securityId, UserProfile } from '@loopback/security';
 import ct from 'countries-and-timezones';
 import { Algorithm, sign, verify } from 'jsonwebtoken';
 import _ from 'lodash';
-import { EmailBindings, TokenServiceBindings } from '../keys';
+import { EmailBindings, TokenServiceBindings, UserServiceBindings } from '../keys';
 import { Settings, Users, UsersRels } from '../models';
 import { BlacklistRepository, UsersRepository } from '../repositories';
+import { MyUserService } from './user.service';
 
 export interface CurrentUserProfile extends UserProfile, Partial<Omit<Users, 'userId'>> {
   selfUserRelId?: typeof UsersRels.prototype.userId;
   language?: typeof Settings.prototype.language;
   timezone?: string;
+  totalScores?: number;
 }
 export class JWTService implements TokenService {
   constructor(
@@ -23,7 +25,7 @@ export class JWTService implements TokenService {
     @inject(TokenServiceBindings.VERIFY_EXPIRES_IN) private verifyExpiresIn: string,
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
     @inject(EmailBindings.SUPPORT_EMAIL_ADDRESS) private supportEmailAdd: string,
-    @inject(RestBindings.Http.REQUEST) private req: Request,
+    @inject(UserServiceBindings.USER_SERVICE) private userService: MyUserService,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
   ) {}
@@ -44,10 +46,6 @@ export class JWTService implements TokenService {
         throw new HttpErrors.Unauthorized(nullToken);
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let decryptedData: any;
-
-      let userProfile: CurrentUserProfile = { [securityId]: '' };
       // check token is not in blacklist
       const isBlacklisted = await this.blacklistRepository.exists(accessToken);
       if (isBlacklisted) {
@@ -55,21 +53,19 @@ export class JWTService implements TokenService {
         throw new Error(errMsg);
       }
 
-      // Decode user profile from token
-      decryptedData = this.decryptedToken(accessToken);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const decryptedData = <any>this.decryptedToken(accessToken);
+
+      let userProfile: CurrentUserProfile = {
+        [securityId]: decryptedData.id ?? decryptedData.sub,
+        aud: decryptedData.aud,
+        roles: decryptedData.roles,
+      };
 
       // In access audience, the user should exists in database certainly
       if (decryptedData.aud === 'access') {
-        const userId = +(decryptedData.id ?? decryptedData.sub);
-        const user = await this.usersRepository.findById(userId, {
-          include: [
-            { relation: 'usersRels', scope: { where: { type: 'self', deleted: false } } },
-            {
-              relation: 'setting',
-              scope: { fields: { userId: true, language: true, deleted: false } },
-            },
-          ],
-        });
+        const userId = decryptedData.id;
+        const user = await this.userService.findUserById(userId);
 
         if (!user.enabled) {
           const errMsg = `Your access is limited, Contact ${this.supportEmailAdd}`;
@@ -77,19 +73,17 @@ export class JWTService implements TokenService {
           throw new HttpErrors.UnavailableForLegalReasons(errMsg);
         }
 
-        Object.assign(userProfile, {
-          ..._.omit(user, ['userId', 'usersRels', 'setting']),
+        userProfile = {
+          ...userProfile,
+          ..._.omit(user, ['userId', 'usersRels', 'setting', 'scores']),
           language: user.setting.language,
           timezone: ct.getTimezonesForCountry(user.region ?? 'IR')[0].name,
           selfUserRelId: user.usersRels[0].userRelId,
-        });
+          totalScores: this.userService.calculateTotalScores(user.scores),
+        };
       }
 
-      return Object.assign(userProfile, {
-        [securityId]: decryptedData.id ?? decryptedData.sub,
-        aud: decryptedData.aud,
-        roles: decryptedData.roles,
-      });
+      return userProfile;
     } catch (err) {
       console.error(new Date(), JSON.stringify(err));
       throw new HttpErrors.Unauthorized(`Error verifying token: ${err.message}`);
