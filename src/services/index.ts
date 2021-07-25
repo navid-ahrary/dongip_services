@@ -6,7 +6,6 @@ export * from './email.service';
 export * from './file-upload.service';
 export * from './firebase-support.service';
 export * from './firebase.service';
-export * from './hash.password.bcryptjs';
 export * from './jwt-strategies';
 export * from './jwt.service';
 export * from './phone-number.service';

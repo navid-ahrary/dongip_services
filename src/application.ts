@@ -39,7 +39,6 @@ import {
   MariadbConfigBinding,
   MariadbConfigValue,
   PackageKey,
-  PasswordHasherBindings,
   pkg,
   RefreshTokenServiceBindings,
   STORAGE_DIRECTORY_BINDING,
@@ -58,7 +57,6 @@ import {
 } from './keys';
 import { MyAuthenticationSequence } from './sequence';
 import {
-  BcryptHasher,
   DailyScheduleConjobService,
   JWTAccessAutenticationStrategy,
   JWTService,
@@ -198,10 +196,6 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
       TokenServiceConstants.REFRESH_EXPIRES_IN_VALUE,
     );
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
-
-    // Bind bcrypt hash service
-    this.bind(PasswordHasherBindings.ROUNDS).to(this.hashRound);
-    this.bind(PasswordHasherBindings.PASSWORD_HASHER).toClass(BcryptHasher);
 
     this.bind(UserServiceBindings.USER_SERVICE).toClass(MyUserService);
 

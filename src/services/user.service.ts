@@ -1,18 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { UserService } from '@loopback/authentication';
-import { inject } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { securityId, UserProfile } from '@loopback/security';
-import { PasswordHasherBindings } from '../keys';
 import { Credentials, Scores, Users } from '../models';
 import { UsersRepository } from '../repositories';
-import { PasswordHasher } from '../services';
 
 export class MyUserService implements UserService<Users, Credentials> {
-  constructor(
-    @repository(UsersRepository) private userRepository: UsersRepository,
-    @inject(PasswordHasherBindings.PASSWORD_HASHER) private passwordHasher: PasswordHasher,
-  ) {}
+  constructor(@repository(UsersRepository) private userRepository: UsersRepository) {}
 
   async verifyCredentials(credentials: Credentials): Promise<Users> {
     const invalidCredentialsError = 'USER_NOT_FOUND';
