@@ -37,7 +37,6 @@ export class Purchases extends Entity {
   @property({
     type: 'string',
     required: true,
-    index: { unique: true },
     mysql: {
       columnName: 'purchase_token',
       dataType: 'varchar',
