@@ -5,7 +5,6 @@ import { ServiceAccount } from 'firebase-admin';
 import path from 'path';
 import util from 'util';
 import { Credentials, Users } from './models';
-import { PasswordHasher } from './services';
 import {
   CategoriesSource,
   FileUploadHandler,
@@ -59,11 +58,6 @@ export namespace TokenServiceBindings {
   export const ACCESS_EXPIRES_IN = BindingKey.create<string>(
     'authentication.jwt.access.expires.in.seconds',
   );
-}
-
-export namespace PasswordHasherBindings {
-  export const PASSWORD_HASHER = BindingKey.create<PasswordHasher>('services.hasher');
-  export const ROUNDS = BindingKey.create<number>('services.hasher.round');
 }
 
 export namespace UserServiceBindings {

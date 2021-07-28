@@ -6,9 +6,7 @@ import { Credentials, Scores, Users } from '../models';
 import { UsersRepository } from '../repositories';
 
 export class MyUserService implements UserService<Users, Credentials> {
-  constructor(
-    @repository(UsersRepository) private userRepository: UsersRepository,
-  ) {}
+  constructor(@repository(UsersRepository) private userRepository: UsersRepository) {}
 
   async verifyCredentials(credentials: Credentials): Promise<Users> {
     const invalidCredentialsError = 'USER_NOT_FOUND';
