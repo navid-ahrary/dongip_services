@@ -12,7 +12,7 @@ export class WoocommerceService {
     @inject(WoocommerceBindings.WOOCOMMERCE_CONSUMER_SECRET) consumerSecret: string,
   ) {
     this.wcRestApi = new WooCommerceRestApi({
-      url: 'https://www.dongip.ir',
+      url: 'http://www.dongip.ir',
       consumerKey: consumerKey,
       consumerSecret: consumerSecret,
       version: 'wc/v3',
