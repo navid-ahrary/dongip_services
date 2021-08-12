@@ -86,19 +86,19 @@ export class CategoriesController {
         },
       },
     })
-    newCategories: Omit<Categories, '_key'>,
+    newCategories: Omit<Categories, 'categoryId'>,
   ): Promise<Categories> {
+    const foundSameTitle = await this.categoryRepository.findOne({
+      where: { userId: this.userId, title: newCategories.title, deleted: false },
+    });
+
+    if (foundSameTitle) {
+      throw new HttpErrors.Conflict(this.locMsg['CONFLICT_CATEGORY_NAME'][this.lang]);
+    }
+
     const createdCat: Categories = await this.usersRepository
       .categories(this.userId)
-      .create(newCategories)
-      .catch(err => {
-        // Duplicate title error handling
-        if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
-          throw new HttpErrors.Conflict(this.locMsg['CONFLICT_CATEGORY_NAME'][this.lang]);
-        } else {
-          throw new HttpErrors.NotAcceptable(err);
-        }
-      });
+      .create(newCategories);
 
     return createdCat;
   }

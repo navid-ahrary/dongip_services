@@ -9,13 +9,13 @@ import { Users } from './users.model';
 @model({
   name: 'categories',
   settings: {
-    indexes: {
-      'user_id&title': {
-        name: 'user_id&title',
-        columns: 'user_id, title',
-        options: { unique: true },
-      },
-    },
+    // indexes: {
+    //   'user_id&title': {
+    //     name: 'user_id&title',
+    //     columns: 'user_id, title',
+    //     options: { unique: true },
+    //   },
+    // },
     foreignKeys: {
       fkCategoriesUserId: {
         name: 'fk_categories_user_id',
