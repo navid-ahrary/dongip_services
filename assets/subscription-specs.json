@@ -15,6 +15,21 @@
       },
       "onSale": true
     },
+    "plan_gm2": {
+      "id": "plan_gm2",
+      "grade": "golden",
+      "period": {
+        "unit": "month",
+        "amount": 2
+      },
+      "regular": {
+        "tomans": 20000
+      },
+      "sale": {
+        "tomans": 10000
+      },
+      "onSale": true
+    },
     "plan_gm6": {
       "id": "plan_gm6",
       "grade": "golden",

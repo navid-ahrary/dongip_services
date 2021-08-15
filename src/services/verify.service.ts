@@ -289,13 +289,9 @@ export class VerifyService {
   public async createUser(user: Partial<Users>, setting: Partial<Settings>) {
     try {
       const nowUTC = moment.utc();
-      const mamdBirth1 = '2021-03-11T23:00:00+03:30';
-      const mamdBirth2 = '2021-03-12T23:59:59+03:30';
 
-      const roles = nowUTC.isBetween(moment(mamdBirth1), moment(mamdBirth2))
-        ? ['GOLD']
-        : ['BRONZE'];
-      const planId = nowUTC.isBetween(moment(mamdBirth1), moment(mamdBirth2)) ? 'plan_gy1' : 'free';
+      const roles = ['GOLD'];
+      const planId = 'plan_gm2';
 
       const userEntity = new Users({
         roles: roles,
@@ -323,9 +319,9 @@ export class VerifyService {
       if (roles.includes('GOLD')) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.usersRepository.subscriptions(savedUser.getId()).create({
-          planId: 'plan_gy1',
+          planId: planId,
           solTime: moment(nowUTC).utc().toISOString(),
-          eolTime: moment(nowUTC).utc().add(1, 'year').toISOString(),
+          eolTime: moment(nowUTC).utc().add(2, 'months').toISOString(),
         });
       }
 

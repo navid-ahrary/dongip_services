@@ -18,7 +18,12 @@ import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../i
 import { LocMsgsBindings, TokenServiceBindings, UserServiceBindings } from '../keys';
 import { Credentials, NewUser, Settings, Users, Verify } from '../models';
 import { BlacklistRepository, UsersRepository, VerifyRepository } from '../repositories';
-import { RefreshtokenService, UserScoresService, VerifyService } from '../services';
+import {
+  RefreshtokenService,
+  SubscriptionService,
+  UserScoresService,
+  VerifyService,
+} from '../services';
 import { LocalizedMessages } from '../types';
 
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, ValidatePasswordInterceptor.BINDING_KEY)
@@ -33,6 +38,7 @@ export class AuthController {
     @service(VerifyService) private verifyService: VerifyService,
     @service(UserScoresService) private userScoresService: UserScoresService,
     @service(RefreshtokenService) private refreshTokenService: RefreshtokenService,
+    @service(SubscriptionService) private subscriptionService: SubscriptionService,
     @repository(UsersRepository) private usersRepository: UsersRepository,
     @repository(VerifyRepository) private verifyRepository: VerifyRepository,
     @repository(BlacklistRepository) private blacklistRepository: BlacklistRepository,
