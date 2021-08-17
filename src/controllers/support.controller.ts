@@ -195,8 +195,6 @@ export class SupportController {
       },
     })
     newMessage: { message: string; subject?: string },
-    @param.query.number('limit') limit: number,
-    @param.query.number('skip') skip: number,
     @param.query.string('language', { required: false })
     language?: typeof Settings.prototype.language,
     @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
@@ -224,8 +222,6 @@ export class SupportController {
     try {
       const foundSettings = await this.settingRepo.find({
         fields: { settingId: true, userId: true, language: true },
-        skip: skip,
-        limit: limit,
         where: settingWhere,
         include: [
           {
