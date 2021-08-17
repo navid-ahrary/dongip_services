@@ -280,7 +280,7 @@ export class SupportController {
         });
 
         notifyMsgs.push({
-          token: firebaseToken,
+          token: firebaseToken ?? ' ',
           notification: {
             title: savedNotify.title,
             body: savedNotify.body,
