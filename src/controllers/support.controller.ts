@@ -10,7 +10,7 @@ import {
   param,
   post,
   requestBody,
-  RequestContext
+  RequestContext,
 } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import ct from 'countries-and-timezones';
@@ -24,14 +24,14 @@ import {
   MessagesRepository,
   SettingsRepository,
   UsersRepository,
-  VerifyRepository
+  VerifyRepository,
 } from '../repositories';
 import {
   basicAuthorization,
   BatchMessage,
   CurrentUserProfile,
   FirebaseService,
-  SmsService
+  SmsService,
 } from '../services';
 import { LocalizedMessages } from '../types';
 
@@ -195,6 +195,8 @@ export class SupportController {
       },
     })
     newMessage: { message: string; subject?: string },
+    @param.query.number('limit') limit: number,
+    @param.query.number('skip') skip: number,
     @param.query.string('language', { required: false })
     language?: typeof Settings.prototype.language,
     @param.query.number('userId', { required: false }) userId?: typeof Users.prototype.userId,
@@ -222,6 +224,8 @@ export class SupportController {
     try {
       const foundSettings = await this.settingRepo.find({
         fields: { settingId: true, userId: true, language: true },
+        skip: skip,
+        limit: limit,
         where: settingWhere,
         include: [
           {
