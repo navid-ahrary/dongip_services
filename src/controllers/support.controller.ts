@@ -10,7 +10,7 @@ import {
   param,
   post,
   requestBody,
-  RequestContext,
+  RequestContext
 } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import ct from 'countries-and-timezones';
@@ -24,14 +24,14 @@ import {
   MessagesRepository,
   SettingsRepository,
   UsersRepository,
-  VerifyRepository,
+  VerifyRepository
 } from '../repositories';
 import {
   basicAuthorization,
   BatchMessage,
   CurrentUserProfile,
   FirebaseService,
-  SmsService,
+  SmsService
 } from '../services';
 import { LocalizedMessages } from '../types';
 
@@ -201,6 +201,8 @@ export class SupportController {
     @param.query.string('platform', { required: false }) platform?: typeof Users.prototype.platform,
     @param.query.string('appVersion', { required: false })
     appVersion?: typeof Users.prototype.appVersion,
+    @param.query.string('notAppVersion', { required: false })
+    notAppVersion?: typeof Users.prototype.appVersion,
   ): Promise<Array<Messages>> {
     if (!language && !userId) {
       throw new HttpErrors.UnprocessableEntity('UserId or language must be provided');
@@ -213,7 +215,9 @@ export class SupportController {
     let userWhere: Where<Users> = { phoneLocked: true, deleted: false };
 
     if (platform) userWhere = { ...userWhere, platform: platform };
+
     if (appVersion) userWhere = { ...userWhere, appVersion: appVersion };
+    else if (notAppVersion) userWhere = { ...userWhere, appVersion: { neq: notAppVersion } };
 
     try {
       const foundSettings = await this.settingRepo.find({
