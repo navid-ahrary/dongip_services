@@ -324,7 +324,7 @@ export class UsersController {
 
     const updateForced =
       this.currentUserProfile.platform === 'iOS'
-        ? this.packageInfo.systemStatus.forceUpdate
+        ? false
         : this.packageInfo.systemStatus.forceUpdate;
     const appVersion =
       this.currentUserProfile.platform === 'Android'
