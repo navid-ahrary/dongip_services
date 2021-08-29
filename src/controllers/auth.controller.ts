@@ -359,7 +359,7 @@ export class AuthController {
               'enabled',
               'deleted',
             ],
-            optional: ['username', 'currency', 'language', 'phone'],
+            optional: ['username', 'currency', 'language', 'phone', 'marketplace'],
           }),
           example: {
             phone: '+989171234567',
@@ -369,6 +369,7 @@ export class AuthController {
             currency: 'IRR',
             avatar: '/assets/avatar/avatar_1.png',
             password: 'DNG123456',
+            marketplace: 'google-play',
           },
         },
       },
@@ -406,6 +407,7 @@ export class AuthController {
         platform: this.ctx.request.headers['platform']?.toString(),
         userAgent: this.ctx.request.headers['user-agent'],
         appVersion: this.ctx.request.headers['app-version']?.toString(),
+        marketplace: newUser.marketplace,
       });
 
       const settingEntity = new Settings({
