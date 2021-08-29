@@ -101,7 +101,7 @@ export class SupportController {
         , M.isQuestion
         , M.createdAt
         , M.userId
-        , M.close
+        , M.closed
         , users.avatar
         , users.phone
         , users.name
