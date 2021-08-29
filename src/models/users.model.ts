@@ -412,6 +412,15 @@ export class Users extends Entity {
   wallets: Wallets[];
 
   @property({
+    type: 'string',
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 30,
+    },
+  })
+  marketplace?: string;
+
+  @property({
     type: 'boolean',
     default: false,
     required: true,

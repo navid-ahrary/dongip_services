@@ -51,7 +51,8 @@ export class HeadersInterceptor implements Provider<Interceptor> {
       reportedAppVersion = this.currentUserProfile.appVersion,
       desiredAppVersion = httpReq.headers['app-version']?.toString(),
       reportedPaltform = this.currentUserProfile.platform,
-      desiredPlatform = httpReq.headers['platform']?.toString();
+      desiredPlatform = httpReq.headers['platform']?.toString(),
+      marketplace = httpReq.headers['marketplace']?.toString();
 
     const patchBody: Partial<DataObject<Users>> = {};
 
@@ -77,6 +78,10 @@ export class HeadersInterceptor implements Provider<Interceptor> {
 
     if (desiredPlatform && desiredPlatform !== reportedPaltform) {
       patchBody.platform = desiredPlatform;
+    }
+
+    if (marketplace) {
+      patchBody.marketplace = marketplace;
     }
 
     if (_.keys(patchBody).length) {
