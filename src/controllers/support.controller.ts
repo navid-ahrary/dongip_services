@@ -88,6 +88,7 @@ export class SupportController {
           , is_question AS isQuestion
           , created_at AS createdAt
           , user_id AS userId
+          , closed
           , ROW_NUMBER() OVER (PARTITION BY user_id
         ORDER BY
           id DESC) AS rn
@@ -100,6 +101,7 @@ export class SupportController {
         , M.isQuestion
         , M.createdAt
         , M.userId
+        , M.close
         , users.avatar
         , users.phone
         , users.name
