@@ -78,7 +78,7 @@ export class SupportController {
   async getUsersLastMessage(
     @param.query.number('limit', { description: 'Number of messages whould returned, optional' })
     limit?: number,
-  ): Promise<Array<Messages & Partial<Users>>> {
+  ) {
     let query = `
       WITH M AS (
         SELECT
@@ -110,12 +110,15 @@ export class SupportController {
         , users.user_agent AS userAgent
         , users.platform
         , users.app_version AS appVersion
+        , count(d.id) AS countDongs
       FROM
         M
         , users
+      INNER JOIN dongip.dongs d ON d.user_id = users.id
       WHERE
         M.rn = 1
         AND users.id = M.userId
+      GROUP BY d.user_id
       ORDER BY messageId DESC `;
 
     if (_.isNumber(limit)) query += ` LIMIT ? `;
