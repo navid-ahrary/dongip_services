@@ -110,6 +110,7 @@ export class SupportController {
         , users.user_agent AS userAgent
         , users.platform
         , users.app_version AS appVersion
+        , users.marketplace
         , count(d.id) AS countDongs
       FROM
         M
