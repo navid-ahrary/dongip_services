@@ -100,6 +100,18 @@ export class Messages extends Entity {
   @property({
     type: 'boolean',
     default: false,
+    mysql: {
+      dataType: 'tinyint',
+      dataLength: 1,
+      default: 0,
+      nullable: 'Y',
+    },
+  })
+  closed: boolean;
+
+  @property({
+    type: 'boolean',
+    default: false,
     required: true,
     hidden: true,
     mysql: {

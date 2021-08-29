@@ -8,6 +8,7 @@ import {
   getModelSchemaRef,
   HttpErrors,
   param,
+  patch,
   post,
   requestBody,
   RequestContext,
@@ -503,5 +504,33 @@ export class SupportController {
     }
 
     await this.verifyRepo.createAll(verifyEntites);
+  }
+
+  @patch('/support/messages/{messageId}', {
+    summary: 'Update message, for example close the ticket',
+    responses: { 204: { description: 'Success, no content' } },
+  })
+  async patchMessage(
+    @param.path.number('messageId') messageId: number,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Messages, {
+            exclude: [
+              'messageId',
+              'userId',
+              'createdAt',
+              'deleted',
+              'isAnswer',
+              'isQuestion',
+              'message',
+            ],
+          }),
+        },
+      },
+    })
+    reqBody: Omit<Messages, 'messageId'>,
+  ): Promise<void> {
+    await this.messagesRepository.updateById(messageId, reqBody);
   }
 }

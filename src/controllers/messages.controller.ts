@@ -48,7 +48,15 @@ export class MessagesController {
         'application/json': {
           schema: getModelSchemaRef(Messages, {
             title: 'NewMessage',
-            exclude: ['messageId', 'userId', 'createdAt', 'isQuestion', 'isAnswer', 'deleted'],
+            exclude: [
+              'messageId',
+              'userId',
+              'createdAt',
+              'isQuestion',
+              'isAnswer',
+              'deleted',
+              'closed',
+            ],
             includeRelations: false,
           }),
           example: {
