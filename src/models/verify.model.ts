@@ -254,7 +254,7 @@ export class Verify extends Entity {
     mysql: {
       columnName: 'ip_address',
       dataType: 'varchar',
-      dataLength: 30,
+      dataLength: 100,
       nullable: 'Y',
     },
   })
