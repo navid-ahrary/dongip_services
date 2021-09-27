@@ -539,4 +539,12 @@ export class SupportController {
   ): Promise<void> {
     await this.messagesRepository.updateById(messageId, reqBody);
   }
+
+  @post('/support/subscriptions/{userId}/active', {
+    summary: 'active subscription',
+    responses: {
+      200: {},
+    },
+  })
+  async activeSubscription() {}
 }
