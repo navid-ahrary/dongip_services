@@ -129,6 +129,7 @@ export class SupportController {
     return _.map(msgs, m => {
       _.set(m, 'isQuestion', Boolean(m.isQuestion));
       _.set(m, 'isAnswer', Boolean(m.isAnswer));
+      _.set(m, 'closed', Boolean(m.closed));
       return m;
     });
   }
