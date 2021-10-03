@@ -68,7 +68,16 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
           throw new HttpErrors.UnprocessableEntity(invalidPhoneValueMessage);
         }
 
-        invocationCtx.args[0].phone = this.phoneNumberService.convertToE164Format(phoneValue);
+        const normalizedPhoneValue = this.phoneNumberService.convertToE164Format(phoneValue);
+
+        const region = this.phoneNumberService.getRegionCode(normalizedPhoneValue);
+
+        if (region !== 'IR') {
+          const justIranPhoneMessage = this.locMsg['JUST_IRAN_PHONE'][lang];
+          throw new HttpErrors.UnprocessableEntity(justIranPhoneMessage);
+        }
+
+        invocationCtx.args[0].phone = normalizedPhoneValue;
       }
 
       if (invocationCtx.args[0].email) {

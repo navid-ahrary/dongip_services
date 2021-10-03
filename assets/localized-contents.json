@@ -270,5 +270,9 @@
   "UPDATE_JUST_SELF_DONG_PONG": {
     "fa": "متاسفانه در حال حاضر تنها ویرایش هزینه های شخصی ممکن است",
     "en": "Unfortunately for now just the personal expenses could edit"
+  },
+  "JUST_IRAN_PHONE": {
+    "fa": "متاسفانه ارسال پیام به شماره های خارج از ایران پشتیبانی نمی شود. لطفا از روش ورود با ایمیل استفاده کنید",
+    "en": "Unfortunately phone numbers out of Iran are not supported for now. Please use the email address way"
   }
 }

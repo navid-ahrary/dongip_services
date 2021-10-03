@@ -9,7 +9,7 @@ export class PhoneNumberService {
 
   /**
    *
-   * @param phone string
+   * @param {String} phone
    * @returns boolean
    */
   isValid(phone: string): boolean {
@@ -29,8 +29,8 @@ export class PhoneNumberService {
 
   /**
    *
-   * @param phone string
-   * @param regionCode string
+   * @param {String} phone
+   * @param {String} regionCode
    * @returns string
    */
   normalizeZeroPrefix(phone: string, regionCode = 'IR'): string {
@@ -49,7 +49,7 @@ export class PhoneNumberService {
 
   /**
    *
-   * @param phone string
+   * @param {String} phone
    * @returns string
    */
   getRegionCodeISO(phone: string): string {
@@ -63,11 +63,21 @@ export class PhoneNumberService {
 
   /**
    *
-   * @param phone string
+   * @param {String} phone
    * @returns string
    */
   formatForSendSMSFromIran(phone: string): string {
     const pn = new AwesomePhoneNumber(phone);
     return pn.getNumberFrom('IR').replace(/\s/g, '');
+  }
+
+  /**
+   *
+   * @param {String} phone
+   * @returns string
+   */
+  getRegionCode(phone: string): string {
+    const pn = new AwesomePhoneNumber(phone);
+    return pn.getRegionCode();
   }
 }
