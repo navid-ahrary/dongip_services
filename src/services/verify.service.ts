@@ -468,12 +468,6 @@ export class VerifyService {
   }
 
   private getClientRealIp(): string | undefined {
-    return (
-      this.ctx.request.headers['HTTP_CLIENT_IP']?.toString() ??
-      this.ctx.request.headers['HTTP_X_FORWARDED_FOR']?.toString() ??
-      this.ctx.request.headers['REMOTE_ADDR']?.toString() ??
-      this.ctx.request.headers['REMOTE_ADDR']?.toString() ??
-      this.ctx.request.headers['AR_REAL_IP']?.toString()
-    );
+    return this.ctx.request.headers['ar-real-ip']?.toString();
   }
 }
