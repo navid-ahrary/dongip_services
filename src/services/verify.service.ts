@@ -108,7 +108,7 @@ export class VerifyService {
         platform: this.ctx.request.headers['platform']?.toString(),
         region: this.phoneNumberService.getRegionCodeISO(phoneValue),
         userAgent: this.ctx.request.headers['user-agent']?.toString(),
-        ipAddress: this.ctx.request.headers['cf-connecting-ip']?.toString(),
+        ipAddress: this.getClientRealIp(),
       })
       .catch(err => {
         throw new HttpErrors.NotAcceptable(err.message);
@@ -170,7 +170,7 @@ export class VerifyService {
         password: this.randomString + this.randomCode,
         platform: this.ctx.request.headers['platform']?.toString(),
         userAgent: this.ctx.request.headers['user-agent']?.toString(),
-        ipAddress: this.ctx.request.headers['cf-connecting-ip']?.toString(),
+        ipAddress: this.getClientRealIp(),
       })
       .catch(err => {
         throw new HttpErrors.NotAcceptable(err.message);
@@ -231,7 +231,7 @@ export class VerifyService {
           password: this.randomString + this.randomCode,
           platform: this.ctx.request.headers['platform']?.toString(),
           userAgent: this.ctx.request.headers['user-agent']?.toString(),
-          ipAddress: this.ctx.request.headers['cf-connecting-ip']?.toString(),
+          ipAddress: this.getClientRealIp(),
           loggedIn: true,
           loggedInAt: moment().format('YYYY-MM-DDTHH:mm:ss+00:00'),
         });
@@ -465,5 +465,15 @@ export class VerifyService {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  private getClientRealIp(): string | undefined {
+    return (
+      this.ctx.request.headers['HTTP_CLIENT_IP']?.toString() ??
+      this.ctx.request.headers['HTTP_X_FORWARDED_FOR']?.toString() ??
+      this.ctx.request.headers['REMOTE_ADDR']?.toString() ??
+      this.ctx.request.headers['REMOTE_ADDR']?.toString() ??
+      this.ctx.request.headers['AR_REAL_IP']?.toString()
+    );
   }
 }
