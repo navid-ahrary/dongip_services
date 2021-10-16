@@ -36,7 +36,7 @@ export class EmailService {
     @inject(EmailBindings.SUPPORT_CLIENT_SECRET) private supportClientSecret: string,
   ) {}
 
-  private async refreshSupportAccessToken(): Promise<string> {
+  private async getAccessToken(): Promise<string> {
     const queryParam = {
       grant_type: 'refresh_token',
       client_id: this.supportClientId,
@@ -62,7 +62,7 @@ export class EmailService {
   }
 
   async sendSupportMail(mailOptions: MailOptions): Promise<SentEmail> {
-    const accessToken = await this.refreshSupportAccessToken();
+    const accessToken = await this.getAccessToken();
 
     const res = await axios({
       method: 'POST',
