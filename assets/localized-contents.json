@@ -24,8 +24,8 @@
     "en": "Wrong code"
   },
   "VERFIY_EMAIL_SUBJECT": {
-    "fa": "Confirmation Code",
-    "en": "Confirmation Code"
+    "fa": "no-reply",
+    "en": "no-reply"
   },
   "VERFIY_EMAIL_CONTENT": {
     "fa": "کد ورود",
