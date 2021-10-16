@@ -8,11 +8,8 @@ import { BindingScope, inject, injectable, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { HttpErrors, RequestContext } from '@loopback/rest';
 import { securityId } from '@loopback/security';
-import fs from 'fs';
 import _ from 'lodash';
 import moment from 'moment';
-import path from 'path';
-import util from 'util';
 import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
 import { Categories, PostDong, Settings, Users, UsersRels, Verify } from '../models';
 import {
@@ -32,8 +29,6 @@ import { UserScoresService } from './user-scores.service';
 @injectable({ scope: BindingScope.TRANSIENT })
 export class VerifyService {
   private lang: string;
-  private readonly randomCode: string;
-  private readonly randomString: string;
 
   constructor(
     @inject.context() public ctx: RequestContext,
@@ -53,8 +48,24 @@ export class VerifyService {
     @repository(CategoriesRepository) private categoriesRepository: CategoriesRepository,
   ) {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
-    this.randomCode = Math.random().toFixed(7).slice(3);
-    this.randomString = this.generateRandomPassword(3);
+  }
+
+  generateRandomCode() {
+    return Math.random().toFixed(7).slice(3);
+  }
+  /*
+   * Add service methods here
+   */
+  private generateRandomString(length: number) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&[]()_+-*~/?><:;|',
+      charsLength = chars.length;
+
+    let randomStr = '';
+    for (let i = 0; i < length; i++) {
+      randomStr += chars.charAt(Math.floor(Math.random() * charsLength));
+    }
+
+    return randomStr;
   }
 
   public async verifyCredentials(verifyId: number, password: string): Promise<Verify> {
@@ -78,33 +89,21 @@ export class VerifyService {
     return foundVerify;
   }
 
-  /*
-   * Add service methods here
-   */
-  private generateRandomPassword(length: number) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&[]()_+-*~/?><:;|',
-      charsLength = chars.length;
-
-    let randomStr = '';
-    for (let i = 0; i < length; i++) {
-      randomStr += chars.charAt(Math.floor(Math.random() * charsLength));
-    }
-
-    return randomStr;
-  }
-
   public async verifyWithPhone(phoneValue: string, smsSignature = ' ') {
     const foundUser = await this.usersRepository.findOne({
       fields: { name: true, avatar: true, phone: true, phoneLocked: true },
       where: { phone: phoneValue, deleted: false },
     });
 
+    const randomString = this.generateRandomString(3);
+    const randomCode = this.generateRandomCode();
+
     const createdVerify = await this.verifyRepository
       .create({
         phone: phoneValue,
         smsSignature: smsSignature,
         registered: _.isObjectLike(foundUser),
-        password: this.randomString + this.randomCode,
+        password: randomString + randomCode,
         platform: this.ctx.request.headers['platform']?.toString(),
         region: this.phoneNumberService.getRegionCodeISO(phoneValue),
         userAgent: this.ctx.request.headers['user-agent']?.toString(),
@@ -124,7 +123,7 @@ export class VerifyService {
     this.smsService
       .sendSms({
         lang: this.lang,
-        token1: this.randomCode,
+        token1: randomCode,
         token2: smsSignature,
         receptor: phoneValue,
         type: 'verify',
@@ -151,23 +150,26 @@ export class VerifyService {
       isCompleted: foundUser?.phoneLocked ?? false,
       avatar: foundUser?.avatar ?? 'dongip',
       name: foundUser?.name ?? 'noob',
-      prefix: this.randomString,
+      prefix: randomString,
       verifyToken: verifyToken,
     };
   }
 
-  public async verifyWithEmail(emailValue: string) {
+  public async verifyWithEmail(receiver: string) {
     const foundUser = await this.usersRepository.findOne({
       fields: { name: true, avatar: true, phone: true, phoneLocked: true },
-      where: { email: emailValue, deleted: false },
+      where: { email: receiver, deleted: false },
     });
+
+    const randomString = this.generateRandomString(3);
+    const randomCode = this.generateRandomCode();
 
     const createdVerify = await this.verifyRepository
       .create({
-        email: emailValue,
+        email: receiver,
         verifyStrategy: 'email',
         registered: _.isObjectLike(foundUser),
-        password: this.randomString + this.randomCode,
+        password: randomString + randomCode,
         platform: this.ctx.request.headers['platform']?.toString(),
         userAgent: this.ctx.request.headers['user-agent']?.toString(),
         ipAddress: this.getClientRealIp(),
@@ -183,20 +185,9 @@ export class VerifyService {
 
     const verifyToken: string = await this.jwtService.generateToken(userProfile);
 
-    let mailContent = fs.readFileSync(
-      path.resolve(__dirname, '../../assets/confirmation_dongip_en.html'),
-      'utf-8',
-    );
-    mailContent = util.format(mailContent, this.randomCode);
-
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.emailService
-      .sendSupportMail({
-        subject: this.locMsg['VERFIY_EMAIL_SUBJECT'][this.lang],
-        toAddress: emailValue,
-        mailFormat: 'html',
-        content: mailContent,
-      })
+      .sendSupportMail(receiver, randomCode, this.lang)
       .then(async res => {
         await this.verifyRepository.updateById(createdVerify.getId(), {
           emailMessageId: res.data.messageId,
@@ -211,7 +202,7 @@ export class VerifyService {
       isCompleted: foundUser?.phoneLocked ?? false,
       avatar: foundUser?.avatar ?? 'dongip',
       name: foundUser?.name ?? 'noob',
-      prefix: this.randomString,
+      prefix: randomString,
       verifyToken: verifyToken,
     };
   }
@@ -223,12 +214,15 @@ export class VerifyService {
       });
 
       if (user) {
+        const randomString = this.generateRandomString(3);
+        const randomCode = this.generateRandomCode();
+
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.verifyRepository.create({
           email: emailValue,
           verifyStrategy: 'google',
           registered: _.isObjectLike(user),
-          password: this.randomString + this.randomCode,
+          password: randomString + randomCode,
           platform: this.ctx.request.headers['platform']?.toString(),
           userAgent: this.ctx.request.headers['user-agent']?.toString(),
           ipAddress: this.getClientRealIp(),

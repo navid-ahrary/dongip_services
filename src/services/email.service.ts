@@ -2,7 +2,11 @@
 import { BindingScope, inject, injectable } from '@loopback/core';
 import axios from 'axios';
 import EmailValidator from 'deep-email-validator';
-import { EmailBindings } from '../keys';
+import fs from 'fs';
+import path from 'path';
+import util from 'util';
+import { EmailBindings, LocMsgsBindings } from '../keys';
+import { LocalizedMessages } from '../types';
 
 export interface MailOptions {
   subject: string;
@@ -26,6 +30,7 @@ export interface SentEmail {
 @injectable({ scope: BindingScope.SINGLETON })
 export class EmailService {
   constructor(
+    @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
     @inject(EmailBindings.GMAIL_ACCOUNT) private gmailAccount: string,
     @inject(EmailBindings.ZOHO_ACCOUNT_SCOPE_URL) private accountURL: string,
     @inject(EmailBindings.NOREPLY_MAIL_ADDRESS) private noreplyEmail: string,
@@ -61,7 +66,18 @@ export class EmailService {
     }
   }
 
-  async sendSupportMail(mailOptions: MailOptions): Promise<SentEmail> {
+  async sendSupportMail(
+    receiptorAddress: string,
+    code: string,
+    contentLanguage: string,
+  ): Promise<SentEmail> {
+    let mailContent = fs.readFileSync(
+      path.resolve(__dirname, '../../assets/confirmation_dongip_en.html'),
+      'utf-8',
+    );
+
+    mailContent = util.format(mailContent, code);
+
     const accessToken = await this.getAccessToken();
 
     const res = await axios({
@@ -73,7 +89,10 @@ export class EmailService {
       data: {
         encoding: 'UTF-8',
         fromAddress: `Dongip<${this.supportEmail}>`,
-        ...mailOptions,
+        subject: this.locMsg['VERFIY_EMAIL_SUBJECT'][contentLanguage],
+        toAddress: receiptorAddress,
+        mailFormat: 'html',
+        content: mailContent,
       },
     });
 
