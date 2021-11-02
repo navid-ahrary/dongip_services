@@ -60,22 +60,23 @@ export class MyAuthenticationSequence implements SequenceHandler {
       const { request, response } = context;
       // `this.invokeMiddleware` is an injected function to invoke a list of
       // Express middleware handler functions
-      const finished = await this.invokeMiddleware(context, middlewareList);
-      if (finished) {
-        // The http response has already been produced by one of the Express
-        // middleware. We should not call further actions.
-        return;
+      await this.invokeMiddleware(context, middlewareList);
+      response.header('Access-Control-Allow-Origin', '*');
+      response.header(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept',
+      );
+      if (request.method === 'OPTIONS') {
+        response.status(200);
+        this.send(response, 'ok');
+      } else {
+        // end add this
+        const route = this.findRoute(request);
+        await this.authenticationRequest(request);
+        const args = await this.parseParams(request, route);
+        const result = await this.invoke(route, args);
+        this.send(response, result);
       }
-
-      const route = this.findRoute(request);
-
-      //call authentication action
-      await this.authenticationRequest(request);
-
-      //Authentication successful, proceed to invoke controller
-      const args = await this.parseParams(request, route);
-      const result = await this.invoke(route, args);
-      this.send(response, result);
     } catch (err) {
       console.error(`${new Date()}: ${JSON.stringify(err)}`);
 
