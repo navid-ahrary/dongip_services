@@ -263,7 +263,7 @@ export class SupportController {
         const setting = _.find(foundSettings, s => s.userId === targetUserId)!;
         const lang = setting.language;
 
-        const timezone = ct.getTimezonesForCountry(region)[0].name;
+        const timezone = ct.getTimezonesForCountry(region)![0].name;
         const timestamp = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
         const savedMsg = await this.usersRepository.messages(targetUserId).create({
@@ -398,7 +398,7 @@ export class SupportController {
         const targetUserId = foundUser.userId;
         const region = foundUser.region ?? 'IR';
         const firebaseToken = foundUser.firebaseToken!;
-        const timezone = ct.getTimezonesForCountry(region)[0].name;
+        const timezone = ct.getTimezonesForCountry(region)![0].name;
         const timestamp = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
         const savedMsg = await this.usersRepository.messages(targetUserId).create({

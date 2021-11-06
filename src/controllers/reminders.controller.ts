@@ -90,7 +90,7 @@ export class RemindersController {
     reminder: Omit<Reminders, 'reminderId'>,
   ): Promise<Reminders> {
     const userRegion = this.currentUserProfile.region ?? 'IR';
-    const userTZ = ct.getTimezonesForCountry(userRegion)[0].name;
+    const userTZ = ct.getTimezonesForCountry(userRegion)![0].name;
     const nowUserLocaleMoment = moment.tz(userTZ);
 
     const firstNotifyDate = reminder.previousNotifyDate;
@@ -197,7 +197,7 @@ export class RemindersController {
     }
 
     const userRegion = this.currentUserProfile.region ?? 'IR';
-    const userTZ = ct.getTimezonesForCountry(userRegion)[0].name;
+    const userTZ = ct.getTimezonesForCountry(userRegion)![0].name;
     const nowUserLocaleMoment = moment.tz(userTZ);
 
     const firstNotifyDate = reminder.previousNotifyDate;

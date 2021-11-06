@@ -71,7 +71,7 @@ export class ReminderCronjobService extends CronJob {
       const name = user.name;
       const lang = user.setting.language;
       const userRegion = user.region;
-      const userTZ = ct.getTimezonesForCountry(userRegion ?? 'IR')[0].name;
+      const userTZ = ct.getTimezonesForCountry(userRegion ?? 'IR')![0].name;
 
       const notif = new Notifications({
         type: 'reminder',

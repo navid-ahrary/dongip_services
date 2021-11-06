@@ -144,7 +144,7 @@ export class JointAccountController {
       jsList.push({ jointAccountId: JA.jointAccountId, userId: user!.getId() });
 
       if (ur.type !== 'self') {
-        const timezone = ct.getTimezonesForCountry(user!.region!)[0].name;
+        const timezone = ct.getTimezonesForCountry(user!.region!)![0].name;
         const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
         const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
@@ -409,7 +409,7 @@ export class JointAccountController {
       for (const user of currentUsers.filter(u => u.userId !== this.userId)) {
         const timezone = ct.getTimezonesForCountry(
           user!.region ?? this.phoneNumService.getRegionCodeISO(user.phone!),
-        )[0].name;
+        )![0].name;
         const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
         if (_.has(props, 'title')) {
@@ -534,7 +534,7 @@ export class JointAccountController {
 
       // Notify for joint memebers except current user
       for (const user of fixedUsers.filter(u => u.userId !== this.userId)) {
-        const timezone = ct.getTimezonesForCountry(user.region!)[0].name;
+        const timezone = ct.getTimezonesForCountry(user.region!)![0].name;
         const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
         for (const aUser of addedUsers) {
@@ -612,7 +612,7 @@ export class JointAccountController {
 
       // Notify to added user
       for (const user of addedUsers) {
-        const timezone = ct.getTimezonesForCountry(user.region!)[0].name;
+        const timezone = ct.getTimezonesForCountry(user.region!)![0].name;
         const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
         const targetRel = await this.usersRelsRepo.findOne({
@@ -653,7 +653,7 @@ export class JointAccountController {
 
       // Notify to deleted user
       for (const user of deletedUsers) {
-        const timezone = ct.getTimezonesForCountry(user.region!)[0].name;
+        const timezone = ct.getTimezonesForCountry(user.region!)![0].name;
         const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
         const targetRel = await this.usersRelsRepo.findOne({

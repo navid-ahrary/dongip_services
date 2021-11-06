@@ -83,7 +83,7 @@ export class JWTService implements TokenService {
           ...userProfile,
           ..._.omit(user, ['userId', 'usersRels', 'setting', 'scores']),
           language: user.setting.language,
-          timezone: ct.getTimezonesForCountry(user.region ?? 'IR')[0].name,
+          timezone: ct.getTimezonesForCountry(user.region ?? 'IR')![0].name,
           selfUserRelId: user.usersRels[0].userRelId,
           totalScores: this.userService.calculateTotalScores(user.scores),
         };

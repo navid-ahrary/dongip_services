@@ -6,7 +6,7 @@ import {
   InvocationResult,
   Provider,
   service,
-  ValueOrPromise
+  ValueOrPromise,
 } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { HttpErrors, Request, RestBindings } from '@loopback/rest';
@@ -22,7 +22,7 @@ import {
   JointAccountsRepository,
   JointAccountSubscribesRepository,
   UsersRelsRepository,
-  UsersRepository
+  UsersRepository,
 } from '../repositories';
 import { BatchMessage, FirebaseService, PhoneNumberService } from '../services';
 import { LocalizedMessages } from '../types';
@@ -116,7 +116,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
 
             for (const JAS of externalJASs) {
               const targetUser = JAS.user;
-              const timezone = ct.getTimezonesForCountry(targetUser.region!)[0].name;
+              const timezone = ct.getTimezonesForCountry(targetUser.region!)![0].name;
               const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
               const mutualRel = await this.usersRelsRepo.findOne({
@@ -198,7 +198,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
           for (const sub of subscribes) {
             const user = sub.user;
             const setting = sub.user.setting;
-            const timezone = ct.getTimezonesForCountry(user.region!)[0].name;
+            const timezone = ct.getTimezonesForCountry(user.region!)![0].name;
             const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
             const mutualRel = await this.usersRelsRepo.findOne({
@@ -317,7 +317,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
           for (const user of users) {
             const timezone = ct.getTimezonesForCountry(
               user.region ?? this.phoneNumService.getRegionCodeISO(user.phone!),
-            )[0].name;
+            )![0].name;
             const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
             const savedNotify = await this.usersRepo.notifications(user.getId()).create({
@@ -422,7 +422,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
           for (const user of users) {
             const timezone = ct.getTimezonesForCountry(
               user.region ?? this.phoneNumService.getRegionCodeISO(user.phone!),
-            )[0].name;
+            )![0].name;
 
             const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
