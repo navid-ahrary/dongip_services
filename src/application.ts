@@ -1,5 +1,11 @@
 import { AuthenticationComponent, registerAuthenticationStrategy } from '@loopback/authentication';
 import { JWTAuthenticationComponent, SECURITY_SCHEME_SPEC } from '@loopback/authentication-jwt';
+import {
+  AuthorizationBindings,
+  AuthorizationComponent,
+  AuthorizationDecision,
+  AuthorizationOptions,
+} from '@loopback/authorization';
 import { BootMixin } from '@loopback/boot';
 import { ApplicationConfig, createBindingFromClass } from '@loopback/core';
 import { CronComponent } from '@loopback/cron';
@@ -89,19 +95,6 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
 
     this.setupBinding();
 
-    // Bind authentication components related elemets
-    // this.component(UserAuthenticationComponent);
-
-    // const authoriazationOptions: AuthorizationOptions = {
-    //   precedence: AuthorizationDecision.DENY,
-    //   defaultDecision: AuthorizationDecision.DENY,
-    // };
-    // this.configure(AuthorizationBindings.COMPONENT).to(authoriazationOptions);
-    // this.component(AuthorizationComponent);
-
-    // Set up the custom sequence
-    // this.sequence(MyAuthenticationSequence);
-
     // this.component(MetricsComponent);
     this.component(HealthComponent);
 
@@ -150,6 +143,18 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     registerAuthenticationStrategy(this, JWTVerifyAutenticationStrategy);
     registerAuthenticationStrategy(this, JWTAccessAutenticationStrategy);
 
+    this.setupAuthBindingKeys();
+
+    const authoriazationOptions: AuthorizationOptions = {
+      precedence: AuthorizationDecision.DENY,
+      defaultDecision: AuthorizationDecision.DENY,
+    };
+    this.configure(AuthorizationBindings.COMPONENT).to(authoriazationOptions);
+
+    this.component(AuthorizationComponent);
+  }
+
+  setupAuthBindingKeys() {
     // Bind JWT constants
     this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(TokenServiceConstants.JWT_ALGORITHM_VALUE);
     this.bind(TokenServiceBindings.ACCESS_SECRET).to(TokenServiceConstants.ACCESS_SECRET_VALUE);
