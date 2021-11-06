@@ -45,6 +45,7 @@ export class JWTService implements TokenService {
 
       if (!accessToken) {
         this.logger.log('error', nullToken);
+
         throw new HttpErrors.Unauthorized(nullToken);
       }
 
@@ -52,6 +53,8 @@ export class JWTService implements TokenService {
       const isBlacklisted = await this.blacklistRepository.exists(accessToken);
       if (isBlacklisted) {
         const errMsg = `Error verifying token: ${'توکن شما بلاک شده!'}`;
+        this.logger.log('error', errMsg);
+
         throw new Error(errMsg);
       }
 
@@ -71,7 +74,8 @@ export class JWTService implements TokenService {
 
         if (!user.enabled) {
           const errMsg = `Your access is limited, Contact ${this.supportEmailAdd}`;
-          console.error(errMsg);
+          this.logger.log('error', errMsg);
+
           throw new HttpErrors.UnavailableForLegalReasons(errMsg);
         }
 
@@ -87,7 +91,8 @@ export class JWTService implements TokenService {
 
       return userProfile;
     } catch (err) {
-      console.error(new Date(), JSON.stringify(err));
+      this.logger.log('error', JSON.stringify(err));
+
       throw new HttpErrors.Unauthorized(`Error verifying token: ${err.message}`);
     }
   }
@@ -110,7 +115,7 @@ export class JWTService implements TokenService {
         expiresIn = +this.accessExpiresIn;
         break;
       default:
-        console.error(new Date(), JSON.stringify(nullAudience));
+        this.logger.log('error', nullAudience);
         throw new HttpErrors.Unauthorized(nullAudience);
     }
 
@@ -128,8 +133,10 @@ export class JWTService implements TokenService {
 
       return generatedToken;
     } catch (err) {
-      console.error(new Date(), JSON.stringify(err));
-      throw new HttpErrors.Unauthorized(`Error generating verify token: ${err.message}`);
+      const errMsg = `Error generating verify token: ${err.message}`;
+      this.logger.log('error', errMsg);
+
+      throw new HttpErrors.Unauthorized(errMsg);
     }
   }
 }
