@@ -1,22 +1,16 @@
-import { registerAuthenticationStrategy } from '@loopback/authentication';
-import { SECURITY_SCHEME_SPEC } from '@loopback/authentication-jwt';
-import {
-  AuthorizationBindings,
-  AuthorizationComponent,
-  AuthorizationDecision,
-  AuthorizationOptions,
-} from '@loopback/authorization';
+import { AuthenticationComponent, registerAuthenticationStrategy } from '@loopback/authentication';
+import { JWTAuthenticationComponent, SECURITY_SCHEME_SPEC } from '@loopback/authentication-jwt';
 import { BootMixin } from '@loopback/boot';
 import { ApplicationConfig, createBindingFromClass } from '@loopback/core';
 import { CronComponent } from '@loopback/cron';
 import { HealthBindings, HealthComponent } from '@loopback/extension-health';
-import { MetricsBindings, MetricsComponent } from '@loopback/extension-metrics';
+import { format, LoggingBindings, LoggingComponent } from '@loopback/logging';
 import { RepositoryMixin } from '@loopback/repository';
 import { RestApplication } from '@loopback/rest';
 import { RestExplorerBindings, RestExplorerComponent } from '@loopback/rest-explorer';
 import { ServiceMixin } from '@loopback/service-proxy';
+import moment from 'moment';
 import path from 'path';
-import { UserAuthenticationComponent } from './components';
 import {
   appInstance,
   AppInstanceBinding,
@@ -55,7 +49,6 @@ import {
   WoocommerceBindings,
   WoocommerceConstants,
 } from './keys';
-import { MyAuthenticationSequence } from './sequence';
 import {
   DailyScheduleConjobService,
   JWTAccessAutenticationStrategy,
@@ -68,8 +61,6 @@ import {
 export { ApplicationConfig };
 
 export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestApplication))) {
-  hashRound: number;
-
   constructor(
     options: ApplicationConfig = {
       shutdown: { signals: ['SIGTERM'], gracePeriod: 1000 },
@@ -96,27 +87,22 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
       servers: [{ url: '/', description: 'API Gateway' }],
     });
 
-    this.hashRound = +process.env.HASH_ROUND!;
-
     this.setupBinding();
 
     // Bind authentication components related elemets
-    this.component(UserAuthenticationComponent);
+    // this.component(UserAuthenticationComponent);
 
-    const authoriazationOptions: AuthorizationOptions = {
-      precedence: AuthorizationDecision.DENY,
-      defaultDecision: AuthorizationDecision.DENY,
-    };
-    this.configure(AuthorizationBindings.COMPONENT).to(authoriazationOptions);
-    this.component(AuthorizationComponent);
-
-    registerAuthenticationStrategy(this, JWTVerifyAutenticationStrategy);
-    registerAuthenticationStrategy(this, JWTAccessAutenticationStrategy);
+    // const authoriazationOptions: AuthorizationOptions = {
+    //   precedence: AuthorizationDecision.DENY,
+    //   defaultDecision: AuthorizationDecision.DENY,
+    // };
+    // this.configure(AuthorizationBindings.COMPONENT).to(authoriazationOptions);
+    // this.component(AuthorizationComponent);
 
     // Set up the custom sequence
-    this.sequence(MyAuthenticationSequence);
+    // this.sequence(MyAuthenticationSequence);
 
-    this.component(MetricsComponent);
+    // this.component(MetricsComponent);
     this.component(HealthComponent);
 
     // Add cronjob services
@@ -132,10 +118,10 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     });
 
     // Configure metric component
-    this.configure(MetricsBindings.COMPONENT).to({
-      endpoint: { basePath: '/metrics', disabled: false },
-      defaultMetrics: { timeout: 10000, disabled: false },
-    });
+    // this.configure(MetricsBindings.COMPONENT).to({
+    //   endpoint: { basePath: '/metrics', disabled: false },
+    //   defaultMetrics: { timeout: 10000, disabled: false },
+    // });
 
     // Configure health checking configuration
     this.configure(HealthBindings.COMPONENT).to({
@@ -148,15 +134,40 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.component(RestExplorerComponent);
 
     this.projectRoot = __dirname;
-    // Customize @loopback/boot Booter Conventions here
     this.bootOptions = {
       controllers: {
-        // Customize ControllerBooter Conventions here
         dirs: ['controllers'],
         extensions: ['.controller.js'],
         nested: true,
       },
     };
+
+    this.configureLogging();
+
+    this.component(AuthenticationComponent);
+    this.component(JWTAuthenticationComponent);
+
+    registerAuthenticationStrategy(this, JWTVerifyAutenticationStrategy);
+    registerAuthenticationStrategy(this, JWTAccessAutenticationStrategy);
+
+    // Bind JWT constants
+    this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(TokenServiceConstants.JWT_ALGORITHM_VALUE);
+    this.bind(TokenServiceBindings.ACCESS_SECRET).to(TokenServiceConstants.ACCESS_SECRET_VALUE);
+    this.bind(TokenServiceBindings.ACCESS_EXPIRES_IN).to(
+      TokenServiceConstants.ACCESS_EXPIRES_IN_VALUE,
+    );
+    this.bind(TokenServiceBindings.VERIFY_EXPIRES_IN).to(
+      TokenServiceConstants.VERIFY_EXPIRES_IN_VALUE,
+    );
+    this.bind(RefreshTokenServiceBindings.REFRESH_SECRET).to(
+      TokenServiceConstants.REFRESH_SECRET_VALUE,
+    );
+    this.bind(RefreshTokenServiceBindings.REFRESH_EXPIRES_IN).to(
+      TokenServiceConstants.REFRESH_EXPIRES_IN_VALUE,
+    );
+    this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
+
+    this.bind(UserServiceBindings.USER_SERVICE).toClass(MyUserService);
   }
 
   setupBinding(): void {
@@ -179,25 +190,6 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
 
     // Bind MariaDB datasource configs
     this.bind(MariadbConfigBinding).to(MariadbConfigValue);
-
-    // Bind JWT constants
-    this.bind(TokenServiceBindings.TOKEN_ALGORITHM).to(TokenServiceConstants.JWT_ALGORITHM_VALUE);
-    this.bind(TokenServiceBindings.ACCESS_SECRET).to(TokenServiceConstants.ACCESS_SECRET_VALUE);
-    this.bind(TokenServiceBindings.ACCESS_EXPIRES_IN).to(
-      TokenServiceConstants.ACCESS_EXPIRES_IN_VALUE,
-    );
-    this.bind(TokenServiceBindings.VERIFY_EXPIRES_IN).to(
-      TokenServiceConstants.VERIFY_EXPIRES_IN_VALUE,
-    );
-    this.bind(RefreshTokenServiceBindings.REFRESH_SECRET).to(
-      TokenServiceConstants.REFRESH_SECRET_VALUE,
-    );
-    this.bind(RefreshTokenServiceBindings.REFRESH_EXPIRES_IN).to(
-      TokenServiceConstants.REFRESH_EXPIRES_IN_VALUE,
-    );
-    this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
-
-    this.bind(UserServiceBindings.USER_SERVICE).toClass(MyUserService);
 
     // Bind firebase constants
     this.bind(FirebaseBinding.FIREBASE_APPLICATION_DATABASEURL).to(
@@ -265,5 +257,27 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
 
     this.bind(AppVersionBindings.ANDROID_VERSION).to(AppVersionConstants.ANDROID_VERSION_VALUE);
     this.bind(AppVersionBindings.IOS_VERSION).to(AppVersionConstants.IOS_VERSION_VALUE);
+  }
+
+  configureLogging() {
+    this.configure(LoggingBindings.COMPONENT).to({
+      enableFluent: false, // default to true
+      enableHttpAccessLog: true, // default to true
+    });
+
+    const myFormat = format.printf(({ level, message, timestamp }) => {
+      return `${timestamp} ${level}: ${message}`;
+    });
+
+    this.configure(LoggingBindings.WINSTON_LOGGER).to({
+      format: format.combine(
+        format.colorize({ colors: { error: 'red', info: 'blue' }, all: true }),
+        format.timestamp({ format: () => moment().format('YYYY-MM-DD HH:mm:ssZ') }),
+        myFormat,
+      ),
+      defaultMeta: { framework: 'LoopBack' },
+    });
+
+    this.component(LoggingComponent);
   }
 }

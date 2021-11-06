@@ -1,12 +1,16 @@
 import { AuthenticationStrategy, TokenService } from '@loopback/authentication';
 import { inject } from '@loopback/core';
+import { LoggingBindings, WinstonLogger } from '@loopback/logging';
 import { HttpErrors, Request } from '@loopback/rest';
 import { UserProfile } from '@loopback/security';
 import { TokenServiceBindings } from '../keys';
 
 export class JWTAccessAutenticationStrategy implements AuthenticationStrategy {
   name = 'jwt.access';
-  constructor(@inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService) {}
+  constructor(
+    @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
+    @inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService,
+  ) {}
 
   public async authenticate(request: Request): Promise<UserProfile | undefined> {
     const token: string = this.extractCredentials(request);
@@ -14,7 +18,9 @@ export class JWTAccessAutenticationStrategy implements AuthenticationStrategy {
 
     if (userProfile.aud !== 'access') {
       const errMsg = 'Access token is not provided!';
-      console.error(new Date(), 'Access token::', errMsg, userProfile);
+
+      this.logger.log('error', `Access token:: ${errMsg} ${userProfile}`);
+
       throw new HttpErrors.Unauthorized(errMsg);
     }
     return userProfile;
@@ -23,7 +29,9 @@ export class JWTAccessAutenticationStrategy implements AuthenticationStrategy {
   private extractCredentials(request: Request): string {
     if (!request.headers.authorization) {
       const errMsg = 'Authorization header not found.';
-      console.error(new Date(), 'Access token::', errMsg, request.headers.authorization);
+
+      this.logger.log('error', `Access token:: ${errMsg} ${request.headers.authorization}`);
+
       throw new HttpErrors.Unauthorized(errMsg);
     }
 
@@ -32,7 +40,9 @@ export class JWTAccessAutenticationStrategy implements AuthenticationStrategy {
 
     if (!authHeaderValue.startsWith('Bearer')) {
       const errMsg = 'Authorization header is not type of Bearer.';
-      console.error(new Date(), 'Access token::', errMsg, authHeaderValue);
+
+      this.logger.log('error', `Access token:: ${errMsg} ${authHeaderValue}`);
+
       throw new HttpErrors.Unauthorized(errMsg);
     }
 
@@ -42,7 +52,9 @@ export class JWTAccessAutenticationStrategy implements AuthenticationStrategy {
       const errMsg =
         'Authorization header value must follow this pattern:' +
         " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.";
-      console.error(new Date(), 'Access token::', errMsg, authHeaderValue);
+
+      this.logger.log('error', `Access token:: ${errMsg} ${authHeaderValue}`);
+
       throw new HttpErrors.Unauthorized(errMsg);
     }
     const token = parts[1];
@@ -53,7 +65,10 @@ export class JWTAccessAutenticationStrategy implements AuthenticationStrategy {
 
 export class JWTVerifyAutenticationStrategy implements AuthenticationStrategy {
   name = 'jwt.verify';
-  constructor(@inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService) {}
+  constructor(
+    @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
+    @inject(TokenServiceBindings.TOKEN_SERVICE) public jwtService: TokenService,
+  ) {}
 
   public async authenticate(request: Request): Promise<UserProfile | undefined> {
     const token: string = this.extractCredentials(request);
@@ -62,7 +77,9 @@ export class JWTVerifyAutenticationStrategy implements AuthenticationStrategy {
 
     if (userProfile.aud !== 'verify') {
       const errMsg = 'Verify token is not provided!';
-      console.error(new Date(), 'Verify token::', errMsg, userProfile);
+
+      this.logger.log('error', `Verify token:: ${errMsg} ${userProfile}`);
+
       throw new HttpErrors.Unauthorized(errMsg);
     }
 
@@ -72,7 +89,9 @@ export class JWTVerifyAutenticationStrategy implements AuthenticationStrategy {
   private extractCredentials(request: Request): string {
     if (!request.headers.authorization) {
       const errMsg = 'Authorization header not found.';
-      console.error(new Date(), 'Verify token::', errMsg, request.headers.authorization);
+
+      this.logger.log('error', `Verify token:: ${errMsg} ${request.headers.authorization}`);
+
       throw new HttpErrors.Unauthorized(errMsg);
     }
 
@@ -81,7 +100,9 @@ export class JWTVerifyAutenticationStrategy implements AuthenticationStrategy {
 
     if (!authHeaderValue.startsWith('Bearer')) {
       const errMsg = 'Authorization header is not type of Bearer.';
-      console.error(new Date(), 'Verify token::', errMsg, authHeaderValue);
+
+      this.logger.log('error', `Verify token:: ${errMsg} ${authHeaderValue}`);
+
       throw new HttpErrors.Unauthorized(errMsg);
     }
 
@@ -91,7 +112,9 @@ export class JWTVerifyAutenticationStrategy implements AuthenticationStrategy {
       const errMsg =
         'Authorization header value must follow this pattern:' +
         " 'Bearer xxx.yyy.zzz' where xxx.yyy.zzz is a valid JWT token.";
-      console.error(new Date(), 'Verify token::', errMsg, authHeaderValue);
+
+      this.logger.log('error', `Verify token:: ${errMsg} ${authHeaderValue}`);
+
       throw new HttpErrors.Unauthorized(errMsg);
     }
     const token = parts[1];

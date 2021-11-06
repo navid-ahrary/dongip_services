@@ -1,6 +1,7 @@
 /* eslint-disable prefer-const */
 import { TokenService } from '@loopback/authentication';
 import { inject } from '@loopback/core';
+import { LoggingBindings, WinstonLogger } from '@loopback/logging';
 import { repository } from '@loopback/repository';
 import { HttpErrors } from '@loopback/rest';
 import { securityId, UserProfile } from '@loopback/security';
@@ -20,6 +21,7 @@ export interface CurrentUserProfile extends UserProfile, Partial<Omit<Users, 'us
 }
 export class JWTService implements TokenService {
   constructor(
+    @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
     @inject(TokenServiceBindings.ACCESS_SECRET) private jwtSecret: string,
     @inject(TokenServiceBindings.TOKEN_ALGORITHM) private jwtAlgorithm: Algorithm,
     @inject(TokenServiceBindings.VERIFY_EXPIRES_IN) private verifyExpiresIn: string,
@@ -42,7 +44,7 @@ export class JWTService implements TokenService {
       const nullToken = 'Error verifying access token: token is null';
 
       if (!accessToken) {
-        console.error(new Date(), JSON.stringify(nullToken));
+        this.logger.log('error', nullToken);
         throw new HttpErrors.Unauthorized(nullToken);
       }
 
