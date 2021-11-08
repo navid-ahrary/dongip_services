@@ -283,6 +283,10 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
       defaultMeta: { framework: 'LoopBack' },
     });
 
+    this.configure(LoggingBindings.WINSTON_HTTP_ACCESS_LOGGER).to({
+      format: ':remote-addr - :remote-user :method :url :status ":user-agent" - :response-time ms',
+    });
+
     this.component(LoggingComponent);
   }
 }
