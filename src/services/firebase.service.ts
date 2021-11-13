@@ -1,38 +1,38 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { BindingScope, inject, injectable } from '@loopback/core';
 import { HttpErrors } from '@loopback/rest';
-import { credential, initializeApp, messaging, ServiceAccount } from 'firebase-admin';
+import * as firebase from 'firebase-admin';
 import _ from 'lodash';
 import { FirebaseBinding } from '../keys';
 
-export type MessagePayload = messaging.MessagingPayload;
-export type BatchMessage = Array<messaging.Message>;
+export type MessagePayload = firebase.messaging.MessagingPayload;
+export type BatchMessage = Array<firebase.messaging.Message>;
 
 export interface FirebaseService {
   sendToDeviceMessage(
     firebaseToken: string | string[],
     payload: MessagePayload,
-    options?: messaging.MessagingOptions | undefined,
+    options?: firebase.messaging.MessagingOptions | undefined,
   ): void;
 
-  sendMultiCastMessage(message: messaging.MulticastMessage, dryRun?: boolean): void;
+  sendMultiCastMessage(message: firebase.messaging.MulticastMessage, dryRun?: boolean): void;
 
-  sendAllMessage(messages: BatchMessage): Promise<Array<messaging.BatchResponse>>;
+  sendAllMessage(messages: BatchMessage): Promise<Array<firebase.messaging.BatchResponse>>;
 }
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class FirebaseService {
-  private readonly messagingService: messaging.Messaging;
+  private readonly messagingService: firebase.messaging.Messaging;
 
   private readonly timeToLiveSeconds = 60 * 60 * 24 * 7 * 4; // 4 weeks in seconds
 
-  private readonly androidConfigs: messaging.AndroidConfig = {
+  private readonly androidConfigs: firebase.messaging.AndroidConfig = {
     priority: 'normal',
     ttl: this.timeToLiveSeconds * 1000,
     notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
   };
 
-  private readonly apnsConfigs: messaging.ApnsConfig = {
+  private readonly apnsConfigs: firebase.messaging.ApnsConfig = {
     headers: {
       'apns-priority': '10',
       'apns-expiration': String(this.timeToLiveSeconds * 1000), // 4 weeks in milliseconds,
@@ -41,24 +41,26 @@ export class FirebaseService {
 
   constructor(
     @inject(FirebaseBinding.FIREBASE_APPLICATION_DATABASEURL) baseUrl: string,
-    @inject(FirebaseBinding.FIREBASE_DONGIP_USER_CERT) certs: ServiceAccount,
+    @inject(FirebaseBinding.FIREBASE_DONGIP_USER_CERT) certs: firebase.ServiceAccount,
     @inject(FirebaseBinding.FIREBASE_DONGIP_USER_APP_NAME) appName: string,
   ) {
-    this.messagingService = initializeApp(
-      {
-        databaseURL: baseUrl,
-        credential: credential.cert(certs),
-      },
-      appName,
-    ).messaging();
+    this.messagingService = firebase
+      .initializeApp(
+        {
+          databaseURL: baseUrl,
+          credential: firebase.credential.cert(certs),
+        },
+        appName,
+      )
+      .messaging();
   }
 
   // send a message to a device
   public async sendToDeviceMessage(
     firebaseToken: string | string[],
-    payload: messaging.MessagingPayload,
-    options?: messaging.MessagingOptions,
-  ): Promise<messaging.MessagingDevicesResponse> {
+    payload: firebase.messaging.MessagingPayload,
+    options?: firebase.messaging.MessagingOptions,
+  ): Promise<firebase.messaging.MessagingDevicesResponse> {
     const notifPayload = {
       data: payload.data,
       notification: {
@@ -93,7 +95,10 @@ export class FirebaseService {
   }
 
   // send a message to multi devices
-  public async sendMultiCastMessage(message: messaging.MulticastMessage, dryRun?: boolean) {
+  public async sendMultiCastMessage(
+    message: firebase.messaging.MulticastMessage,
+    dryRun?: boolean,
+  ) {
     try {
       message = {
         ...message,
@@ -125,7 +130,9 @@ export class FirebaseService {
   }
 
   //send multi message to multi devices
-  public async sendAllMessage(messages: BatchMessage): Promise<Array<messaging.BatchResponse>> {
+  public async sendAllMessage(
+    messages: BatchMessage,
+  ): Promise<Array<firebase.messaging.BatchResponse>> {
     _.forEach(messages, message => {
       _.assign(message, {
         android: this.androidConfigs,
@@ -134,7 +141,7 @@ export class FirebaseService {
     });
 
     try {
-      const response: messaging.BatchResponse[] = [];
+      const response: firebase.messaging.BatchResponse[] = [];
 
       const chunkedMsgs = _.chunk(messages, 499);
       for (const msgs of chunkedMsgs) {

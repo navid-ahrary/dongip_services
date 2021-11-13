@@ -1,25 +1,25 @@
 import { BindingScope, inject, injectable } from '@loopback/core';
 import { HttpErrors } from '@loopback/rest';
-import { app, credential, initializeApp, messaging, ServiceAccount } from 'firebase-admin';
+import * as firebase from 'firebase-admin';
 import _ from 'lodash';
 import { FirebaseBinding } from '../keys';
 import { BatchMessage } from './firebase.service';
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class FirebaseSupportService {
-  private readonly app: app.App;
+  private readonly app: firebase.app.App;
 
-  private readonly messagingService: messaging.Messaging;
+  private readonly messagingService: firebase.messaging.Messaging;
 
   private readonly timeToLiveSeconds = 60 * 60 * 24 * 7 * 4; // 4 weeks in seconds
 
-  private readonly androidConfigs: messaging.AndroidConfig = {
+  private readonly androidConfigs: firebase.messaging.AndroidConfig = {
     priority: 'high',
     ttl: this.timeToLiveSeconds * 1000,
     notification: { clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
   };
 
-  private readonly apnsConfigs: messaging.ApnsConfig = {
+  private readonly apnsConfigs: firebase.messaging.ApnsConfig = {
     headers: {
       'apns-priority': '10',
       'apns-expiration': String(this.timeToLiveSeconds * 1000), // 4 weeks in milliseconds,
@@ -28,24 +28,26 @@ export class FirebaseSupportService {
 
   constructor(
     @inject(FirebaseBinding.FIREBASE_APPLICATION_DATABASEURL) baseUrl: string,
-    @inject(FirebaseBinding.FIREBASE_DONGIP_SUPPORT_CERT) certs: ServiceAccount,
+    @inject(FirebaseBinding.FIREBASE_DONGIP_SUPPORT_CERT) certs: firebase.ServiceAccount,
     @inject(FirebaseBinding.FIREBASE_DONGIP_SUPPORT_APP_NAME) appName: string,
   ) {
-    this.messagingService = initializeApp(
-      {
-        databaseURL: baseUrl,
-        credential: credential.cert(certs),
-      },
-      appName,
-    ).messaging();
+    this.messagingService = firebase
+      .initializeApp(
+        {
+          databaseURL: baseUrl,
+          credential: firebase.credential.cert(certs),
+        },
+        appName,
+      )
+      .messaging();
   }
 
   // send a message to a device
   public async sendToDeviceMessage(
     firebaseToken: string | string[],
-    payload: messaging.MessagingPayload,
-    options?: messaging.MessagingOptions,
-  ): Promise<messaging.MessagingDevicesResponse> {
+    payload: firebase.messaging.MessagingPayload,
+    options?: firebase.messaging.MessagingOptions,
+  ): Promise<firebase.messaging.MessagingDevicesResponse> {
     const notifPayload = {
       data: payload.data,
       notification: {
@@ -54,7 +56,7 @@ export class FirebaseSupportService {
       },
     };
 
-    const notifOptions: messaging.MessagingOptions = {
+    const notifOptions: firebase.messaging.MessagingOptions = {
       ...options,
       priority: 'high',
       mutableContent: true,
@@ -80,7 +82,10 @@ export class FirebaseSupportService {
   }
 
   // send a message to multi devices
-  public async sendMultiCastMessage(message: messaging.MulticastMessage, dryRun?: boolean) {
+  public async sendMultiCastMessage(
+    message: firebase.messaging.MulticastMessage,
+    dryRun?: boolean,
+  ) {
     try {
       message = {
         ...message,
@@ -113,7 +118,9 @@ export class FirebaseSupportService {
   }
 
   //send multi message to multi devices
-  public async sendAllMessage(messages: BatchMessage): Promise<Array<messaging.BatchResponse>> {
+  public async sendAllMessage(
+    messages: BatchMessage,
+  ): Promise<Array<firebase.messaging.BatchResponse>> {
     messages.forEach(message => {
       _.assign(message, {
         android: this.androidConfigs,
@@ -122,7 +129,7 @@ export class FirebaseSupportService {
     });
 
     try {
-      const response: messaging.BatchResponse[] = [];
+      const response: firebase.messaging.BatchResponse[] = [];
       _.forEach(_.chunk(messages, 500), async msgs => {
         const res = await this.messagingService.sendAll(msgs);
         response.push(res);
