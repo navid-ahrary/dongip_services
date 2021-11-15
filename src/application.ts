@@ -55,6 +55,7 @@ import {
   WoocommerceBindings,
   WoocommerceConstants,
 } from './keys';
+import { MySequence } from './sequence';
 import {
   DailyScheduleConjobService,
   JWTAccessAutenticationStrategy,
@@ -73,6 +74,8 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     },
   ) {
     super(options);
+
+    this.sequence(MySequence);
 
     this.api({
       openapi: '3.0.0',
