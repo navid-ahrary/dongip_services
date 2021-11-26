@@ -123,8 +123,9 @@ export class UsersController {
 
       return _.assign(user, { jointAccounts: await this.jointController.getJointAccounts() });
     } catch (err) {
-      console.error(err);
-      throw new HttpErrors.NotImplemented(err.messsage);
+      const errMsg = err.messsage;
+      this.logger.log('error', errMsg);
+      throw new HttpErrors.NotImplemented(errMsg);
     }
   }
 
@@ -181,10 +182,14 @@ export class UsersController {
     return this.usersRepository.updateById(this.userId, updateUserReqBody).catch(err => {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         if (err.sqlMessage.endsWith("'users.username'")) {
+          const errMsg = this.locMsg['USERNAME_UNAVAILABLE'][this.lang];
+          this.logger.log('error', `ER_DUP_ENTRY_USERNAME ${errMsg}`);
           throw new HttpErrors.Conflict(this.locMsg['USERNAME_UNAVAILABLE'][this.lang]);
         }
       }
-      throw new HttpErrors.NotAcceptable(err.message);
+      const errMsg = err.message;
+      this.logger.log('error', `UNHANDLED_ERROR ${errMsg}`);
+      throw new HttpErrors.NotAcceptable(errMsg);
     });
   }
 
@@ -433,15 +438,20 @@ export class UsersController {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         if (err.sqlMessage.endsWith("'phone'")) {
           errMsg = this.locMsg['COMPLETE_SIGNUP_CONFILICT_PHONE'][this.lang];
+          this.logger.log('error', `ER_DUP_ENTRY ${errMsg}`);
         } else if (err.sqlMessage.endsWith("'email'")) {
           errMsg = this.locMsg['COMPLETE_SIGNUP_CONFILICT_EMAIL'][this.lang];
+          this.logger.log('error', `ER_DUP_ENTRY ${errMsg}`);
         }
-
         throw new HttpErrors.Conflict(errMsg);
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
-        throw new HttpErrors.NotAcceptable(err.message);
+        errMsg = err.message;
+        this.logger.log('error', `ER_DATA_TOO_LONG ${errMsg}`);
+        throw new HttpErrors.NotAcceptable(errMsg);
       } else {
-        throw new HttpErrors.NotAcceptable(err.message);
+        errMsg = err.message;
+        this.logger.log('error', `UNHANDLED_ERROR ${errMsg}`);
+        throw new HttpErrors.NotAcceptable(errMsg);
       }
     }
   }
