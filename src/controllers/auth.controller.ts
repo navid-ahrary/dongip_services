@@ -425,32 +425,32 @@ export class AuthController {
       return await this.verifyService.createUser(userEntity, settingEntity);
     } catch (err) {
       if (err.message === 'WRONG_VERIFY_CODE') {
-        const errMsg = `WRONG_VERIFY_CODE ${this.locMsg[err.message][this.lang]}`;
-        this.logger.log('error', errMsg);
+        const errMsg = this.locMsg[err.message][this.lang];
+        this.logger.log('error', `WRONG_VERIFY_CODE ${errMsg}`);
         throw new HttpErrors.NotAcceptable(errMsg);
       } else if (
         err.errno === 1062 &&
         err.code === 'ER_DUP_ENTRY' &&
         err.sqlMessage.endsWith("'phone'")
       ) {
-        const errMsg = `ER_DUP_ENTRY ${this.locMsg['SINGUP_CONFILCT_PHONE'][this.lang]}`;
-        this.logger.log('error', errMsg);
+        const errMsg = this.locMsg['SINGUP_CONFILCT_PHONE'][this.lang];
+        this.logger.log('error', `ER_DUP_ENTRY_PHONE ${errMsg}`);
         throw new HttpErrors.Conflict(errMsg);
       } else if (
         err.errno === 1062 &&
         err.code === 'ER_DUP_ENTRY' &&
         err.sqlMessage.endsWith("'email'")
       ) {
-        const errMsg = `ER_DUP_ENTRY ${this.locMsg['COMPLETE_SIGNUP_CONFILICT_EMAIL'][this.lang]}`;
-        this.logger.log('error', errMsg);
+        const errMsg = this.locMsg['COMPLETE_SIGNUP_CONFILICT_EMAIL'][this.lang];
+        this.logger.log('error', `ER_DUP_ENTRY_EMAIL ${errMsg}`);
         throw new HttpErrors.Conflict(errMsg);
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
-        const errMsg = `ER_DATA_TOO_LONG ${err.message}`;
-        this.logger.log('error', errMsg);
+        const errMsg = err.message;
+        this.logger.log('error', `ER_DATA_TOO_LONG ${errMsg}`);
         throw new HttpErrors.NotAcceptable(errMsg);
       } else {
-        const errMsg = `UNHANDLED_ERROR ${err.message}`;
-        this.logger.log('error', errMsg);
+        const errMsg = err.message;
+        this.logger.log('error', `UNHANDLED_ERROR ${errMsg}`);
         throw new HttpErrors.NotAcceptable(errMsg);
       }
     }
