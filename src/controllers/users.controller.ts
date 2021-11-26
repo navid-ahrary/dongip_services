@@ -28,7 +28,7 @@ import { CompleteSignup, Dongs, Settings, Users, UsersRels } from '../models';
 import { UsersRepository } from '../repositories';
 import { CurrentUserProfile, PhoneNumberService } from '../services';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
-import { JointAccountController } from './';
+import { JointAccountController } from './joint-account.controller';
 import { UserPatchRequestBody } from './specs';
 
 @intercept(HeadersInterceptor.BINDING_KEY)
