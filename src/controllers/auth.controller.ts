@@ -1,6 +1,7 @@
 import { authenticate, TokenService, UserService } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-jwt';
 import { inject, intercept, service } from '@loopback/core';
+import { LoggingBindings, WinstonLogger } from '@loopback/logging';
 import { repository } from '@loopback/repository';
 import {
   get,
@@ -33,6 +34,7 @@ export class AuthController {
   constructor(
     @inject.context() private ctx: RequestContext,
     @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
+    @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
     @inject(TokenServiceBindings.TOKEN_SERVICE) private jwtService: TokenService,
     @inject(UserServiceBindings.USER_SERVICE) private userService: UserService<Users, Credentials>,
     @service(VerifyService) private verifyService: VerifyService,
@@ -423,23 +425,33 @@ export class AuthController {
       return await this.verifyService.createUser(userEntity, settingEntity);
     } catch (err) {
       if (err.message === 'WRONG_VERIFY_CODE') {
-        throw new HttpErrors.NotAcceptable(this.locMsg[err.message][this.lang]);
+        const errMsg = `WRONG_VERIFY_CODE ${this.locMsg[err.message][this.lang]}`;
+        this.logger.log('error', errMsg);
+        throw new HttpErrors.NotAcceptable(errMsg);
       } else if (
         err.errno === 1062 &&
         err.code === 'ER_DUP_ENTRY' &&
         err.sqlMessage.endsWith("'phone'")
       ) {
-        throw new HttpErrors.Conflict(this.locMsg['SINGUP_CONFILCT_PHONE'][this.lang]);
+        const errMsg = `ER_DUP_ENTRY ${this.locMsg['SINGUP_CONFILCT_PHONE'][this.lang]}`;
+        this.logger.log('error', errMsg);
+        throw new HttpErrors.Conflict(errMsg);
       } else if (
         err.errno === 1062 &&
         err.code === 'ER_DUP_ENTRY' &&
         err.sqlMessage.endsWith("'email'")
       ) {
-        throw new HttpErrors.Conflict(this.locMsg['COMPLETE_SIGNUP_CONFILICT_EMAIL'][this.lang]);
+        const errMsg = `ER_DUP_ENTRY ${this.locMsg['COMPLETE_SIGNUP_CONFILICT_EMAIL'][this.lang]}`;
+        this.logger.log('error', errMsg);
+        throw new HttpErrors.Conflict(errMsg);
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
-        throw new HttpErrors.NotAcceptable(err.message);
+        const errMsg = `ER_DATA_TOO_LONG ${err.message}`;
+        this.logger.log('error', errMsg);
+        throw new HttpErrors.NotAcceptable(errMsg);
       } else {
-        throw new HttpErrors.NotAcceptable(err.message);
+        const errMsg = `UNHANDLED_ERROR ${err.message}`;
+        this.logger.log('error', errMsg);
+        throw new HttpErrors.NotAcceptable(errMsg);
       }
     }
   }
