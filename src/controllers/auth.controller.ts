@@ -157,15 +157,16 @@ export class AuthController {
       const phoneValue = verifyReqBody.phone;
       const smsSignature = verifyReqBody.smsSignature;
 
-      return this.verifyService.verifyWithPhone(phoneValue, smsSignature);
+      const res = await this.verifyService.verifyWithPhone(phoneValue, smsSignature);
+      return res;
     } else if (verifyReqBody.email) {
       const emailValue = verifyReqBody.email;
 
       if (verifyReqBody.verifyStrategy === 'google') {
         return this.verifyService.loginWithGoogle(emailValue);
       }
-
-      return this.verifyService.verifyWithEmail(emailValue);
+      const res = await this.verifyService.verifyWithEmail(emailValue);
+      return res;
     }
   }
 
@@ -239,9 +240,9 @@ export class AuthController {
       (!_.has(credentials, 'phone') && !_.has(credentials, 'email')) ||
       (_.has(credentials, 'phone') && _.has(credentials, 'email'))
     ) {
-      throw new HttpErrors.UnprocessableEntity(
-        this.locMsg['PHONE_OR_EMAIL_NOT_PROVIDED'][this.lang],
-      );
+      const errMsg = this.locMsg['PHONE_OR_EMAIL_NOT_PROVIDED'][this.lang];
+      this.logger.log('error', errMsg);
+      throw new HttpErrors.UnprocessableEntity(errMsg);
     }
 
     const verifyId = +currentUserProfile[securityId];
@@ -293,7 +294,7 @@ export class AuthController {
 
       return resp;
     } catch (err) {
-      console.error(err.message);
+      this.logger.log('error', err.message);
       const errMsg = this.locMsg[err.message][this.lang];
       throw new HttpErrors.UnprocessableEntity(errMsg);
     }
@@ -360,6 +361,7 @@ export class AuthController {
               'appVersion',
               'enabled',
               'deleted',
+              'isCompleted',
             ],
             optional: ['username', 'currency', 'language', 'phone', 'marketplace'],
           }),
@@ -410,6 +412,7 @@ export class AuthController {
         userAgent: this.ctx.request.headers['user-agent'],
         appVersion: this.ctx.request.headers['app-version']?.toString(),
         marketplace: newUser.marketplace,
+        isCompleted: false,
       });
 
       const settingEntity = new Settings({
@@ -425,24 +428,24 @@ export class AuthController {
       return await this.verifyService.createUser(userEntity, settingEntity);
     } catch (err) {
       if (err.message === 'WRONG_VERIFY_CODE') {
+        this.logger.log('error', `WRONG_VERIFY_CODE ${err.message}`);
         const errMsg = this.locMsg[err.message][this.lang];
-        this.logger.log('error', `WRONG_VERIFY_CODE ${errMsg}`);
         throw new HttpErrors.NotAcceptable(errMsg);
       } else if (
         err.errno === 1062 &&
         err.code === 'ER_DUP_ENTRY' &&
         err.sqlMessage.endsWith("'phone'")
       ) {
+        this.logger.log('error', `ER_DUP_ENTRY_PHONE ${err.message}`);
         const errMsg = this.locMsg['SINGUP_CONFILCT_PHONE'][this.lang];
-        this.logger.log('error', `ER_DUP_ENTRY_PHONE ${errMsg}`);
         throw new HttpErrors.Conflict(errMsg);
       } else if (
         err.errno === 1062 &&
         err.code === 'ER_DUP_ENTRY' &&
         err.sqlMessage.endsWith("'email'")
       ) {
+        this.logger.log('error', `ER_DUP_ENTRY_EMAIL ${err.message}`);
         const errMsg = this.locMsg['COMPLETE_SIGNUP_CONFILICT_EMAIL'][this.lang];
-        this.logger.log('error', `ER_DUP_ENTRY_EMAIL ${errMsg}`);
         throw new HttpErrors.Conflict(errMsg);
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
         const errMsg = err.message;

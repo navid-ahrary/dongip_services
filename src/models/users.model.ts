@@ -422,6 +422,20 @@ export class Users extends Entity {
 
   @property({
     type: 'boolean',
+    required: true,
+    default: false,
+    mysql: {
+      columnName: 'is_completed',
+      dataType: 'tinyint',
+      dataLength: 1,
+      default: 1,
+      nullable: 'N',
+    },
+  })
+  isCompleted: boolean;
+
+  @property({
+    type: 'boolean',
     default: false,
     required: true,
     hidden: true,

@@ -399,18 +399,23 @@ export class UsersController {
         fields: { phoneLocked: true, emailLocked: true },
       });
 
-      if (foundUser.phoneLocked && foundUser.emailLocked) throw new Error('DONE');
+      if (foundUser.isCompleted) {
+        const errMsg = 'SIGNUP_COMPLETED';
+        throw new Error(errMsg);
+      }
 
       const userProps = new Users(_.pick(cmpltSignBody, ['avatar', 'name', 'referralCode']));
       const settingProps = new Settings(_.pick(cmpltSignBody, ['language', 'currency']));
       const userRelProps = new UsersRels(_.pick(cmpltSignBody, ['avatar', 'name']));
 
-      if (!foundUser.phoneLocked && cmpltSignBody.phone) {
+      if (!foundUser.phone && cmpltSignBody.phone) {
         const postedPhone = cmpltSignBody.phone;
 
         userProps.phoneLocked = true;
         userProps.phone = postedPhone;
         userProps.region = this.phoneNumService.getRegionCodeISO(postedPhone);
+        userProps.isCompleted = true;
+
         userRelProps.phone = postedPhone;
       }
 
@@ -419,6 +424,8 @@ export class UsersController {
 
         userProps.emailLocked = true;
         userProps.email = postedEmail;
+        userProps.isCompleted = true;
+
         userRelProps.email = postedEmail;
       }
 
@@ -450,7 +457,7 @@ export class UsersController {
         throw new HttpErrors.NotAcceptable(errMsg);
       } else {
         errMsg = err.message;
-        this.logger.log('error', `UNHANDLED_ERROR ${errMsg}`);
+        this.logger.log('error', errMsg);
         throw new HttpErrors.NotAcceptable(errMsg);
       }
     }
@@ -472,7 +479,10 @@ export class UsersController {
       username: username,
     });
 
-    if (foundUsername.count)
-      throw new HttpErrors.Conflict(this.locMsg['USERNAME_UNAVAILABLE'][this.lang]);
+    if (foundUsername.count) {
+      const errMsg = this.locMsg['USERNAME_UNAVAILABLE'][this.lang];
+      this.logger.log('error', `USERNAME_UNAVAILABLE ${errMsg}`);
+      throw new HttpErrors.Conflict(errMsg);
+    }
   }
 }
