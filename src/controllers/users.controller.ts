@@ -1,6 +1,7 @@
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept, service } from '@loopback/core';
+import { LoggingBindings, WinstonLogger } from '@loopback/logging';
 import { DataObject, repository } from '@loopback/repository';
 import {
   get,
@@ -27,7 +28,7 @@ import { CompleteSignup, Dongs, Settings, Users, UsersRels } from '../models';
 import { UsersRepository } from '../repositories';
 import { CurrentUserProfile, PhoneNumberService } from '../services';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
-import { JointAccountController } from './';
+import { JointAccountController } from './joint-account.controller';
 import { UserPatchRequestBody } from './specs';
 
 @intercept(HeadersInterceptor.BINDING_KEY)
@@ -42,6 +43,7 @@ export class UsersController {
     @inject(PackageKey) public packageInfo: PackageInfo,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(TutorialLinksListBinding) public tutLinks: TutorialLinks,
+    @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
     @inject(SecurityBindings.USER) private currentUserProfile: CurrentUserProfile,
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
     @inject(AppVersionBindings.ANDROID_VERSION) private androidVersion: string,
@@ -121,8 +123,9 @@ export class UsersController {
 
       return _.assign(user, { jointAccounts: await this.jointController.getJointAccounts() });
     } catch (err) {
-      console.error(err);
-      throw new HttpErrors.NotImplemented(err.messsage);
+      const errMsg = err.messsage;
+      this.logger.log('error', errMsg);
+      throw new HttpErrors.NotImplemented(errMsg);
     }
   }
 
@@ -179,10 +182,14 @@ export class UsersController {
     return this.usersRepository.updateById(this.userId, updateUserReqBody).catch(err => {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         if (err.sqlMessage.endsWith("'users.username'")) {
+          const errMsg = this.locMsg['USERNAME_UNAVAILABLE'][this.lang];
+          this.logger.log('error', `ER_DUP_ENTRY_USERNAME ${errMsg}`);
           throw new HttpErrors.Conflict(this.locMsg['USERNAME_UNAVAILABLE'][this.lang]);
         }
       }
-      throw new HttpErrors.NotAcceptable(err.message);
+      const errMsg = err.message;
+      this.logger.log('error', `UNHANDLED_ERROR ${errMsg}`);
+      throw new HttpErrors.NotAcceptable(errMsg);
     });
   }
 
@@ -264,95 +271,99 @@ export class UsersController {
       forceUpdate: boolean;
       updateMessage: string;
     };
-  }> {
-    const nowUTC = moment.utc();
+  } | void> {
+    try {
+      const nowUTC = moment.utc();
 
-    const foundUser = await this.usersRepository.findById(this.userId, {
-      fields: {
-        userId: true,
-        name: true,
-        roles: true,
-        registeredAt: true,
-        userAgent: true,
-        setting: true,
-      },
-      include: [
-        {
-          relation: 'setting',
-          scope: {
-            fields: { userId: true, language: true, currency: true },
-            where: { deleted: false },
-          },
+      const foundUser = await this.usersRepository.findById(this.userId, {
+        fields: {
+          userId: true,
+          name: true,
+          roles: true,
+          registeredAt: true,
+          userAgent: true,
+          setting: true,
         },
-        {
-          relation: 'subscriptions',
-          scope: {
-            limit: 1,
-            fields: { userId: true, solTime: true, eolTime: true },
-            where: {
-              solTime: { lte: nowUTC.toISOString() },
-              eolTime: { gte: nowUTC.toISOString() },
-              deleted: false,
+        include: [
+          {
+            relation: 'setting',
+            scope: {
+              fields: { userId: true, language: true, currency: true },
+              where: { deleted: false },
             },
           },
-        },
-        {
-          relation: 'scores',
-          scope: {
-            fields: { userId: true, score: true },
-            where: { deleted: false },
+          {
+            relation: 'subscriptions',
+            scope: {
+              limit: 1,
+              fields: { userId: true, solTime: true, eolTime: true },
+              where: {
+                solTime: { lte: nowUTC.toISOString() },
+                eolTime: { gte: nowUTC.toISOString() },
+                deleted: false,
+              },
+            },
           },
+          {
+            relation: 'scores',
+            scope: {
+              fields: { userId: true, score: true },
+              where: { deleted: false },
+            },
+          },
+        ],
+      });
+
+      const hasSubs = foundUser.subscriptions ? foundUser.subscriptions.length > 0 : false;
+
+      const roles = foundUser.roles;
+
+      if (hasSubs && !roles.includes('GOLD')) {
+        roles[roles.indexOf('BRONZE')] = 'GOLD';
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository.updateById(this.userId, { roles: roles });
+      }
+
+      if (!hasSubs && roles.includes('GOLD')) {
+        roles[roles.indexOf('GOLD')] = 'BRONZE';
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository.updateById(this.userId, { roles: roles });
+      }
+
+      const updateForced =
+        this.currentUserProfile.platform === 'iOS'
+          ? false
+          : this.packageInfo.systemStatus.forceUpdate;
+      const appVersion =
+        this.currentUserProfile.platform === 'Android'
+          ? this.androidVersion
+          : this.currentUserProfile.platform === 'iOS'
+          ? this.iosVersion
+          : this.packageInfo.version;
+
+      return {
+        roles: roles,
+        totalScores: this.currentUserProfile.totalScores,
+        name: foundUser.name,
+        planId: hasSubs ? foundUser.subscriptions[0].planId : null,
+        solTime: hasSubs ? foundUser.subscriptions[0].solTime : null,
+        eolTime: hasSubs ? foundUser.subscriptions[0].eolTime : null,
+        language: foundUser.setting.language,
+        currency: foundUser.setting.currency,
+        registeredAt: foundUser.registeredAt,
+        externalLinks: this.tutLinks,
+        application: {
+          accessTokenExpiresIn: +this.accessExpiresIn,
+          version: appVersion,
+          forceUpdate: updateForced,
+          maintenance: this.packageInfo.systemStatus.maintenance,
+          message: util.format(this.locMsg['SERVER_MAINTENACE'][this.lang], this.userName),
+          updateMessage: util.format(this.locMsg['UPDATE_MESSAGE'][this.lang], appVersion),
         },
-      ],
-    });
-
-    const hasSubs = foundUser.subscriptions ? foundUser.subscriptions.length > 0 : false;
-
-    const roles = foundUser.roles;
-
-    if (hasSubs && !roles.includes('GOLD')) {
-      roles[roles.indexOf('BRONZE')] = 'GOLD';
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepository.updateById(this.userId, { roles: roles });
+      };
+    } catch (err) {
+      this.logger.log('error', err.message);
     }
-
-    if (!hasSubs && roles.includes('GOLD')) {
-      roles[roles.indexOf('GOLD')] = 'BRONZE';
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepository.updateById(this.userId, { roles: roles });
-    }
-
-    const updateForced =
-      this.currentUserProfile.platform === 'iOS'
-        ? false
-        : this.packageInfo.systemStatus.forceUpdate;
-    const appVersion =
-      this.currentUserProfile.platform === 'Android'
-        ? this.androidVersion
-        : this.currentUserProfile.platform === 'iOS'
-        ? this.iosVersion
-        : this.packageInfo.version;
-
-    return {
-      roles: roles,
-      totalScores: this.currentUserProfile.totalScores,
-      name: foundUser.name,
-      planId: hasSubs ? foundUser.subscriptions[0].planId : null,
-      solTime: hasSubs ? foundUser.subscriptions[0].solTime : null,
-      eolTime: hasSubs ? foundUser.subscriptions[0].eolTime : null,
-      language: foundUser.setting.language,
-      currency: foundUser.setting.currency,
-      registeredAt: foundUser.registeredAt,
-      externalLinks: this.tutLinks,
-      application: {
-        accessTokenExpiresIn: +this.accessExpiresIn,
-        version: appVersion,
-        forceUpdate: updateForced,
-        maintenance: this.packageInfo.systemStatus.maintenance,
-        message: util.format(this.locMsg['SERVER_MAINTENACE'][this.lang], this.userName),
-        updateMessage: util.format(this.locMsg['UPDATE_MESSAGE'][this.lang], appVersion),
-      },
-    };
   }
 
   @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
@@ -388,18 +399,23 @@ export class UsersController {
         fields: { phoneLocked: true, emailLocked: true },
       });
 
-      if (foundUser.phoneLocked && foundUser.emailLocked) throw new Error('DONE');
+      if (foundUser.isCompleted) {
+        const errMsg = 'SIGNUP_COMPLETED';
+        throw new Error(errMsg);
+      }
 
       const userProps = new Users(_.pick(cmpltSignBody, ['avatar', 'name', 'referralCode']));
       const settingProps = new Settings(_.pick(cmpltSignBody, ['language', 'currency']));
       const userRelProps = new UsersRels(_.pick(cmpltSignBody, ['avatar', 'name']));
 
-      if (!foundUser.phoneLocked && cmpltSignBody.phone) {
+      if (!foundUser.phone && cmpltSignBody.phone) {
         const postedPhone = cmpltSignBody.phone;
 
         userProps.phoneLocked = true;
         userProps.phone = postedPhone;
         userProps.region = this.phoneNumService.getRegionCodeISO(postedPhone);
+        userProps.isCompleted = true;
+
         userRelProps.phone = postedPhone;
       }
 
@@ -408,6 +424,8 @@ export class UsersController {
 
         userProps.emailLocked = true;
         userProps.email = postedEmail;
+        userProps.isCompleted = true;
+
         userRelProps.email = postedEmail;
       }
 
@@ -427,15 +445,20 @@ export class UsersController {
       if (err.errno === 1062 && err.code === 'ER_DUP_ENTRY') {
         if (err.sqlMessage.endsWith("'phone'")) {
           errMsg = this.locMsg['COMPLETE_SIGNUP_CONFILICT_PHONE'][this.lang];
+          this.logger.log('error', `ER_DUP_ENTRY ${errMsg}`);
         } else if (err.sqlMessage.endsWith("'email'")) {
           errMsg = this.locMsg['COMPLETE_SIGNUP_CONFILICT_EMAIL'][this.lang];
+          this.logger.log('error', `ER_DUP_ENTRY ${errMsg}`);
         }
-
         throw new HttpErrors.Conflict(errMsg);
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
-        throw new HttpErrors.NotAcceptable(err.message);
+        errMsg = err.message;
+        this.logger.log('error', `ER_DATA_TOO_LONG ${errMsg}`);
+        throw new HttpErrors.NotAcceptable(errMsg);
       } else {
-        throw new HttpErrors.NotAcceptable(err.message);
+        errMsg = err.message;
+        this.logger.log('error', errMsg);
+        throw new HttpErrors.NotAcceptable(errMsg);
       }
     }
   }
@@ -456,7 +479,10 @@ export class UsersController {
       username: username,
     });
 
-    if (foundUsername.count)
-      throw new HttpErrors.Conflict(this.locMsg['USERNAME_UNAVAILABLE'][this.lang]);
+    if (foundUsername.count) {
+      const errMsg = this.locMsg['USERNAME_UNAVAILABLE'][this.lang];
+      this.logger.log('error', `USERNAME_UNAVAILABLE ${errMsg}`);
+      throw new HttpErrors.Conflict(errMsg);
+    }
   }
 }

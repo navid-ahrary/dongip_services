@@ -5,6 +5,7 @@ import {
   UserServiceBindings,
 } from '@loopback/authentication-jwt';
 import { BindingScope, inject, injectable, service } from '@loopback/core';
+import { LoggingBindings, WinstonLogger } from '@loopback/logging';
 import { repository } from '@loopback/repository';
 import { HttpErrors, RequestContext } from '@loopback/rest';
 import { securityId } from '@loopback/security';
@@ -33,6 +34,7 @@ export class VerifyService {
   constructor(
     @inject.context() public ctx: RequestContext,
     @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
+    @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
     @inject(CategoriesSourceListBindings) private catSrc: CategoriesSource,
     @inject(TokenServiceBindings.TOKEN_SERVICE) private jwtService: TokenService,
     @inject(UserServiceBindings.USER_SERVICE) private userService: UserService<Users, Credentials>,
@@ -53,18 +55,17 @@ export class VerifyService {
   generateRandomCode() {
     return Math.random().toFixed(7).slice(3);
   }
+
   /*
    * Add service methods here
    */
   private generateRandomString(length: number) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&[]()_+-*~/?><:;|',
-      charsLength = chars.length;
-
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    const charsLength = chars.length;
     let randomStr = '';
     for (let i = 0; i < length; i++) {
       randomStr += chars.charAt(Math.floor(Math.random() * charsLength));
     }
-
     return randomStr;
   }
 
@@ -91,7 +92,7 @@ export class VerifyService {
 
   public async verifyWithPhone(phoneValue: string, smsSignature = ' ') {
     const foundUser = await this.usersRepository.findOne({
-      fields: { name: true, avatar: true, phone: true, phoneLocked: true },
+      fields: { name: true, avatar: true, phone: true, phoneLocked: true, isCompleted: true },
       where: { phone: phoneValue, deleted: false },
     });
 
@@ -110,7 +111,9 @@ export class VerifyService {
         ipAddress: this.getClientRealIp(),
       })
       .catch(err => {
-        throw new HttpErrors.NotAcceptable(err.message);
+        const errMsg = err.message;
+        this.logger.log('error', errMsg);
+        throw new HttpErrors.NotAcceptable(errMsg);
       });
 
     const userProfile = {
@@ -142,12 +145,12 @@ export class VerifyService {
         await this.verifyRepository.updateById(createdVerify.getId(), {
           kavenegarStatusCode: err.statusCode,
         });
-        console.error(moment().format(), JSON.stringify(err));
+        this.logger.log('error', err.message);
       });
 
     return {
       status: _.isObjectLike(foundUser),
-      isCompleted: foundUser?.phoneLocked ?? false,
+      isCompleted: foundUser?.isCompleted ?? false,
       avatar: foundUser?.avatar ?? 'dongip',
       name: foundUser?.name ?? 'noob',
       prefix: randomString,
@@ -175,7 +178,9 @@ export class VerifyService {
         ipAddress: this.getClientRealIp(),
       })
       .catch(err => {
-        throw new HttpErrors.NotAcceptable(err.message);
+        const errMsg = err.message;
+        this.logger.log('error', errMsg);
+        throw new HttpErrors.NotAcceptable(errMsg);
       });
 
     const userProfile = {
@@ -199,7 +204,7 @@ export class VerifyService {
 
     return {
       status: _.isObjectLike(foundUser),
-      isCompleted: foundUser?.phoneLocked ?? false,
+      isCompleted: foundUser?.isCompleted ?? false,
       avatar: foundUser?.avatar ?? 'dongip',
       name: foundUser?.name ?? 'noob',
       prefix: randomString,
@@ -250,8 +255,8 @@ export class VerifyService {
         const resp = {
           userId: user.getId(),
           status: _.isObjectLike(user),
-          isCompleted: user?.phoneLocked ?? false,
-          avatar: user?.avatar ?? 'dongip',
+          isCompleted: user.isCompleted,
+          avatar: user.avatar ?? 'dongip',
           phone: user.phone,
           name: user.name,
           email: user.email,
@@ -265,6 +270,7 @@ export class VerifyService {
         user = new Users({
           email: emailValue,
           emailLocked: true,
+          isCompleted: false,
           userAgent: this.ctx.request.headers['user-agent'],
           platform: this.ctx.request.headers['platform']?.toString(),
           appVersion: this.ctx.request.headers['app-version']?.toString(),
@@ -274,8 +280,8 @@ export class VerifyService {
         return await this.createUser(user, setting);
       }
     } catch (err) {
-      console.error(err.message);
       const errMsg = this.locMsg[err.message][this.lang];
+      this.logger.log('error', errMsg);
       throw new HttpErrors.UnprocessableEntity(errMsg);
     }
   }
@@ -333,7 +339,7 @@ export class VerifyService {
         userId: savedUser.getId(),
         planId: planId,
         status: _.isObjectLike(user),
-        isCompleted: savedUser?.phoneLocked ?? false,
+        isCompleted: user.isCompleted,
         avatar: savedUser?.avatar ?? 'dongip',
         solTime: roles.includes('GOLD') ? moment(nowUTC).utc().toISOString() : null,
         eolTime: roles.includes('GOLD') ? moment(nowUTC).utc().add(1, 'year').toISOString() : null,
@@ -346,23 +352,33 @@ export class VerifyService {
       return resp;
     } catch (err) {
       if (err.message === 'WRONG_VERIFY_CODE') {
-        throw new HttpErrors.NotAcceptable(this.locMsg[err.message][this.lang]);
+        const errMsg = this.locMsg['WRONG_VERIFY_CODE'][this.lang];
+        this.logger.log('error', errMsg);
+        throw new HttpErrors.NotAcceptable(errMsg);
       } else if (
         err.errno === 1062 &&
         err.code === 'ER_DUP_ENTRY' &&
         err.sqlMessage.endsWith("'phone'")
       ) {
-        throw new HttpErrors.Conflict(this.locMsg['SINGUP_CONFILCT_PHONE'][this.lang]);
+        const errMsg = this.locMsg['SINGUP_CONFILCT_PHONE'][this.lang];
+        this.logger.log('error', `SINGUP_CONFILCT_PHONE ${errMsg}`);
+        throw new HttpErrors.Conflict(errMsg);
       } else if (
         err.errno === 1062 &&
         err.code === 'ER_DUP_ENTRY' &&
         err.sqlMessage.endsWith("'email'")
       ) {
-        throw new HttpErrors.Conflict(this.locMsg['COMPLETE_SIGNUP_CONFILICT_EMAIL'][this.lang]);
+        const errMsg = this.locMsg['COMPLETE_SIGNUP_CONFILICT_EMAIL'][this.lang];
+        this.logger.log('error', `COMPLETE_SIGNUP_CONFILICT_EMAIL ${errMsg}`);
+        throw new HttpErrors.Conflict(errMsg);
       } else if (err.errno === 1406 && err.code === 'ER_DATA_TOO_LONG') {
-        throw new HttpErrors.NotAcceptable(err.message);
+        const errMsg = err.message;
+        this.logger.log('error', `ER_DATA_TOO_LONG ${errMsg}`);
+        throw new HttpErrors.NotAcceptable(errMsg);
       } else {
-        throw new HttpErrors.NotAcceptable(err.message);
+        const errMsg = err.message;
+        this.logger.log('error', errMsg);
+        throw new HttpErrors.NotAcceptable(errMsg);
       }
     }
   }
@@ -457,7 +473,7 @@ export class VerifyService {
         }),
       );
     } catch (err) {
-      console.error(err);
+      this.logger.log('error', err.message);
     }
   }
 
