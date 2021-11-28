@@ -273,17 +273,12 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
       enableHttpAccessLog: true, // default to true
     });
 
-    const myFormat = format.printf(({ level, message, timestamp }) => {
-      return `${timestamp} ${level}: ${message}`;
-    });
-
     this.configure(LoggingBindings.WINSTON_LOGGER).to({
       format: format.combine(
         format.colorize({ colors: { error: 'red', info: 'blue' }, all: true }),
         format.timestamp({ format: () => moment().format('YYYY-MM-DD HH:mm:ssZ') }),
-        myFormat,
+        format.printf(({ level, message, timestamp }) => `${timestamp} ${level}: ${message}`),
       ),
-      defaultMeta: { framework: 'LoopBack' },
     });
 
     this.configure(LoggingBindings.WINSTON_HTTP_ACCESS_LOGGER).to({
