@@ -140,18 +140,18 @@ export class AuthController {
       throw new HttpErrors.UnprocessableEntity('One of phone and email must be provided');
     }
 
-    const countRequstedVerifyCode = await this.verifyRepository.count({
-      ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
-      phone: { nin: ['+989197744814', '+989176502184'] },
-      email: { nin: ['arefrafei92@gmail.com', 'navidarry@gmail.com'] },
-      createdAt: {
-        between: [moment.utc().subtract(5, 'minutes').toISOString(), moment.utc().toISOString()],
-      },
-    });
+    // const countRequstedVerifyCode = await this.verifyRepository.count({
+    //   ipAddress: this.ctx.request.headers['ar-real-ip']?.toString(),
+    //   phone: { nin: ['+989197744814', '+989176502184'] },
+    //   email: { nin: ['arefrafei92@gmail.com', 'navidarry@gmail.com'] },
+    //   createdAt: {
+    //     between: [moment.utc().subtract(5, 'minutes').toISOString(), moment.utc().toISOString()],
+    //   },
+    // });
 
-    if (countRequstedVerifyCode.count >= 3) {
-      throw new HttpErrors.TooManyRequests(this.locMsg['TOO_MANY_REQUEST'][this.lang]);
-    }
+    // if (countRequstedVerifyCode.count >= 3) {
+    //   throw new HttpErrors.TooManyRequests(this.locMsg['TOO_MANY_REQUEST'][this.lang]);
+    // }
 
     if (verifyReqBody.phone) {
       const phoneValue = verifyReqBody.phone;
