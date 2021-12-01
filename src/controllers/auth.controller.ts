@@ -291,7 +291,6 @@ export class AuthController {
         accessToken: accessToken,
         refreshToken: refToken,
       };
-
       return resp;
     } catch (err) {
       this.logger.log('error', err.message);

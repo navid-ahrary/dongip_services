@@ -272,7 +272,6 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
       enableFluent: false, // default to true
       enableHttpAccessLog: true, // default to true
     });
-
     this.configure(LoggingBindings.WINSTON_LOGGER).to({
       format: format.combine(
         format.colorize({ colors: { error: 'red', info: 'blue' }, all: true }),
@@ -280,11 +279,9 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
         format.printf(({ level, message, timestamp }) => `${timestamp} ${level}: ${message}`),
       ),
     });
-
     this.configure(LoggingBindings.WINSTON_HTTP_ACCESS_LOGGER).to({
       format: ':remote-addr - :remote-user :method :url :status ":user-agent" - :response-time ms',
     });
-
     this.component(LoggingComponent);
   }
 }
