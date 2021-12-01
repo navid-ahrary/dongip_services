@@ -153,20 +153,24 @@ export class AuthController {
     //   throw new HttpErrors.TooManyRequests(this.locMsg['TOO_MANY_REQUEST'][this.lang]);
     // }
 
-    if (verifyReqBody.phone) {
-      const phoneValue = verifyReqBody.phone;
-      const smsSignature = verifyReqBody.smsSignature;
+    try {
+      if (verifyReqBody.phone) {
+        const phoneValue = verifyReqBody.phone;
+        const smsSignature = verifyReqBody.smsSignature;
 
-      const res = await this.verifyService.verifyWithPhone(phoneValue, smsSignature);
-      return res;
-    } else if (verifyReqBody.email) {
-      const emailValue = verifyReqBody.email;
+        const res = await this.verifyService.verifyWithPhone(phoneValue, smsSignature);
+        return res;
+      } else if (verifyReqBody.email) {
+        const emailValue = verifyReqBody.email;
 
-      if (verifyReqBody.verifyStrategy === 'google') {
-        return this.verifyService.loginWithGoogle(emailValue);
+        if (verifyReqBody.verifyStrategy === 'google') {
+          return await this.verifyService.loginWithGoogle(emailValue);
+        }
+        const res = await this.verifyService.verifyWithEmail(emailValue);
+        return res;
       }
-      const res = await this.verifyService.verifyWithEmail(emailValue);
-      return res;
+    } catch (err) {
+      this.logger.log('error', err.message);
     }
   }
 
