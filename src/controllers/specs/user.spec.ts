@@ -19,6 +19,7 @@ export const UserPatchRequestBody = {
           'userAgent',
           'phoneLocked',
           'emailLocked',
+          'isCompleted',
           'deleted',
         ],
         optional: ['phone', 'email'],
