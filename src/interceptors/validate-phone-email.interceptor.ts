@@ -55,13 +55,13 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
       'login',
       'signup',
       'updateUserById',
-      'createUsersRels',
-      'updateUsersRelsById',
+      // 'createUsersRels',
+      // 'updateUsersRelsById',
       'completeSignup',
     ];
 
     if (funcNameList.includes(invocationCtx.methodName)) {
-      if (invocationCtx.args[0].phone) {
+      if (_.has(invocationCtx.args[0], 'phone')) {
         const phoneValue = invocationCtx.args[0].phone;
 
         if (!this.phoneNumberService.isValid(phoneValue)) {
@@ -80,7 +80,7 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
         invocationCtx.args[0].phone = normalizedPhoneValue;
       }
 
-      if (invocationCtx.args[0].email) {
+      if (_.has(invocationCtx.args[0], 'email')) {
         const emailValue = invocationCtx.args[0].email;
 
         if (!(await this.emailService.isValid(emailValue))) {

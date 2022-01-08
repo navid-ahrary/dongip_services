@@ -18,7 +18,7 @@ import { SecurityBindings, securityId } from '@loopback/security';
 import _ from 'lodash';
 import moment from 'moment';
 import util from 'util';
-import { ValidatePhoneEmailInterceptor, ValidateUsersRelsInterceptor } from '../interceptors';
+import { ValidateUsersRelsInterceptor } from '../interceptors';
 import { LocMsgsBindings } from '../keys';
 import { Users, UsersRels } from '../models';
 import {
@@ -31,7 +31,6 @@ import {
 import { CurrentUserProfile, FirebaseService, PhoneNumberService } from '../services';
 import { LocalizedMessages } from '../types';
 
-@intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 export class UsersRelsController {
   private readonly userId: typeof Users.prototype.userId;
