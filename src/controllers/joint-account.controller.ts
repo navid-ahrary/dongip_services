@@ -696,11 +696,4 @@ export class JointAccountController {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     if (notifyMsgs.length) this.firebaseSerice.sendAllMessage(notifyMsgs);
   }
-
-  @del('/groups/', {
-    deprecated: true,
-    security: OPERATION_SECURITY_SPEC,
-    responses: { '204': { description: 'No content' } },
-  })
-  del() {}
 }
