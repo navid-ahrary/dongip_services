@@ -80,7 +80,7 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
         invocationCtx.args[0].phone = normalizedPhoneValue;
       }
 
-      if (invocationCtx.args[0].phone) {
+      if (invocationCtx.args[0].email) {
         const emailValue = invocationCtx.args[0].email;
 
         if (!(await this.emailService.isValid(emailValue))) {
