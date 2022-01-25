@@ -557,7 +557,7 @@ export class JointAccountController {
           });
 
           notifyMsgs.push({
-            token: user.firebaseToken ?? '',
+            token: user.firebaseToken ?? ' ',
             notification: {
               title: savedNotify.title,
               body: savedNotify.body,
@@ -593,7 +593,7 @@ export class JointAccountController {
           });
 
           notifyMsgs.push({
-            token: user.firebaseToken ?? '',
+            token: user.firebaseToken ?? ' ',
             notification: {
               title: savedNotify.title,
               body: savedNotify.body,
@@ -635,7 +635,7 @@ export class JointAccountController {
         });
 
         notifyMsgs.push({
-          token: user.firebaseToken ?? '',
+          token: user.firebaseToken ?? ' ',
           notification: {
             title: savedNotify.title,
             body: savedNotify.body,
@@ -676,7 +676,7 @@ export class JointAccountController {
         });
 
         notifyMsgs.push({
-          token: user.firebaseToken ?? '',
+          token: user.firebaseToken ?? ' ',
           notification: {
             title: savedNotify.title,
             body: savedNotify.body,

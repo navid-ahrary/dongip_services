@@ -231,7 +231,7 @@ export class UsersRelsController {
             }),
           })
           .then(async createdNotify => {
-            const token = foundTargetUser.firebaseToken ?? '';
+            const token = foundTargetUser.firebaseToken ?? ' ';
             await this.firebaseService.sendToDeviceMessage(token, {
               notification: {
                 title: notifyTitle,

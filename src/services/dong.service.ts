@@ -261,7 +261,7 @@ export class DongService {
                     this.locMsg['CURRENCY'][targetUserLang][createdDong.currency],
                     foundMutualUsersRels.name,
                   ),
-                  desc: createdDong.desc ?? '',
+                  desc: createdDong.desc ?? ' ',
                   type: 'dong',
                   categoryTitle: currentUser.categories[0].title,
                   categoryIcon: currentUser.categories[0].icon,
@@ -360,12 +360,12 @@ export class DongService {
       let splittedCatgTitle: string[] = [];
       const cFa = _.find(catsFa, c => c.title === currentUserCateg.title);
       if (cFa) {
-        const titleEn = _.find(catsEn, c => c.id === cFa.id)?.title ?? '';
+        const titleEn = _.find(catsEn, c => c.id === cFa.id)?.title ?? ' ';
         splittedCatgTitle.push(titleEn);
       }
       const cEn = _.find(catsEn, c => c.title === currentUserCateg.title);
       if (cEn) {
-        const titleFa = _.find(catsFa, c => c.id === cEn.id)?.title ?? '';
+        const titleFa = _.find(catsFa, c => c.id === cEn.id)?.title ?? ' ';
         splittedCatgTitle.push(titleFa);
       }
       splittedCatgTitle = _.concat(
@@ -534,7 +534,7 @@ export class DongService {
             jointAccountId: JA.getId().toString(),
             title: notifyData.title!,
             body: notifyData.body!,
-            desc: notifyData.desc ?? '',
+            desc: notifyData.desc ?? ' ',
             type: notifyData.type!,
             categoryId: catg.getId().toString(),
             categoryTitle: notifyData.categoryTitle!,
