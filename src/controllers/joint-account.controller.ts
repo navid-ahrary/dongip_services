@@ -2,7 +2,7 @@ import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { authorize } from '@loopback/authorization';
 import { inject, intercept, service } from '@loopback/core';
-import { DataObject, repository } from '@loopback/repository';
+import { repository } from '@loopback/repository';
 import {
   del,
   get,
@@ -55,16 +55,16 @@ export class JointAccountController {
 
   constructor(
     @inject.context() private ctx: RequestContext,
-    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
     @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
-    @service(FirebaseService) public firebaseSerice: FirebaseService,
-    @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
-    @repository(DongsRepository) public dongRepo: DongsRepository,
-    @repository(UsersRepository) public usersRepo: UsersRepository,
-    @repository(UsersRelsRepository) public usersRelsRepo: UsersRelsRepository,
-    @repository(JointAccountsRepository) public jointAccountsRepo: JointAccountsRepository,
+    @service(FirebaseService) private firebaseSerice: FirebaseService,
+    @service(PhoneNumberService) private phoneNumService: PhoneNumberService,
+    @repository(DongsRepository) private dongRepo: DongsRepository,
+    @repository(UsersRepository) private usersRepo: UsersRepository,
+    @repository(UsersRelsRepository) private usersRelsRepo: UsersRelsRepository,
+    @repository(JointAccountsRepository) private jointAccountsRepo: JointAccountsRepository,
     @repository(JointAccountSubscribesRepository)
-    public jointAccSubscribesRepo: JointAccountSubscribesRepository,
+    private jointAccSubscribesRepo: JointAccountSubscribesRepository,
   ) {
     this.userId = +currentUserProfile[securityId];
     this.phone = currentUserProfile.phone!;
@@ -129,7 +129,7 @@ export class JointAccountController {
         userRelId: { inq: jointAccountsReq.userRelIds },
       },
     });
-    const jsList: Array<DataObject<JointAccountSubscribes>> = [];
+    const jsList: Array<JointAccountSubscribes> = [];
 
     for (const ur of urs) {
       const user = await this.usersRepo.findOne({
@@ -141,13 +141,18 @@ export class JointAccountController {
         ],
       });
 
-      jsList.push({ jointAccountId: JA.jointAccountId, userId: user!.getId() });
+      jsList.push(
+        new JointAccountSubscribes({
+          jointAccountId: JA.jointAccountId,
+          userId: user!.getId(),
+        }),
+      );
 
       if (ur.type !== 'self') {
         const timezone = ct.getTimezonesForCountry(user!.region!)![0].name;
         const time = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
-        const savedNotify = await this.usersRepo.notifications(user?.getId()).create({
+        const savedNotify = await this.usersRepo.notifications(user!.getId()).create({
           jointAccountId: JA.getId(),
           type: 'jointAccount',
           title: util.format(this.locMsg['NEW_JOINT_ACCOUNT_NOTIFY_TITLE'][user!.setting.language]),
@@ -159,21 +164,23 @@ export class JointAccountController {
           createdAt: time,
         });
 
-        firebaseMessages.push({
-          token: user!.firebaseToken!,
-          notification: {
-            title: savedNotify.title,
-            body: savedNotify.body,
-          },
-          data: {
-            notifyId: savedNotify.getId().toString(),
-            title: savedNotify.title,
-            body: savedNotify.body,
-            jointAccountId: JA.getId().toString(),
-            type: savedNotify.type,
-            silent: 'false',
-          },
-        });
+        if (user?.firebaseToken) {
+          firebaseMessages.push({
+            token: user!.firebaseToken,
+            notification: {
+              title: savedNotify.title,
+              body: savedNotify.body,
+            },
+            data: {
+              notifyId: savedNotify.getId().toString(),
+              title: savedNotify.title,
+              body: savedNotify.body,
+              jointAccountId: JA.getId().toString(),
+              type: savedNotify.type,
+              silent: 'false',
+            },
+          });
+        }
       }
     }
 
