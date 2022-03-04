@@ -14,7 +14,7 @@ import {
   PayerList,
   PostDong,
   Receipts,
-  Users,
+  Users
 } from '../models';
 import {
   BillListRepository,
@@ -24,7 +24,7 @@ import {
   PayerListRepository,
   ReceiptsRepository,
   UsersRelsRepository,
-  UsersRepository,
+  UsersRepository
 } from '../repositories';
 import { CategoriesSource, LocalizedMessages } from '../types';
 import { BatchMessage, FirebaseService } from './firebase.service';
@@ -73,13 +73,13 @@ export class DongService {
       currentUserIsPayer: Boolean = false,
       firebaseMessagesList: BatchMessage = [];
 
-    _.forEach(payerList, item => {
+      payerList.forEach( item => {
       if (!allUsersRelsIdList.includes(item.userRelId)) {
         allUsersRelsIdList.push(item.userRelId);
       }
     });
 
-    _.forEach(billList, item => {
+    billList.forEach( item => {
       if (!allUsersRelsIdList.includes(item.userRelId)) {
         allUsersRelsIdList.push(item.userRelId);
       }
@@ -177,7 +177,7 @@ export class DongService {
         });
       }
 
-      _.forEach(payerList, item => {
+      payerList.forEach(item => {
         _.assign(item, {
           userId: userId,
           dongId: createdDong.getId(),
@@ -185,11 +185,11 @@ export class DongService {
           categoryId: createdDong.categoryId,
           currency: createdDong.currency,
           jointAccountId: createdDong.jointAccountId,
-          userRelName: _.find(usersRels, rel => rel.getId() === item.userRelId)?.name,
+          userRelName: usersRels.find(rel => rel.getId() === item.userRelId)?.name,
         });
       });
 
-      _.forEach(billList, item => {
+      billList.forEach(item => {
         _.assign(item, {
           userId: userId,
           dongId: createdDong.getId(),
@@ -197,7 +197,7 @@ export class DongService {
           categoryId: createdDong.categoryId,
           currency: createdDong.currency,
           jointAccountId: createdDong.jointAccountId,
-          userRelName: _.find(usersRels, rel => rel.getId() === item.userRelId)?.name,
+          userRelName: usersRels.find(rel => rel.getId() === item.userRelId)?.name,
         });
       });
 
@@ -277,29 +277,31 @@ export class DongService {
                   .notifications(targetUser.getId())
                   .create(notifyData);
 
-                // Generate notification messages
-                firebaseMessagesList.push({
-                  token: targetUser.firebaseToken ?? ' ',
-                  notification: {
-                    title: notifyData.title,
-                    body: notifyData.body,
-                  },
-                  data: {
-                    notifyId: createdNotify.getId().toString(),
-                    title: notifyData.title!,
-                    body: notifyData.body!,
-                    desc: notifyData.desc!,
-                    type: notifyData.type!,
-                    categoryTitle: notifyData.categoryTitle!,
-                    categoryIcon: notifyData.categoryIcon!,
-                    createdAt: notifyData.createdAt!,
-                    userRelId: notifyData.userRelId!.toString(),
-                    dongAmount: notifyData.dongAmount!.toString(),
-                    currency: createdNotify.currency!,
-                    dongId: notifyData.dongId!.toString(),
-                    receiptId: notifyData.receiptId?.toString() ?? ' ',
-                  },
-                });
+                if (targetUser.firebaseToken) {
+                  // Generate notification messages
+                  firebaseMessagesList.push({
+                    token: targetUser.firebaseToken,
+                    notification: {
+                      title: notifyData.title,
+                      body: notifyData.body,
+                    },
+                    data: {
+                      notifyId: createdNotify.getId().toString(),
+                      title: notifyData.title!,
+                      body: notifyData.body!,
+                      desc: notifyData.desc!,
+                      type: notifyData.type!,
+                      categoryTitle: notifyData.categoryTitle!,
+                      categoryIcon: notifyData.categoryIcon!,
+                      createdAt: notifyData.createdAt!,
+                      userRelId: notifyData.userRelId!.toString(),
+                      dongAmount: notifyData.dongAmount!.toString(),
+                      currency: createdNotify.currency!,
+                      dongId: notifyData.dongId!.toString(),
+                      receiptId: notifyData.receiptId?.toString() ?? ' ',
+                    },
+                  });
+                }
               }
             }
           }
@@ -310,8 +312,9 @@ export class DongService {
           }
         }
       } else if (currentUser.jointAccountSubscribes) {
+        if()
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.submitJoint(currentUser, createdDong, newDong.receiptId);
+        this.submitPublicJoint(currentUser, createdDong, newDong.receiptId);
       }
 
       const calculatedScore = newDongScore + mutualFactor * mutualFriendScore;
@@ -330,7 +333,7 @@ export class DongService {
     }
   }
 
-  async submitJoint(
+  async submitPublicJoint(
     currentUser: Users,
     dong: Partial<Dongs>,
     receiptId?: typeof Receipts.prototype.receiptId,
