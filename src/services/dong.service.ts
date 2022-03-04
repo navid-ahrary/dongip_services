@@ -450,7 +450,7 @@ export class DongService {
 
         const billers: Array<DataObject<BillList>> = [];
         for (const biller of billList) {
-          const ur = _.find(currentUser.usersRels, rel => rel.getId() === biller.userRelId);
+          const ur = currentUser.usersRels.find(rel => rel.getId() === biller.userRelId);
 
           const mutualRel = await this.usersRelsRepository.findOne({
             where: { userId: user.getId(), phone: ur!.phone, deleted: false },
@@ -481,7 +481,7 @@ export class DongService {
 
         const payers: Array<DataObject<PayerList>> = [];
         for (const payer of payerList) {
-          const ur = _.find(currentUser.usersRels, rel => rel.getId() === payer.userRelId);
+          const ur = currentUser.usersRels.find(rel => rel.getId() === payer.userRelId);
 
           const mutualRel = await this.usersRelsRepository.findOne({
             where: { userId: user.getId(), phone: ur?.phone, deleted: false },
@@ -515,7 +515,6 @@ export class DongService {
         const createdBills = await this.billListRepository.createAll(billers);
         createdDong.billList = createdBills;
 
-        const firebaseToken = user.firebaseToken ?? ' ';
         const lang = user.setting.language;
 
         const notifyData = new Notifications({
@@ -540,29 +539,31 @@ export class DongService {
           .notifications(user.getId())
           .create(notifyData);
 
-        firebaseMessages.push({
-          token: firebaseToken,
-          notification: {
-            title: notifyData.title,
-            body: notifyData.body,
-          },
-          data: {
-            notifyId: createdNotify.getId().toString(),
-            dongId: notifyData.dongId!.toString(),
-            jointAccountId: JA!.getId().toString(),
-            title: notifyData.title!,
-            body: notifyData.body!,
-            desc: notifyData.desc ?? ' ',
-            type: notifyData.type!,
-            categoryId: catg.getId().toString(),
-            categoryTitle: notifyData.categoryTitle!,
-            categoryIcon: notifyData.categoryIcon!,
-            userRelId: notifyData.userRelId!.toString(),
-            createdAt: moment(notifyData.createdAt).toISOString(),
-            receiptId: createdNotify.receiptId?.toString() ?? ' ',
-            silent: 'false',
-          },
-        });
+        if (user.firebaseToken) {
+          firebaseMessages.push({
+            token: user.firebaseToken,
+            notification: {
+              title: notifyData.title,
+              body: notifyData.body,
+            },
+            data: {
+              notifyId: createdNotify.getId().toString(),
+              dongId: notifyData.dongId!.toString(),
+              jointAccountId: JA!.getId().toString(),
+              title: notifyData.title!,
+              body: notifyData.body!,
+              desc: notifyData.desc ?? ' ',
+              type: notifyData.type!,
+              categoryId: catg.getId().toString(),
+              categoryTitle: notifyData.categoryTitle!,
+              categoryIcon: notifyData.categoryIcon!,
+              userRelId: notifyData.userRelId!.toString(),
+              createdAt: moment(notifyData.createdAt).toISOString(),
+              receiptId: createdNotify.receiptId?.toString() ?? ' ',
+              silent: 'false',
+            },
+          });
+        }
       }
 
       if (firebaseMessages.length) {
@@ -586,11 +587,13 @@ export class DongService {
     if (foundReciptRecord) {
       // Check Receipt record has been saved with current user
       if (foundReciptRecord.userId === data.userId) {
-        await this.usersRepository
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository
           .receipts(data.userId)
           .patch({ dongId: data.dongId }, { receiptId: data.receiptId });
       } else {
-        await this.usersRepository
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.usersRepository
           .receipts(data.userId)
           .create({ dongId: data.dongId, receiptName: foundReciptRecord?.receiptName });
       }
