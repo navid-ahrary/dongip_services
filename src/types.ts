@@ -14,7 +14,7 @@ export interface PackageInfo {
 }
 
 /**
- * Subscription specs from subscriotion-scpecs.json
+ * Subscription specs from subscription-scpecs.json
  */
 export interface SubscriptionSpec {
   baseCallbackUrl: string;

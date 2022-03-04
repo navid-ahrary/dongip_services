@@ -55,7 +55,7 @@ export class DongService {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
-  async createDongs(
+  public async createDongs(
     userId: number,
     newDong: PostDong,
   ): Promise<DataObject<Dongs> & { score: number }> {
@@ -347,11 +347,18 @@ export class DongService {
       delete savedDong.userId;
       delete savedDong.dongId;
 
-      const JA = await this.jointAccRepository.findById(
-        currentUser.jointAccountSubscribes[0].jointAccountId,
-      );
+      const JA = await this.jointAccRepository.findOne({
+        where: {
+          jointAccountId: currentUser.jointAccountSubscribes[0].jointAccountId,
+          deleted: false,
+        },
+      });
       const JASs = await this.jointAccSubRepository.find({
-        where: { userId: { neq: currentUser.getId() }, jointAccountId: JA.getId(), deleted: false },
+        where: {
+          userId: { neq: currentUser.getId() },
+          jointAccountId: JA!.getId(),
+          deleted: false,
+        },
       });
 
       const currentUserCateg = currentUser.categories[0];
@@ -501,7 +508,7 @@ export class DongService {
         const lang = user.setting.language;
 
         const notifyData = new Notifications({
-          title: util.format(this.locMsg['DONGIP_IN_GROUP_NOTIFY_TITLE'][lang], JA.title),
+          title: util.format(this.locMsg['DONGIP_IN_GROUP_NOTIFY_TITLE'][lang], JA!.title),
           body: util.format(
             this.locMsg['DONGIP_IN_GROUP_NOTIFY_BODY'][lang],
             this.numberWithCommas(createdDong.pong!),
@@ -531,7 +538,7 @@ export class DongService {
           data: {
             notifyId: createdNotify.getId().toString(),
             dongId: notifyData.dongId!.toString(),
-            jointAccountId: JA.getId().toString(),
+            jointAccountId: JA!.getId().toString(),
             title: notifyData.title!,
             body: notifyData.body!,
             desc: notifyData.desc ?? ' ',

@@ -6,7 +6,7 @@
     },
   ],
   "editor.tabCompletion": "on",
-  "editor.tabSize": 2,
+  "editor.tabSize": 4,
   "editor.trimAutoWhitespace": true,
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
@@ -31,7 +31,5 @@
     "fileMatch": ["*/models/*.json"],
     "url": "./schemas/apiconnectmodels.json"
   }
-],
-"editor.fontSize": 13,
-"editor.fontFamily": "'IBM Plex Mono', 'IBM Plex Mono', IBM Plex Mono, 'IBM Plex Sans'",
+]
 }
