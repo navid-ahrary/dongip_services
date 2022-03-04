@@ -14,7 +14,7 @@ import {
   PayerList,
   PostDong,
   Receipts,
-  Users
+  Users,
 } from '../models';
 import {
   BillListRepository,
@@ -24,7 +24,7 @@ import {
   PayerListRepository,
   ReceiptsRepository,
   UsersRelsRepository,
-  UsersRepository
+  UsersRepository,
 } from '../repositories';
 import { CategoriesSource, LocalizedMessages } from '../types';
 import { BatchMessage, FirebaseService } from './firebase.service';
@@ -73,13 +73,13 @@ export class DongService {
       currentUserIsPayer: Boolean = false,
       firebaseMessagesList: BatchMessage = [];
 
-      payerList.forEach( item => {
+    payerList.forEach(item => {
       if (!allUsersRelsIdList.includes(item.userRelId)) {
         allUsersRelsIdList.push(item.userRelId);
       }
     });
 
-    billList.forEach( item => {
+    billList.forEach(item => {
       if (!allUsersRelsIdList.includes(item.userRelId)) {
         allUsersRelsIdList.push(item.userRelId);
       }
@@ -98,10 +98,7 @@ export class DongService {
         {
           relation: 'categories',
           scope: {
-            where: {
-              categoryId: newDong.categoryId,
-              deleted: false,
-            },
+            where: { categoryId: newDong.categoryId, deleted: false },
           },
         },
         {
@@ -312,7 +309,6 @@ export class DongService {
           }
         }
       } else if (currentUser.jointAccountSubscribes) {
-        if()
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.submitPublicJoint(currentUser, createdDong, newDong.receiptId);
       }
@@ -406,14 +402,26 @@ export class DongService {
               relation: 'categories',
               scope: {
                 where: {
-                  or: [{ title: currentUserCateg.title }, { title: { inq: splittedCatgTitle } }],
+                  or: [
+                    {
+                      title: currentUserCateg.title,
+                    },
+                    {
+                      title: { inq: splittedCatgTitle },
+                    },
+                  ],
                   deleted: false,
                 },
               },
             },
             {
               relation: 'usersRels',
-              scope: { where: { phone: currentUser.phone, deleted: false } },
+              scope: {
+                where: {
+                  phone: currentUser.phone,
+                  deleted: false,
+                },
+              },
             },
           ],
         });
