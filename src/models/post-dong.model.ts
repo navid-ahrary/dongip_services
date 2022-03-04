@@ -90,11 +90,11 @@ export class PostDong extends Model {
 
   @property({
     type: 'any',
+    required: false,
+    default: true,
     jsonSchema: {
       oneOf: [{ type: 'null' }, { type: 'boolean', default: true }],
     },
-    required: false,
-    default: true,
   })
   includeBudget?: boolean | null;
 
