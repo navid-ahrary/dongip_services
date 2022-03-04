@@ -587,13 +587,11 @@ export class DongService {
     if (foundReciptRecord) {
       // Check Receipt record has been saved with current user
       if (foundReciptRecord.userId === data.userId) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.usersRepository
+        await this.usersRepository
           .receipts(data.userId)
           .patch({ dongId: data.dongId }, { receiptId: data.receiptId });
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.usersRepository
+        await this.usersRepository
           .receipts(data.userId)
           .create({ dongId: data.dongId, receiptName: foundReciptRecord?.receiptName });
       }
