@@ -16,10 +16,6 @@ import { ReceiptsController } from './receipts.controller';
 export class DongsReceiptsController {
   private readonly userId: typeof Users.prototype.userId;
 
-  /**
-   * Constructor
-   * @param handler - Inject an express request handler to deal with the request
-   */
   constructor(
     @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
     @inject('controllers.ReceiptsController') public receiptController: ReceiptsController,
