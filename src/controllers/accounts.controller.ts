@@ -88,7 +88,7 @@ export class AccountsController {
   @response(204, {
     description: 'Accounts PATCH success',
   })
-  async updateById(
+  updateById(
     @param.path.number('accountId') accountId: number,
     @requestBody({
       content: {
@@ -101,7 +101,7 @@ export class AccountsController {
       },
     })
     accounts: Accounts,
-  ): Promise<void> {
+  ): void {
     try {
       this.userRepo.accounts(this.userId).patch(accounts, {
         accountId: accountId,
@@ -117,7 +117,7 @@ export class AccountsController {
   @response(204, {
     description: 'Accounts DELETE success',
   })
-  async deleteById(@param.path.number('accountId') accountId: number): Promise<void> {
+  deleteById(@param.path.number('accountId') accountId: number): void {
     try {
       this.userRepo.accounts(this.userId).patch({ deleted: true }, { accountId: accountId });
     } catch (err) {
