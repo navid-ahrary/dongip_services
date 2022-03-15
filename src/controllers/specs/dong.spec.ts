@@ -1,10 +1,10 @@
 import { getModelSchemaRef, RequestBodyObject } from '@loopback/rest';
-import { PostDong } from '../../models';
+import { PostDongDto } from '../../models';
 
 export const createDongReqBodySpec: RequestBodyObject = {
   content: {
     'application/json': {
-      schema: getModelSchemaRef(PostDong, {
+      schema: getModelSchemaRef(PostDongDto, {
         title: 'NewDongs',
         optional: ['title', 'desc', 'jointAccountId', 'currency', 'income'],
       }),

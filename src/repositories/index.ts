@@ -20,3 +20,4 @@ export * from './users.repository';
 export * from './verify.repository';
 export * from './virtual-users.repository';
 export * from './wallets.repository';
+export * from './accounts.repository';

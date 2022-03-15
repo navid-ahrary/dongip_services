@@ -1,4 +1,5 @@
-import { belongsTo, Entity, hasMany, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, hasMany, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { Dongs } from './dongs.model';
 import {
   JointAccountSubscribes,
@@ -21,7 +22,7 @@ import { Users } from './users.model';
     },
   },
 })
-export class JointAccounts extends Entity {
+export class JointAccounts extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -58,19 +59,6 @@ export class JointAccounts extends Entity {
     },
   })
   description: string;
-
-  @property({
-    type: 'date',
-    required: true,
-    defaultFn: 'now',
-    mysql: {
-      columnName: 'created_at',
-      dataType: 'timestamp',
-      nullable: 'N',
-      default: 'now',
-    },
-  })
-  createdAt: string;
 
   @property({
     type: 'boolean',
@@ -122,20 +110,6 @@ export class JointAccounts extends Entity {
 
   @hasMany(() => Dongs, { keyTo: 'jointAccountId' })
   dongs: Dongs[];
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<JointAccounts>) {
     super(data);

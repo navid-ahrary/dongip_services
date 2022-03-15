@@ -1,4 +1,5 @@
-import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { Users } from './users.model';
 
 export enum PurchaseOriginEnum {
@@ -21,7 +22,7 @@ export enum PurchaseOriginEnum {
     },
   },
 })
-export class Purchases extends Entity {
+export class Purchases extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -70,17 +71,6 @@ export class Purchases extends Entity {
     },
   })
   purchaseOrigin: string;
-
-  @property({
-    type: 'date',
-    defaultFn: 'now',
-    mysql: {
-      columnName: 'created_at',
-      dataType: 'datetime',
-      nullable: 'N',
-    },
-  })
-  createdAt: string;
 
   @property({
     type: 'string',
@@ -136,20 +126,6 @@ export class Purchases extends Entity {
     },
   )
   userId?: number;
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<Purchases>) {
     super(data);

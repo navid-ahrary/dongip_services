@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { belongsTo, Entity, hasMany, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, hasMany, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { BillList } from './bill-list.model';
 import { Budgets } from './budgets.model';
 import { Dongs } from './dongs.model';
@@ -9,13 +10,6 @@ import { Users } from './users.model';
 @model({
   name: 'categories',
   settings: {
-    // indexes: {
-    //   'user_id&title': {
-    //     name: 'user_id&title',
-    //     columns: 'user_id, title',
-    //     options: { unique: true },
-    //   },
-    // },
     foreignKeys: {
       fkCategoriesUserId: {
         name: 'fk_categories_user_id',
@@ -37,7 +31,7 @@ import { Users } from './users.model';
   },
   jsonSchema: { description: 'Categories model' },
 })
-export class Categories extends Entity {
+export class Categories extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -93,18 +87,6 @@ export class Categories extends Entity {
     },
   )
   userId: number;
-
-  @property({
-    type: 'date',
-    required: false,
-    mysql: {
-      columnName: 'created_at',
-      dataType: 'datetime',
-      default: 'now',
-      nullable: 'N',
-    },
-  })
-  createdAt: string;
 
   @hasMany(() => BillList, {
     name: 'billLists',
@@ -169,20 +151,6 @@ export class Categories extends Entity {
 
   @hasMany(() => Categories, { keyTo: 'parentCategoryId' })
   categories: Categories[];
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<Categories>) {
     super(data);

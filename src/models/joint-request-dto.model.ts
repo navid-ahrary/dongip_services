@@ -2,7 +2,7 @@ import { Model, model, property } from '@loopback/repository';
 import { UsersRels } from './users-rels.model';
 
 @model({ jsonSchema: { description: 'Joint Account Request model' } })
-export class JointRequest extends Model {
+export class JointRequestDto extends Model {
   @property({
     type: 'string',
     required: true,
@@ -34,13 +34,13 @@ export class JointRequest extends Model {
   })
   family: boolean;
 
-  constructor(data?: Partial<JointRequest>) {
+  constructor(data?: Partial<JointRequestDto>) {
     super(data);
   }
 }
 
-export interface JointRequestRelations {
+export interface JointRequestDtoRelations {
   // describe navigational properties here
 }
 
-export type JointRequestWithRelations = JointRequest & JointRequestRelations;
+export type JointRequestDtoWithRelations = JointRequestDto & JointRequestDtoRelations;

@@ -1,4 +1,5 @@
-import { belongsTo, Entity, model, property } from '@loopback/repository';
+import { belongsTo, model, property } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { Users } from './users.model';
 
 @model({
@@ -16,7 +17,7 @@ import { Users } from './users.model';
     },
   },
 })
-export class Subscriptions extends Entity {
+export class Subscriptions extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -89,20 +90,6 @@ export class Subscriptions extends Entity {
     },
   )
   userId: number;
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<Subscriptions>) {
     super(data);

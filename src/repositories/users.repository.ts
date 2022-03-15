@@ -7,6 +7,7 @@ import {
 } from '@loopback/repository';
 import { MariadbDataSource } from '../datasources';
 import {
+  Accounts,
   BillList,
   Budgets,
   Categories,
@@ -28,6 +29,7 @@ import {
   VirtualUsers,
   Wallets,
 } from '../models';
+import { AccountsRepository } from './accounts.repository';
 import { BillListRepository } from './bill-list.repository';
 import { BudgetsRepository } from './budgets.repository';
 import { CategoriesRepository } from './categories.repository';
@@ -105,6 +107,8 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
 
   public readonly wallets: HasManyRepositoryFactory<Wallets, typeof Users.prototype.userId>;
 
+  public readonly accounts: HasManyRepositoryFactory<Accounts, typeof Users.prototype.userId>;
+
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('VirtualUsersRepository')
@@ -145,8 +149,12 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
     protected receiptsRepositoryGetter: Getter<ReceiptsRepository>,
     @repository.getter('WalletsRepository')
     protected walletsRepositoryGetter: Getter<WalletsRepository>,
+    @repository.getter('AccountsRepository')
+    protected accountsRepositoryGetter: Getter<AccountsRepository>,
   ) {
     super(Users, dataSource);
+    this.accounts = this.createHasManyRepositoryFactoryFor('accounts', accountsRepositoryGetter);
+    this.registerInclusionResolver('accounts', this.accounts.inclusionResolver);
 
     this.wallets = this.createHasManyRepositoryFactoryFor('wallets', walletsRepositoryGetter);
     this.registerInclusionResolver('wallets', this.wallets.inclusionResolver);

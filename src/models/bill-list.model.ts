@@ -1,4 +1,5 @@
-import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { Categories } from './categories.model';
 import { Dongs } from './dongs.model';
 import { JointAccounts } from './joint-accounts.model';
@@ -53,7 +54,7 @@ import { Users } from './users.model';
     },
   },
 })
-export class BillList extends Entity {
+export class BillList extends BaseEntity {
   @property({
     type: 'Number',
     id: true,
@@ -96,18 +97,6 @@ export class BillList extends Entity {
     },
   })
   currency: string;
-
-  @property({
-    type: 'date',
-    required: true,
-    mysql: {
-      columnName: 'created_at',
-      dataType: 'datetime',
-      dataLength: null,
-      nullable: 'N',
-    },
-  })
-  createdAt: string;
 
   @belongsTo(
     () => UsersRels,
@@ -238,20 +227,6 @@ export class BillList extends Entity {
   )
   jointAccountId?: number;
 
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
-
   constructor(data?: Partial<BillList>) {
     super(data);
   }
@@ -260,4 +235,3 @@ export class BillList extends Entity {
 export interface BillListRelations {}
 
 export type BillListWithRelations = BillList & BillListRelations;
-/// sdsd

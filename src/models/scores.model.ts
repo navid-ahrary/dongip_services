@@ -1,4 +1,5 @@
-import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { Dongs } from './dongs.model';
 import { Users } from './users.model';
 
@@ -25,7 +26,7 @@ import { Users } from './users.model';
     },
   },
 })
-export class Scores extends Entity {
+export class Scores extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -50,20 +51,6 @@ export class Scores extends Entity {
     },
   })
   score: number;
-
-  @property({
-    type: 'date',
-    required: false,
-    defaultFn: 'now',
-    mysql: {
-      columnName: 'created_at',
-      dataType: 'datetime',
-      dataLength: null,
-      nullable: 'N',
-      default: 'now',
-    },
-  })
-  createdAt?: string;
 
   @belongsTo(
     () => Users,
@@ -110,20 +97,6 @@ export class Scores extends Entity {
     },
   )
   dongId: number;
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<Scores>) {
     super(data);

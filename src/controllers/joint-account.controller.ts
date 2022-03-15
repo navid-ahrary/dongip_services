@@ -25,9 +25,10 @@ import { LocMsgsBindings } from '../keys';
 import {
   JointAccountSubscribes,
   JointAccountsWithRelations,
-  JointRequest,
-  JointResponse,
+  JointRequestDto,
+  JointResponseDto,
   Users,
+  UsersRels,
 } from '../models';
 import {
   DongsRepository,
@@ -78,7 +79,7 @@ export class JointAccountController {
       '200': {
         description: 'JointAccounts model instance',
         content: {
-          'application/json': { schema: getModelSchemaRef(JointResponse) },
+          'application/json': { schema: getModelSchemaRef(JointResponseDto) },
         },
       },
     },
@@ -87,7 +88,7 @@ export class JointAccountController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(JointRequest, {
+          schema: getModelSchemaRef(JointRequestDto, {
             title: 'NewJointAccounts',
             includeRelations: false,
           }),
@@ -100,8 +101,8 @@ export class JointAccountController {
         },
       },
     })
-    jointAccountsReq: JointRequest,
-  ): Promise<JointResponse> {
+    jointAccountsReq: JointRequestDto,
+  ): Promise<JointResponseDto> {
     const firebaseMessages: BatchMessage = [];
     const currentUser = await this.usersRepo.findById(this.userId, {
       fields: { userId: true, phone: true },
@@ -189,7 +190,7 @@ export class JointAccountController {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.firebaseSerice.sendAllMessage(firebaseMessages);
 
-    return new JointResponse({
+    return new JointResponseDto({
       jointAccountId: JA.getId(),
       createdAt: JA.createdAt,
       title: JA.title,
@@ -197,7 +198,12 @@ export class JointAccountController {
       admin: true,
       family: JA.family,
       userRels: currentUser.usersRels.map(ur => {
-        return { userRelId: ur.getId(), name: ur.name, avatar: ur.avatar, type: ur.type };
+        return new UsersRels({
+          userRelId: ur.getId(),
+          name: ur.name,
+          avatar: ur.avatar,
+          type: ur.type,
+        });
       }),
     });
   }
@@ -210,14 +216,14 @@ export class JointAccountController {
         description: 'Array of JointAccount',
         content: {
           'application/json': {
-            schema: { type: 'array', items: getModelSchemaRef(JointResponse) },
+            schema: { type: 'array', items: getModelSchemaRef(JointResponseDto) },
           },
         },
       },
     },
   })
-  async getJointAccounts(): Promise<JointResponse[]> {
-    const result: Array<JointResponse> = [];
+  async getJointAccounts(): Promise<JointResponseDto[]> {
+    const result: JointResponseDto[] = [];
 
     const JSAs = await this.usersRepo
       .jointAccountSubscribes(this.userId)
@@ -230,7 +236,7 @@ export class JointAccountController {
     });
 
     for (const ja of JAs) {
-      const usersRels: typeof JointResponse.prototype.userRels = [];
+      const usersRels: typeof JointResponseDto.prototype.userRels = [];
 
       for (const jas of ja.jointAccountSubscribes) {
         const u = await this.usersRepo.findById(jas.userId, {
@@ -241,16 +247,18 @@ export class JointAccountController {
           where: { userId: this.userId, phone: u.phone, deleted: false },
         });
 
-        usersRels.push({
-          userRelId: userRel?.getId(),
-          name: userRel?.name ?? u.name,
-          avatar: userRel?.avatar ?? u.avatar,
-          type: userRel?.type,
-        });
+        usersRels.push(
+          new UsersRels({
+            userRelId: userRel?.getId(),
+            name: userRel?.name ?? u.name,
+            avatar: userRel?.avatar ?? u.avatar,
+            type: userRel?.type,
+          }),
+        );
       }
 
       result.push(
-        new JointResponse({
+        new JointResponseDto({
           jointAccountId: ja.getId(),
           title: ja.title,
           description: ja.title,
@@ -336,14 +344,14 @@ export class JointAccountController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(JointRequest, {
+          schema: getModelSchemaRef(JointRequestDto, {
             title: 'PatchJointAccounts',
             partial: true,
           }),
         },
       },
     })
-    patchReqBody: JointRequest,
+    patchReqBody: JointRequestDto,
     @param.path.number('jointAccountId', { required: true }) jointAccountId: number,
   ) {
     const JA = await this.jointAccountsRepo.findOne({
@@ -399,7 +407,7 @@ export class JointAccountController {
   }
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  async performPatch(JA: JointAccountsWithRelations, patchReqBody: JointRequest) {
+  async performPatch(JA: JointAccountsWithRelations, patchReqBody: JointRequestDto) {
     const notifyMsgs: BatchMessage = [];
 
     const jointAccountId = JA.getId();

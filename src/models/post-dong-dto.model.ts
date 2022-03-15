@@ -8,7 +8,7 @@ import { UsersRels } from './users-rels.model';
 import { Users } from './users.model';
 
 @model()
-export class PostDong extends Model {
+export class PostDongDto extends Model {
   @property({
     type: 'number',
   })
@@ -127,11 +127,11 @@ export class PostDong extends Model {
   })
   walletId?: number;
 
-  constructor(data?: Partial<PostDong>) {
+  constructor(data?: Partial<PostDongDto>) {
     super(data);
   }
 }
 
-export interface PostDongRelations {}
+export interface PostDongDtoRelations {}
 
-export type PostDongWithRelations = PostDong & PostDongRelations;
+export type PostDongDtoWithRelations = PostDongDto & PostDongDtoRelations;

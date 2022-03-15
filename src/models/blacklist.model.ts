@@ -1,7 +1,8 @@
-import { Entity, model, property } from '@loopback/repository';
+import { model, property } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 
 @model({ name: 'black_list', settings: { mysql: { engine: 'aria' } } })
-export class Blacklist extends Entity {
+export class Blacklist extends BaseEntity {
   @property({
     type: 'string',
     required: true,
@@ -13,18 +14,6 @@ export class Blacklist extends Entity {
     },
   })
   token: string;
-
-  @property({
-    type: 'date',
-    required: false,
-    mysql: {
-      columnName: 'created_at',
-      dataType: 'datetime',
-      default: 'now',
-      nullable: 'N',
-    },
-  })
-  createdAt?: string;
 
   constructor(data?: Partial<Blacklist>) {
     super(data);

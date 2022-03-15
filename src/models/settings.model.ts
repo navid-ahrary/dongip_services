@@ -1,4 +1,5 @@
-import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { Users, UsersWithRelations } from './users.model';
 
 export enum CurrencyEnum {
@@ -29,7 +30,7 @@ export enum LanguageEnum {
     },
   },
 })
-export class Settings extends Entity {
+export class Settings extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -247,28 +248,6 @@ export class Settings extends Entity {
     },
   )
   userId: number;
-
-  @property({
-    type: 'date',
-    required: true,
-    defaultFn: 'now',
-    mysql: { columnName: 'created_at', dataType: 'datetime', nullable: 'N' },
-  })
-  createdAt: string;
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<Settings>) {
     super(data);

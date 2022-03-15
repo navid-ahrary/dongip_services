@@ -12,7 +12,7 @@ import { securityId } from '@loopback/security';
 import _ from 'lodash';
 import moment from 'moment';
 import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
-import { Categories, PostDong, Settings, Users, UsersRels, Verify } from '../models';
+import { Categories, PostDongDto, Settings, Users, UsersRels, Verify } from '../models';
 import {
   CategoriesRepository,
   UsersRelsRepository,
@@ -416,7 +416,7 @@ export class VerifyService {
 
       await this.dongService.createDongs(
         userId,
-        new PostDong({
+        new PostDongDto({
           title: this.lang === 'fa' ? 'دنگ من ۱' : 'My Dong A',
           desc: '',
           userId: userId,
@@ -435,7 +435,7 @@ export class VerifyService {
       );
       await this.dongService.createDongs(
         userId,
-        new PostDong({
+        new PostDongDto({
           title: this.lang === 'fa' ? 'دنگ من ۲' : 'My Dong B',
           desc: '',
           userId: userId,
@@ -455,7 +455,7 @@ export class VerifyService {
       );
       await this.dongService.createDongs(
         userId,
-        new PostDong({
+        new PostDongDto({
           title: this.lang === 'fa' ? 'دنگ من ۳' : 'My Dong C',
           desc: '',
           userId: userId,

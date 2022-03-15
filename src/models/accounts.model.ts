@@ -1,13 +1,13 @@
-import { belongsTo, model, property } from '@loopback/repository';
+import { belongsTo, model, property, RelationType } from '@loopback/repository';
 import { BaseEntity } from './base-entity.model';
 import { Users } from './users.model';
 
 @model({
-  name: 'messages',
+  name: 'accounts',
   settings: {
     foreignKeys: {
-      fkMessagesUserId: {
-        name: 'fk_messages_user_id',
+      fkAccountUserId: {
+        name: 'fk_account_user_id',
         entity: 'users',
         entityKey: 'id',
         foreignKey: 'userId',
@@ -17,10 +17,11 @@ import { Users } from './users.model';
     },
   },
 })
-export class Messages extends BaseEntity {
+export class Accounts extends BaseEntity {
   @property({
     type: 'number',
     id: true,
+    required: false,
     generated: true,
     mysql: {
       columnName: 'id',
@@ -28,39 +29,45 @@ export class Messages extends BaseEntity {
       nullable: 'N',
     },
   })
-  messageId: number;
+  accountId: number;
 
   @property({
     type: 'string',
     required: true,
-    jsonSchema: { minLength: 1, maxLength: 10000 },
-    mysql: { dataType: 'varchar', dataLength: 10000, nullable: 'N' },
-  })
-  message: string;
-
-  @property({
-    type: 'boolean',
-    required: true,
+    jsonSchema: { maxLength: 255 },
     mysql: {
-      columnName: 'is_question',
-      dataType: 'tinyint',
-      dataLength: 1,
+      columnName: 'title',
+      dataType: 'varchar',
+      dataLength: 255,
       nullable: 'N',
     },
   })
-  isQuestion: boolean;
+  title: string;
 
   @property({
-    type: 'boolean',
+    type: 'string',
     required: true,
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 512,
+    },
     mysql: {
-      columnName: 'is_answer',
-      dataType: 'tinyint',
-      dataLength: 1,
+      dataType: 'varchar',
+      dataLength: 512,
       nullable: 'N',
     },
   })
-  isAnswer: boolean;
+  icon: string;
+
+  @property({
+    type: 'string',
+    mysql: {
+      dataLength: '100',
+      dataType: 'varchar',
+      nullable: 'Y',
+    },
+  })
+  description?: string;
 
   @belongsTo(
     () => Users,
@@ -68,8 +75,9 @@ export class Messages extends BaseEntity {
       name: 'user',
       keyFrom: 'userId',
       keyTo: 'userId',
+      type: RelationType.belongsTo,
       source: Users,
-      target: () => Messages,
+      target: () => Accounts,
     },
     {
       type: 'number',
@@ -85,25 +93,13 @@ export class Messages extends BaseEntity {
   )
   userId: number;
 
-  @property({
-    type: 'boolean',
-    default: false,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'Y',
-    },
-  })
-  closed: boolean;
-
-  constructor(data?: Partial<Messages>) {
+  constructor(data?: Partial<Accounts>) {
     super(data);
   }
 }
 
-export interface MessagesRelations {
+export interface AccountsRelations {
   // describe navigational properties here
 }
 
-export type MessagesWithRelations = Messages & MessagesRelations;
+export type AccountsWithRelations = Accounts & AccountsRelations;

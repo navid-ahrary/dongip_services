@@ -1,4 +1,6 @@
-import { Entity, hasMany, hasOne, model, property, RelationType } from '@loopback/repository';
+import { hasMany, hasOne, model, property, RelationType } from '@loopback/repository';
+import { Accounts, AccountsWithRelations } from './accounts.model';
+import { BaseEntity } from './base-entity.model';
 import { BillList } from './bill-list.model';
 import { Budgets } from './budgets.model';
 import { Categories } from './categories.model';
@@ -21,11 +23,9 @@ import { Subscriptions, SubscriptionsWithRelations } from './subscriptions.model
 import { UsersRels, UsersRelsWithRelations } from './users-rels.model';
 import { VirtualUsers } from './virtual-users.model';
 import { Wallets, WalletsWithRelations } from './wallets.model';
-@model({
-  name: 'users',
-  settings: {},
-})
-export class Users extends Entity {
+
+@model({ name: 'users' })
+export class Users extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -411,6 +411,9 @@ export class Users extends Entity {
   @hasMany(() => Wallets, { keyTo: 'userId' })
   wallets: Wallets[];
 
+  @hasMany(() => Accounts, { keyTo: 'userId' })
+  accounts: Accounts[];
+
   @property({
     type: 'string',
     mysql: {
@@ -434,20 +437,6 @@ export class Users extends Entity {
   })
   isCompleted: boolean;
 
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
-
   constructor(data?: Partial<Users>) {
     super(data);
   }
@@ -461,6 +450,7 @@ export interface UsersRelations {
   jointAccountSubscribes?: JointAccountSubscribesWithRelations[];
   reminders?: RemindersWithRelations[];
   wallets?: WalletsWithRelations[];
+  accounts?: AccountsWithRelations[];
 }
 
 export type UsersWithRelations = Users & UsersRelations;

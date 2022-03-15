@@ -12,7 +12,7 @@ import {
   Dongs,
   Notifications,
   PayerList,
-  PostDong,
+  PostDongDto,
   Receipts,
   Users,
 } from '../models';
@@ -57,7 +57,7 @@ export class DongService {
 
   public async createDongs(
     userId: number,
-    newDong: PostDong,
+    newDong: PostDongDto,
   ): Promise<DataObject<Dongs> & { score: number }> {
     const newDongScore = 50;
     const mutualFriendScore = 20;

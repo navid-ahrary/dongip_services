@@ -1,4 +1,5 @@
-import { belongsTo, Entity, hasMany, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, hasMany, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { Dongs } from './dongs.model';
 import { Users } from './users.model';
 
@@ -17,7 +18,7 @@ import { Users } from './users.model';
     },
   },
 })
-export class Wallets extends Entity {
+export class Wallets extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -115,19 +116,6 @@ export class Wallets extends Entity {
     required: false,
     defaultFn: 'now',
     mysql: {
-      columnName: 'created_at',
-      dataType: 'datetime',
-      default: 'now',
-      nullable: 'N',
-    },
-  })
-  createdAt: string;
-
-  @property({
-    type: 'date',
-    required: false,
-    defaultFn: 'now',
-    mysql: {
       columnName: 'updated_at',
       dataType: 'timestamp',
       default: 'now',
@@ -135,20 +123,6 @@ export class Wallets extends Entity {
     },
   })
   updatedAt: string;
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<Wallets>) {
     super(data);

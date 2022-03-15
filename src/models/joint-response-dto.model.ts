@@ -21,7 +21,7 @@ export class UserRel extends Model {
 }
 
 @model({ jsonSchema: { description: 'Joint Account Response model' } })
-export class JointResponse extends Model {
+export class JointResponseDto extends Model {
   @property({
     type: 'number',
   })
@@ -81,13 +81,13 @@ export class JointResponse extends Model {
   })
   userRels: UserRel[];
 
-  constructor(data?: Partial<JointResponse>) {
+  constructor(data?: Partial<JointResponseDto>) {
     super(data);
   }
 }
 
-export interface JointResponseRelations {
+export interface JointResponseDtoRelations {
   // describe navigational properties here
 }
 
-export type JointResponseWithRelations = JointResponse & JointResponseRelations;
+export type JointResponseDtoWithRelations = JointResponseDto & JointResponseDtoRelations;

@@ -1,4 +1,5 @@
-import { Entity, model, property } from '@loopback/repository';
+import { model, property } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 
 export enum VerifyStrategy {
   GOOGLE = 'google',
@@ -7,7 +8,7 @@ export enum VerifyStrategy {
 }
 
 @model({ name: 'verify' })
-export class Verify extends Entity {
+export class Verify extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -150,18 +151,6 @@ export class Verify extends Entity {
   loggedInAt?: string;
 
   @property({
-    type: 'date',
-    required: true,
-    defaultFn: 'now',
-    mysql: {
-      columnName: 'created_at',
-      dataType: 'datetime',
-      nullable: 'N',
-    },
-  })
-  createdAt: string;
-
-  @property({
     type: 'number',
     mysql: {
       columnName: 'kavenegar_message_id',
@@ -259,20 +248,6 @@ export class Verify extends Entity {
     },
   })
   ipAddress?: string;
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<Verify>) {
     super(data);

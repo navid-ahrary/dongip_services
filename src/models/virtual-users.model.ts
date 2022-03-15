@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { UsersRels } from './users-rels.model';
 import { Users } from './users.model';
 
@@ -38,7 +39,7 @@ import { Users } from './users.model';
     },
   },
 })
-export class VirtualUsers extends Entity {
+export class VirtualUsers extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -66,18 +67,6 @@ export class VirtualUsers extends Entity {
     mysql: { dataType: 'varchar', dataLength: 100, nullable: 'Y' },
   })
   email?: string;
-
-  @property({
-    type: 'date',
-    required: true,
-    defaultFn: 'now',
-    mysql: {
-      columnName: 'created_at',
-      dataType: 'datetime',
-      nullable: 'N',
-    },
-  })
-  createdAt: string;
 
   @belongsTo(
     () => Users,
@@ -127,20 +116,6 @@ export class VirtualUsers extends Entity {
     },
   )
   userRelId: number;
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<VirtualUsers>) {
     super(data);

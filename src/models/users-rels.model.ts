@@ -1,13 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {
-  belongsTo,
-  Entity,
-  hasMany,
-  hasOne,
-  model,
-  property,
-  RelationType,
-} from '@loopback/repository';
+import { belongsTo, hasMany, hasOne, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { BillList } from './bill-list.model';
 import { Budgets } from './budgets.model';
 import { PayerList } from './payer-list.model';
@@ -37,7 +30,7 @@ import { VirtualUsers } from './virtual-users.model';
     },
   },
 })
-export class UsersRels extends Entity {
+export class UsersRels extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -53,7 +46,6 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'string',
-    // required: true,
     jsonSchema: { maxLength: 50 },
     mysql: {
       columnName: 'name',
@@ -144,18 +136,6 @@ export class UsersRels extends Entity {
 
   @property({
     type: 'date',
-    required: false,
-    mysql: {
-      columnName: 'created_at',
-      default: 'now',
-      dataType: 'datetime',
-      nullable: 'N',
-    },
-  })
-  createdAt: string;
-
-  @property({
-    type: 'date',
     required: true,
     defaultFn: 'now',
     mysql: {
@@ -206,20 +186,6 @@ export class UsersRels extends Entity {
 
   @hasMany(() => PayerList, { keyTo: 'userRelId' })
   payerLists: PayerList[];
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<UsersRels>) {
     super(data);

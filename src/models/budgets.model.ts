@@ -1,4 +1,5 @@
-import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { Categories } from './categories.model';
 import { JointAccounts } from './joint-accounts.model';
 import { CurrencyEnum } from './settings.model';
@@ -44,7 +45,7 @@ import { Users } from './users.model';
     },
   },
 })
-export class Budgets extends Entity {
+export class Budgets extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -55,7 +56,7 @@ export class Budgets extends Entity {
       nullable: 'N',
     },
   })
-  budgetId?: number;
+  budgetId: number;
 
   @property({
     type: 'string',
@@ -211,33 +212,6 @@ export class Budgets extends Entity {
     },
   )
   userId: number;
-
-  @property({
-    type: 'date',
-    required: true,
-    defaultFn: 'now',
-    mysql: {
-      columnName: 'created_at',
-      dataType: 'timestamp',
-      nullable: 'N',
-      default: 'now',
-    },
-  })
-  createdAt: string;
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<Budgets>) {
     super(data);

@@ -1,4 +1,5 @@
-import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { Receipts } from './receipts.model';
 import { Users } from './users.model';
 
@@ -17,7 +18,7 @@ import { Users } from './users.model';
     },
   },
 })
-export class Notifications extends Entity {
+export class Notifications extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -30,19 +31,6 @@ export class Notifications extends Entity {
     },
   })
   notifyId: number;
-
-  @property({
-    type: 'date',
-    required: true,
-    defaultFn: 'now',
-    mysql: {
-      columnName: 'created_at',
-      dataType: 'datetime',
-      dataLength: null,
-      nullable: 'N',
-    },
-  })
-  createdAt: string;
 
   @property({
     type: 'string',
@@ -284,20 +272,6 @@ export class Notifications extends Entity {
     },
   )
   userId: number;
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<Notifications>) {
     super(data);

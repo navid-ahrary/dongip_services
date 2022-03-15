@@ -21,7 +21,7 @@ import {
   ValidateDongIdInterceptor,
 } from '../interceptors';
 import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
-import { BillList, Categories, Dongs, PayerList, PostDong, Users } from '../models';
+import { BillList, Categories, Dongs, PayerList, PostDongDto, Users } from '../models';
 import {
   BillListRepository,
   CategoriesRepository,
@@ -241,7 +241,7 @@ export class DongsController {
     },
   })
   async createDongs(
-    @requestBody(createDongReqBodySpec) newDong: PostDong,
+    @requestBody(createDongReqBodySpec) newDong: PostDongDto,
   ): Promise<DataObject<ResponseNewDong>> {
     // eslint-disable-next-line no-useless-catch
     try {

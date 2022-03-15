@@ -1,4 +1,5 @@
-import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { JointAccounts, JointAccountsWithRelations } from './joint-accounts.model';
 import { Users, UsersWithRelations } from './users.model';
 
@@ -25,7 +26,7 @@ import { Users, UsersWithRelations } from './users.model';
     },
   },
 })
-export class JointAccountSubscribes extends Entity {
+export class JointAccountSubscribes extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -84,20 +85,6 @@ export class JointAccountSubscribes extends Entity {
     },
   )
   userId: number;
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<JointAccountSubscribes>) {
     super(data);

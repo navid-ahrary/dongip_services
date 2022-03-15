@@ -2,7 +2,7 @@ import { Model, model, property } from '@loopback/repository';
 import { CurrencyEnum, LanguageEnum } from './settings.model';
 
 @model()
-export class CompleteSignup extends Model {
+export class CompleteSignupDto extends Model {
   @property({
     type: 'string',
     jsonSchema: { minLength: 1, maxLength: 50 },
@@ -57,11 +57,11 @@ export class CompleteSignup extends Model {
   })
   referralCode?: string;
 
-  constructor(data?: Partial<CompleteSignup>) {
+  constructor(data?: Partial<CompleteSignupDto>) {
     super(data);
   }
 }
 
-export interface CompleteSignupRelations {}
+export interface CompleteSignupDtoRelations {}
 
-export type CompleteSignupWithRelations = CompleteSignup & CompleteSignupRelations;
+export type CompleteSignupDtoWithRelations = CompleteSignupDto & CompleteSignupDtoRelations;

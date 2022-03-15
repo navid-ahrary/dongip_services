@@ -1,4 +1,5 @@
-import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { Dongs } from './dongs.model';
 import { Users } from './users.model';
 
@@ -25,7 +26,7 @@ import { Users } from './users.model';
     },
   },
 })
-export class Receipts extends Entity {
+export class Receipts extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -97,20 +98,6 @@ export class Receipts extends Entity {
     },
   )
   dongId?: number;
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<Receipts>) {
     super(data);

@@ -1,13 +1,12 @@
-import { belongsTo, Entity, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { Users } from './users.model';
 
 @model({
   name: 'refresh_tokens',
-  settings: {
-    mysql: { engine: 'aria' },
-  },
+  settings: { mysql: { engine: 'aria' } },
 })
-export class RefreshTokens extends Entity {
+export class RefreshTokens extends BaseEntity {
   @property({
     type: 'number',
     id: true,
@@ -54,19 +53,6 @@ export class RefreshTokens extends Entity {
     },
   )
   userId: number;
-
-  @property({
-    type: 'date',
-    required: false,
-    defaultFn: 'now',
-    mysql: {
-      columnName: 'created_at',
-      dataType: 'datetime',
-      default: 'now',
-      nullable: 'N',
-    },
-  })
-  createdAt: string;
 
   constructor(data?: Partial<RefreshTokens>) {
     super(data);

@@ -1,13 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {
-  belongsTo,
-  Entity,
-  hasMany,
-  hasOne,
-  model,
-  property,
-  RelationType,
-} from '@loopback/repository';
+import { belongsTo, hasMany, hasOne, model, property, RelationType } from '@loopback/repository';
+import { BaseEntity } from './base-entity.model';
 import { BillList } from './bill-list.model';
 import { Categories } from './categories.model';
 import { JointAccounts, JointAccountsWithRelations } from './joint-accounts.model';
@@ -65,7 +58,7 @@ import { Wallets } from './wallets.model';
     },
   },
 })
-export class Dongs extends Entity {
+export class Dongs extends BaseEntity {
   @property({
     type: 'Number',
     id: true,
@@ -102,18 +95,6 @@ export class Dongs extends Entity {
     },
   })
   desc?: string;
-
-  @property({
-    type: 'date',
-    required: true,
-    mysql: {
-      columnName: 'created_at',
-      dataType: 'datetime',
-      dataLength: null,
-      nullable: 'N',
-    },
-  })
-  createdAt: string;
 
   @property({
     type: 'number',
@@ -334,20 +315,6 @@ export class Dongs extends Entity {
     },
   )
   walletId?: number;
-
-  @property({
-    type: 'boolean',
-    default: false,
-    required: true,
-    hidden: true,
-    mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 0,
-      nullable: 'N',
-    },
-  })
-  deleted: boolean;
 
   constructor(data?: Partial<Dongs>) {
     super(data);
