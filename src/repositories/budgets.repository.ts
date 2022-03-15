@@ -1,7 +1,16 @@
 import { Getter, inject } from '@loopback/core';
 import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
 import { MariadbDataSource } from '../datasources';
-import { Budgets, BudgetsRelations, Categories, JointAccounts, Users, UsersRels } from '../models';
+import {
+  Accounts,
+  Budgets,
+  BudgetsRelations,
+  Categories,
+  JointAccounts,
+  Users,
+  UsersRels,
+} from '../models';
+import { AccountsRepository } from './accounts.repository';
 import { CategoriesRepository } from './categories.repository';
 import { JointAccountsRepository } from './joint-accounts.repository';
 import { UsersRelsRepository } from './users-rels.repository';
@@ -20,6 +29,8 @@ export class BudgetsRepository extends DefaultCrudRepository<
 
   public readonly jointAccount: BelongsToAccessor<JointAccounts, typeof Budgets.prototype.budgetId>;
 
+  public readonly account: BelongsToAccessor<Accounts, typeof Budgets.prototype.budgetId>;
+
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
@@ -29,8 +40,11 @@ export class BudgetsRepository extends DefaultCrudRepository<
     protected usersRelsRepositoryGetter: Getter<UsersRelsRepository>,
     @repository.getter('JointAccountsRepository')
     protected jointAccountRepositoryGetter: Getter<JointAccountsRepository>,
+    @repository.getter('AccountsRepository')
+    protected accountsRepositoryGetter: Getter<AccountsRepository>,
   ) {
     super(Budgets, dataSource);
+    this.account = this.createBelongsToAccessorFor('account', accountsRepositoryGetter);
 
     this.jointAccount = this.createBelongsToAccessorFor(
       'jointAccount',

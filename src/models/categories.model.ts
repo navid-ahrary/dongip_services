@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { belongsTo, hasMany, model, property, RelationType } from '@loopback/repository';
+import { Accounts } from './accounts.model';
 import { BaseEntity } from './base-entity.model';
 import { BillList } from './bill-list.model';
 import { Budgets } from './budgets.model';
@@ -158,6 +159,9 @@ export class Categories extends BaseEntity {
 
   @hasMany(() => Categories, { keyTo: 'parentCategoryId' })
   categories: Categories[];
+
+  @belongsTo(() => Accounts)
+  accountId: number;
 
   constructor(data?: Partial<Categories>) {
     super(data);

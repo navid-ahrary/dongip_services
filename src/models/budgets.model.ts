@@ -1,4 +1,5 @@
 import { belongsTo, model, property, RelationType } from '@loopback/repository';
+import { Accounts } from './accounts.model';
 import { BaseEntity } from './base-entity.model';
 import { Categories } from './categories.model';
 import { JointAccounts } from './joint-accounts.model';
@@ -222,6 +223,9 @@ export class Budgets extends BaseEntity {
     },
   )
   userId: number;
+
+  @belongsTo(() => Accounts)
+  accountId: number;
 
   constructor(data?: Partial<Budgets>) {
     super(data);

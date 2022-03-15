@@ -7,6 +7,7 @@ import {
 } from '@loopback/repository';
 import { MariadbDataSource } from '../datasources';
 import {
+  Accounts,
   BillList,
   Budgets,
   Categories,
@@ -15,6 +16,7 @@ import {
   PayerList,
   Users,
 } from '../models';
+import { AccountsRepository } from './accounts.repository';
 import { BillListRepository } from './bill-list.repository';
 import { BudgetsRepository } from './budgets.repository';
 import { DongsRepository } from './dongs.repository';
@@ -55,6 +57,8 @@ export class CategoriesRepository extends DefaultCrudRepository<
     typeof Categories.prototype.categoryId
   >;
 
+  public readonly account: BelongsToAccessor<Accounts, typeof Categories.prototype.categoryId>;
+
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
@@ -67,8 +71,11 @@ export class CategoriesRepository extends DefaultCrudRepository<
     protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
     @repository.getter('CategoriesRepository')
     protected categoriesRepositoryGetter: Getter<CategoriesRepository>,
+    @repository.getter('AccountsRepository')
+    protected accountsRepositoryGetter: Getter<AccountsRepository>,
   ) {
     super(Categories, dataSource);
+    this.account = this.createBelongsToAccessorFor('account', accountsRepositoryGetter);
     this.categories = this.createHasManyRepositoryFactoryFor(
       'categories',
       categoriesRepositoryGetter,

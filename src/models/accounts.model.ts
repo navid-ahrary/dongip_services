@@ -1,5 +1,10 @@
-import { belongsTo, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, hasMany, model, property, RelationType } from '@loopback/repository';
 import { BaseEntity } from './base-entity.model';
+import { Budgets } from './budgets.model';
+import { Categories } from './categories.model';
+import { Dongs } from './dongs.model';
+import { JointAccounts } from './joint-accounts.model';
+import { Messages } from './messages.model';
 import { Users } from './users.model';
 
 @model({
@@ -92,6 +97,21 @@ export class Accounts extends BaseEntity {
     },
   )
   userId: number;
+
+  @hasMany(() => Dongs, { keyTo: 'accountId' })
+  dongs: Dongs[];
+
+  @hasMany(() => Budgets, { keyTo: 'accountId' })
+  budgets: Budgets[];
+
+  @hasMany(() => Categories, { keyTo: 'accountId' })
+  categories: Categories[];
+
+  @hasMany(() => JointAccounts, { keyTo: 'accountId' })
+  jointAccounts: JointAccounts[];
+
+  @hasMany(() => Messages, { keyTo: 'accountId' })
+  messages: Messages[];
 
   constructor(data?: Partial<Accounts>) {
     super(data);
