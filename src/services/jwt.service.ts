@@ -39,7 +39,6 @@ export class JWTService implements TokenService {
   }
 
   async verifyToken(accessToken: string): Promise<CurrentUserProfile> {
-    // const lang = _.includes(this.req.headers['accept-language'], 'en') ? 'en' : 'fa';
     try {
       const nullToken = 'Error verifying access token: token is null';
 
