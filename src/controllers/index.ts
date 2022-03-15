@@ -1,3 +1,4 @@
+export * from './accounts.controller';
 export * from './auth.controller';
 export * from './budgets.controller';
 export * from './categories.controller';
@@ -13,4 +14,3 @@ export * from './settings.controller';
 export * from './users-rels.controller';
 export * from './users.controller';
 export * from './wallets.controller';
-export * from './accounts.controller';

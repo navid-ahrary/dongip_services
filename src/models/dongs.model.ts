@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { belongsTo, hasMany, hasOne, model, property, RelationType } from '@loopback/repository';
+import { Accounts } from './accounts.model';
 import { BaseEntity } from './base-entity.model';
 import { BillList } from './bill-list.model';
 import { Categories } from './categories.model';
@@ -54,6 +55,14 @@ import { Wallets } from './wallets.model';
         foreignKey: 'walletId',
         onUpdate: 'cascade',
         onDelete: 'set null',
+      },
+      fkDongsAccountId: {
+        name: 'fk_dongs_account_id',
+        entity: 'accounts',
+        entityKey: 'id',
+        foreignKey: 'accountId',
+        onUpdate: 'cascade',
+        onDelete: 'cascade',
       },
     },
   },
@@ -315,6 +324,30 @@ export class Dongs extends BaseEntity {
     },
   )
   walletId?: number;
+
+  @belongsTo(
+    () => Accounts,
+    {
+      source: Accounts,
+      name: 'account',
+      type: RelationType.belongsTo,
+      keyFrom: 'accountId',
+      keyTo: 'accountId',
+      target: () => Dongs,
+    },
+    {
+      type: 'number',
+      required: true,
+      index: { normal: true },
+      mysql: {
+        columnName: 'account_id',
+        dataType: 'mediumint unsigned',
+        default: 0,
+        nullable: 'N',
+      },
+    },
+  )
+  accountId: number;
 
   constructor(data?: Partial<Dongs>) {
     super(data);

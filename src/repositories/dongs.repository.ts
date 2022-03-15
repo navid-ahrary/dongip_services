@@ -8,6 +8,7 @@ import {
 } from '@loopback/repository';
 import { MariadbDataSource } from '../datasources';
 import {
+  Accounts,
   BillList,
   Categories,
   Dongs,
@@ -19,6 +20,7 @@ import {
   Users,
   Wallets,
 } from '../models';
+import { AccountsRepository } from './accounts.repository';
 import { BillListRepository } from './bill-list.repository';
 import { CategoriesRepository } from './categories.repository';
 import { JointAccountsRepository } from './joint-accounts.repository';
@@ -49,6 +51,8 @@ export class DongsRepository extends DefaultCrudRepository<
 
   public readonly wallet: BelongsToAccessor<Wallets, typeof Dongs.prototype.dongId>;
 
+  public readonly account: BelongsToAccessor<Accounts, typeof Dongs.prototype.dongId>;
+
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
@@ -66,8 +70,11 @@ export class DongsRepository extends DefaultCrudRepository<
     protected receiptsRepositoryGetter: Getter<ReceiptsRepository>,
     @repository.getter('WalletsRepository')
     protected walletsRepositoryGetter: Getter<WalletsRepository>,
+    @repository.getter('AccountsRepository')
+    protected accountsRepositoryGetter: Getter<AccountsRepository>,
   ) {
     super(Dongs, dataSource);
+    this.account = this.createBelongsToAccessorFor('account', accountsRepositoryGetter);
 
     this.wallet = this.createBelongsToAccessorFor('wallet', walletsRepositoryGetter);
     this.registerInclusionResolver('wallet', this.wallet.inclusionResolver);
