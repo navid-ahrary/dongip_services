@@ -43,7 +43,11 @@ export class Users extends BaseEntity {
     type: 'string',
     jsonSchema: { maxLength: 50 },
     index: { unique: true },
-    mysql: { dataType: 'varchar', dataLength: 50, nullable: 'Y' },
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 50,
+      nullable: 'Y',
+    },
   })
   username?: string;
 
@@ -77,7 +81,10 @@ export class Users extends BaseEntity {
   @property({
     type: 'string',
     required: false,
-    jsonSchema: { minLength: 1, maxLength: 50 },
+    jsonSchema: {
+      minLength: 1,
+      maxLength: 50,
+    },
     mysql: {
       columnName: 'name',
       dataType: 'varchar',
@@ -152,7 +159,10 @@ export class Users extends BaseEntity {
 
   @property({
     type: 'string',
-    jsonSchema: { minLength: 3, maxLength: 10 },
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 10,
+    },
     mysql: {
       dataType: 'varchar',
       dataLength: 10,
