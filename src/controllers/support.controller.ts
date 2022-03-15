@@ -36,8 +36,8 @@ import {
 } from '../services';
 import { LocalizedMessages } from '../types';
 
-@authorize({ allowedRoles: ['SUPPORT', 'GOD'], voters: [basicAuthorization] })
 @authenticate('jwt.access')
+@authorize({ allowedRoles: ['SUPPORT', 'GOD'], voters: [basicAuthorization] })
 export class SupportController {
   private readonly userId: typeof Users.prototype.userId;
   private readonly lang: string;

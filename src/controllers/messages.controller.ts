@@ -11,8 +11,8 @@ import { Messages, Users } from '../models';
 import { UsersRepository } from '../repositories';
 import { CurrentUserProfile, FirebaseSupportService } from '../services';
 
-@intercept(HeadersInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
+@intercept(HeadersInterceptor.BINDING_KEY)
 export class MessagesController {
   private readonly userId: typeof Users.prototype.userId;
   private readonly name: string;

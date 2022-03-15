@@ -31,8 +31,8 @@ import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
 import { JointAccountController } from './joint-account.controller';
 import { UserPatchRequestBody } from './specs';
 
-@intercept(HeadersInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
+@intercept(HeadersInterceptor.BINDING_KEY)
 export class UsersController {
   private readonly userId: typeof Users.prototype.userId;
   private readonly userName: string;

@@ -46,9 +46,9 @@ import {
 } from '../services';
 import { LocalizedMessages } from '../types';
 
-@intercept(ValidateUsersRelsInterceptor.BINDING_KEY, JointAccountsInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
 @authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
+@intercept(ValidateUsersRelsInterceptor.BINDING_KEY, JointAccountsInterceptor.BINDING_KEY)
 export class JointAccountController {
   private readonly userId: typeof Users.prototype.userId;
   private readonly phone: string;

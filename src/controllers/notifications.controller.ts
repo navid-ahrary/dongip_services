@@ -9,8 +9,8 @@ import { Notifications, Users } from '../models';
 import { NotificationsRepository, UsersRepository } from '../repositories';
 import { CurrentUserProfile } from '../services';
 
-@intercept(HeadersInterceptor.BINDING_KEY)
 @authenticate('jwt.access')
+@intercept(HeadersInterceptor.BINDING_KEY)
 export class NotificationsController {
   private readonly userId: typeof Users.prototype.userId;
 
