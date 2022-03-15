@@ -61,8 +61,15 @@ export class Budgets extends BaseEntity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: { minLength: 1, maxLength: 50 },
-    mysql: { dataType: 'varchar', dataLength: 50, nullable: 'N' },
+    jsonSchema: {
+      minLength: 1,
+      maxLength: 50,
+    },
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 50,
+      nullable: 'N',
+    },
   })
   title: string;
 
@@ -98,7 +105,10 @@ export class Budgets extends BaseEntity {
   @property({
     type: 'number',
     required: false,
-    mysql: { dataType: 'mediumint', nullable: 'N' },
+    mysql: {
+      dataType: 'mediumint',
+      nullable: 'N',
+    },
   })
   date: number;
 

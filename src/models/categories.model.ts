@@ -61,8 +61,15 @@ export class Categories extends BaseEntity {
   @property({
     type: 'string',
     required: true,
-    jsonSchema: { minLength: 3, maxLength: 512 },
-    mysql: { dataType: 'varchar', dataLength: 512, nullable: 'N' },
+    jsonSchema: {
+      minLength: 3,
+      maxLength: 512,
+    },
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 512,
+      nullable: 'N',
+    },
   })
   icon: string;
 
