@@ -12,6 +12,7 @@ export async function migrate(args: string[]) {
       'black_list',
       'verify',
       'users',
+      'accounts',
       'settings',
       'reminders',
       'messages',
@@ -31,7 +32,6 @@ export async function migrate(args: string[]) {
       'subscriptions',
       'notifications',
       'refresh_tokens',
-      'accounts',
     ],
   });
 
