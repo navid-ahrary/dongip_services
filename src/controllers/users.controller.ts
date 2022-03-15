@@ -24,7 +24,7 @@ import {
   TokenServiceBindings,
   TutorialLinksListBinding,
 } from '../keys';
-import { CompleteSignup, Dongs, Settings, Users, UsersRels } from '../models';
+import { CompleteSignupDto, Dongs, Settings, Users, UsersRels } from '../models';
 import { UsersRepository } from '../repositories';
 import { CurrentUserProfile, PhoneNumberService } from '../services';
 import { LocalizedMessages, PackageInfo, TutorialLinks } from '../types';
@@ -106,6 +106,7 @@ export class UsersController {
           },
           { relation: 'reminders', scope: { where: { deleted: false } } },
           { relation: 'wallets', scope: { where: { deleted: false } } },
+          { relation: 'accounts', scope: { where: { deleted: false } } },
         ],
       });
 
@@ -125,7 +126,7 @@ export class UsersController {
     } catch (err) {
       const errMsg = err.messsage;
       this.logger.log('error', errMsg);
-      throw new HttpErrors.NotImplemented(errMsg);
+      throw new HttpErrors.unprocessableEntity(errMsg);
     }
   }
 
@@ -379,7 +380,7 @@ export class UsersController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(CompleteSignup),
+          schema: getModelSchemaRef(CompleteSignupDto),
           example: {
             name: 'Dongip',
             avatar: '/assets/avatar/avatar_1.png',
@@ -392,7 +393,7 @@ export class UsersController {
         },
       },
     })
-    cmpltSignBody: CompleteSignup,
+    cmpltSignBody: CompleteSignupDto,
   ): Promise<void> {
     try {
       const foundUser = await this.usersRepository.findById(this.userId, {
