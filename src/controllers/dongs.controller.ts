@@ -35,14 +35,14 @@ import { CategoriesSource, LocalizedMessages } from '../types';
 import { createDongReqBodySpec } from './specs';
 
 @model()
-export class ResponseNewDong extends Dongs {
+export class ResponseNewDongDto extends Dongs {
   @property({ type: 'number' }) score: number;
   @property({ type: 'number' }) receiptId?: number;
   @property() category: Categories;
 }
 
 @model()
-export class ResponseDongs extends Dongs {
+export class ResponseDongsDto extends Dongs {
   @property({ type: 'number' }) receiptId?: number;
 }
 
@@ -185,7 +185,7 @@ export class DongsController {
           'application/json': {
             schema: {
               type: 'array',
-              items: getModelSchemaRef(ResponseDongs, {
+              items: getModelSchemaRef(ResponseDongsDto, {
                 includeRelations: false,
                 exclude: ['originDongId', 'receipt'],
                 optional: ['receiptId'],
@@ -196,8 +196,8 @@ export class DongsController {
       },
     },
   })
-  async findDongs(): Promise<DataObject<ResponseDongs>[]> {
-    const result: DataObject<ResponseDongs>[] = [];
+  async findDongs(): Promise<DataObject<ResponseDongsDto>[]> {
+    const result: DataObject<ResponseDongsDto>[] = [];
     const foundDongs = await this.userRepo.dongs(this.userId).find({
       order: ['createdAt DESC'],
       fields: { originDongId: false },
@@ -231,7 +231,7 @@ export class DongsController {
         description: 'Dongs model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(ResponseNewDong, {
+            schema: getModelSchemaRef(ResponseNewDongDto, {
               includeRelations: false,
             }),
           },
@@ -242,7 +242,7 @@ export class DongsController {
   })
   async createDongs(
     @requestBody(createDongReqBodySpec) newDong: PostDongDto,
-  ): Promise<DataObject<ResponseNewDong>> {
+  ): Promise<DataObject<ResponseNewDongDto>> {
     // eslint-disable-next-line no-useless-catch
     try {
       const createdDong = await this.dongService.createDongs(this.userId, newDong);
@@ -250,7 +250,7 @@ export class DongsController {
         where: { categoryId: newDong.categoryId, userId: this.userId },
       });
 
-      const result: DataObject<ResponseNewDong> = {
+      const result: DataObject<ResponseNewDongDto> = {
         ...createdDong,
         category: foundCategory!,
         receiptId: newDong.receiptId,
