@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { belongsTo, hasMany, hasOne, model, property, RelationType } from '@loopback/repository';
-import { Accounts } from './accounts.model';
 import { BaseEntity } from './base-entity.model';
 import { BillList } from './bill-list.model';
 import { Categories } from './categories.model';
@@ -316,9 +315,6 @@ export class Dongs extends BaseEntity {
     },
   )
   walletId?: number;
-
-  @belongsTo(() => Accounts)
-  accountId: number;
 
   constructor(data?: Partial<Dongs>) {
     super(data);

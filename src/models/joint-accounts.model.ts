@@ -1,5 +1,4 @@
 import { belongsTo, hasMany, model, property, RelationType } from '@loopback/repository';
-import { Accounts } from './accounts.model';
 import { BaseEntity } from './base-entity.model';
 import { Dongs } from './dongs.model';
 import {
@@ -111,9 +110,6 @@ export class JointAccounts extends BaseEntity {
 
   @hasMany(() => Dongs, { keyTo: 'jointAccountId' })
   dongs: Dongs[];
-
-  @belongsTo(() => Accounts)
-  accountId: number;
 
   constructor(data?: Partial<JointAccounts>) {
     super(data);

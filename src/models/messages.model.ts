@@ -1,5 +1,4 @@
 import { belongsTo, model, property } from '@loopback/repository';
-import { Accounts } from './accounts.model';
 import { BaseEntity } from './base-entity.model';
 import { Users } from './users.model';
 
@@ -104,9 +103,6 @@ export class Messages extends BaseEntity {
     },
   })
   closed: boolean;
-
-  @belongsTo(() => Accounts)
-  accountId: number;
 
   constructor(data?: Partial<Messages>) {
     super(data);

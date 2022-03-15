@@ -7,14 +7,12 @@ import {
 } from '@loopback/repository';
 import { MariadbDataSource } from '../datasources';
 import {
-  Accounts,
   Dongs,
   JointAccounts,
   JointAccountsRelations,
   JointAccountSubscribes,
   Users,
 } from '../models';
-import { AccountsRepository } from './accounts.repository';
 import { DongsRepository } from './dongs.repository';
 import { JointAccountSubscribesRepository } from './joint-account-subscribes.repository';
 import { UsersRepository } from './users.repository';
@@ -36,11 +34,6 @@ export class JointAccountsRepository extends DefaultCrudRepository<
     typeof JointAccounts.prototype.jointAccountId
   >;
 
-  public readonly account: BelongsToAccessor<
-    Accounts,
-    typeof JointAccounts.prototype.jointAccountId
-  >;
-
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('UsersRepository')
@@ -48,11 +41,8 @@ export class JointAccountsRepository extends DefaultCrudRepository<
     @repository.getter('JointAccountSubscribesRepository')
     protected jointAccountSubscribesRepositoryGetter: Getter<JointAccountSubscribesRepository>,
     @repository.getter('DongsRepository') protected dongsRepositoryGetter: Getter<DongsRepository>,
-    @repository.getter('AccountsRepository')
-    protected accountsRepositoryGetter: Getter<AccountsRepository>,
   ) {
     super(JointAccounts, dataSource);
-    this.account = this.createBelongsToAccessorFor('account', accountsRepositoryGetter);
 
     this.dongs = this.createHasManyRepositoryFactoryFor('dongs', dongsRepositoryGetter);
     this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
