@@ -337,17 +337,16 @@ export class Dongs extends BaseEntity {
     },
     {
       type: 'number',
-      required: true,
+      required: false,
       index: { normal: true },
       mysql: {
         columnName: 'account_id',
         dataType: 'mediumint unsigned',
-        default: 0,
-        nullable: 'N',
+        nullable: 'Y',
       },
     },
   )
-  accountId: number;
+  accountId?: number;
 
   constructor(data?: Partial<Dongs>) {
     super(data);
