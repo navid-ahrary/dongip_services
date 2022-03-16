@@ -79,10 +79,10 @@ export class Accounts extends BaseEntity {
     jsonSchema: {
       description: 'Indicate the account is a default account or created by user him/her self',
     },
-    mssql: {
-      dataType: 'bit',
+    mysql: {
+      dataType: 'tinyint',
+      dataLength: 1,
       columnName: 'is_primary',
-      default: '0',
       nullable: 'N',
     },
   })
