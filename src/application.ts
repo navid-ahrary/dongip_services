@@ -113,12 +113,6 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
       path: '/explorer',
     });
 
-    // Configure metric component
-    // this.configure(MetricsBindings.COMPONENT).to({
-    //   endpoint: { basePath: '/metrics', disabled: false },
-    //   defaultMetrics: { timeout: 10000, disabled: false },
-    // });
-
     // Configure health checking configuration
     this.configure(HealthBindings.COMPONENT).to({
       disabled: false,
