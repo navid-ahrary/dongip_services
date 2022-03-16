@@ -394,10 +394,10 @@ export class AuthController {
     refreshToken?: string;
     totalScores: number;
   }> {
-    const verifyId = +currentUserProfile[securityId],
-      nowUTC = moment.utc(),
-      userLanguage = newUser.language,
-      userCurrency = newUser.currency;
+    const verifyId = +currentUserProfile[securityId];
+    const nowUTC = moment.utc();
+    const userLanguage = newUser.language;
+    const userCurrency = newUser.currency;
 
     try {
       const foundVerify = await this.verifyService.verifyCredentials(verifyId, newUser.password);
