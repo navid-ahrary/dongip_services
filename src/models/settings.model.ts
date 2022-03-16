@@ -168,7 +168,12 @@ export class Settings extends BaseEntity {
       nullable: 'N',
     },
   })
-  currency: string;
+  currency:
+    | CurrencyEnum.DUBAI_DIRHAM
+    | CurrencyEnum.EUROPE_EURO
+    | CurrencyEnum.IRAN_RIAL
+    | CurrencyEnum.IRAN_TOMAN
+    | CurrencyEnum.US_DOLLAR;
 
   @property({
     type: 'boolean',

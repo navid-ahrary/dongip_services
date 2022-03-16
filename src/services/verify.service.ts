@@ -12,7 +12,15 @@ import { securityId } from '@loopback/security';
 import _ from 'lodash';
 import moment from 'moment';
 import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
-import { Categories, PostDongDto, Settings, Users, UsersRels, Verify } from '../models';
+import {
+  Categories,
+  CurrencyEnum,
+  PostDongDto,
+  Settings,
+  Users,
+  UsersRels,
+  Verify,
+} from '../models';
 import {
   CategoriesRepository,
   UsersRelsRepository,
@@ -383,7 +391,11 @@ export class VerifyService {
     }
   }
 
-  async createDemoData(userId: typeof Users.prototype.userId, selfRelId: number, currency: string) {
+  async createDemoData(
+    userId: typeof Users.prototype.userId,
+    selfRelId: number,
+    currency: CurrencyEnum,
+  ) {
     try {
       const categoriesList = this.catSrc[this.lang];
       const initCatList: Categories[] = [];
