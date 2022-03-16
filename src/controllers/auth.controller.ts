@@ -18,7 +18,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocMsgsBindings, TokenServiceBindings, UserServiceBindings } from '../keys';
-import { Credentials, CurrencyEnum, NewUser, Settings, Users, Verify } from '../models';
+import { Credentials, NewUser, Settings, Users, Verify } from '../models';
 import { BlacklistRepository, UsersRepository, VerifyRepository } from '../repositories';
 import {
   RefreshtokenService,
@@ -385,7 +385,6 @@ export class AuthController {
     newUser: NewUser,
     @inject(SecurityBindings.USER) currentUserProfile: UserProfile,
     @param.header.string('firebase-token') firebaseToken?: string,
-    @param.header.string('accept-language') lang?: string,
   ): Promise<{
     userId: typeof Users.prototype.userId;
     planId: string | null;
@@ -398,7 +397,7 @@ export class AuthController {
     const verifyId = +currentUserProfile[securityId],
       nowUTC = moment.utc(),
       userLanguage = newUser.language,
-      userCurrency = <CurrencyEnum>newUser.currency;
+      userCurrency = newUser.currency;
 
     try {
       const foundVerify = await this.verifyService.verifyCredentials(verifyId, newUser.password);

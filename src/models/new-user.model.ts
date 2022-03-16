@@ -28,7 +28,12 @@ export class NewUser extends Users {
       enum: Object.values(CurrencyEnum),
     },
   })
-  currency?: string;
+  currency?:
+    | CurrencyEnum.DUBAI_DIRHAM
+    | CurrencyEnum.EUROPE_EURO
+    | CurrencyEnum.IRAN_RIAL
+    | CurrencyEnum.IRAN_TOMAN
+    | CurrencyEnum.US_DOLLAR;
 }
 
 export interface NewUserRelations {
