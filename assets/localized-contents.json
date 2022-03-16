@@ -75,6 +75,10 @@
     "fa": "دسته بندی مورد نظر معتبر نیست",
     "en": "Category is invalid"
   },
+  "ACCOUNT_NOT_VALID": {
+    "fa": "حساب مورد نظر معتبر نیست",
+    "en": "Account is invalid"
+  },
   "PHONE_NOT_VALID": {
     "fa": "شماره موبایل وارد شده معتبر نیست",
     "en": "Phone number is invalid"

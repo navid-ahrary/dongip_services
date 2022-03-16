@@ -1,5 +1,6 @@
 export * from './headers.interceptor';
 export * from './joint-accounts.interceptor';
+export * from './validate-account-id.interceptor';
 export * from './validate-budget.interceptor';
 export * from './validate-category-id.interceptor';
 export * from './validate-dong-id.interceptor';

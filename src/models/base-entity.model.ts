@@ -9,8 +9,8 @@ export class BaseEntity extends Entity {
     mysql: {
       columnName: 'created_at',
       dataType: 'timestamp',
-      nullable: 'N',
       default: 'now',
+      nullable: 'N',
     },
   })
   createdAt: string;
@@ -22,8 +22,7 @@ export class BaseEntity extends Entity {
     hidden: true,
     index: { normal: true },
     mysql: {
-      dataType: 'tinyint',
-      dataLength: 1,
+      dataType: 'bit',
       default: 0,
       nullable: 'N',
     },
@@ -35,8 +34,6 @@ export class BaseEntity extends Entity {
   }
 }
 
-export interface BaseEntityRelations {
-  // describe navigational properties here
-}
+export interface BaseEntityRelations {}
 
 export type BaseEntityWithRelations = BaseEntity & BaseEntityRelations;

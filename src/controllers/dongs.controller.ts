@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable prefer-const */
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept, service } from '@loopback/core';
+import { LoggingBindings, WinstonLogger } from '@loopback/logging';
 import { Count, CountSchema, DataObject, model, property, repository } from '@loopback/repository';
 import {
   del,
@@ -17,6 +19,7 @@ import { SecurityBindings, securityId } from '@loopback/security';
 import _ from 'lodash';
 import {
   JointAccountsInterceptor,
+  ValidateAccountIdInterceptor,
   ValidateCategoryIdInterceptor,
   ValidateDongIdInterceptor,
 } from '../interceptors';
@@ -53,6 +56,7 @@ export class DongsController {
 
   constructor(
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
     @inject(CategoriesSourceListBindings) public catSrc: CategoriesSource,
     @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
     @service(DongService) public dongService: DongService,
@@ -101,6 +105,7 @@ export class DongsController {
             pong: 15000,
             createdAt: new Date().toISOString(),
             includeBudget: false,
+            accountId: 4,
           },
         },
       },
@@ -108,7 +113,13 @@ export class DongsController {
     patchDong: Dongs,
   ) {
     try {
-      await this.userRepo.dongs(this.userId).patch(patchDong, { dongId: dongId });
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.userRepo
+        .dongs(this.userId)
+        .patch(patchDong, { dongId: dongId })
+        .catch(err => {
+          this.logger.log('error', err.messsage);
+        });
 
       const patchBill = new BillList();
       const patchPayer = new PayerList();
@@ -124,12 +135,22 @@ export class DongsController {
 
       if (Object.values(patchBill).length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.dongRepository.billList(dongId).patch(patchBill);
+        this.dongRepository
+          .billList(dongId)
+          .patch(patchBill)
+          .catch(err => {
+            this.logger.log('error', err.messsage);
+          });
       }
 
       if (Object.values(patchPayer).length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.dongRepository.payerList(dongId).patch(patchPayer);
+        this.dongRepository
+          .payerList(dongId)
+          .patch(patchPayer)
+          .catch(err => {
+            this.logger.log('error', err.messsage);
+          });
       }
     } catch (err) {
       throw new HttpErrors.UnprocessableEntity(err.message);
@@ -158,21 +179,31 @@ export class DongsController {
         'application/json': {
           schema: {
             type: 'object',
-            properties: { categoryId: { type: 'number' } },
-            example: { categoryId: 202 },
+            properties: {
+              categoryId: { type: 'number' },
+              accountId: { type: 'number' },
+            },
           },
         },
       },
     })
     patchReqBody: Partial<Dongs>,
   ): Promise<Count> {
-    await this.userRepo
-      .categories(this.userId)
-      .patch({ parentCategoryId: patchReqBody.categoryId }, { parentCategoryId: categoryId });
+    try {
+      await this.userRepo
+        .categories(this.userId)
+        .patch({ parentCategoryId: patchReqBody.categoryId }, { parentCategoryId: categoryId });
 
-    await this.userRepo.billList(this.userId).patch(patchReqBody, { categoryId: categoryId });
-    await this.userRepo.payerList(this.userId).patch(patchReqBody, { categoryId: categoryId });
-    return this.userRepo.dongs(this.userId).patch(patchReqBody, { categoryId: categoryId });
+      await this.userRepo.billList(this.userId).patch(patchReqBody, { categoryId: categoryId });
+      await this.userRepo.payerList(this.userId).patch(patchReqBody, { categoryId: categoryId });
+      const updatedCount = await this.userRepo
+        .dongs(this.userId)
+        .patch(patchReqBody, { categoryId: categoryId });
+      return updatedCount;
+    } catch (err) {
+      this.logger.log('error', err.message);
+      throw new HttpErrors.NotImplemented(err.message);
+    }
   }
 
   @get('/dongs/', {
@@ -222,7 +253,7 @@ export class DongsController {
     return result;
   }
 
-  @intercept(ValidateCategoryIdInterceptor.BINDING_KEY)
+  @intercept(ValidateCategoryIdInterceptor.BINDING_KEY, ValidateAccountIdInterceptor.BINDING_KEY)
   @post('/dongs/', {
     summary: 'Create a new Dongs model instance',
     security: OPERATION_SECURITY_SPEC,
@@ -258,6 +289,7 @@ export class DongsController {
 
       return result;
     } catch (err) {
+      this.logger.log('error', err.message);
       throw err;
     }
   }
@@ -271,10 +303,14 @@ export class DongsController {
   async deleteDongsById(
     @param.path.number('dongId', { required: true }) dongId: typeof Dongs.prototype.dongId,
   ): Promise<void> {
-    await this.userRepo.scores(this.userId).patch({ deleted: true }, { dongId: dongId });
-    await this.userRepo.billList(this.userId).patch({ deleted: true }, { dongId: dongId });
-    await this.userRepo.payerList(this.userId).patch({ deleted: true }, { dongId: dongId });
-    await this.userRepo.dongs(this.userId).patch({ deleted: true }, { dongId: dongId });
+    try {
+      await this.userRepo.scores(this.userId).patch({ deleted: true }, { dongId: dongId });
+      await this.userRepo.billList(this.userId).patch({ deleted: true }, { dongId: dongId });
+      await this.userRepo.payerList(this.userId).patch({ deleted: true }, { dongId: dongId });
+      await this.userRepo.dongs(this.userId).patch({ deleted: true }, { dongId: dongId });
+    } catch (err) {
+      this.logger.log('error', err.message);
+    }
   }
 
   @intercept(JointAccountsInterceptor.BINDING_KEY)
@@ -293,9 +329,15 @@ export class DongsController {
     },
   })
   async deleteAllDongs() {
-    await this.userRepo.scores(this.userId).patch({ deleted: true });
-    await this.userRepo.billList(this.userId).patch({ deleted: true });
-    await this.userRepo.payerList(this.userId).patch({ deleted: true });
-    return this.userRepo.dongs(this.userId).patch({ deleted: true }, { originDongId: null! });
+    try {
+      await this.userRepo.scores(this.userId).patch({ deleted: true });
+      await this.userRepo.billList(this.userId).patch({ deleted: true });
+      await this.userRepo.payerList(this.userId).patch({ deleted: true });
+      return await this.userRepo
+        .dongs(this.userId)
+        .patch({ deleted: true }, { originDongId: null! });
+    } catch (err) {
+      this.logger.log('error', err.message);
+    }
   }
 }

@@ -6,7 +6,7 @@ import { DataObject, repository } from '@loopback/repository';
 import { get, getModelSchemaRef, HttpErrors, param } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import _ from 'lodash';
-import { ResponseDongs } from '.';
+import { ResponseDongsDto } from '.';
 import { LocMsgsBindings } from '../keys';
 import { Users } from '../models';
 import { JointAccountsRepository, JointAccountSubscribesRepository } from '../repositories';
@@ -36,7 +36,7 @@ export class JointAccountsDongsController {
         description: 'Array of JointAccounts has many Dongs',
         content: {
           'application/json': {
-            schema: { type: 'array', items: getModelSchemaRef(ResponseDongs) },
+            schema: { type: 'array', items: getModelSchemaRef(ResponseDongsDto) },
           },
         },
       },
@@ -71,7 +71,7 @@ export class JointAccountsDongsController {
       ],
     });
 
-    const result: DataObject<ResponseDongs>[] = [];
+    const result: DataObject<ResponseDongsDto>[] = [];
 
     if (JAS) {
       _.forEach(JAS.jointAccount.dongs, d => {

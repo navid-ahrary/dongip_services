@@ -35,9 +35,10 @@ export class Accounts extends BaseEntity {
   @property({
     type: 'string',
     required: true,
+    default: 'primary',
     jsonSchema: { maxLength: 255 },
     mysql: {
-      columnName: 'title',
+      default: 'primary',
       dataType: 'varchar',
       dataLength: 255,
       nullable: 'N',
@@ -53,6 +54,7 @@ export class Accounts extends BaseEntity {
       maxLength: 512,
     },
     mysql: {
+      default: 'unknown',
       dataType: 'varchar',
       dataLength: 512,
       nullable: 'N',
@@ -63,12 +65,28 @@ export class Accounts extends BaseEntity {
   @property({
     type: 'string',
     mysql: {
-      dataLength: '100',
+      dataLength: 100,
       dataType: 'varchar',
       nullable: 'Y',
     },
   })
   description?: string;
+
+  @property({
+    type: 'boolean',
+    required: true,
+    default: false,
+    jsonSchema: {
+      description: 'Indicate the account is a default account or created by user him/her self',
+    },
+    mssql: {
+      dataType: 'bit',
+      columnName: 'is_primary',
+      default: '0',
+      nullable: 'N',
+    },
+  })
+  isPrimary: boolean;
 
   @belongsTo(
     () => Users,
@@ -94,7 +112,9 @@ export class Accounts extends BaseEntity {
   )
   userId: number;
 
-  @hasMany(() => Dongs, { keyTo: 'accountId' })
+  @hasMany(() => Dongs, {
+    keyTo: 'accountId',
+  })
   dongs: Dongs[];
 
   constructor(data?: Partial<Accounts>) {

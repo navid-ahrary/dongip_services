@@ -68,7 +68,12 @@ export class PostDongDto extends Model {
       enum: Object.values(CurrencyEnum),
     },
   })
-  currency?: string;
+  currency?:
+    | CurrencyEnum.DUBAI_DIRHAM
+    | CurrencyEnum.EUROPE_EURO
+    | CurrencyEnum.IRAN_RIAL
+    | CurrencyEnum.IRAN_TOMAN
+    | CurrencyEnum.US_DOLLAR;
 
   @property({
     type: 'array',
@@ -126,6 +131,12 @@ export class PostDongDto extends Model {
     required: false,
   })
   walletId?: number;
+
+  @property({
+    type: 'number',
+    required: false,
+  })
+  accountId?: number;
 
   constructor(data?: Partial<PostDongDto>) {
     super(data);

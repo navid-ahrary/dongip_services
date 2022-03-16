@@ -31,6 +31,8 @@ import { BatchMessage, FirebaseService } from './firebase.service';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class DongService {
+  static readonly NEW_DONG_SCORE = 50;
+  static readonly MUTUAL_FRIEND_SCORE = 20;
   private readonly lang: string;
 
   constructor(
@@ -59,9 +61,6 @@ export class DongService {
     userId: number,
     newDong: PostDongDto,
   ): Promise<DataObject<Dongs> & { score: number }> {
-    const newDongScore = 50;
-    const mutualFriendScore = 20;
-
     let mutualFactor = 0;
 
     delete newDong.userId;
@@ -160,6 +159,7 @@ export class DongService {
       includeBill: _.isNull(newDong.includeBill) ? undefined : newDong.includeBill,
       income: _.isNull(newDong.income) ? undefined : newDong.income,
       walletId: newDong.walletId,
+      accountId: newDong.accountId,
     });
 
     try {
@@ -246,7 +246,7 @@ export class DongService {
                   ? Math.floor(_.find(billList, { userRelId: relation.getId() })!.dongAmount)
                   : 0;
 
-                // Seperate thousands with "," for use in notification body
+                // Seperate thousands with "," for using in the notification body
                 const notifyBodyDongAmount = this.numberWithCommas(roundedDongAmount);
 
                 // Notification data payload
@@ -313,7 +313,8 @@ export class DongService {
         this.submitPublicJoint(currentUser, createdDong, newDong.receiptId);
       }
 
-      const calculatedScore = newDongScore + mutualFactor * mutualFriendScore;
+      const calculatedScore =
+        DongService.NEW_DONG_SCORE + mutualFactor * DongService.MUTUAL_FRIEND_SCORE;
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.usersRepository.scores(userId).create({
         dongId: createdDong.getId(),
