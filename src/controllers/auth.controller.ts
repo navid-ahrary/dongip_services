@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate, TokenService, UserService } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-jwt';
 import { inject, intercept, service } from '@loopback/core';
@@ -17,7 +18,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocMsgsBindings, TokenServiceBindings, UserServiceBindings } from '../keys';
-import { Credentials, NewUser, Settings, Users, Verify } from '../models';
+import { Credentials, CurrencyEnum, NewUser, Settings, Users, Verify } from '../models';
 import { BlacklistRepository, UsersRepository, VerifyRepository } from '../repositories';
 import {
   RefreshtokenService,
@@ -397,7 +398,7 @@ export class AuthController {
     const verifyId = +currentUserProfile[securityId],
       nowUTC = moment.utc(),
       userLanguage = newUser.language,
-      userCurrency = newUser.currency;
+      userCurrency = <CurrencyEnum>newUser.currency;
 
     try {
       const foundVerify = await this.verifyService.verifyCredentials(verifyId, newUser.password);
