@@ -11,7 +11,7 @@ import {
   LocalizedMessages,
   PackageInfo,
   SubscriptionSpec,
-  TutorialLinks
+  TutorialLinks,
 } from './types';
 
 dotenv.config();
@@ -38,12 +38,12 @@ export const CategoriesSourceListBindings = BindingKey.create<CategoriesSource>(
 );
 
 export namespace TokenServiceConstants {
-  export const ACCESS_SECRET_VALUE = process.env.ACCESS_SECRET?? '';
-  export const VERIFY_EXPIRES_IN_VALUE = process.env.VERIFY_EXPIRES_IN?? '';
-  export const JWT_ALGORITHM_VALUE = process.env.JWT_ALGORITHM?? '';
-  export const ACCESS_EXPIRES_IN_VALUE = process.env.ACCESS_EXPIRES_IN?? '';
-  export const REFRESH_EXPIRES_IN_VALUE = process.env.REFRESH_EXPIRES_IN?? '';
-  export const REFRESH_SECRET_VALUE = process.env.REFRESH_SECRET?? '';
+  export const ACCESS_SECRET_VALUE = process.env.ACCESS_SECRET ?? '';
+  export const VERIFY_EXPIRES_IN_VALUE = process.env.VERIFY_EXPIRES_IN ?? '';
+  export const JWT_ALGORITHM_VALUE = process.env.JWT_ALGORITHM ?? '';
+  export const ACCESS_EXPIRES_IN_VALUE = process.env.ACCESS_EXPIRES_IN ?? '';
+  export const REFRESH_EXPIRES_IN_VALUE = process.env.REFRESH_EXPIRES_IN ?? '';
+  export const REFRESH_SECRET_VALUE = process.env.REFRESH_SECRET ?? '';
 }
 
 export namespace TokenServiceBindings {
@@ -73,21 +73,22 @@ export namespace RefreshTokenServiceBindings {
 }
 
 export const MariadbConfigValue = {
-  host: process.env.MARIADB_HOST?? '',
-  port: process.env.MARIADB_PORT?? '',
-  user: process.env.MARIADB_USER?? '',
-  password: process.env.MARIADB_PASSWORD?? '',
-  database: process.env.MARIADB_DATABASE?? '',
+  host: process.env.MARIADB_HOST ?? '',
+  port: process.env.MARIADB_PORT ?? '',
+  user: process.env.MARIADB_USER ?? '',
+  password: process.env.MARIADB_PASSWORD ?? '',
+  database: process.env.MARIADB_DATABASE ?? '',
 };
 export const MariadbConfigBinding = BindingKey.create<object>('datasources.config.Mariadb');
 
 export namespace FirebaseConstants {
   export const FIREBASE_APPLICATION_DATABASEURL_VALIE =
-    process.env.FIREBASE_APPLICATION_DATABASEURL?? '';
+    process.env.FIREBASE_APPLICATION_DATABASEURL ?? '';
 
-  export const FIREBASE_DONGIP_USER_APP_NAME_VALUE = process.env.FIREBASE_DONGIP_USER_APP_NAME?? '';
+  export const FIREBASE_DONGIP_USER_APP_NAME_VALUE =
+    process.env.FIREBASE_DONGIP_USER_APP_NAME ?? '';
   export const FIREBASE_DONGIP_SUPPORT_APP_NAME_VALUE =
-    process.env.FIREBASE_DONGIP_SUPPORT_APP_NAME?? '';
+    process.env.FIREBASE_DONGIP_SUPPORT_APP_NAME ?? '';
 
   // User app scope
   export const FIREBASE_DONGIP_USER_CERT_FILE = require(path.join(
@@ -122,10 +123,10 @@ export namespace FirebaseBinding {
 }
 
 export namespace KavenegarConstans {
-  export const KAVENEGAR_API_KEY_VALUE = process.env.KAVENEGAR_API_KEY?? '';
-  export const SMS_TEMPLATE_FA_VALUE = process.env.SMS_TEMPLATE_FA?? '';
-  export const SMS_TEMPLATE_EN_VALUE = process.env.SMS_TEMPLATE_EN?? '';
-  export const SMS_SURVEY_TEMPLATE_VALUE = process.env.SMS_SURVEY_TEMPLATE?? '';
+  export const KAVENEGAR_API_KEY_VALUE = process.env.KAVENEGAR_API_KEY ?? '';
+  export const SMS_TEMPLATE_FA_VALUE = process.env.SMS_TEMPLATE_FA ?? '';
+  export const SMS_TEMPLATE_EN_VALUE = process.env.SMS_TEMPLATE_EN ?? '';
+  export const SMS_SURVEY_TEMPLATE_VALUE = process.env.SMS_SURVEY_TEMPLATE ?? '';
 }
 
 export namespace KavenegarBindings {
@@ -136,11 +137,11 @@ export namespace KavenegarBindings {
 }
 
 export namespace CafebazaarConstants {
-  export const CAFEBAZAAR_PACKAGE_NAME_VALUE = process.env.CAFEBAZAAR_PACKAGE_NAME??'';
-  export const CAFEBAZAAR_REFRESH_TOKEN_VALUE = process.env.CAFEBAZAAR_REFRESH_TOKEN?'';
-  export const CAFEBAZAAR_CLIENT_ID_VALUE = process.env.CAFEBAZAAR_CLIENT_ID?? '';
-  export const CAFEBAZAAR_CLIENT_SECRET_VALUE = process.env.CAFEBAZAAR_CLIENT_SECRET?? '';
-  export const CAFEBAZAAR_API_BASEURL_VALUE = process.env.CAFEBAZAAR_API_BASEURL?? '';
+  export const CAFEBAZAAR_PACKAGE_NAME_VALUE = process.env.CAFEBAZAAR_PACKAGE_NAME ?? '';
+  export const CAFEBAZAAR_REFRESH_TOKEN_VALUE = process.env.CAFEBAZAAR_REFRESH_TOKEN ?? '';
+  export const CAFEBAZAAR_CLIENT_ID_VALUE = process.env.CAFEBAZAAR_CLIENT_ID ?? '';
+  export const CAFEBAZAAR_CLIENT_SECRET_VALUE = process.env.CAFEBAZAAR_CLIENT_SECRET ?? '';
+  export const CAFEBAZAAR_API_BASEURL_VALUE = process.env.CAFEBAZAAR_API_BASEURL ?? '';
 }
 
 export namespace CafebazaarBindings {
@@ -158,17 +159,17 @@ export namespace CafebazaarBindings {
 }
 
 export namespace EmailConstants {
-  export const ZOHO_ACCOUNT_SCOPE_URL_VALUE = process.env.ZOHO_ACCOUNT_SCOPE_URL??'';
-  export const SUPPORT_EMAIL_ADDRESS_VALUE = process.env.ZOHO_SUPPORT_MAIL_ADDRESS??'';
-  export const SUPPORT_REFRESH_TOKEN_VALUE = process.env.ZOHO_SUPPRT_ACCOUNT_REFRESH_TOKEN?'';
-  export const SUPPORT_CLIENT_ID_VALUE = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_ID??'';
-  export const SUPPORT_CLIENT_SECRET_VALUE = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_SECRET??'';
+  export const ZOHO_ACCOUNT_SCOPE_URL_VALUE = process.env.ZOHO_ACCOUNT_SCOPE_URL ?? '';
+  export const SUPPORT_EMAIL_ADDRESS_VALUE = process.env.ZOHO_SUPPORT_MAIL_ADDRESS ?? '';
+  export const SUPPORT_REFRESH_TOKEN_VALUE = process.env.ZOHO_SUPPRT_ACCOUNT_REFRESH_TOKEN ?? '';
+  export const SUPPORT_CLIENT_ID_VALUE = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_ID ?? '';
+  export const SUPPORT_CLIENT_SECRET_VALUE = process.env.ZOHO_SUPPORT_ACCOUNT_CLIENT_SECRET ?? '';
   export const SUPPORT_MESSAGE_URL_VALUE = util.format(
-    process.env.ZOHO_MESSAGE_SCOPE_URL??'',
-    process.env.ZOHO_SUPPORT_ACCOUNT_ID??'',
+    process.env.ZOHO_MESSAGE_SCOPE_URL ?? '',
+    process.env.ZOHO_SUPPORT_ACCOUNT_ID ?? '',
   );
-  export const NOREPLY_MAIL_ADDRESS_VALUE = process.env.ZOHO_NOREPLY_MAIL_ADDRESS?? '';
-  export const GMAIL_ACCOUNT_VALUE = process.env.GMAIL_ACCOUNT?? '';
+  export const NOREPLY_MAIL_ADDRESS_VALUE = process.env.ZOHO_NOREPLY_MAIL_ADDRESS ?? '';
+  export const GMAIL_ACCOUNT_VALUE = process.env.GMAIL_ACCOUNT ?? '';
 }
 
 export namespace EmailBindings {
@@ -196,13 +197,13 @@ export namespace EmailBindings {
   );
 }
 
-export const tzValue = process.env.TZ?? '';
+export const tzValue = process.env.TZ ?? '';
 export const TzBindings = BindingKey.create<string>('application.config.tz');
 
 export const appInstance = process.env.NODE_APP_INSTANCE ?? '0';
 export const AppInstanceBinding = BindingKey.create<string>('application.appInstance');
 
-export const hostname = process.env.HOSTNAME?? '';
+export const hostname = process.env.HOSTNAME ?? '';
 export const HostnameBinding = BindingKey.create<string>('hostname');
 
 export namespace WoocommerceConstants {
@@ -229,12 +230,12 @@ export const FILE_UPLOAD_SERVICE = BindingKey.create<FileUploadHandler>('service
 /**
  * Binding key for the storage directory
  */
-export const STORAGE_DIRECTORY_VALUE = process.env.STORAGE_DIRECTORY?? '';
+export const STORAGE_DIRECTORY_VALUE = process.env.STORAGE_DIRECTORY ?? '';
 export const STORAGE_DIRECTORY_BINDING = BindingKey.create<string>('services.storage.directory');
 
 export namespace AppVersionConstants {
-  export const ANDROID_VERSION_VALUE = process.env.ANDROID_VERSION?? '';
-  export const IOS_VERSION_VALUE = process.env.IOS_VERSION?? '';
+  export const ANDROID_VERSION_VALUE = process.env.ANDROID_VERSION ?? '';
+  export const IOS_VERSION_VALUE = process.env.IOS_VERSION ?? '';
 }
 
 export namespace AppVersionBindings {
