@@ -137,7 +137,14 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
       const JA = await this.joitAccRepo.findOne({
         where: { jointAccountId: entity.jointAccountId },
         include: [
-          { relation: 'jointAccountSubscribes', scope: { where: { userId: this.userId } } },
+          {
+            relation: 'jointAccountSubscribes',
+            scope: {
+              where: {
+                userId: this.userId,
+              },
+            },
+          },
         ],
       });
       if (!JA?.jointAccountSubscribes) {
