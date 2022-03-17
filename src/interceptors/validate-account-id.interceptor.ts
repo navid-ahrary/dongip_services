@@ -54,7 +54,7 @@ export class ValidateAccountIdInterceptor implements Provider<Interceptor> {
       const lang = _.includes(this.req.headers['accept-language'], 'en') ? 'en' : 'fa';
       const errMsg = this.locMsg['ACCOUNT_NOT_VALID'][lang];
 
-      if (invocationCtx.args[0].accountId || invocationCtx.args[1].accountId) {
+      if (invocationCtx.args[0]?.accountId || invocationCtx.args[1]?.accountId) {
         const accountId = invocationCtx.args[0].accountId ?? invocationCtx.args[1].accountId;
 
         const countAccount = await this.accountRepo.count({
@@ -62,7 +62,6 @@ export class ValidateAccountIdInterceptor implements Provider<Interceptor> {
           accountId: accountId,
         });
 
-        console.log(countAccount);
         // Validate categoryId
         if (countAccount.count !== 1) {
           throw new HttpErrors.UnprocessableEntity(errMsg);
