@@ -12,7 +12,7 @@ import {
   patch,
   post,
   requestBody,
-  RequestContext,
+  RequestContext
 } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import _ from 'lodash';
@@ -64,7 +64,7 @@ export class CategoriesController {
         description: 'A category model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Categories),
+            schema: getModelSchemaRef(Categories,),
           },
         },
       },

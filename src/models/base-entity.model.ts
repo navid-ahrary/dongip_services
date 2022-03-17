@@ -4,7 +4,7 @@ import { Entity, model, property } from '@loopback/repository';
 export class BaseEntity extends Entity {
   @property({
     type: 'date',
-    required: true,
+    required: false,
     defaultFn: 'now',
     mysql: {
       columnName: 'created_at',
@@ -13,7 +13,7 @@ export class BaseEntity extends Entity {
       nullable: 'N',
     },
   })
-  createdAt: string;
+  createdAt?: string;
 
   @property({
     type: 'boolean',
