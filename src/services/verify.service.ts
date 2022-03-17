@@ -362,7 +362,12 @@ export class VerifyService {
         ...tokenObj,
       };
 
-      await this.createDemoData(savedUser.getId(), selfRel.getId(), savedSetting.currency);
+      await this.createDemoData(
+        savedUser.getId(),
+        selfRel.getId(),
+        savedPrimaryAccount.getId(),
+        savedSetting.currency,
+      );
 
       return resp;
     } catch (err) {
@@ -401,6 +406,7 @@ export class VerifyService {
   async createDemoData(
     userId: typeof Users.prototype.userId,
     selfRelId: number,
+    primaryAccountId: number,
     currency: CurrencyEnum,
   ) {
     try {
@@ -450,6 +456,7 @@ export class VerifyService {
             { dongAmount: 4000, userRelId: savedRels[0].getId() },
           ],
           payerList: [{ paidAmount: 8000, userRelId: selfRelId }],
+          accountId: primaryAccountId,
         }),
       );
       await this.dongService.createDongs(
@@ -470,6 +477,7 @@ export class VerifyService {
             { dongAmount: 1000, userRelId: savedRels[1].getId() },
           ],
           payerList: [{ paidAmount: 3000, userRelId: selfRelId }],
+          accountId: primaryAccountId,
         }),
       );
       await this.dongService.createDongs(
@@ -489,6 +497,7 @@ export class VerifyService {
             { dongAmount: 1400, userRelId: savedRels[1].getId() },
           ],
           payerList: [{ paidAmount: 2800, userRelId: selfRelId }],
+          accountId: primaryAccountId,
         }),
       );
     } catch (err) {
