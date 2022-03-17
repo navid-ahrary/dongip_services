@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept } from '@loopback/core';
@@ -77,7 +78,7 @@ export class BudgetsController {
                 currency: 'IRT',
                 userRelId: 0,
                 categoryId: 1,
-                groupId: 0,
+                jointAccountId: 0,
                 startDate: moment(),
                 endDate: moment().add(1, 'm'),
               },
@@ -89,7 +90,7 @@ export class BudgetsController {
                 currency: 'AED',
                 userRelId: 1,
                 categoryId: 0,
-                groupId: 0,
+                jointAccountId: 0,
                 startDate: moment(),
                 endDate: moment().add(3, 'm'),
               },
@@ -101,7 +102,7 @@ export class BudgetsController {
                 currency: 'USD',
                 userRelId: 0,
                 categoryId: 0,
-                groupId: 1,
+                jointAccountId: 1,
                 startDate: moment(),
                 endDate: moment().add(1, 'y'),
               },

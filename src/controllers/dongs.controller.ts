@@ -23,18 +23,9 @@ import {
   ValidateCategoryIdInterceptor,
   ValidateDongIdInterceptor,
 } from '../interceptors';
-import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
 import { BillList, Categories, Dongs, PayerList, PostDongDto, Users } from '../models';
-import {
-  BillListRepository,
-  CategoriesRepository,
-  DongsRepository,
-  PayerListRepository,
-  UsersRelsRepository,
-  UsersRepository,
-} from '../repositories';
+import { CategoriesRepository, DongsRepository, UsersRepository } from '../repositories';
 import { CurrentUserProfile, DongService } from '../services';
-import { CategoriesSource, LocalizedMessages } from '../types';
 import { createDongReqBodySpec } from './specs';
 
 @model()
@@ -55,17 +46,12 @@ export class DongsController {
   private readonly userId: typeof Users.prototype.userId;
 
   constructor(
-    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
-    @inject(CategoriesSourceListBindings) public catSrc: CategoriesSource,
-    @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
-    @service(DongService) public dongService: DongService,
-    @repository(UsersRepository) public userRepo: UsersRepository,
-    @repository(DongsRepository) public dongRepository: DongsRepository,
-    @repository(BillListRepository) public billListRepository: BillListRepository,
-    @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
-    @repository(PayerListRepository) public payerListRepository: PayerListRepository,
-    @repository(CategoriesRepository) public categoriesRepository: CategoriesRepository,
+    @inject(SecurityBindings.USER) private currentUserProfile: CurrentUserProfile,
+    @service(DongService) private dongService: DongService,
+    @repository(UsersRepository) private userRepo: UsersRepository,
+    @repository(DongsRepository) private dongRepository: DongsRepository,
+    @repository(CategoriesRepository) private categoriesRepository: CategoriesRepository,
   ) {
     this.userId = +currentUserProfile[securityId];
   }
@@ -276,9 +262,13 @@ export class DongsController {
   ): Promise<DataObject<ResponseNewDongDto>> {
     // eslint-disable-next-line no-useless-catch
     try {
+      newDong.accountId = newDong.accountId ?? this.currentUserProfile.primaryAccountId;
       const createdDong = await this.dongService.createDongs(this.userId, newDong);
       const foundCategory = await this.categoriesRepository.findOne({
-        where: { categoryId: newDong.categoryId, userId: this.userId },
+        where: {
+          categoryId: newDong.categoryId,
+          userId: this.userId,
+        },
       });
 
       const result: DataObject<ResponseNewDongDto> = {

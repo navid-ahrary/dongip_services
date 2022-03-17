@@ -100,7 +100,12 @@ export class Budgets extends BaseEntity {
       nullable: 'N',
     },
   })
-  currency: CurrencyEnum;
+  currency:
+    | CurrencyEnum.DUBAI_DIRHAM
+    | CurrencyEnum.EUROPE_EURO
+    | CurrencyEnum.IRAN_RIAL
+    | CurrencyEnum.IRAN_TOMAN
+    | CurrencyEnum.US_DOLLAR;
 
   @property({
     type: 'number',

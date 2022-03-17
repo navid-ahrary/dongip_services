@@ -82,7 +82,7 @@ export class Accounts extends BaseEntity {
     mysql: {
       dataType: 'tinyint',
       dataLength: 1,
-      default: 1,
+      default: 0,
       columnName: 'is_primary',
       nullable: 'N',
     },

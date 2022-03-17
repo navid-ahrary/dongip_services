@@ -366,6 +366,7 @@ export class AuthController {
               'enabled',
               'deleted',
               'isCompleted',
+              'createdAt',
             ],
             optional: ['username', 'currency', 'language', 'phone', 'marketplace'],
           }),

@@ -54,7 +54,7 @@ export class ValidateAccountIdInterceptor implements Provider<Interceptor> {
       const lang = _.includes(this.req.headers['accept-language'], 'en') ? 'en' : 'fa';
       const errMsg = this.locMsg['ACCOUNT_NOT_VALID'][lang];
 
-      if (invocationCtx.methodName === 'createDongs' && invocationCtx.args[0].accountIds) {
+      if (invocationCtx.args[0].accountId) {
         const accountId = invocationCtx.args[0].accountId;
 
         const countAccount = await this.accountRepo.count({

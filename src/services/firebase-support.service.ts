@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { BindingScope, inject, injectable } from '@loopback/core';
 import { HttpErrors } from '@loopback/rest';
 import * as firebase from 'firebase-admin';

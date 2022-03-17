@@ -312,6 +312,12 @@ export class VerifyService {
         currency: setting.currency,
       });
 
+      const savedPrimaryAccount = await this.usersRepository.accounts(savedUser.getId()).create({
+        isPrimary: true,
+        title: 'primary',
+        icon: 'unknown',
+      });
+
       const selfRel = await this.usersRepository.usersRels(savedUser.getId()).create({
         type: 'self',
         name: savedUser.name,
@@ -345,6 +351,7 @@ export class VerifyService {
 
       const resp = {
         userId: savedUser.getId(),
+        accountId: savedPrimaryAccount.getId(),
         planId: planId,
         status: _.isObjectLike(user),
         isCompleted: user.isCompleted,

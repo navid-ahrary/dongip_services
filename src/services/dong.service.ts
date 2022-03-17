@@ -146,7 +146,7 @@ export class DongService {
 
     if (newDong.includeBudget === null) newDong.includeBudget = true;
 
-    // Create a Dongs objcet
+    // Create a Dongs entity object
     const dong = new Dongs({
       title: newDong.title,
       createdAt: newDong.createdAt,

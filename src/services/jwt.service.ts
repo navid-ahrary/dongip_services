@@ -9,16 +9,39 @@ import ct from 'countries-and-timezones';
 import { Algorithm, sign, verify } from 'jsonwebtoken';
 import _ from 'lodash';
 import { EmailBindings, TokenServiceBindings, UserServiceBindings } from '../keys';
-import { Settings, Users, UsersRels } from '../models';
+import { Settings, UsersRels } from '../models';
 import { BlacklistRepository, UsersRepository } from '../repositories';
 import { MyUserService } from './user.service';
 
-export interface CurrentUserProfile extends UserProfile, Partial<Omit<Users, 'userId'>> {
+export interface CurrentUserProfile extends UserProfile {
   selfUserRelId?: typeof UsersRels.prototype.userId;
   language?: typeof Settings.prototype.language;
   timezone?: string;
   totalScores?: number;
+  primaryAccountId?: number;
+  aud?: string;
+  roles?: string[];
+  createdAt?: Date;
+  deleted?: boolean;
+  username?: string | null;
+  phone?: string;
+  email?: string;
+  name?: string;
+  avatar?: string;
+  registeredAt?: string;
+  firebaseToken?: string | null;
+  userAgent?: string | null;
+  platform?: string | null;
+  region?: string | null;
+  phoneLocked?: boolean;
+  emailLocked?: boolean;
+  referralCode?: string | null;
+  appVersion?: string | null;
+  enabled?: boolean;
+  marketplace?: string | null;
+  isCompleted?: boolean;
 }
+
 export class JWTService implements TokenService {
   constructor(
     @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
@@ -78,14 +101,14 @@ export class JWTService implements TokenService {
           throw new HttpErrors.UnavailableForLegalReasons(errMsg);
         }
 
-        userProfile = {
-          ...userProfile,
-          ..._.omit(user, ['userId', 'usersRels', 'setting', 'scores']),
+        Object.assign(userProfile, {
+          ..._.omit(user, ['userId', 'usersRels', 'setting', 'scores', 'accounts']),
           language: user.setting.language,
           timezone: ct.getTimezonesForCountry(user.region ?? 'IR')![0].name,
-          selfUserRelId: user.usersRels[0].userRelId,
+          selfUserRelId: user.usersRels[0].getId(),
           totalScores: this.userService.calculateTotalScores(user.scores),
-        };
+          primaryAccountId: user.accounts[0].getId(),
+        });
       }
 
       return userProfile;

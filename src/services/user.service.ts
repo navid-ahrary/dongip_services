@@ -41,16 +41,56 @@ export class MyUserService implements UserService<Users, Credentials> {
     const foundUser = await this.userRepository.findOne({
       where: { userId: id, deleted: false },
       include: [
-        { relation: 'usersRels', scope: { where: { type: 'self', deleted: false } } },
+        {
+          relation: 'usersRels',
+          scope: {
+            where: {
+              type: 'self',
+              deleted: false,
+            },
+          },
+        },
         {
           relation: 'setting',
-          scope: { fields: { userId: true, language: true, deleted: false } },
+          scope: {
+            fields: {
+              userId: true,
+              language: true,
+              deleted: false,
+            },
+          },
         },
-        { relation: 'scores', scope: { where: { deleted: false } } },
+        {
+          relation: 'scores',
+          scope: {
+            where: {
+              deleted: false,
+            },
+          },
+        },
+        {
+          relation: 'accounts',
+          scope: {
+            fields: { userId: true, accountId: true },
+            where: {
+              isPrimary: true,
+              deleted: false,
+            },
+          },
+        },
       ],
     });
 
     if (!foundUser) throw new Error(userNotfound);
+
+    // Assign to each user that have not primary account
+    if (!foundUser.accounts) {
+      const createdPrimAccount = await this.userRepository
+        .accounts(id)
+        .create({ isPrimary: true, title: 'default', icon: 'unknown' });
+
+      foundUser.accounts = [createdPrimAccount];
+    }
 
     return foundUser;
   }

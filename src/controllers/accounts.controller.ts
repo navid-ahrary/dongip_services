@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
@@ -36,7 +37,9 @@ export class AccountsController {
   @post('/accounts')
   @response(200, {
     description: 'Accounts model instance',
-    content: { 'application/json': { schema: getModelSchemaRef(Accounts) } },
+    content: {
+      'application/json': { schema: getModelSchemaRef(Accounts) },
+    },
   })
   async create(
     @requestBody({
@@ -44,7 +47,7 @@ export class AccountsController {
         'application/json': {
           schema: getModelSchemaRef(Accounts, {
             title: 'NewAccounts',
-            exclude: ['accountId', 'userId', 'deleted', 'createdAt'],
+            exclude: ['accountId', 'userId', 'deleted', 'createdAt', 'isPrimary'],
           }),
         },
       },
