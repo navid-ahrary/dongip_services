@@ -7,6 +7,7 @@ import {
   Provider,
   ValueOrPromise,
 } from '@loopback/core';
+import { LoggingBindings, WinstonLogger } from '@loopback/logging';
 import { repository } from '@loopback/repository';
 import { HttpErrors, Request, RestBindings } from '@loopback/rest';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
@@ -33,6 +34,7 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
   constructor(
     @inject(RestBindings.Http.REQUEST) private req: Request,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
     @repository(BudgetsRepository) public budgetsRepo: BudgetsRepository,
     @repository(UsersRelsRepository) public usersRelsRepo: UsersRelsRepository,
@@ -88,8 +90,8 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
       try {
         await this.validateBudgetReqBody(invocationCtx.args[0]);
       } catch (err) {
-        console.log(JSON.stringify(err));
         const errMsg = this.locMsg[err.message][lang];
+        this.logger.log('error', errMsg);
         throw new HttpErrors.UnprocessableEntity(errMsg);
       }
     }
