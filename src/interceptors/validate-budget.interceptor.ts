@@ -88,6 +88,7 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
       try {
         await this.validateBudgetReqBody(invocationCtx.args[0]);
       } catch (err) {
+        console.log(JSON.stringify(err));
         const errMsg = this.locMsg[err.message][lang];
         throw new HttpErrors.UnprocessableEntity(errMsg);
       }
@@ -107,8 +108,9 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
       const foundCategory = await this.categoriessRepo.findOne({
         where: { userId: this.userId, categoryId: entity.categoryId },
       });
+
       if (!foundCategory) {
-        throw new Error('GROUP_NOT_VALID');
+        throw new Error('CATEGORY_NOT_VALID');
       }
 
       entity.jointAccountId = undefined;
@@ -139,7 +141,7 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
         ],
       });
       if (!JA?.jointAccountSubscribes) {
-        throw new Error('GROUP_NOT_VALID');
+        throw new Error('JOINT_NOT_VALID');
       }
 
       entity.categoryId = undefined;
