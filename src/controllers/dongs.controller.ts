@@ -56,8 +56,9 @@ export class DongsController {
     this.userId = +currentUserProfile[securityId];
   }
 
+  @intercept(ValidateAccountIdInterceptor.BINDING_KEY)
   @patch('/dongs/{dongId}', {
-    summary: 'Update Dongs description and categoryId by dongId',
+    summary: 'Update Dongs description and categoryId and accountId by dongId',
     description: 'Do not send notification to dong members, just update own Dong entity',
     security: OPERATION_SECURITY_SPEC,
     responses: {
