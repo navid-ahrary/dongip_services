@@ -73,6 +73,8 @@ export class ValidateBudgetIdInterceptor implements Provider<Interceptor> {
       });
 
       if (!foundBudget) {
+        const errMsg = this.locMsg['BUDGET_NOT_VALID'][lang];
+        this.logger.log('error', errMsg);
         throw new HttpErrors.UnprocessableEntity(this.locMsg['BUDGET_NOT_VALID'][lang]);
       }
     }
