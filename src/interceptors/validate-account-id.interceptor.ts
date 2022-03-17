@@ -53,7 +53,7 @@ export class ValidateAccountIdInterceptor implements Provider<Interceptor> {
     try {
       const lang = _.includes(this.req.headers['accept-language'], 'en') ? 'en' : 'fa';
       const errMsg = this.locMsg['ACCOUNT_NOT_VALID'][lang];
-      console.log(invocationCtx.args);
+
       if (invocationCtx.args[0].accountId || invocationCtx.args[1].accountId) {
         const accountId = invocationCtx.args[0].accountId ?? invocationCtx.args[1].accountId;
 
