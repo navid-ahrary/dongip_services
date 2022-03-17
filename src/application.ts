@@ -253,6 +253,7 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.bind(WoocommerceBindings.WOOCOMMERCE_CONSUMER_SECRET).to(
       WoocommerceConstants.WOOCOMMERCE_CONSUMER_SECRET_VALUE,
     );
+    this.bind(WoocommerceBindings.WOOCOMMERCE_ADDRESS).to(WoocommerceConstants.WOOCOMMERCE_ADDRESS);
 
     // Bind Storage directory
     this.bind(STORAGE_DIRECTORY_BINDING).to(STORAGE_DIRECTORY_VALUE);

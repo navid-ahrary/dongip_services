@@ -8,11 +8,12 @@ export class WoocommerceService {
   protected readonly wcRestApi: WooCommerceRestApi;
 
   constructor(
+    @inject(WoocommerceBindings.WOOCOMMERCE_ADDRESS) woocommerceAddress: string,
     @inject(WoocommerceBindings.WOOCOMMERCE_CONSUMER_KEY) consumerKey: string,
     @inject(WoocommerceBindings.WOOCOMMERCE_CONSUMER_SECRET) consumerSecret: string,
   ) {
     this.wcRestApi = new WooCommerceRestApi({
-      url: process.env.SITE_URL!,
+      url: woocommerceAddress,
       consumerKey: consumerKey,
       consumerSecret: consumerSecret,
       version: 'wc/v3',
@@ -20,11 +21,20 @@ export class WoocommerceService {
   }
 
   async getOrder(orderId: number): Promise<{ [key: string]: any }> {
-    const res = await this.wcRestApi.get(`orders/${orderId}`);
-    return res.data;
+    try {
+      const res = await this.wcRestApi.get(`orders/${orderId}`);
+      return res.data;
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 
   async updateOrderStatus(orderId: number, status: string): Promise<any> {
-    return this.wcRestApi.put(`orders/${orderId}`, { status: status });
+    try {
+      const result = await this.wcRestApi.put(`orders/${orderId}`, { status: status });
+      return result;
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 }
