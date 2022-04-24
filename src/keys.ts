@@ -200,12 +200,6 @@ export namespace EmailBindings {
 export const tzValue = process.env.TZ ?? '';
 export const TzBindings = BindingKey.create<string>('application.config.tz');
 
-export const appInstance = process.env.NODE_APP_INSTANCE ?? '0';
-export const AppInstanceBinding = BindingKey.create<string>('application.appInstance');
-
-export const hostname = process.env.HOSTNAME ?? '';
-export const HostnameBinding = BindingKey.create<string>('hostname');
-
 export namespace WoocommerceConstants {
   export const WOOCOMMERCE_CONSUMER_KEY_VALUE = process.env.WOOCOMMERCE_CONSUMER_KEY ?? '';
   export const WOOCOMMERCE_CONSUMER_SECRET_VALUE = process.env.WOOCOMMERCE_CONSUMER_SECRET ?? '';

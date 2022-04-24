@@ -8,6 +8,8 @@ import { RemindersRepository, SettingsRepository, UsersRepository } from '../rep
 import { LocalizedMessages } from '../types';
 import { BatchMessage, FirebaseService } from './firebase.service';
 
+const TZ: string = process.env.TZ ?? 'utc';
+
 @cronJob({ scope: BindingScope.TRANSIENT })
 export class DailyScheduleConjobService extends CronJob {
   constructor(
@@ -19,21 +21,19 @@ export class DailyScheduleConjobService extends CronJob {
   ) {
     super({
       name: 'dailyScheduleNotifyJob',
-      cronTime: '0 */10 * * * *',
+      cronTime: '3 */10 * * * *',
       start: true,
-      timeZone: process.env.TZ!,
+      timeZone: TZ,
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       onTick: async () => {
-        if (
-          _.isUndefined(process.env.NODE_APP_INSTANCE) ||
-          (process.env.NODE_APP_INSTANCE === '0' && process.env.HOSTNAME === 'dongip_1')
-        ) {
-          await this._sendDailyNotify();
+        if (_.isUndefined(process.env.NODE_APP_INSTANCE) || process.env.NODE_APP_INSTANCE === '0') {
+          await this.sendDailyNotify();
         }
       },
     });
   }
 
-  private async _sendDailyNotify() {
+  private async sendDailyNotify() {
     const utcTime = moment().isDST() ? moment.utc() : moment.utc().subtract(1, 'hour');
     const firebaseMessages: BatchMessage = [];
 

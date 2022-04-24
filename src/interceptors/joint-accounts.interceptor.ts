@@ -13,8 +13,7 @@ import { HttpErrors, Request, RestBindings } from '@loopback/rest';
 import { SecurityBindings, securityId, UserProfile } from '@loopback/security';
 import ct from 'countries-and-timezones';
 import _ from 'lodash';
-import moment from 'moment';
-import 'moment-timezone';
+import moment from 'moment-timezone';
 import util from 'util';
 import { LocMsgsBindings } from '../keys';
 import {

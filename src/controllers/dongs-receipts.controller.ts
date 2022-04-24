@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept } from '@loopback/context';
@@ -48,7 +49,7 @@ export class DongsReceiptsController {
     summary: "Delete Dongs's receipts by dongId",
     security: OPERATION_SECURITY_SPEC,
     responses: {
-      '204': { description: 'Dongs.Receipts DELETE success. No content' },
+      204: { description: 'Dongs.Receipts DELETE success. No content' },
     },
   })
   async delete(@param.path.number('dongId') dongId: typeof Dongs.prototype.dongId) {

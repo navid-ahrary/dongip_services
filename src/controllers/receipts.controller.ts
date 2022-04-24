@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 // Uncomment these imports to begin using these cool features!
 
 import { authenticate } from '@loopback/authentication';
@@ -14,10 +15,10 @@ import {
   RestBindings,
 } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
-import FileType from 'file-type';
-import Fs from 'fs';
+import { fromFile } from 'file-type';
+import fs from 'fs';
 import _ from 'lodash';
-import Path from 'path';
+import path from 'path';
 import { FILE_UPLOAD_SERVICE, STORAGE_DIRECTORY_BINDING } from '../keys';
 import { Users } from '../models';
 import { ReceiptsRepository } from '../repositories';
@@ -27,7 +28,6 @@ import { FileUploadHandler } from '../types';
 @authenticate('jwt.access')
 export class ReceiptsController {
   private readonly userId: typeof Users.prototype.userId;
-  private readonly lang: string;
 
   constructor(
     @inject.context() private ctx: RequestContext,
@@ -37,7 +37,6 @@ export class ReceiptsController {
     @repository(ReceiptsRepository) public receiptRepo: ReceiptsRepository,
   ) {
     this.userId = +currentUserProfile[securityId];
-    this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
   @post('/receipts', {
@@ -96,7 +95,7 @@ export class ReceiptsController {
         const filename = _.get(result, 'filename');
         const filePath = this.getFilePath(filename);
 
-        if (Fs.existsSync(filePath)) Fs.unlinkSync(filePath);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
         throw new HttpErrors.Conflict('Just one receipt allowed');
       } else {
@@ -135,14 +134,14 @@ export class ReceiptsController {
    * @param filename - File name
    */
   public async validateFileName(filename: string) {
-    const resolved = Path.resolve(this.storageDirectory, filename);
+    const resolved = path.resolve(this.storageDirectory, filename);
 
     if (resolved.startsWith(this.storageDirectory)) {
       return {
         filename: filename,
         path: this.getFilePath(filename),
-        mimetype: (await FileType.fromFile(resolved))?.mime,
-        sizeBytes: Fs.statSync(resolved).size,
+        mimetype: (await fromFile(resolved))?.mime,
+        sizeBytes: fs.statSync(resolved).size,
       };
     } else {
       // The resolved file is outside sandbox
@@ -151,6 +150,6 @@ export class ReceiptsController {
   }
 
   public getFilePath(filename: string): string {
-    return Path.join(this.storageDirectory, filename);
+    return path.join(this.storageDirectory, filename);
   }
 }

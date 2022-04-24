@@ -1,11 +1,11 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { get, getModelSchemaRef, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
-import moment from 'moment';
-import 'moment-timezone';
+import moment from 'moment-timezone';
 import { HeadersInterceptor } from '../interceptors';
 import { Messages, Users } from '../models';
 import { UsersRepository } from '../repositories';

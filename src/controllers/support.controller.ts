@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { authorize } from '@loopback/authorization';
@@ -16,8 +17,7 @@ import {
 import { SecurityBindings, securityId } from '@loopback/security';
 import ct from 'countries-and-timezones';
 import _ from 'lodash';
-import moment from 'moment';
-import 'moment-timezone';
+import moment from 'moment-timezone';
 import { MariadbDataSource } from '../datasources';
 import { LocMsgsBindings } from '../keys';
 import { Messages, Settings, Users, Verify } from '../models';

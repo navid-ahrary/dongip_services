@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject } from '@loopback/core';
@@ -15,8 +16,7 @@ import {
 import { SecurityBindings, securityId } from '@loopback/security';
 import ct from 'countries-and-timezones';
 import jmoment from 'jalali-moment';
-import moment from 'moment';
-import 'moment-timezone';
+import moment from 'moment-timezone';
 import { Reminders, Users } from '../models';
 import { UsersRepository } from '../repositories';
 import { CurrentUserProfile } from '../services';

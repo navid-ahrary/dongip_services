@@ -18,8 +18,6 @@ import { ServiceMixin } from '@loopback/service-proxy';
 import moment from 'moment';
 import path from 'path';
 import {
-  appInstance,
-  AppInstanceBinding,
   AppVersionBindings,
   AppVersionConstants,
   CafebazaarBindings,
@@ -30,8 +28,6 @@ import {
   EmailConstants,
   FirebaseBinding,
   FirebaseConstants,
-  hostname,
-  HostnameBinding,
   KavenegarBindings,
   KavenegarConstans,
   LocMsgsBindings,
@@ -185,10 +181,6 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.bind(TutorialLinksListBinding).to(TutorialLinksListConstants);
 
     this.bind(TzBindings).to(tzValue);
-
-    this.bind(AppInstanceBinding).to(appInstance);
-
-    this.bind(HostnameBinding).to(hostname);
 
     // Bind MariaDB datasource configs
     this.bind(MariadbConfigBinding).to(MariadbConfigValue);

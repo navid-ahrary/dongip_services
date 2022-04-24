@@ -2,23 +2,20 @@ import { BindingScope, inject, service } from '@loopback/core';
 import { CronJob, cronJob } from '@loopback/cron';
 import { repository } from '@loopback/repository';
 import ct from 'countries-and-timezones';
-import moment from 'moment';
-import 'moment-timezone';
+import _ from 'lodash';
+import moment from 'moment-timezone';
 import util from 'util';
-import { AppInstanceBinding, HostnameBinding, LocMsgsBindings, TzBindings } from '../keys';
-import { Notifications, Users } from '../models';
+import { LocMsgsBindings } from '../keys';
+import { Notifications } from '../models';
 import { NotificationsRepository, RemindersRepository, UsersRepository } from '../repositories';
 import { LocalizedMessages } from '../types';
 import { BatchMessage, FirebaseService } from './firebase.service';
 
+const TZ: string = process.env.TZ ?? 'utc';
+
 @cronJob({ scope: BindingScope.APPLICATION })
 export class ReminderCronjobService extends CronJob {
-  TZ: string;
-
   constructor(
-    @inject(TzBindings) timezone: string,
-    @inject(HostnameBinding) hostname: string,
-    @inject(AppInstanceBinding) nodeAppInstance: string,
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
     @service(FirebaseService) public firebaseService: FirebaseService,
     @repository(UsersRepository) public userRepo: UsersRepository,
@@ -27,55 +24,45 @@ export class ReminderCronjobService extends CronJob {
   ) {
     super({
       name: 'reminderNotifyJob',
-      cronTime: '0 */15 * * * *',
+      cronTime: '3 */15 * * * *',
       start: true,
-      timeZone: timezone,
+      timeZone: TZ,
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       onTick: async () => {
-        if (nodeAppInstance === '0' && hostname === 'dongip_1') {
-          await this._sendReminderNotify();
+        if (_.isUndefined(process.env.NODE_APP_INSTANCE) || process.env.NODE_APP_INSTANCE === '0') {
+          await this.sendReminderNotify();
         }
       },
     });
-
-    this.TZ = timezone;
   }
 
-  private async _sendReminderNotify() {
-    const now = moment().tz(this.TZ).startOf('minute');
+  private async sendReminderNotify() {
+    const now = moment().tz(TZ).startOf('minute');
 
-    const foundReminders = await this.remindersRepo.find({
-      where: {
-        enabled: true,
-        notifyTime: now.format('HH:mm:ss'),
-        nextNotifyDate: now.format('YYYY-MM-DD'),
-      },
-      include: [
-        {
-          relation: 'user',
-          scope: {
-            fields: { userId: true, firebaseToken: true, region: true, name: true },
-            where: { firebaseToken: { nin: [undefined, 'null'] } },
-            include: [{ relation: 'setting', scope: { fields: { userId: true, language: true } } }],
-          },
-        },
-      ],
-    });
+    const sqlStatment = `
+      SELECT r.*, u.firebase_token, u.region, u.name, s.language
+      FROM reminders AS r
+      INNER JOIN users AS u ON r.user_id = u.id
+      INNER JOIN settings AS s ON r.user_id = s.user_id
+      WHERE r.enabled = 1 AND notify_time = ? AND next_notify_date = ?
+      AND u.firebase_token NOT IN ('null') AND u.firebase_token IS NOT NULL`;
 
-    const users = foundReminders.map(r2 => r2.user).filter(u => u instanceof Users);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const foundReminders = <any[]>(
+      await this.remindersRepo.execute(sqlStatment, [now.format('HH:mm'), now.format('YYYY-MM-DD')])
+    );
 
     const notifyEntities: Array<Notifications> = [];
     const firebaseMessages: BatchMessage = [];
-    for (const user of users) {
-      const reminder = foundReminders.find(r => r.userId === user.userId);
-
-      const name = user.name;
-      const lang = user.setting.language;
-      const userRegion = user.region;
+    for (const reminder of foundReminders) {
+      const name = reminder.name;
+      const lang = reminder.setting.language;
+      const userRegion = reminder.region;
       const userTZ = ct.getTimezonesForCountry(userRegion ?? 'IR')![0].name;
 
       const notif = new Notifications({
         type: 'reminder',
-        userId: user.userId,
+        userId: reminder.user_id,
         title: util.format(this.locMsg['REMINDER_TITLE'][lang], name),
         body: reminder?.title ?? (lang === 'en' ? 'Reminder' : 'یادآوری'),
         createdAt: moment.tz(userTZ).format('YYYY-MM-DDTHH:mm:ss+00:00'),
@@ -83,7 +70,7 @@ export class ReminderCronjobService extends CronJob {
       notifyEntities.push(notif);
 
       firebaseMessages.push({
-        token: user.firebaseToken!,
+        token: reminder.firebaseToken!,
         notification: {
           title: notif.title,
           body: notif.body,
@@ -97,7 +84,6 @@ export class ReminderCronjobService extends CronJob {
 
     if (foundReminders.length) {
       const reminderIds = foundReminders.filter(r => r.repeat).map(r => r.reminderId);
-
       await this.remindersRepo.updateOverride(reminderIds);
     }
   }
