@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { BindingScope, inject, injectable } from '@loopback/core';
+import { LoggingBindings, WinstonLogger } from '@loopback/logging';
 import axios from 'axios';
 import EmailValidator from 'deep-email-validator';
 import fs from 'fs';
@@ -32,6 +33,7 @@ export class EmailService {
   constructor(
     @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
     @inject(EmailBindings.GMAIL_ACCOUNT) private gmailAccount: string,
+    @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
     @inject(EmailBindings.ZOHO_ACCOUNT_SCOPE_URL) private accountURL: string,
     @inject(EmailBindings.NOREPLY_MAIL_ADDRESS) private noreplyEmail: string,
     @inject(EmailBindings.SUPPORT_CLIENT_ID) private supportClientId: string,
@@ -100,7 +102,12 @@ export class EmailService {
 
       return res.data;
     } catch (err) {
-      throw new Error(err);
+      this.logger.log('error', JSON.stringify(err));
+      if (err.message === 'read ECONNRESET') {
+        return await this.sendSupportMail(receiptorAddress, code, contentLanguage);
+      } else {
+        throw new Error(err);
+      }
     }
   }
 
