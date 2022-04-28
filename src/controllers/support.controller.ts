@@ -115,7 +115,7 @@ export class SupportController {
       FROM
         M
         , users
-      INNER JOIN dongip.dongs d ON d.user_id = users.id
+      LEFT JOIN dongip.dongs d ON d.user_id = users.id
       WHERE
         M.rn = 1
         AND users.id = M.userId
