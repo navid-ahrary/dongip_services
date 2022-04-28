@@ -207,7 +207,7 @@ export class VerifyService {
         });
       })
       .catch(err => {
-        console.error(moment().format(), JSON.stringify(err));
+        this.logger.log('error', JSON.stringify(err));
       });
 
     return {

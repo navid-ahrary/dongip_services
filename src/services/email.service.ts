@@ -80,23 +80,28 @@ export class EmailService {
 
     const accessToken = await this.getAccessToken();
 
-    const res = await axios({
-      method: 'POST',
-      url: this.supportMessageURL,
-      headers: {
-        Authorization: `Zoho-oauthtoken ${accessToken}`,
-      },
-      data: {
-        encoding: 'UTF-8',
-        fromAddress: `Dongip<${this.supportEmail}>`,
-        subject: this.locMsg['VERFIY_EMAIL_SUBJECT'][contentLanguage],
-        toAddress: receiptorAddress,
-        mailFormat: 'html',
-        content: mailContent,
-      },
-    });
+    try {
+      const res = await axios.post(
+        this.supportMessageURL,
+        {
+          encoding: 'UTF-8',
+          fromAddress: `Dongip<${this.supportEmail}>`,
+          subject: this.locMsg['VERFIY_EMAIL_SUBJECT'][contentLanguage],
+          toAddress: receiptorAddress,
+          mailFormat: 'html',
+          content: mailContent,
+        },
+        {
+          headers: {
+            Authorization: `Zoho-oauthtoken ${accessToken}`,
+          },
+        },
+      );
 
-    return res.data;
+      return res.data;
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 
   async isValid(email: string): Promise<boolean> {
