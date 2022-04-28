@@ -45,7 +45,8 @@ export class ReminderCronjobService extends CronJob {
       INNER JOIN users AS u ON r.user_id = u.id
       INNER JOIN settings AS s ON r.user_id = s.user_id
       WHERE r.enabled = 1 AND notify_time = ? AND next_notify_date = ?
-      AND u.firebase_token NOT IN ('null') AND u.firebase_token IS NOT NULL`;
+      AND u.firebase_token NOT IN ('null') AND u.firebase_token IS NOT NULL
+      AND s.language IS NOT NULL AND u.region IS NOT NULL`;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const foundReminders = <any[]>(
@@ -56,7 +57,7 @@ export class ReminderCronjobService extends CronJob {
     const firebaseMessages: BatchMessage = [];
     for (const reminder of foundReminders) {
       const name = reminder.name;
-      const lang = reminder.setting.language;
+      const lang = reminder.language;
       const userRegion = reminder.region;
       const userTZ = ct.getTimezonesForCountry(userRegion ?? 'IR')![0].name;
 
