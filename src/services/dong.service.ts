@@ -239,14 +239,11 @@ export class DongService {
               });
 
               if (foundMutualUsersRels) {
-                // Increament scoreFactor for every mutual friend contribute in dong
+                // Increament scoreFactor for every mutual friend contribute in this dong
                 mutualFactor++;
-                // Get rounded dong amount
-                const roundedDongAmount = _.find(billList, { userRelId: relation.getId() })
-                  ? Math.floor(_.find(billList, { userRelId: relation.getId() })!.dongAmount)
-                  : 0;
+                const foundedBill = _.find(billList, { userRelId: relation.getId() });
+                const roundedDongAmount = foundedBill ? +foundedBill.dongAmount.toFixed(3) : 0;
 
-                // Seperate thousands with "," for using in the notification body
                 const notifyBodyDongAmount = this.numberWithCommas(roundedDongAmount);
 
                 // Notification data payload

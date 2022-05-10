@@ -74,7 +74,7 @@ export class BillList extends BaseEntity {
     required: true,
     mysql: {
       columnName: 'dong_amount',
-      dataType: 'bigint unsigned',
+      dataType: 'decimal(10, 3) unsigned',
       dataLength: null,
       nullable: 'N',
     },
