@@ -110,8 +110,7 @@ export class Dongs extends BaseEntity {
     required: true,
     mysql: {
       columnName: 'pong',
-      dataLength: null,
-      dataType: 'decimal(10, 3) unsigned',
+      dataType: 'decimal(20, 3) unsigned',
       nullable: 'N',
     },
   })
