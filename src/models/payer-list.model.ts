@@ -73,7 +73,7 @@ export class PayerList extends BaseEntity {
     required: true,
     mysql: {
       columnName: 'paid_amount',
-      dataType: 'decimal(10, 3) unsigned',
+      dataType: 'decimal(20, 3) unsigned',
       nullable: 'N',
     },
   })
