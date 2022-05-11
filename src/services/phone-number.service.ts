@@ -80,4 +80,16 @@ export class PhoneNumberService {
     const pn = new AwesomePhoneNumber(phone);
     return pn.getRegionCode();
   }
+
+  /**
+   *
+   * @param {String} phone
+   * @returns boolean
+   */
+  isFromIran(phone: string): boolean {
+    const normalizedPhone = this.convertToE164Format(phone);
+    const region = this.getRegionCode(normalizedPhone);
+    if (region !== 'IR') return false;
+    else return true;
+  }
 }

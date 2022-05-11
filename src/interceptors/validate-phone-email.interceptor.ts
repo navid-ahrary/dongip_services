@@ -50,15 +50,7 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
     const invalidPhoneValueMessage = this.locMsg['PHONE_NOT_VALID'][lang];
     const invalidEmailValueMessage = this.locMsg['EMAIL_NOT_VALID'][lang];
 
-    const funcNameList = [
-      'verify',
-      'login',
-      'signup',
-      'updateUserById',
-      // 'createUsersRels',
-      // 'updateUsersRelsById',
-      'completeSignup',
-    ];
+    const funcNameList = ['verify', 'login', 'signup', 'updateUserById', 'completeSignup'];
 
     if (funcNameList.includes(invocationCtx.methodName)) {
       if (invocationCtx.args[0].phone) {
@@ -69,10 +61,9 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
         }
 
         const normalizedPhoneValue = this.phoneNumberService.convertToE164Format(phoneValue);
+        const fromIran: boolean = this.phoneNumberService.isFromIran(normalizedPhoneValue);
 
-        const region = this.phoneNumberService.getRegionCode(normalizedPhoneValue);
-
-        if (region !== 'IR') {
+        if (invocationCtx.methodName !== 'completeSignup' && fromIran) {
           const justIranPhoneMessage = this.locMsg['JUST_IRAN_PHONE'][lang];
           throw new HttpErrors.UnprocessableEntity(justIranPhoneMessage);
         }
