@@ -89,7 +89,6 @@ export class PhoneNumberService {
   isFromIran(phone: string): boolean {
     const normalizedPhone = this.convertToE164Format(phone);
     const region = this.getRegionCode(normalizedPhone);
-    if (region !== 'IR') return false;
-    else return true;
+    return region === 'IR';
   }
 }
