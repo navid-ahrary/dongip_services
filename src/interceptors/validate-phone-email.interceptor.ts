@@ -63,7 +63,7 @@ export class ValidatePhoneEmailInterceptor implements Provider<Interceptor> {
         const normalizedPhoneValue = this.phoneNumberService.convertToE164Format(phoneValue);
         const fromIran: boolean = this.phoneNumberService.isFromIran(normalizedPhoneValue);
 
-        if (invocationCtx.methodName !== 'completeSignup' && fromIran) {
+        if (invocationCtx.methodName !== 'completeSignup' && !fromIran) {
           const justIranPhoneMessage = this.locMsg['JUST_IRAN_PHONE'][lang];
           throw new HttpErrors.UnprocessableEntity(justIranPhoneMessage);
         }
