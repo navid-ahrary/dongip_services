@@ -82,7 +82,6 @@ export class DongsController {
               'userId',
               'scores',
               'income',
-              'walletId',
             ],
           }),
           example: {
@@ -93,6 +92,7 @@ export class DongsController {
             createdAt: new Date().toISOString(),
             includeBudget: false,
             accountId: 4,
+            walletId: 23,
           },
         },
       },
