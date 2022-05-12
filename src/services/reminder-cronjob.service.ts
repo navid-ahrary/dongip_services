@@ -1,5 +1,6 @@
 import { BindingScope, inject, service } from '@loopback/core';
 import { CronJob, cronJob } from '@loopback/cron';
+import { LoggingBindings, WinstonLogger } from '@loopback/logging';
 import { repository } from '@loopback/repository';
 import ct from 'countries-and-timezones';
 import _ from 'lodash';
@@ -17,6 +18,7 @@ const TZ: string = process.env.TZ ?? 'utc';
 export class ReminderCronjobService extends CronJob {
   constructor(
     @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
     @service(FirebaseService) public firebaseService: FirebaseService,
     @repository(UsersRepository) public userRepo: UsersRepository,
     @repository(RemindersRepository) public remindersRepo: RemindersRepository,
@@ -80,13 +82,21 @@ export class ReminderCronjobService extends CronJob {
       });
     }
 
-    if (firebaseMessages.length) await this.firebaseService.sendAllMessage(firebaseMessages);
+    const promises = [];
 
-    if (notifyEntities.length) await this.notifRepo.createAll(notifyEntities);
-
+    if (firebaseMessages.length) {
+      promises.push(this.firebaseService.sendAllMessage(firebaseMessages));
+    }
+    if (notifyEntities.length) {
+      promises.push(this.notifRepo.createAll(notifyEntities));
+    }
     if (foundReminders.length) {
       const reminderIds = foundReminders.filter(r => r.repeat).map(r => r.reminderId);
-      await this.remindersRepo.updateOverride(reminderIds);
+      promises.push(this.remindersRepo.updateOverride(reminderIds));
     }
+
+    Promise.allSettled(promises).then(res => {
+      this.logger.log('info', JSON.stringify(res));
+    });
   }
 }
