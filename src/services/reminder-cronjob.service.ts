@@ -45,8 +45,9 @@ export class ReminderCronjobService extends CronJob {
       INNER JOIN users AS u ON r.user_id = u.id
       INNER JOIN settings AS s ON r.user_id = s.user_id
       WHERE r.enabled = 1 AND notify_time = ? AND next_notify_date = ?
-      AND u.firebase_token NOT IN ('null') AND u.firebase_token IS NOT NULL
-      AND s.language IS NOT NULL AND u.region IS NOT NULL`;
+        AND u.firebase_token NOT IN ('null') AND u.firebase_token IS NOT NULL
+        AND s.language IS NOT NULL AND u.region IS NOT NULL
+    `;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const foundReminders = <any[]>(
@@ -71,7 +72,7 @@ export class ReminderCronjobService extends CronJob {
       notifyEntities.push(notif);
 
       firebaseMessages.push({
-        token: reminder.firebaseToken!,
+        token: reminder.firebase_token ?? ' ',
         notification: {
           title: notif.title,
           body: notif.body,
