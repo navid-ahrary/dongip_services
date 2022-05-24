@@ -572,7 +572,7 @@ export class DongService {
     }
   }
 
-  async applyReceipt(data: {
+  public async applyReceipt(data: {
     userId: typeof Users.prototype.userId;
     dongId: typeof Dongs.prototype.dongId;
     receiptId: typeof Receipts.prototype.receiptId;

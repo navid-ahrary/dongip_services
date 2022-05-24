@@ -15,6 +15,7 @@ export * from './joint-response-dto.model';
 export * from './messages.model';
 export * from './new-user.model';
 export * from './notifications.model';
+export * from './patch-dongs-dto.model';
 export * from './payer-list.model';
 export * from './post-dong-dto.model';
 export * from './purchases.model';

@@ -23,7 +23,15 @@ import {
   ValidateCategoryIdInterceptor,
   ValidateDongIdInterceptor,
 } from '../interceptors';
-import { BillList, Categories, Dongs, PayerList, PostDongDto, Users } from '../models';
+import {
+  BillList,
+  Categories,
+  Dongs,
+  PatchDongsDto,
+  PayerList,
+  PostDongDto,
+  Users,
+} from '../models';
 import { CategoriesRepository, DongsRepository, UsersRepository } from '../repositories';
 import { CurrentUserProfile, DongService } from '../services';
 import { createDongReqBodySpec } from './specs';
@@ -71,19 +79,7 @@ export class DongsController {
       required: true,
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Dongs, {
-            partial: true,
-            exclude: [
-              'dongId',
-              'currency',
-              'includeBill',
-              'jointAccountId',
-              'originDongId',
-              'userId',
-              'scores',
-              'income',
-            ],
-          }),
+          schema: getModelSchemaRef(PatchDongsDto),
           example: {
             title: 'Just For Fun',
             desc: 'Just For Fun',
@@ -97,13 +93,24 @@ export class DongsController {
         },
       },
     })
-    patchDong: Dongs,
+    patchDong: PatchDongsDto,
   ) {
     try {
+      const patchPayload: Partial<Dongs> = {};
+
+      if (patchDong.title) patchPayload.title = patchDong.title;
+      if (patchDong.desc) patchPayload.desc = patchDong.desc;
+      if (patchDong.categoryId) patchPayload.categoryId = patchDong.categoryId;
+      if (patchDong.pong) patchPayload.pong = patchDong.pong;
+      if (patchDong.includeBudget) patchPayload.includeBudget = patchDong.includeBudget;
+      if (patchDong.accountId) patchPayload.accountId = patchDong.accountId;
+      if (patchDong.walletId) patchPayload.walletId = patchDong.walletId;
+      if (patchDong.createdAt) patchPayload.createdAt = patchDong.createdAt;
+
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.userRepo
         .dongs(this.userId)
-        .patch(patchDong, { dongId: dongId })
+        .patch(patchPayload, { dongId: dongId })
         .catch(err => {
           this.logger.log('error', err.messsage);
         });
@@ -111,13 +118,13 @@ export class DongsController {
       const patchBill = new BillList();
       const patchPayer = new PayerList();
       if (_.has(patchDong, 'categoryId')) {
-        patchBill.categoryId = patchDong.categoryId;
-        patchPayer.categoryId = patchDong.categoryId;
+        patchBill.categoryId = patchDong.categoryId!;
+        patchPayer.categoryId = patchDong.categoryId!;
       }
 
       if (_.has(patchDong, 'pong')) {
-        patchBill.dongAmount = patchDong.pong;
-        patchPayer.paidAmount = patchDong.pong;
+        patchBill.dongAmount = patchDong.pong!;
+        patchPayer.paidAmount = patchDong.pong!;
       }
 
       if (Object.values(patchBill).length) {
