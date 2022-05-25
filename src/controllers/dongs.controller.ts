@@ -32,7 +32,12 @@ import {
   PostDongDto,
   Users,
 } from '../models';
-import { CategoriesRepository, DongsRepository, UsersRepository } from '../repositories';
+import {
+  CategoriesRepository,
+  DongsRepository,
+  ReceiptsRepository,
+  UsersRepository,
+} from '../repositories';
 import { CurrentUserProfile, DongService } from '../services';
 import { createDongReqBodySpec } from './specs';
 
@@ -59,6 +64,7 @@ export class DongsController {
     @service(DongService) private dongService: DongService,
     @repository(UsersRepository) private userRepo: UsersRepository,
     @repository(DongsRepository) private dongRepository: DongsRepository,
+    @repository(ReceiptsRepository) private receiptRepo: ReceiptsRepository,
     @repository(CategoriesRepository) private categoriesRepository: CategoriesRepository,
   ) {
     this.userId = +currentUserProfile[securityId];
@@ -149,13 +155,10 @@ export class DongsController {
       }
 
       if (patchDong.receiptId) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.dongRepository
-          .receipt(patchDong.receiptId)
-          .patch({ dongId: dongId })
-          .catch(err => {
-            this.logger.log('error', err.messsage);
-          });
+        await this.receiptRepo.updateAll(
+          { receiptId: patchDong.receiptId, userId: this.userId },
+          { dongId: dongId },
+        );
       }
     } catch (err) {
       throw new HttpErrors.UnprocessableEntity(err.message);
