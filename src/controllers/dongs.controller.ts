@@ -114,19 +114,15 @@ export class DongsController {
       if (patchDong.walletId) patchPayload.walletId = patchDong.walletId;
       if (patchDong.createdAt) patchPayload.createdAt = patchDong.createdAt;
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.userRepo
-        .dongs(this.userId)
-        .patch(patchPayload, { dongId: dongId })
-        .catch(err => {
-          this.logger.log('error', err.messsage);
-        });
+      const promises = [];
+
+      promises.push(this.userRepo.dongs(this.userId).patch(patchPayload, { dongId: dongId }));
 
       const patchBill = new BillList();
       const patchPayer = new PayerList();
-      if (_.has(patchDong, 'categoryId')) {
-        patchBill.categoryId = patchDong.categoryId!;
-        patchPayer.categoryId = patchDong.categoryId!;
+      if (patchDong.categoryId) {
+        patchBill.categoryId = patchDong.categoryId;
+        patchPayer.categoryId = patchDong.categoryId;
       }
 
       if (_.has(patchDong, 'pong')) {
@@ -135,31 +131,26 @@ export class DongsController {
       }
 
       if (Object.values(patchBill).length) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.dongRepository
-          .billList(dongId)
-          .patch(patchBill)
-          .catch(err => {
-            this.logger.log('error', err.messsage);
-          });
+        promises.push(this.dongRepository.billList(dongId).patch(patchBill));
       }
 
       if (Object.values(patchPayer).length) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.dongRepository
-          .payerList(dongId)
-          .patch(patchPayer)
-          .catch(err => {
-            this.logger.log('error', err.messsage);
-          });
+        promises.push(this.dongRepository.payerList(dongId).patch(patchPayer));
       }
 
       if (patchDong.receiptId) {
-        await this.receiptRepo.updateAll(
-          { receiptId: patchDong.receiptId, userId: this.userId },
-          { dongId: dongId },
+        promises.push(
+          this.receiptRepo.deleteAll({ userId: this.userId, dongId: dongId }).then(() => {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            this.receiptRepo.updateAll(
+              { receiptId: patchDong.receiptId, userId: this.userId },
+              { dongId: dongId },
+            );
+          }),
         );
       }
+
+      await Promise.allSettled(promises);
     } catch (err) {
       throw new HttpErrors.UnprocessableEntity(err.message);
     }
