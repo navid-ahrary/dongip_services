@@ -16,7 +16,7 @@ export class FileUploadProvider implements Provider<FileUploadHandler> {
   private readonly options: multer.Options = {
     limits: {
       files: 1, // Max number of files
-      fileSize: 200000, // Max size of each file in bytes
+      fileSize: 200000, // Max size of each file in bytes 200 kb
     },
     fileFilter: (req, file, callback) => {
       const filetypes = /jpeg|jpg|png/;
