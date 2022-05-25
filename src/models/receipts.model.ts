@@ -88,7 +88,7 @@ export class Receipts extends BaseEntity {
     {
       type: 'number',
       required: false,
-      index: { unique: true },
+      index: { normal: true },
       mysql: {
         columnName: 'dong_id',
         dataType: 'mediumint unsigned',

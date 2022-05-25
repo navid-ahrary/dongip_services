@@ -139,14 +139,17 @@ export class DongsController {
       }
 
       if (patchDong.receiptId) {
+        console.log(patchDong.receiptId);
         promises.push(
-          this.receiptRepo.deleteAll({ userId: this.userId, dongId: dongId }).then(() => {
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            this.receiptRepo.updateAll(
-              { receiptId: patchDong.receiptId, userId: this.userId },
-              { dongId: dongId },
-            );
-          }),
+          this.receiptRepo
+            .updateAll({ deleted: true }, { userId: this.userId, dongId: dongId })
+            .then(() => {
+              // eslint-disable-next-line @typescript-eslint/no-floating-promises
+              this.receiptRepo.updateAll(
+                { dongId: dongId },
+                { receiptId: patchDong.receiptId, userId: this.userId },
+              );
+            }),
         );
       }
 
