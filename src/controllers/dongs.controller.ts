@@ -148,11 +148,11 @@ export class DongsController {
           });
       }
 
-      if (_.has(patchDong, 'receiptId')) {
+      if (patchDong.receiptId) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.dongRepository
-          .receipt(dongId)
-          .patch({ receiptId: patchDong.receiptId })
+          .receipt(patchDong.receiptId)
+          .patch({ dongId: dongId })
           .catch(err => {
             this.logger.log('error', err.messsage);
           });
