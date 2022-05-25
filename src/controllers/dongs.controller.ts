@@ -89,6 +89,7 @@ export class DongsController {
             includeBudget: false,
             accountId: 4,
             walletId: 23,
+            receiptId: 123,
           },
         },
       },
@@ -142,6 +143,16 @@ export class DongsController {
         this.dongRepository
           .payerList(dongId)
           .patch(patchPayer)
+          .catch(err => {
+            this.logger.log('error', err.messsage);
+          });
+      }
+
+      if (_.has(patchDong, 'receiptId')) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.dongRepository
+          .receipt(dongId)
+          .patch({ receiptId: patchDong.receiptId })
           .catch(err => {
             this.logger.log('error', err.messsage);
           });
