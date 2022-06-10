@@ -95,7 +95,7 @@ export class ReminderCronjobService extends CronJob {
       promises.push(this.remindersRepo.updateOverride(reminderIds));
     }
 
-    Promise.allSettled(promises).then(res => {
+    await Promise.allSettled(promises).then(res => {
       this.logger.log('info', JSON.stringify(res));
     });
   }
