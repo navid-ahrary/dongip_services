@@ -70,7 +70,7 @@ export class DailyScheduleConjobService extends CronJob {
         const notifyBody = this.locMsg['DAILY_NOTIFY_BODY'][lang];
 
         firebaseMessages.push({
-          token: setting.user.firebaseToken!,
+          token: setting.user.firebaseToken ?? ' ',
           notification: { title: notifyTitle, body: notifyBody },
         });
       }
