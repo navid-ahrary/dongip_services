@@ -82,7 +82,7 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
         contact: {
           name: 'Dongip Team',
           email: 'info@dongip.ir',
-          url: 'https://www.dongip.ir/about-us',
+          url: path.join(process.env.SITE_URL ?? '', '/about-us'),
         },
       },
       paths: {},
