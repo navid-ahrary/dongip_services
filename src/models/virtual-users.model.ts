@@ -8,11 +8,6 @@ import { Users } from './users.model';
   name: 'virtual_users',
   settings: {
     indexes: {
-      'user_id&phone': {
-        name: 'user_id&phone',
-        columns: 'user_id, phone',
-        options: { unique: true },
-      },
       'user_id&user_rel_id': {
         name: 'user_id&user_rel_id',
         columns: 'user_id, user_rel_id',

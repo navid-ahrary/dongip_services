@@ -21,13 +21,7 @@ import util from 'util';
 import { ValidateUsersRelsInterceptor } from '../interceptors';
 import { LocMsgsBindings } from '../keys';
 import { Users, UsersRels } from '../models';
-import {
-  BlacklistRepository,
-  DongsRepository,
-  UsersRelsRepository,
-  UsersRepository,
-  VirtualUsersRepository,
-} from '../repositories';
+import { DongsRepository, UsersRelsRepository, UsersRepository } from '../repositories';
 import { CurrentUserProfile, FirebaseService, PhoneNumberService } from '../services';
 import { LocalizedMessages } from '../types';
 
@@ -37,16 +31,14 @@ export class UsersRelsController {
   private readonly lang: string;
 
   constructor(
-    @inject.context() public ctx: RequestContext,
-    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject.context() private ctx: RequestContext,
+    @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
     @inject(SecurityBindings.USER) currentUserProfile: CurrentUserProfile,
-    @service(FirebaseService) public firebaseService: FirebaseService,
-    @service(PhoneNumberService) public phoneNumberService: PhoneNumberService,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
-    @repository(DongsRepository) public dongsRepository: DongsRepository,
-    @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
-    @repository(UsersRelsRepository) public usersRelsRepository: UsersRelsRepository,
-    @repository(VirtualUsersRepository) public virtualUsersRepository: VirtualUsersRepository,
+    @service(FirebaseService) private firebaseService: FirebaseService,
+    @service(PhoneNumberService) private phoneNumberService: PhoneNumberService,
+    @repository(UsersRepository) private usersRepository: UsersRepository,
+    @repository(DongsRepository) private dongsRepository: DongsRepository,
+    @repository(UsersRelsRepository) private usersRelsRepository: UsersRelsRepository,
   ) {
     this.userId = +currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';

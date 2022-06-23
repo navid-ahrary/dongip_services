@@ -8,7 +8,7 @@ import moment from 'moment-timezone';
 import util from 'util';
 import { LocMsgsBindings } from '../keys';
 import { Notifications } from '../models';
-import { NotificationsRepository, RemindersRepository, UsersRepository } from '../repositories';
+import { NotificationsRepository, RemindersRepository } from '../repositories';
 import { LocalizedMessages } from '../types';
 import { BatchMessage, FirebaseService } from './firebase.service';
 
@@ -17,12 +17,11 @@ const TZ: string = process.env.TZ ?? 'utc';
 @cronJob({ scope: BindingScope.APPLICATION })
 export class ReminderCronjobService extends CronJob {
   constructor(
-    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
     @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
-    @service(FirebaseService) public firebaseService: FirebaseService,
-    @repository(UsersRepository) public userRepo: UsersRepository,
-    @repository(RemindersRepository) public remindersRepo: RemindersRepository,
-    @repository(NotificationsRepository) public notifRepo: NotificationsRepository,
+    @service(FirebaseService) private firebaseService: FirebaseService,
+    @repository(RemindersRepository) private remindersRepo: RemindersRepository,
+    @repository(NotificationsRepository) private notifRepo: NotificationsRepository,
   ) {
     super({
       name: 'reminderNotifyJob',
@@ -48,8 +47,7 @@ export class ReminderCronjobService extends CronJob {
       INNER JOIN settings AS s ON r.user_id = s.user_id
       WHERE r.enabled = 1 AND notify_time = ? AND next_notify_date = ?
         AND u.firebase_token NOT IN ('null') AND u.firebase_token IS NOT NULL
-        AND s.language IS NOT NULL AND u.region IS NOT NULL
-    `;
+        AND s.language IS NOT NULL AND u.region IS NOT NULL `;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const foundReminders = <any[]>(
@@ -95,7 +93,7 @@ export class ReminderCronjobService extends CronJob {
       promises.push(this.remindersRepo.updateOverride(reminderIds));
     }
 
-    Promise.allSettled(promises).then(res => {
+    await Promise.allSettled(promises).then(res => {
       this.logger.log('info', JSON.stringify(res));
     });
   }
