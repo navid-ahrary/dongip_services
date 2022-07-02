@@ -9,7 +9,7 @@ export class Blacklist extends BaseEntity {
     id: true,
     mysql: {
       dataType: 'varchar',
-      dataLength: 250,
+      dataLength: 500,
       nullable: 'N',
     },
   })
