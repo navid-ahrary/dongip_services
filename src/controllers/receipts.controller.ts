@@ -15,7 +15,7 @@ import {
   RestBindings,
 } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { fromFile } from 'file-type';
+import { fileTypeFromFile } from 'file-type';
 import fs from 'fs';
 import _ from 'lodash';
 import path from 'path';
@@ -140,7 +140,7 @@ export class ReceiptsController {
       return {
         filename: filename,
         path: this.getFilePath(filename),
-        mimetype: (await fromFile(resolved))?.mime,
+        mimetype: (await fileTypeFromFile(resolved))?.mime,
         sizeBytes: fs.statSync(resolved).size,
       };
     } else {
