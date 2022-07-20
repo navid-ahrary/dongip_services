@@ -79,11 +79,6 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
         title: pkg.name,
         version: pkg.version,
         description: 'API Gateway',
-        contact: {
-          name: 'Dongip Team',
-          email: 'info@dongip.ir',
-          url: 'https://www.dongip.ir/about-us',
-        },
       },
       paths: {},
       components: {
