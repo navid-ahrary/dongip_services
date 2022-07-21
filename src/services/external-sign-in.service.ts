@@ -10,7 +10,7 @@ const APPLE_IDENTITY_URL = 'https://appleid.apple.com/';
 export class ExternalSignInService {
   googleClient: OAuth2Client;
 
-  constructor(GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? '') {
+  constructor() {
     this.googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
   }
 
