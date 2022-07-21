@@ -4,6 +4,8 @@ import { OAuth2Client } from 'google-auth-library';
 import _ from 'lodash';
 import NodeRSA from 'node-rsa';
 
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? '';
+
 @injectable({ scope: BindingScope.SINGLETON })
 export class ExternalSignInService {
   googleClient: OAuth2Client;
@@ -16,7 +18,7 @@ export class ExternalSignInService {
     try {
       const ticket = await this.googleClient.verifyIdToken({
         idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID,
+        audience: GOOGLE_CLIENT_ID,
       });
       const payload = ticket.getPayload();
       return payload;
