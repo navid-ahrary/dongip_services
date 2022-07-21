@@ -5,12 +5,12 @@ import _ from 'lodash';
 import NodeRSA from 'node-rsa';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? '';
-
+const APPLE_IDENTITY_URL = 'https://appleid.apple.com/';
 @injectable({ scope: BindingScope.SINGLETON })
 export class ExternalSignInService {
   googleClient: OAuth2Client;
 
-  constructor() {
+  constructor(GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? '') {
     this.googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
   }
 
@@ -31,7 +31,6 @@ export class ExternalSignInService {
 
   private async getApplePublicKey(kid: string): Promise<string> {
     try {
-      const APPLE_IDENTITY_URL = 'https://appleid.apple.com/';
       const url = APPLE_IDENTITY_URL + '/auth/keys';
       const res = await axios({ url, method: 'GET' });
       const keys = res.data.keys;
