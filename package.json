@@ -110,6 +110,7 @@
     "@types/lodash": "^4.14.182",
     "@types/multer": "^1.4.7",
     "@types/node": "^14.18.21",
+    "@types/node-rsa": "^1.1.1",
     "@types/uuid": "^8.3.4",
     "@types/woocommerce__woocommerce-rest-api": "^1.0.2",
     "@typescript-eslint/eslint-plugin": "^5.30.6",

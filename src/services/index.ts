@@ -17,3 +17,4 @@ export * from './user-scores.service';
 export * from './user.service';
 export * from './verify.service';
 export * from './woocommerce.service';
+export * from './external-sign-in.service';

@@ -47,3 +47,14 @@ export interface CategoriesSource {
 }
 
 export type FileUploadHandler = RequestHandler;
+
+export interface GooglePubKey {
+  keys: {
+    use: string;
+    alg: string;
+    e: string;
+    kid: string;
+    kty: string;
+    n: string;
+  }[];
+}

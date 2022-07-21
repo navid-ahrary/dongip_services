@@ -197,6 +197,9 @@ export class DongipApplication extends BootMixin(ServiceMixin(RepositoryMixin(Re
     this.bind(FirebaseBinding.FIREBASE_DONGIP_SUPPORT_CERT).to(
       FirebaseConstants.FIREBASE_DONGIP_SUPPORT_CERT_FILE,
     );
+    this.bind(FirebaseBinding.GOOGLE_PUBLIC_JWK_CERT).to(
+      FirebaseConstants.GOOGLE_PUBLIC_JWK_CERT_FILE,
+    );
 
     // Bind Kavenegar constants
     this.bind(KavenegarBindings.KAVENEGAR_API_KEY).to(KavenegarConstans.KAVENEGAR_API_KEY_VALUE);
