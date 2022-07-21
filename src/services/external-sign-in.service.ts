@@ -6,7 +6,8 @@ import NodeRSA from 'node-rsa';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? '';
 const APPLE_IDENTITY_URL = 'https://appleid.apple.com/';
-@injectable({ scope: BindingScope.SINGLETON })
+
+@injectable({ scope: BindingScope.TRANSIENT })
 export class ExternalSignInService {
   googleClient: OAuth2Client;
 
