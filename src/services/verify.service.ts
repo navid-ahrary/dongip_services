@@ -2,7 +2,7 @@ import { TokenService, UserService } from '@loopback/authentication';
 import {
   Credentials,
   TokenServiceBindings,
-  UserServiceBindings
+  UserServiceBindings,
 } from '@loopback/authentication-jwt';
 import { BindingScope, inject, injectable, service } from '@loopback/core';
 import { LoggingBindings, WinstonLogger } from '@loopback/logging';
@@ -12,19 +12,12 @@ import { securityId } from '@loopback/security';
 import _ from 'lodash';
 import moment from 'moment';
 import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
-import {
-  Categories,
-  PostDongDto,
-  Settings,
-  Users,
-  UsersRels,
-  Verify
-} from '../models';
+import { Categories, PostDongDto, Settings, Users, UsersRels, Verify } from '../models';
 import {
   CategoriesRepository,
   UsersRelsRepository,
   UsersRepository,
-  VerifyRepository
+  VerifyRepository,
 } from '../repositories';
 import { CategoriesSource, LocalizedMessages } from '../types';
 import { DongService } from './dong.service';
@@ -85,11 +78,15 @@ export class VerifyService {
         region: true,
         platform: true,
         userAgent: true,
+        password: true,
       },
-      where: { verifyId: verifyId, password: password, loggedIn: false },
+      where: { verifyId: verifyId, loggedIn: false },
     });
 
-    if (!foundVerify) {
+    // for google play tester :|
+    if (foundVerify?.email === 'test@dongip.app') {
+      return foundVerify;
+    } else if (!foundVerify || foundVerify.password !== password) {
       console.error(new Date(), 'Wrong Verify Code', password);
       throw new Error('WRONG_VERIFY_CODE');
     }
