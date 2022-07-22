@@ -7,6 +7,8 @@ export * from './categories.model';
 export * from './complete-signup-dto.model';
 export * from './credentials.model';
 export * from './dongs.model';
+export * from './external-login-dto.model';
+export * from './external-login-response.model';
 export * from './inapp-purchase.model';
 export * from './joint-account-subscribes.model';
 export * from './joint-accounts.model';
@@ -30,3 +32,5 @@ export * from './users.model';
 export * from './verify.model';
 export * from './virtual-users.model';
 export * from './wallets.model';
+
+

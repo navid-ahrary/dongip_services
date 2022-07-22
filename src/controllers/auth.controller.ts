@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 /* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate, TokenService, UserService } from '@loopback/authentication';
 import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-jwt';
@@ -18,9 +19,22 @@ import _ from 'lodash';
 import moment from 'moment';
 import { ValidatePasswordInterceptor, ValidatePhoneEmailInterceptor } from '../interceptors';
 import { LocMsgsBindings, TokenServiceBindings, UserServiceBindings } from '../keys';
-import { Credentials, NewUser, Settings, Users, Verify } from '../models';
+import {
+  Credentials,
+  ExternalLoginDto,
+  ExternalLoginResponse,
+  NewUser,
+  Settings,
+  Users,
+  Verify,
+} from '../models';
 import { BlacklistRepository, UsersRepository, VerifyRepository } from '../repositories';
-import { RefreshtokenService, UserScoresService, VerifyService } from '../services';
+import {
+  ExternalSignInService,
+  RefreshtokenService,
+  UserScoresService,
+  VerifyService,
+} from '../services';
 import { LocalizedMessages } from '../types';
 
 @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY, ValidatePasswordInterceptor.BINDING_KEY)
@@ -36,6 +50,7 @@ export class AuthController {
     @service(VerifyService) private verifyService: VerifyService,
     @service(UserScoresService) private userScoresService: UserScoresService,
     @service(RefreshtokenService) private refreshTokenService: RefreshtokenService,
+    @service(ExternalSignInService) private externalSignInService: ExternalSignInService,
     @repository(UsersRepository) private usersRepository: UsersRepository,
     @repository(VerifyRepository) private verifyRepository: VerifyRepository,
     @repository(BlacklistRepository) private blacklistRepository: BlacklistRepository,
@@ -43,6 +58,7 @@ export class AuthController {
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
   }
 
+  @authenticate.skip()
   @post('/auth/verify', {
     summary: 'Verify phone/email for login/signup',
     responses: {
@@ -66,7 +82,6 @@ export class AuthController {
       },
     },
   })
-  @authenticate.skip()
   async verify(
     @requestBody({
       description: 'Verify phone number or email address',
@@ -169,6 +184,7 @@ export class AuthController {
     }
   }
 
+  @authenticate('jwt.verify')
   @post('/auth/login', {
     summary: 'Login to app',
     security: OPERATION_SECURITY_SPEC,
@@ -201,7 +217,6 @@ export class AuthController {
       },
     },
   })
-  @authenticate('jwt.verify')
   async login(
     @requestBody({
       content: {
@@ -298,6 +313,7 @@ export class AuthController {
     }
   }
 
+  @authenticate('jwt.verify')
   @post('/auth/signup', {
     summary: 'Signup and login',
     security: OPERATION_SECURITY_SPEC,
@@ -334,7 +350,6 @@ export class AuthController {
       },
     },
   })
-  @authenticate('jwt.verify')
   async signup(
     @requestBody({
       content: {
@@ -457,9 +472,9 @@ export class AuthController {
     }
   }
 
+  @authenticate.skip()
   @get('/auth/refresh-token', {
     summary: 'Get a new access token with provided refresh token',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'New access token',
@@ -481,7 +496,6 @@ export class AuthController {
       },
     },
   })
-  @authenticate.skip()
   async refreshToken(): Promise<TokenObject> {
     try {
       const refToken = this.ctx.request.headers.authorization!.split(' ')[1];
@@ -496,6 +510,7 @@ export class AuthController {
     }
   }
 
+  @authenticate('jwt.access')
   @get('/auth/logout', {
     summary: 'Logout from app',
     description: "Blacklist access token and remove user's firebase token property",
@@ -506,7 +521,6 @@ export class AuthController {
       },
     },
   })
-  @authenticate('jwt.access')
   logout(@inject(SecurityBindings.USER) currentUserProfile: UserProfile): void {
     const userId = +currentUserProfile[securityId];
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -517,5 +531,44 @@ export class AuthController {
     this.usersRepository.updateById(userId, { firebaseToken: undefined });
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.refreshTokenService.revokeToken(userId);
+  }
+
+  @authenticate.skip()
+  @post('/auth/login-external-provider/', {
+    summary: 'Login With external account. Google-Apple supprted',
+    responses: {
+      200: {
+        description: 'User Information',
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(ExternalLoginResponse),
+          },
+        },
+      },
+    },
+  })
+  async externalLogin(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(ExternalLoginDto),
+        },
+      },
+    })
+    reqBody: ExternalLoginDto,
+  ): Promise<ExternalLoginResponse> {
+    try {
+      if (reqBody.provider === 'google') {
+        const googleUser = await this.externalSignInService.signInWithGoogle(reqBody.idToken);
+        return new ExternalLoginResponse(googleUser);
+      } else if (reqBody.provider === 'apple') {
+        const appleUser = await this.externalSignInService.signInWithApple(reqBody.idToken);
+        return new ExternalLoginResponse(appleUser);
+      } else {
+        throw new Error('UNSUPPORTED_PROVIDER');
+      }
+    } catch (err) {
+      throw new HttpErrors.Unauthorized(err.message);
+    }
   }
 }

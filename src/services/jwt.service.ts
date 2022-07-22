@@ -8,10 +8,9 @@ import { securityId, UserProfile } from '@loopback/security';
 import ct from 'countries-and-timezones';
 import { Algorithm, sign, verify } from 'jsonwebtoken';
 import _ from 'lodash';
-import { EmailBindings, FirebaseBinding, TokenServiceBindings, UserServiceBindings } from '../keys';
+import { EmailBindings, TokenServiceBindings, UserServiceBindings } from '../keys';
 import { Settings, UsersRels } from '../models';
 import { BlacklistRepository, UsersRepository } from '../repositories';
-import { GooglePubKey } from '../types';
 import { MyUserService } from './user.service';
 
 export interface CurrentUserProfile extends UserProfile {
@@ -52,7 +51,6 @@ export class JWTService implements TokenService {
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
     @inject(EmailBindings.SUPPORT_EMAIL_ADDRESS) private supportEmailAdd: string,
     @inject(UserServiceBindings.USER_SERVICE) private userService: MyUserService,
-    @inject(FirebaseBinding.GOOGLE_PUBLIC_JWK_CERT) private googlePubKey: GooglePubKey,
     @repository(UsersRepository) public usersRepository: UsersRepository,
     @repository(BlacklistRepository) public blacklistRepository: BlacklistRepository,
   ) {}
@@ -163,24 +161,4 @@ export class JWTService implements TokenService {
       throw new HttpErrors.Unauthorized(errMsg);
     }
   }
-
-  // public async verifyRS256Token(token: string): Promise<UserProfile> {
-  //   const nullToken = 'Error verifying token: token is null';
-
-  //   if (!token) {
-  //     this.logger.log('error', nullToken);
-
-  //     throw new HttpErrors.Unauthorized(nullToken);
-  //   }
-
-  //   try {
-  //     const decryptedData = <UserProfile>verify(token, this.googlePubKey.keys[0], {
-  //       algorithms: ['RS256'],
-  //     });
-
-  //     return decryptedData;
-  //   } catch (err) {
-  //     throw new Error(err.message);
-  //   }
-  // }
 }

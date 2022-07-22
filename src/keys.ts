@@ -8,7 +8,6 @@ import { Credentials, Users } from './models';
 import {
   CategoriesSource,
   FileUploadHandler,
-  GooglePubKey,
   LocalizedMessages,
   PackageInfo,
   SubscriptionSpec,
@@ -104,13 +103,6 @@ export namespace FirebaseConstants {
     'assets',
     'dongip-support-firebase-adminsdk.json',
   ));
-
-  // User app scope
-  export const GOOGLE_PUBLIC_JWK_CERT_FILE = require(path.join(
-    path.resolve(),
-    'assets',
-    'google-oath2-certs-v3.json',
-  ));
 }
 
 export namespace FirebaseBinding {
@@ -128,7 +120,6 @@ export namespace FirebaseBinding {
   export const FIREBASE_DONGIP_SUPPORT_CERT = BindingKey.create<ServiceAccount>(
     'services.firebase.support',
   );
-  export const GOOGLE_PUBLIC_JWK_CERT = BindingKey.create<GooglePubKey>('services.google.pubKey');
 }
 
 export namespace KavenegarConstans {
