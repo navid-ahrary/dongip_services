@@ -8,7 +8,6 @@ import { JointAccounts, JointAccountsWithRelations } from './joint-accounts.mode
 import { PayerList } from './payer-list.model';
 import { Receipts } from './receipts.model';
 import { Scores } from './scores.model';
-import { CurrencyEnum } from './settings.model';
 import { Users } from './users.model';
 import { Wallets } from './wallets.model';
 
@@ -123,7 +122,6 @@ export class Dongs extends BaseEntity {
       description: 'ISO 4217',
       minLength: 3,
       maxLength: 3,
-      enum: Object.values(CurrencyEnum),
     },
     mysql: {
       dataType: 'varchar',

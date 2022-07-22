@@ -2,7 +2,7 @@ import { TokenService, UserService } from '@loopback/authentication';
 import {
   Credentials,
   TokenServiceBindings,
-  UserServiceBindings,
+  UserServiceBindings
 } from '@loopback/authentication-jwt';
 import { BindingScope, inject, injectable, service } from '@loopback/core';
 import { LoggingBindings, WinstonLogger } from '@loopback/logging';
@@ -14,18 +14,17 @@ import moment from 'moment';
 import { CategoriesSourceListBindings, LocMsgsBindings } from '../keys';
 import {
   Categories,
-  CurrencyEnum,
   PostDongDto,
   Settings,
   Users,
   UsersRels,
-  Verify,
+  Verify
 } from '../models';
 import {
   CategoriesRepository,
   UsersRelsRepository,
   UsersRepository,
-  VerifyRepository,
+  VerifyRepository
 } from '../repositories';
 import { CategoriesSource, LocalizedMessages } from '../types';
 import { DongService } from './dong.service';
@@ -407,7 +406,7 @@ export class VerifyService {
     userId: typeof Users.prototype.userId,
     selfRelId: number,
     primaryAccountId: number,
-    currency: CurrencyEnum,
+    currency: string,
   ) {
     try {
       const categoriesList = this.catSrc[this.lang];

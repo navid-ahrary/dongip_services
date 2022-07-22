@@ -1,5 +1,5 @@
 import { Model, model, property } from '@loopback/repository';
-import { CurrencyEnum, LanguageEnum } from './settings.model';
+import { LanguageEnum } from './settings.model';
 
 @model()
 export class CompleteSignupDto extends Model {
@@ -32,10 +32,9 @@ export class CompleteSignupDto extends Model {
       minLength: 3,
       maxLength: 3,
       description: 'ISO 4217',
-      enum: Object.values(CurrencyEnum),
     },
   })
-  currency?: CurrencyEnum;
+  currency?: string;
 
   @property({
     type: 'string',

@@ -3,7 +3,6 @@ import { Categories } from './categories.model';
 import { Dongs } from './dongs.model';
 import { JointAccounts } from './joint-accounts.model';
 import { Receipts } from './receipts.model';
-import { CurrencyEnum } from './settings.model';
 import { UsersRels } from './users-rels.model';
 import { Users } from './users.model';
 
@@ -65,15 +64,9 @@ export class PostDongDto extends Model {
       description: 'ISO 4217',
       minLength: 3,
       maxLength: 3,
-      enum: Object.values(CurrencyEnum),
     },
   })
-  currency?:
-    | CurrencyEnum.DUBAI_DIRHAM
-    | CurrencyEnum.EUROPE_EURO
-    | CurrencyEnum.IRAN_RIAL
-    | CurrencyEnum.IRAN_TOMAN
-    | CurrencyEnum.US_DOLLAR;
+  currency?:string
 
   @property({
     type: 'array',

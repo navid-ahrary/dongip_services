@@ -3,7 +3,6 @@ import { BaseEntity } from './base-entity.model';
 import { Categories } from './categories.model';
 import { Dongs } from './dongs.model';
 import { JointAccounts } from './joint-accounts.model';
-import { CurrencyEnum } from './settings.model';
 import { UsersRels } from './users-rels.model';
 import { Users } from './users.model';
 
@@ -86,7 +85,6 @@ export class PayerList extends BaseEntity {
       description: 'ISO 4217',
       minLength: 3,
       maxLength: 3,
-      enum: Object.values(CurrencyEnum),
     },
     mysql: {
       dataType: 'varchar',

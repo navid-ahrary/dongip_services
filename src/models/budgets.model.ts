@@ -2,7 +2,6 @@ import { belongsTo, model, property, RelationType } from '@loopback/repository';
 import { BaseEntity } from './base-entity.model';
 import { Categories } from './categories.model';
 import { JointAccounts } from './joint-accounts.model';
-import { CurrencyEnum } from './settings.model';
 import { UsersRels } from './users-rels.model';
 import { Users } from './users.model';
 
@@ -92,7 +91,6 @@ export class Budgets extends BaseEntity {
       description: 'ISO 4217',
       minLength: 3,
       maxLength: 3,
-      enum: Object.values(CurrencyEnum),
     },
     mysql: {
       dataType: 'varchar',
@@ -100,12 +98,7 @@ export class Budgets extends BaseEntity {
       nullable: 'N',
     },
   })
-  currency:
-    | CurrencyEnum.DUBAI_DIRHAM
-    | CurrencyEnum.EUROPE_EURO
-    | CurrencyEnum.IRAN_RIAL
-    | CurrencyEnum.IRAN_TOMAN
-    | CurrencyEnum.US_DOLLAR;
+  currency:string
 
   @property({
     type: 'number',

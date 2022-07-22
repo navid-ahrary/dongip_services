@@ -2,13 +2,7 @@ import { belongsTo, model, property, RelationType } from '@loopback/repository';
 import { BaseEntity } from './base-entity.model';
 import { Users, UsersWithRelations } from './users.model';
 
-export enum CurrencyEnum {
-  IRAN_RIAL = 'IRR',
-  IRAN_TOMAN = 'IRT',
-  DUBAI_DIRHAM = 'AED',
-  US_DOLLAR = 'USD',
-  EUROPE_EURO = 'EUR',
-}
+
 
 export enum LanguageEnum {
   FARSI = 'fa',
@@ -160,7 +154,6 @@ export class Settings extends BaseEntity {
       minLength: 3,
       maxLength: 3,
       description: 'ISO 4217',
-      enum: Object.values(CurrencyEnum),
     },
     mysql: {
       dataType: 'varchar',
@@ -168,12 +161,7 @@ export class Settings extends BaseEntity {
       nullable: 'N',
     },
   })
-  currency:
-    | CurrencyEnum.DUBAI_DIRHAM
-    | CurrencyEnum.EUROPE_EURO
-    | CurrencyEnum.IRAN_RIAL
-    | CurrencyEnum.IRAN_TOMAN
-    | CurrencyEnum.US_DOLLAR;
+  currency:string
 
   @property({
     type: 'boolean',
