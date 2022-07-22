@@ -2,10 +2,7 @@ import { belongsTo, model, property, RelationType } from '@loopback/repository';
 import { BaseEntity } from './base-entity.model';
 import { Users } from './users.model';
 
-export enum PurchaseOriginEnum {
-  CAFEBAZAAR = 'cafebazaar',
-  MYKET = 'myket',
-}
+
 
 @model({
   name: 'purchases',
@@ -62,7 +59,7 @@ export class Purchases extends BaseEntity {
     type: 'string',
     required: false,
     default: 'cafebazaar',
-    jsonSchema: { default: 'cafebazaar', enum: Object.values(PurchaseOriginEnum) },
+    jsonSchema: { default: 'cafebazaar' },
     mysql: {
       columnName: 'purchase_origin',
       dataType: 'varchar',
