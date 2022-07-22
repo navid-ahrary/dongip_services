@@ -21,7 +21,7 @@ export class DailyScheduleConjobService extends CronJob {
   ) {
     super({
       name: 'dailyScheduleNotifyJob',
-      cronTime: '3 */10 * * * *',
+      cronTime: '10 */10 * * * *',
       start: true,
       timeZone: TZ,
       // eslint-disable-next-line @typescript-eslint/no-misused-promises

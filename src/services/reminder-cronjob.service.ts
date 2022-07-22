@@ -25,7 +25,7 @@ export class ReminderCronjobService extends CronJob {
   ) {
     super({
       name: 'reminderNotifyJob',
-      cronTime: '3 */15 * * * *',
+      cronTime: '10 */15 * * * *',
       start: true,
       timeZone: TZ,
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
