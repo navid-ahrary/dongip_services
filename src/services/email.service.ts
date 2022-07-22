@@ -120,10 +120,11 @@ export class EmailService {
         await EmailValidator({
           email: email,
           validateTypo: false,
-          validateSMTP: false,
+          validateSMTP: true,
           validateRegex: true,
           validateDisposable: true,
           validateMx: true,
+          sender: this.noreplyEmail,
         })
       ).valid
     );
