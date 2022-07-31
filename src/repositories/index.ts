@@ -1,3 +1,4 @@
+export * from './accounts.repository';
 export * from './bill-list.repository';
 export * from './blacklist.repository';
 export * from './budgets.repository';
@@ -18,6 +19,4 @@ export * from './subscriptions.repository';
 export * from './users-rels.repository';
 export * from './users.repository';
 export * from './verify.repository';
-export * from './virtual-users.repository';
 export * from './wallets.repository';
-export * from './accounts.repository';

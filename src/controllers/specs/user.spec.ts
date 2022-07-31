@@ -13,7 +13,6 @@ export const UserPatchRequestBody = {
           'dongs',
           'usersRels',
           'categories',
-          'virtualUsers',
           'firebaseToken',
           'usersRels',
           'userAgent',

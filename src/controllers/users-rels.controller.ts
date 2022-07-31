@@ -146,12 +146,6 @@ export class UsersRelsController {
         throw new HttpErrors.NotAcceptable(err.message);
       });
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.usersRepository.virtualUsers(this.userId).create({
-      phone: userRelReqBody.phone,
-      userRelId: createdUserRel.getId(),
-    });
-
     const foundTargetUser = await this.usersRepository.findOne({
       where: { phone: userRelReqBody.phone, deleted: false },
       fields: { userId: true, firebaseToken: true, setting: true },
@@ -304,14 +298,6 @@ export class UsersRelsController {
       await this.usersRepository.usersRels(this.userId).patch(patchUserRelReqBody, {
         userRelId: userRelId,
       });
-
-      // Patch related VirtualUser entity
-      const vu = _.pick(patchUserRelReqBody, ['phone']);
-      if (vu.phone) {
-        await this.usersRelsRepository
-          .hasOneVirtualUser(userRelId)
-          .patch(vu, { userId: this.userId });
-      }
 
       if (patchUserRelReqBody.name) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises

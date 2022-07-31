@@ -21,7 +21,6 @@ import { Scores } from './scores.model';
 import { Settings, SettingsWithRelations } from './settings.model';
 import { Subscriptions, SubscriptionsWithRelations } from './subscriptions.model';
 import { UsersRels, UsersRelsWithRelations } from './users-rels.model';
-import { VirtualUsers } from './virtual-users.model';
 import { Wallets, WalletsWithRelations } from './wallets.model';
 
 @model({ name: 'users' })
@@ -244,17 +243,6 @@ export class Users extends BaseEntity {
     },
   })
   enabled: boolean;
-
-  @hasMany(() => VirtualUsers, {
-    name: 'virtualUsers',
-    keyTo: 'userId',
-    keyFrom: 'userId',
-    type: RelationType.hasMany,
-    source: Users,
-    target: () => VirtualUsers,
-    targetsMany: true,
-  })
-  virtualUsers: VirtualUsers[];
 
   @hasMany(() => Dongs, {
     name: 'dongs',

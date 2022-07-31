@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { belongsTo, hasMany, hasOne, model, property, RelationType } from '@loopback/repository';
+import { belongsTo, hasMany, model, property, RelationType } from '@loopback/repository';
 import { BaseEntity } from './base-entity.model';
 import { BillList } from './bill-list.model';
 import { Budgets } from './budgets.model';
 import { PayerList } from './payer-list.model';
 import { Users } from './users.model';
-import { VirtualUsers } from './virtual-users.model';
 
 @model({
   name: 'users_rels',
@@ -145,16 +144,6 @@ export class UsersRels extends BaseEntity {
     },
   })
   updatedAt: string;
-
-  @hasOne(() => VirtualUsers, {
-    keyFrom: 'userRelId',
-    keyTo: 'userRelId',
-    source: UsersRels,
-    target: () => VirtualUsers,
-    name: 'virtualUsers',
-    type: RelationType.hasOne,
-  })
-  hasOneVirtualUser: VirtualUsers;
 
   @hasMany(() => Budgets, {
     keyTo: 'userRelId',

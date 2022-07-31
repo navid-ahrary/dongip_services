@@ -26,7 +26,6 @@ import {
   Subscriptions,
   Users,
   UsersRels,
-  VirtualUsers,
   Wallets,
 } from '../models';
 import { AccountsRepository } from './accounts.repository';
@@ -47,15 +46,9 @@ import { ScoresRepository } from './scores.repository';
 import { SettingsRepository } from './settings.repository';
 import { SubscriptionsRepository } from './subscriptions.repository';
 import { UsersRelsRepository } from './users-rels.repository';
-import { VirtualUsersRepository } from './virtual-users.repository';
 import { WalletsRepository } from './wallets.repository';
 
 export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.prototype.userId> {
-  public readonly virtualUsers: HasManyRepositoryFactory<
-    VirtualUsers,
-    typeof Users.prototype.userId
-  >;
-
   public readonly dongs: HasManyRepositoryFactory<Dongs, typeof Users.prototype.userId>;
 
   public readonly categories: HasManyRepositoryFactory<Categories, typeof Users.prototype.userId>;
@@ -111,8 +104,6 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
 
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
-    @repository.getter('VirtualUsersRepository')
-    protected virtualUsersRepositoryGetter: Getter<VirtualUsersRepository>,
     @repository.getter('DongsRepository')
     protected dongsRepositoryGetter: Getter<DongsRepository>,
     @repository.getter('CategoriesRepository')
@@ -231,11 +222,5 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
 
     this.dongs = this.createHasManyRepositoryFactoryFor('dongs', dongsRepositoryGetter);
     this.registerInclusionResolver('dongs', this.dongs.inclusionResolver);
-
-    this.virtualUsers = this.createHasManyRepositoryFactoryFor(
-      'virtualUsers',
-      virtualUsersRepositoryGetter,
-    );
-    this.registerInclusionResolver('virtualUsers', this.virtualUsers.inclusionResolver);
   }
 }

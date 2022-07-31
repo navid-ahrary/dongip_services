@@ -30,7 +30,4 @@ export * from './subscriptions.model';
 export * from './users-rels.model';
 export * from './users.model';
 export * from './verify.model';
-export * from './virtual-users.model';
 export * from './wallets.model';
-
-

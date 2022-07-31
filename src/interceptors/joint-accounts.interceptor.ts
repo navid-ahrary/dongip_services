@@ -37,16 +37,16 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
   private readonly phone: string;
 
   constructor(
-    @repository(UsersRepository) public usersRepo: UsersRepository,
-    @repository(DongsRepository) public dongRepo: DongsRepository,
-    @repository(JointAccountsRepository) public jointAccountsRepo: JointAccountsRepository,
+    @repository(UsersRepository) private usersRepo: UsersRepository,
+    @repository(DongsRepository) private dongRepo: DongsRepository,
+    @repository(JointAccountsRepository) private jointAccountsRepo: JointAccountsRepository,
     @repository(JointAccountSubscribesRepository)
-    public jointAccSubscRepo: JointAccountSubscribesRepository,
-    @repository(UsersRelsRepository) public usersRelsRepo: UsersRelsRepository,
+    private jointAccSubscRepo: JointAccountSubscribesRepository,
+    @repository(UsersRelsRepository) private usersRelsRepo: UsersRelsRepository,
     @inject(SecurityBindings.USER) private currentUserProfile: UserProfile,
-    @service(FirebaseService) public firebaseSerice: FirebaseService,
-    @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
-    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
+    @service(FirebaseService) private firebaseSerice: FirebaseService,
+    @service(PhoneNumberService) private phoneNumService: PhoneNumberService,
+    @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
     @inject(RestBindings.Http.REQUEST) private req: Request,
   ) {
     this.userId = +this.currentUserProfile[securityId];

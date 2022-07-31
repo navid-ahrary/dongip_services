@@ -3,24 +3,14 @@ import {
   BelongsToAccessor,
   DefaultCrudRepository,
   HasManyRepositoryFactory,
-  HasOneRepositoryFactory,
   repository,
 } from '@loopback/repository';
 import { MariadbDataSource } from '../datasources';
-import {
-  BillList,
-  Budgets,
-  PayerList,
-  Users,
-  UsersRels,
-  UsersRelsRelations,
-  VirtualUsers,
-} from '../models';
+import { BillList, Budgets, PayerList, Users, UsersRels, UsersRelsRelations } from '../models';
 import { BillListRepository } from './bill-list.repository';
 import { BudgetsRepository } from './budgets.repository';
 import { PayerListRepository } from './payer-list.repository';
 import { UsersRepository } from './users.repository';
-import { VirtualUsersRepository } from './virtual-users.repository';
 
 export class UsersRelsRepository extends DefaultCrudRepository<
   UsersRels,
@@ -28,11 +18,6 @@ export class UsersRelsRepository extends DefaultCrudRepository<
   UsersRelsRelations
 > {
   public readonly belongsToUser: BelongsToAccessor<Users, typeof UsersRels.prototype.userRelId>;
-
-  public readonly hasOneVirtualUser: HasOneRepositoryFactory<
-    VirtualUsers,
-    typeof UsersRels.prototype.userRelId
-  >;
 
   public readonly budgets: HasManyRepositoryFactory<Budgets, typeof UsersRels.prototype.userRelId>;
 
@@ -51,8 +36,6 @@ export class UsersRelsRepository extends DefaultCrudRepository<
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('UsersRepository') protected usersRepositoryGetter: Getter<UsersRepository>,
-    @repository.getter('VirtualUsersRepository')
-    protected virtualUsersRepositoryGetter: Getter<VirtualUsersRepository>,
     @repository.getter('BudgetsRepository')
     protected budgetsRepositoryGetter: Getter<BudgetsRepository>,
     @repository.getter('UsersRelsRepository')
@@ -81,12 +64,6 @@ export class UsersRelsRepository extends DefaultCrudRepository<
 
     this.budgets = this.createHasManyRepositoryFactoryFor('budgets', budgetsRepositoryGetter);
     this.registerInclusionResolver('budgets', this.budgets.inclusionResolver);
-
-    this.hasOneVirtualUser = this.createHasOneRepositoryFactoryFor(
-      'hasOneVirtualUser',
-      virtualUsersRepositoryGetter,
-    );
-    this.registerInclusionResolver('hasOneVirtualUser', this.hasOneVirtualUser.inclusionResolver);
 
     this.belongsToUser = this.createBelongsToAccessorFor('belongsToUser', usersRepositoryGetter);
     this.registerInclusionResolver('belongsToUser', this.belongsToUser.inclusionResolver);
