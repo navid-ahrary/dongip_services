@@ -160,11 +160,11 @@ export class Users extends BaseEntity {
     type: 'string',
     jsonSchema: {
       minLength: 3,
-      maxLength: 10,
+      maxLength: 100,
     },
     mysql: {
       dataType: 'varchar',
-      dataLength: 10,
+      dataLength: 100,
       nullable: 'Y',
     },
   })
