@@ -301,12 +301,7 @@ export class JointAccountController {
           .jointAccountSubscribes(this.userId)
           .patch({ deleted: true }, { jointAccountId: jointAccountId }),
       );
-      p.push(
-        this.dongRepo.updateAll(
-          { jointAccountId: undefined, originDongId: undefined },
-          { jointAccountId: jointAccountId },
-        ),
-      );
+      p.push(this.dongRepo.updateAll({ deleted: true }, { jointAccountId: jointAccountId }));
 
       await Promise.allSettled(p);
     } catch (err) {
