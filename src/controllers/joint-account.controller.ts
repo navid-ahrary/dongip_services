@@ -47,7 +47,7 @@ import {
 import { LocalizedMessages } from '../types';
 
 @authenticate('jwt.access')
-@authorize({ allowedRoles: ['GOLD'], voters: [basicAuthorization] })
+@authorize({ allowedRoles: ['GOLD', 'GOD'], voters: [basicAuthorization] })
 @intercept(ValidateUsersRelsInterceptor.BINDING_KEY, JointAccountsInterceptor.BINDING_KEY)
 export class JointAccountController {
   private readonly userId: typeof Users.prototype.userId;
@@ -290,21 +290,27 @@ export class JointAccountController {
     @param.path.number('jointAccountId', { required: true }) jointAccountId: number,
   ): Promise<void> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepo
-        .jointAccounts(this.userId)
-        .patch({ deleted: true }, { jointAccountId: jointAccountId });
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepo
-        .jointAccountSubscribes(this.userId)
-        .patch({ deleted: true }, { jointAccountId: jointAccountId });
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.usersRepo
-        .dongs(this.userId)
-        .patch(
-          { jointAccountId: undefined, originDongId: undefined },
-          { jointAccountId: jointAccountId },
-        );
+      const p = [];
+      p.push(
+        this.usersRepo
+          .jointAccounts(this.userId)
+          .patch({ deleted: true }, { jointAccountId: jointAccountId }),
+      );
+      p.push(
+        this.usersRepo
+          .jointAccountSubscribes(this.userId)
+          .patch({ deleted: true }, { jointAccountId: jointAccountId }),
+      );
+      p.push(
+        this.usersRepo
+          .dongs(this.userId)
+          .patch(
+            { jointAccountId: undefined, originDongId: undefined },
+            { jointAccountId: jointAccountId },
+          ),
+      );
+
+      await Promise.allSettled(p);
     } catch (err) {
       console.error(err);
     }
