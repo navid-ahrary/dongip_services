@@ -145,8 +145,9 @@ export class Reminders extends BaseEntity {
   @property({
     type: 'number',
     required: false,
+    jsonSchema: { maximum: 999999999999 },
     mysql: {
-      dataType: 'int unsigned',
+      dataType: 'decimal(20,3) unsigned',
       nullable: 'Y',
     },
   })

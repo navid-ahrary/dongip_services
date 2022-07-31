@@ -38,6 +38,7 @@ export class PostDongDto extends Model {
   @property({
     type: 'number',
     required: true,
+    jsonSchema: { maximum: 999999999999 },
   })
   pong: number;
 
@@ -66,7 +67,7 @@ export class PostDongDto extends Model {
       maxLength: 3,
     },
   })
-  currency?:string
+  currency?: string;
 
   @property({
     type: 'array',

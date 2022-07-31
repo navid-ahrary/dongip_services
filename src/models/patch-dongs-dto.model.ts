@@ -17,7 +17,10 @@ export class PatchDongsDto extends Model {
   @property({ type: 'string' })
   desc?: string;
 
-  @property({ type: 'number' })
+  @property({
+    type: 'number',
+    jsonSchema: { maximum: 999999999999 },
+  })
   pong?: number;
 
   @property({ type: 'string' })
