@@ -136,7 +136,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
               });
 
               firebaseMessages.push({
-                token: targetUser.firebaseToken!,
+                token: targetUser.firebaseToken ?? ' ',
                 notification: {
                   title: savedNotify.title,
                   body: savedNotify.body,
