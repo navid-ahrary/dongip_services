@@ -400,14 +400,7 @@ export class DongService {
               relation: 'categories',
               scope: {
                 where: {
-                  or: [
-                    {
-                      title: currentUserCateg.title,
-                    },
-                    {
-                      title: { inq: splittedCatgTitle },
-                    },
-                  ],
+                  or: [{ title: currentUserCateg.title }, { title: { inq: splittedCatgTitle } }],
                   deleted: false,
                 },
               },

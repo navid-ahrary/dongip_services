@@ -247,9 +247,18 @@ export class JointAccountController {
           where: { userId: this.userId, phone: u.phone, deleted: false },
         });
 
+        let adminUserRel: UsersRels | undefined | null;
+        if (!userRel) {
+          // find friendship with admin
+          adminUserRel = await this.usersRelsRepo.findOne({
+            order: ['userRelId DESC'],
+            where: { userId: ja.userId, phone: u.phone },
+          });
+        }
+
         usersRels.push(
           new UsersRels({
-            userRelId: userRel?.getId(),
+            userRelId: userRel?.getId() ?? adminUserRel?.getId(),
             name: userRel?.name ?? u.name,
             avatar: userRel?.avatar ?? u.avatar,
             type: userRel?.type,
