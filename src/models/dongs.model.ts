@@ -142,7 +142,7 @@ export class Dongs extends BaseEntity {
       type: RelationType.belongsTo,
     },
     {
-      type: 'Number',
+      type: 'number',
       required: true,
       index: { normal: true },
       mysql: {
