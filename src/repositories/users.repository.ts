@@ -2,6 +2,7 @@ import { Getter, inject } from '@loopback/core';
 import {
   DefaultCrudRepository,
   HasManyRepositoryFactory,
+  HasManyThroughRepositoryFactory,
   HasOneRepositoryFactory,
   repository,
 } from '@loopback/repository';
@@ -12,6 +13,8 @@ import {
   Budgets,
   Categories,
   Dongs,
+  GroupParticipants,
+  Groups,
   JointAccounts,
   JointAccountSubscribes,
   Messages,
@@ -33,6 +36,7 @@ import { BillListRepository } from './bill-list.repository';
 import { BudgetsRepository } from './budgets.repository';
 import { CategoriesRepository } from './categories.repository';
 import { DongsRepository } from './dongs.repository';
+import { GroupsRepository } from './groups.repository';
 import { JointAccountSubscribesRepository } from './joint-account-subscribes.repository';
 import { JointAccountsRepository } from './joint-accounts.repository';
 import { MessagesRepository } from './messages.repository';
@@ -102,6 +106,15 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
 
   public readonly accounts: HasManyRepositoryFactory<Accounts, typeof Users.prototype.userId>;
 
+  public readonly groups: HasManyRepositoryFactory<Groups, typeof Users.prototype.userId>;
+
+  public readonly groupParticipants: HasManyThroughRepositoryFactory<
+    GroupParticipants,
+    typeof GroupParticipants.prototype.groupParticipantId,
+    Groups,
+    typeof Users.prototype.userId
+  >;
+
   constructor(
     @inject('datasources.Mariadb') dataSource: MariadbDataSource,
     @repository.getter('DongsRepository')
@@ -142,8 +155,14 @@ export class UsersRepository extends DefaultCrudRepository<Users, typeof Users.p
     protected walletsRepositoryGetter: Getter<WalletsRepository>,
     @repository.getter('AccountsRepository')
     protected accountsRepositoryGetter: Getter<AccountsRepository>,
+    @repository.getter('GroupsRepository')
+    protected groupsRepositoryGetter: Getter<GroupsRepository>,
   ) {
     super(Users, dataSource);
+
+    this.groups = this.createHasManyRepositoryFactoryFor('groups', groupsRepositoryGetter);
+    this.registerInclusionResolver('groups', this.groups.inclusionResolver);
+
     this.accounts = this.createHasManyRepositoryFactoryFor('accounts', accountsRepositoryGetter);
     this.registerInclusionResolver('accounts', this.accounts.inclusionResolver);
 

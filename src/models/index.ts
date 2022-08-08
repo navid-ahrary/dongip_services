@@ -9,6 +9,8 @@ export * from './credentials.model';
 export * from './dongs.model';
 export * from './external-login-dto.model';
 export * from './external-login-response.model';
+export * from './group-participants.model';
+export * from './groups.model';
 export * from './inapp-purchase.model';
 export * from './joint-account-subscribes.model';
 export * from './joint-accounts.model';

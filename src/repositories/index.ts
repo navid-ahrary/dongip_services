@@ -4,6 +4,8 @@ export * from './blacklist.repository';
 export * from './budgets.repository';
 export * from './categories.repository';
 export * from './dongs.repository';
+export * from './group-participants.repository';
+export * from './groups.repository';
 export * from './joint-account-subscribes.repository';
 export * from './joint-accounts.repository';
 export * from './messages.repository';
