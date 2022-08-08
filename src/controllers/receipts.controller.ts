@@ -12,7 +12,7 @@ import {
   requestBody,
   RequestContext,
   Response,
-  RestBindings
+  RestBindings,
 } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { fromFile } from 'file-type';

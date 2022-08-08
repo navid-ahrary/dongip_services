@@ -55,7 +55,7 @@ import { Users } from './users.model';
 })
 export class BillList extends BaseEntity {
   @property({
-    type: 'Number',
+    type: 'number',
     id: true,
     required: false,
     generated: true,
@@ -69,7 +69,7 @@ export class BillList extends BaseEntity {
   billListId: number;
 
   @property({
-    type: 'Number',
+    type: 'number',
     required: true,
     mysql: {
       columnName: 'dong_amount',
