@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import {
@@ -47,7 +46,6 @@ export class PurchasesController {
   @authenticate('jwt.access')
   @post('/purchases/in-app', {
     summary: 'Report in-app subscription purchase',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       201: {
         description: 'Subscription model',

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { authorize } from '@loopback/authorization';
 import { inject, intercept, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
@@ -74,7 +73,6 @@ export class JointAccountController {
 
   @post('/joint-accounts', {
     summary: 'POST a new JointAccounts',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'JointAccounts model instance',
@@ -210,7 +208,6 @@ export class JointAccountController {
 
   @get('/joint-accounts', {
     summary: 'GET array of all JointAccounts',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       200: {
         description: 'Array of JointAccount',
@@ -285,7 +282,6 @@ export class JointAccountController {
   @del('/joint-accounts/{jointAccountId}', {
     summary: 'DELETE a JointAccount by jointAccountId',
     description: 'Belongs Dongs will not be deleted',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       204: {
         description: 'JointAccount DELETE success',
@@ -321,7 +317,6 @@ export class JointAccountController {
   @del('/joint-accounts/', {
     summary: 'Delete and left from all JointAccounts',
     description: 'Belongs Dongs will not be deleted',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'DELETE/LEFT JointAccounts ',
@@ -345,7 +340,6 @@ export class JointAccountController {
 
   @patch('joint-accounts/{jointAccountId}', {
     summary: 'Update a JointAccount by jointAccountId. Just admin can update',
-    security: OPERATION_SECURITY_SPEC,
     responses: { '204': { description: 'No content' } },
   })
   async updateJointById(

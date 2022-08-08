@@ -1,6 +1,5 @@
 /* eslint-disable prefer-const */
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import {
@@ -53,7 +52,6 @@ export class UsersRelsController {
 
   @get('/users-rels', {
     summary: 'Get array of all UsersRels',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Array of UsersRels',
@@ -76,7 +74,6 @@ export class UsersRelsController {
 
   @post('/users-rels', {
     summary: 'Create a new UsersRels',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'New UsersRels',
@@ -244,7 +241,6 @@ export class UsersRelsController {
   @patch('/users-rels/{userRelId}', {
     summary: 'Update a UsersRels by id',
     description: 'Send just desired properties to update.',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'UserRels PATCH success - No Content',
@@ -324,7 +320,6 @@ export class UsersRelsController {
   @intercept(ValidateUsersRelsInterceptor.BINDING_KEY)
   @del('/users-rels/{userRelId}', {
     summary: 'Delete a UsersRels by id',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': { description: 'UsersRels DELETE success - No Content' },
     },
@@ -349,7 +344,6 @@ export class UsersRelsController {
   @post('/users-rels/find-friends', {
     summary: 'Find friends with phone numbers',
     description: 'Post array of phone numbers to know whom registered in dongip',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Array of name, avatar, phone',
@@ -421,7 +415,6 @@ export class UsersRelsController {
 
   @del('/users-rels', {
     summary: "Delete all user's UsersRels ",
-    security: OPERATION_SECURITY_SPEC,
     responses: { '200': { description: 'Count deleted UsersRels' } },
   })
   async deleteAllUsersRels() {

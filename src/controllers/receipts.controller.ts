@@ -2,7 +2,6 @@
 // Uncomment these imports to begin using these cool features!
 
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import {
@@ -41,7 +40,6 @@ export class ReceiptsController {
 
   @post('/receipts', {
     summary: 'Upload a receipts',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       200: {
         description: 'File details',

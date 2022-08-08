@@ -1,5 +1,4 @@
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject } from '@loopback/context';
 import { Count, CountSchema, repository } from '@loopback/repository';
 import {
@@ -39,7 +38,6 @@ export class WalletsController {
 
   @post('/wallets', {
     summary: 'Create a Wallet',
-    security: OPERATION_SECURITY_SPEC,
     description: 'Wallets model instance',
     responses: {
       200: {
@@ -69,7 +67,6 @@ export class WalletsController {
 
   @get('/wallets', {
     summary: 'Get all Wallets',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       200: {
         description: 'Array of Wallets model instances',
@@ -89,7 +86,6 @@ export class WalletsController {
   }
 
   @patch('/wallets/{walletId}', {
-    security: OPERATION_SECURITY_SPEC,
     summary: 'Update a Wallet by walletId',
     responses: { 204: { description: 'Wallets PATCH success' } },
   })
@@ -121,7 +117,6 @@ export class WalletsController {
 
   @del('/wallets/{walletId}', {
     summary: 'Delete a Wallet by walletId',
-    security: OPERATION_SECURITY_SPEC,
     responses: { 204: { description: 'Wallets DELETE success' } },
   })
   async deleteById(
@@ -150,7 +145,6 @@ export class WalletsController {
 
   @del('/wallets/', {
     summary: 'Delete all Wallets',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       200: {
         description: 'Wallets DELETE success',

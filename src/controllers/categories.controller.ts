@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import {
@@ -12,7 +11,7 @@ import {
   patch,
   post,
   requestBody,
-  RequestContext
+  RequestContext,
 } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import _ from 'lodash';
@@ -40,7 +39,6 @@ export class CategoriesController {
 
   @get('/categories', {
     summary: 'Get array of all category belongs to current user',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: "Array of Categories's belonging to Users",
@@ -58,13 +56,12 @@ export class CategoriesController {
 
   @post('/categories', {
     summary: 'Create a new category',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'A category model instance',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Categories,),
+            schema: getModelSchemaRef(Categories),
           },
         },
       },
@@ -107,7 +104,6 @@ export class CategoriesController {
   @patch('/categories/{categoryId}', {
     summary: 'Update a category by id',
     description: 'Just desired properties place in request body',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': { description: 'Category PATCH success, no content' },
       '422': {
@@ -167,7 +163,6 @@ export class CategoriesController {
 
   @del('/categories/{categoryId}', {
     summary: 'DELETE a Category by id',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': { description: 'Caregories DELETE success, no content' },
       '422': {
@@ -190,7 +185,6 @@ export class CategoriesController {
 
   @del('/categories', {
     summary: "Delete all user's Categories ",
-    security: OPERATION_SECURITY_SPEC,
     responses: { '200': { description: 'Count deleted Categories' } },
   })
   async deleteAllCategories() {

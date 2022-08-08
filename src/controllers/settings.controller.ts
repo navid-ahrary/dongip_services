@@ -1,5 +1,4 @@
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { get, getModelSchemaRef, patch, requestBody } from '@loopback/rest';
@@ -22,7 +21,6 @@ export class SettingsController {
 
   @get('/settings', {
     summary: 'GET Settings',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Settings model instances',
@@ -43,7 +41,6 @@ export class SettingsController {
 
   @patch('/settings', {
     summary: 'PATCH Settings',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'Settings PATCH success. No content',

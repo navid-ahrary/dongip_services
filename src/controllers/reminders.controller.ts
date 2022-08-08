@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject } from '@loopback/core';
 import { Count, CountSchema, repository } from '@loopback/repository';
 import {
@@ -36,7 +35,6 @@ export class RemindersController {
 
   @post('/reminders', {
     summary: 'Create a new Reminder',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Reminders model instance',
@@ -129,7 +127,6 @@ export class RemindersController {
 
   @get('/reminders', {
     summary: 'Get all Reminders',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Array of Reminders model instances',
@@ -152,7 +149,6 @@ export class RemindersController {
 
   @patch('/reminders/{reminderId}', {
     summary: 'Update a Reminders by reminderId',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'Reminders PATCH success',
@@ -232,7 +228,6 @@ export class RemindersController {
 
   @del('/reminders/{reminderId}', {
     summary: 'Delete a Reminders by reminderId',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'Reminders DELETE success',
@@ -249,7 +244,6 @@ export class RemindersController {
 
   @del('/reminders', {
     summary: 'Delete all Reminders',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Reminders COUNT Deleted',

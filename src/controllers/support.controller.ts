@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { authorize } from '@loopback/authorization';
 import { inject, service } from '@loopback/core';
 import { Filter, repository, Where } from '@loopback/repository';
@@ -60,7 +59,6 @@ export class SupportController {
 
   @get('/support/review', {
     summary: 'GET last Messages of each Users includes some of Users properties',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Array last Messages of Users',
@@ -136,7 +134,6 @@ export class SupportController {
 
   @get('/support/messages', {
     summary: ' GET Messages asked recently',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Array of Messages model instances',
@@ -171,7 +168,6 @@ export class SupportController {
 
   @post('/support/messages/', {
     summary: 'POST a answer message to user',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Message model instance',
@@ -313,7 +309,6 @@ export class SupportController {
 
   @post('/support/navigate/', {
     summary: 'Navigate app to specified page',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Message model instance',
@@ -450,7 +445,6 @@ export class SupportController {
 
   @post('/support/sms/', {
     summary: 'Send sms to active users',
-    security: OPERATION_SECURITY_SPEC,
     responses: { 204: { description: 'No content' } },
   })
   async sendSms(

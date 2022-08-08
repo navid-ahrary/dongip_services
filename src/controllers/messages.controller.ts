@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { get, getModelSchemaRef, post, requestBody } from '@loopback/rest';
@@ -30,7 +29,6 @@ export class MessagesController {
 
   @post('/messages', {
     summary: 'POST a Message',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Message model instance',
@@ -119,7 +117,6 @@ export class MessagesController {
 
   @get('/messages', {
     summary: 'GET all Messages',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Array of Messages model instances',

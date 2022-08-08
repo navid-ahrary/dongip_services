@@ -1,5 +1,4 @@
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept } from '@loopback/core';
 import { Filter, repository } from '@loopback/repository';
 import { get, getModelSchemaRef, param } from '@loopback/rest';
@@ -24,7 +23,6 @@ export class NotificationsController {
 
   @get('/notifications', {
     summary: 'GET Notifications by filter in query',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Array of Notifications',

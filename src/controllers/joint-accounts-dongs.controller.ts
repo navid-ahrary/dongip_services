@@ -1,5 +1,4 @@
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { authorize } from '@loopback/authorization';
 import { inject } from '@loopback/core';
 import { DataObject, repository } from '@loopback/repository';
@@ -30,7 +29,6 @@ export class JointAccountsDongsController {
 
   @get('/joint-accounts/{jointAccountId}/dongs', {
     summary: 'Get Dongs belongs to JointAccount by jointAccountId',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Array of JointAccounts has many Dongs',

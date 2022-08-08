@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept } from '@loopback/core';
 import { Count, CountSchema, repository } from '@loopback/repository';
 import { del, get, getModelSchemaRef, param, patch, post, requestBody } from '@loopback/rest';
@@ -26,7 +25,6 @@ export class BudgetsController {
   @get('/budgets/', {
     summary: 'GET all Budgets',
     description: 'Budgets belongs to [Group, Category, UserRel] are included too',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Array of Budgets model instances',
@@ -47,7 +45,6 @@ export class BudgetsController {
 
   @post('/budgets/', {
     summary: 'POST a Budget for all expenses',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Budgets model instance',
@@ -119,7 +116,6 @@ export class BudgetsController {
   @patch('/budgets/{budgetId}', {
     summary: 'PATCH a Budget by budgetId',
     description: 'Budgets belongs to [Group, Category, UserRel] are included too ',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'Budgets PATCH success. No content',
@@ -188,7 +184,6 @@ export class BudgetsController {
   @del('/budgets/{budgetId}', {
     summary: 'DELETE a Budget by budgetId',
     description: 'Budgets belongs to [Group, Category, UserRel] are included too ',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'Budgets DELETE success. No content',
@@ -206,7 +201,6 @@ export class BudgetsController {
   @del('/budgets/', {
     summary: 'DELETE all Budgets ',
     description: 'Budgets belongs to [Group, Category, UserRel] are included too ',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Count DELETE Budgets',

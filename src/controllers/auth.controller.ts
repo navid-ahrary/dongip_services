@@ -1,7 +1,7 @@
 /* eslint-disable no-useless-catch */
 /* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate, TokenService, UserService } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC, TokenObject } from '@loopback/authentication-jwt';
+import { TokenObject } from '@loopback/authentication-jwt';
 import { inject, intercept, service } from '@loopback/core';
 import { LoggingBindings, WinstonLogger } from '@loopback/logging';
 import { repository } from '@loopback/repository';
@@ -187,7 +187,6 @@ export class AuthController {
   @authenticate('jwt.verify')
   @post('/auth/login', {
     summary: 'Login to app',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: 'Some Users Properties',
@@ -316,7 +315,6 @@ export class AuthController {
   @authenticate('jwt.verify')
   @post('/auth/signup', {
     summary: 'Signup and login',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: "Some user's properties",
@@ -512,7 +510,6 @@ export class AuthController {
   @get('/auth/logout', {
     summary: 'Logout from app',
     description: "Blacklist access token and remove user's firebase token property",
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'No content',

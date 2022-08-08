@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { authenticate } from '@loopback/authentication';
-import { OPERATION_SECURITY_SPEC } from '@loopback/authentication-jwt';
 import { inject, intercept, service } from '@loopback/core';
 import { LoggingBindings, WinstonLogger } from '@loopback/logging';
 import { DataObject, repository } from '@loopback/repository';
@@ -62,7 +61,6 @@ export class UsersController {
 
   @get('/users', {
     summary: 'Get User, included all related data',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       200: {
         description: 'Users model instance',
@@ -135,7 +133,6 @@ export class UsersController {
   @patch('/users', {
     summary: "Update User's properties",
     description: 'Request body includes desired properties to update',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': {
         description: 'User PATCH success - No content',
@@ -197,7 +194,6 @@ export class UsersController {
 
   @get('/users/info', {
     summary: "Get User's info",
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '200': {
         description: "User's props",
@@ -371,7 +367,6 @@ export class UsersController {
   @intercept(ValidatePhoneEmailInterceptor.BINDING_KEY)
   @patch('/users/complete-signup', {
     summary: "Post essential user's properties for complete user signup",
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       204: { description: 'no content' },
       409: { description: 'Conflict phone or email' },
@@ -467,7 +462,6 @@ export class UsersController {
 
   @get('/users/available', {
     summary: 'Check username availablity',
-    security: OPERATION_SECURITY_SPEC,
     responses: {
       '204': { description: 'Username is available [No content]' },
       '409': { description: 'Username is taken' },
