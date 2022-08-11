@@ -211,7 +211,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
               title: util.format(this.locMsg['LEAVE_JOINT_NOTIFY_TITLE'][setting.language]),
               body: util.format(
                 this.locMsg['LEAVE_JOINT_NOTIFY_BODY'][setting.language],
-                mutualRel!.name,
+                mutualRel?.name ?? 'ناشناس',
                 j.title,
               ),
               createdAt: time,
