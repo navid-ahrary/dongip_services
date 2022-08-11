@@ -130,7 +130,7 @@ export class JointAccountsInterceptor implements Provider<Interceptor> {
                 body: util.format(
                   this.locMsg['DELETE_JOINT_NOTIFY_BODY'][targetUser.setting.language],
                   JA.title,
-                  mutualRel!.name,
+                  mutualRel?.name ?? 'ناشناس',
                 ),
                 createdAt: time,
               });
