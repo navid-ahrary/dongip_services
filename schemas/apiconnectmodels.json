@@ -51,7 +51,7 @@
                         },
                         "description": {
                             "type": "string",
-                            "description": "Documentation for the property"   
+                            "description": "Documentation for the property"
                         },
                         "id": {
                             "type": "boolean",
@@ -89,3 +89,5 @@
     "strict"
   ]
 }
+
+
