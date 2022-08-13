@@ -67,3 +67,8 @@ typings/
 */dongip-support-firebase-adminsdk.json
 */dongip-user-firebase-adminsdk.json
 */google-oath2-certs-v3.json
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
