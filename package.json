@@ -12,8 +12,6 @@
     "node": ">=12.22.0"
   },
   "scripts": {
-    "pull::production": "git pull origin main",
-    "pull::development": "git pull origin development",
     "build": "lb-tsc",
     "build:watch": "lb-tsc --watch",
     "lint": "npm run prettier:check && npm run eslint",
@@ -35,15 +33,10 @@
     "openapi-spec": "node ./dist/openapi-spec",
     "rebuild": "npm run clean && npm run build",
     "prestart": "npm run rebuild",
-    "start::development": "node -r source-map-support/register .",
     "start": "node -r source-map-support/register .",
     "clean": "lb-clean dist *.tsbuildinfo .eslintcache",
-    "restart": "pm2 restart ecosystem.config.js --env production",
-    "reload": "pm2 reload ecosystem.config.js --env production --update-env",
-    "stop": "pm2 stop ecosystem.config.js --env production",
     "prepublishOnly": "npm run test",
-    "deploy::production": "npm pull::production && npm && npm build && npm migrate && npm reload",
-    "deploy::development": "npm pull::development && npm && npm clean && npm build && npm migrate && npm reload"
+    "deploy": "npm ci && npm run build && npm start"
   },
   "repository": {
     "type": "git",
