@@ -36,7 +36,7 @@
     "start": "node -r source-map-support/register .",
     "clean": "lb-clean dist *.tsbuildinfo .eslintcache",
     "prepublishOnly": "npm run test",
-    "deploy": "npm ci && npm run build && npm start"
+    "deploy": "npm ci && npm start"
   },
   "repository": {
     "type": "git",
