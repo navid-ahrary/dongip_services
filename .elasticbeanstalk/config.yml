@@ -7,13 +7,13 @@ environment-defaults:
     repository: null
 global:
   application_name: dongip-client-gateway
-  default_ec2_keyname: aws-eb
+  default_ec2_keyname: aws-eb3
   default_platform: Node.js 14 running on 64bit Amazon Linux 2
   default_region: eu-central-1
   include_git_submodules: true
   instance_profile: null
   platform_name: null
   platform_version: null
-  profile: eb-cli
+  profile: null
   sc: git
   workspace_type: Application
