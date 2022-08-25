@@ -14,7 +14,6 @@ import {
   RestBindings,
 } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { fromFile } from 'file-type';
 import fs from 'fs';
 import _ from 'lodash';
 import path from 'path';
@@ -133,12 +132,13 @@ export class ReceiptsController {
    */
   public async validateFileName(filename: string) {
     const resolved = path.resolve(this.storageDirectory, filename);
+    const { fileTypeFromFile } = await import('file-type');
 
     if (resolved.startsWith(this.storageDirectory)) {
       return {
         filename: filename,
         path: this.getFilePath(filename),
-        mimetype: (await fromFile(resolved))?.mime,
+        mimetype: (await fileTypeFromFile(resolved))?.mime,
         sizeBytes: fs.statSync(resolved).size,
       };
     } else {
