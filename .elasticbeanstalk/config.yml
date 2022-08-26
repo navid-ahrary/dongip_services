@@ -1,13 +1,16 @@
 branch-defaults:
   main:
-    environment: Dongipclientgateway-env
+    environment: dongip-api
 environment-defaults:
   Dongipclientgateway-env:
     branch: null
     repository: null
+  dongip-api:
+    branch: null
+    repository: null
 global:
-  application_name: dongip-client-gateway
-  default_ec2_keyname: aws-eb3
+  application_name: client-api-gateway
+  default_ec2_keyname: aws-eb-probook
   default_platform: Node.js 14 running on 64bit Amazon Linux 2
   default_region: eu-central-1
   include_git_submodules: true
