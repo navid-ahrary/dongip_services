@@ -309,7 +309,7 @@ export class SupportController {
       }
 
       if (notifyMsgs.length) {
-        console.log(notifyMsgs);
+        console.log(promises);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         Promise.allSettled(promises);
       }
