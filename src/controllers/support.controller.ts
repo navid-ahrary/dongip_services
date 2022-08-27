@@ -234,7 +234,11 @@ export class SupportController {
               fields: { userId: true, firebaseToken: true, region: true },
               where: {
                 ...userWhere,
-                firebaseToken: { nin: [undefined, 'null'] },
+                and: [
+                  { firebaseToken: { neq: 'null' } },
+                  { firebaseToken: { neq: null! } },
+                  { firebaseToken: { neq: '' } },
+                ],
                 deleted: false,
                 enabled: true,
               },
