@@ -258,8 +258,6 @@ export class SupportController {
         _.map(foundTargetUsers, u => u.userId),
       );
 
-      const promises = [];
-
       const notifyMsgs: BatchMessage = [];
       for (const foundUser of foundTargetUsers) {
         const firebaseToken = foundUser.firebaseToken;

@@ -130,9 +130,7 @@ export class FirebaseService {
   }
 
   //send multi message to multi devices
-  public async sendAllMessage(
-    messages: BatchMessage,
-  ): Promise<Array<firebase.messaging.BatchResponse>> {
+  public async sendAllMessage(messages: BatchMessage) {
     _.forEach(messages, message => {
       _.assign(message, {
         android: this.androidConfigs,
