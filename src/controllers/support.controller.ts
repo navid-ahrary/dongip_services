@@ -207,7 +207,7 @@ export class SupportController {
     appVersion?: typeof Users.prototype.appVersion,
     @param.query.string('notAppVersion', { required: false })
     notAppVersion?: typeof Users.prototype.appVersion,
-  ): Promise<Array<Messages>> {
+  ): Promise<void> {
     if (!language && !userId) {
       throw new HttpErrors.UnprocessableEntity('UserId or language must be provided');
     }
@@ -226,13 +226,18 @@ export class SupportController {
     try {
       const foundSettings = await this.settingRepo.find({
         fields: { settingId: true, userId: true, language: true },
-        where: settingWhere,
+        where: { ...settingWhere, deleted: false },
         include: [
           {
             relation: 'user',
             scope: {
               fields: { userId: true, firebaseToken: true, region: true },
-              where: userWhere,
+              where: {
+                ...userWhere,
+                firebaseToken: { nin: [undefined, 'null'] },
+                deleted: false,
+                enabled: true,
+              },
             },
           },
         ],
@@ -249,58 +254,60 @@ export class SupportController {
         _.map(foundTargetUsers, u => u.userId),
       );
 
-      const savedMsgs: Array<Messages> = [];
+      const promises = [];
 
       const notifyMsgs: BatchMessage = [];
       for (const foundUser of foundTargetUsers) {
-        const targetUserId = foundUser.userId;
-        const region = foundUser.region ?? 'IR';
-        const firebaseToken = foundUser.firebaseToken!;
-        const setting = _.find(foundSettings, s => s.userId === targetUserId)!;
-        const lang = setting.language;
+        const firebaseToken = foundUser.firebaseToken;
 
-        const timezone = ct.getTimezonesForCountry(region)![0].name;
-        const timestamp = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
+        if (firebaseToken) {
+          const targetUserId = foundUser.userId;
+          const region = foundUser.region ?? 'IR';
+          const setting = _.find(foundSettings, s => s.userId === targetUserId)!;
+          const lang = setting.language;
 
-        const savedMsg = await this.usersRepository.messages(targetUserId).create({
-          message: newMessage.message,
-          userId: targetUserId,
-          isQuestion: false,
-          isAnswer: true,
-          createdAt: timestamp,
-        });
-        savedMsgs.push(savedMsg);
+          const timezone = ct.getTimezonesForCountry(region)![0].name;
+          const timestamp = moment.tz(timezone).format('YYYY-MM-DDTHH:mm:ss+00:00');
 
-        const savedNotify = await this.usersRepository.notifications(targetUserId).create({
-          type: 'supportMessage',
-          title: newMessage.subject ?? this.locMsg['TICKET_RESPONSE'][lang],
-          body: newMessage.message,
-          messageId: savedMsg.messageId,
-          createdAt: timestamp,
-        });
+          const savedMsg = await this.usersRepository.messages(targetUserId).create({
+            message: newMessage.message,
+            userId: targetUserId,
+            isQuestion: false,
+            isAnswer: true,
+            createdAt: timestamp,
+          });
 
-        notifyMsgs.push({
-          token: firebaseToken ?? ' ',
-          notification: {
-            title: savedNotify.title,
-            body: savedNotify.body,
-          },
-          data: {
-            notifyId: String(savedNotify.notifyId),
-            title: savedNotify.title,
-            body: savedNotify.body,
-            type: savedNotify.type,
-            createdAt: String(savedNotify.createdAt),
-          },
-        });
+          promises.push(this.firebaseService.sendAllMessage(notifyMsgs));
+
+          const savedNotify = await this.usersRepository.notifications(targetUserId).create({
+            type: 'supportMessage',
+            title: newMessage.subject ?? this.locMsg['TICKET_RESPONSE'][lang],
+            body: newMessage.message,
+            messageId: savedMsg.messageId,
+            createdAt: timestamp,
+          });
+
+          notifyMsgs.push({
+            token: firebaseToken ?? ' ',
+            notification: {
+              title: savedNotify.title,
+              body: savedNotify.body,
+            },
+            data: {
+              notifyId: String(savedNotify.notifyId),
+              title: savedNotify.title,
+              body: savedNotify.body,
+              type: savedNotify.type,
+              createdAt: String(savedNotify.createdAt),
+            },
+          });
+        }
       }
 
       if (notifyMsgs.length) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this.firebaseService.sendAllMessage(notifyMsgs);
+        Promise.allSettled(promises);
       }
-
-      return savedMsgs;
     } catch (err) {
       console.error(err);
       throw new HttpErrors.NotImplemented(JSON.stringify(err));
