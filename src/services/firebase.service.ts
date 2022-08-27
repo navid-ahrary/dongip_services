@@ -161,7 +161,7 @@ export class FirebaseService {
       return response;
     } catch (err) {
       console.warn(err);
-      throw new Error(`Error sending notifications, ${err}`);
+      // throw new Error(`Error sending notifications, ${err}`);
     }
   }
 }

@@ -281,8 +281,6 @@ export class SupportController {
             createdAt: timestamp,
           });
 
-          promises.push(this.firebaseService.sendAllMessage(notifyMsgs));
-
           const savedNotify = await this.usersRepository.notifications(targetUserId).create({
             type: 'supportMessage',
             title: newMessage.subject ?? this.locMsg['TICKET_RESPONSE'][lang],
@@ -309,9 +307,8 @@ export class SupportController {
       }
 
       if (notifyMsgs.length) {
-        console.log(promises);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        Promise.allSettled(promises);
+        this.firebaseService.sendAllMessage(notifyMsgs);
       }
     } catch (err) {
       console.error(err);
