@@ -144,5 +144,6 @@ export class GroupsController {
   })
   async deleteById(@param.path.number('groupId') groupId: number): Promise<void> {
     await this.groupsRepository.updateById(groupId, { deleted: true });
+    await this.groupsRepository.groupParticipants(groupId).patch({ deleted: true });
   }
 }
