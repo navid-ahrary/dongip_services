@@ -33,3 +33,4 @@ export * from './users-rels.model';
 export * from './users.model';
 export * from './verify.model';
 export * from './wallets.model';
+export * from './group-participants-create-dto.model';

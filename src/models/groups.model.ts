@@ -25,6 +25,7 @@ export class Groups extends Entity {
     generated: true,
     mysql: {
       dataType: 'mediumint unsigned',
+      columnName: 'id',
     },
   })
   groupId: number;
@@ -61,6 +62,7 @@ export class Groups extends Entity {
       index: { normal: true },
       mysql: {
         dataType: 'mediumint unsigned',
+        columnName: 'user_id',
         dataLength: null,
         nullable: 'N',
       },
@@ -74,6 +76,7 @@ export class Groups extends Entity {
     defaultFn: 'now',
     mysql: {
       dataType: 'timestamp',
+      columnName: 'created_at',
       default: 'now',
       nullable: 'N',
     },

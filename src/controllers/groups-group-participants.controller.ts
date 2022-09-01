@@ -7,13 +7,14 @@ import {
   get,
   getModelSchemaRef,
   getWhereSchemaFor,
+  HttpErrors,
   param,
   patch,
   post,
   requestBody,
 } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { GroupParticipants, Groups, Users } from '../models';
+import { GroupParticipants, GroupParticipantsCreateDto, Groups, Users } from '../models';
 import { GroupsRepository } from '../repositories';
 import { CurrentUserProfile } from '../services';
 
@@ -27,6 +28,43 @@ export class GroupsGroupParticipantsController {
     @repository(GroupsRepository) protected groupsRepository: GroupsRepository,
   ) {
     this.userId = +this.currentUserProfile[securityId];
+  }
+
+  @post('/groups/{groupId}/group-participants', {
+    responses: {
+      '200': {
+        description: 'Groups model instance',
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(GroupParticipants, {
+              exclude: ['createdAt', 'deleted', 'userId'],
+            }),
+          },
+        },
+      },
+    },
+  })
+  async create(
+    @param.path.number('groupId') groupId: typeof Groups.prototype.groupId,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(GroupParticipantsCreateDto, {
+            title: 'NewGroupParticipantsInGroups',
+          }),
+        },
+      },
+    })
+    groupParticipants: GroupParticipantsCreateDto,
+  ): Promise<GroupParticipants> {
+    try {
+      const sqlStatement = ``;
+
+      return await this.groupsRepository.groupParticipants(groupId).create(groupParticipants);
+    } catch (err) {
+      this.logger.log('error', err);
+      throw new HttpErrors.UnprocessableEntity(err.message);
+    }
   }
 
   @get('/groups/{groupId}/group-participants', {
@@ -43,32 +81,6 @@ export class GroupsGroupParticipantsController {
   })
   async find(@param.path.number('groupId') groupId: number): Promise<GroupParticipants[]> {
     return this.groupsRepository.groupParticipants(groupId).find();
-  }
-
-  @post('/groups/{groupId}/group-participants', {
-    responses: {
-      '200': {
-        description: 'Groups model instance',
-        content: { 'application/json': { schema: getModelSchemaRef(GroupParticipants) } },
-      },
-    },
-  })
-  async create(
-    @param.path.number('groupId') groupId: typeof Groups.prototype.groupId,
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(GroupParticipants, {
-            title: 'NewGroupParticipantsInGroups',
-            exclude: ['groupParticipantId'],
-            optional: ['groupId'],
-          }),
-        },
-      },
-    })
-    groupParticipants: Omit<GroupParticipants, 'groupParticipantId'>,
-  ): Promise<GroupParticipants> {
-    return this.groupsRepository.groupParticipants(groupId).create(groupParticipants);
   }
 
   @patch('/groups/{groupId}/group-participants', {

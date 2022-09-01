@@ -17,7 +17,7 @@ import { Users } from './users.model';
       fkGroupParticipantsGroupId: {
         name: 'fk_group_partitcipants_group_id',
         entity: 'groups',
-        entityKey: 'groupId',
+        entityKey: 'id',
         foreignKey: 'groupId',
         onUpdate: 'cascade',
         onDelete: 'cascade',
@@ -33,6 +33,7 @@ export class GroupParticipants extends Entity {
     generated: true,
     mysql: {
       dataType: 'mediumint unsigned',
+      columnName: 'id',
     },
   })
   groupParticipantId: number;
@@ -58,6 +59,7 @@ export class GroupParticipants extends Entity {
       required: true,
       mysql: {
         dataType: 'mediumint unsigned',
+        columnName: 'group_id',
         dataLength: null,
         nullable: 'N',
       },
@@ -73,6 +75,7 @@ export class GroupParticipants extends Entity {
       index: { normal: true },
       mysql: {
         dataType: 'mediumint unsigned',
+        columnName: 'user_id',
         dataLength: null,
         nullable: 'Y',
       },
@@ -86,6 +89,7 @@ export class GroupParticipants extends Entity {
     defaultFn: 'now',
     mysql: {
       dataType: 'timestamp',
+      columnName: 'created_at',
       default: 'now',
       nullable: 'N',
     },

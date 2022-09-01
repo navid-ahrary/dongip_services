@@ -80,24 +80,33 @@ export class GroupsController {
   async find(): Promise<Groups[]> {
     try {
       const sqlStatement = `
-        SELECT g.* FROM groups g
-        LEFT JOIN group_participants gp ON g.groupId = gp.groupId
-        WHERE gp.userId = ? AND g.deleted = 0`;
+        SELECT g.id AS groupId
+        , g.title
+        , g.\`desc\`
+        , g.user_id AS userId
+        , g.created_at AS createdAt
+        FROM groups g
+        LEFT JOIN group_participants gp ON g.id = gp.group_id
+        WHERE gp.user_id = ? AND g.deleted = 0 AND gp.deleted = 0`;
 
       const result = <Groups[]>await this.groupsRepository.execute(sqlStatement, [this.userId]);
-      return result;
+
+      const gps: Groups[] = [];
+      result.forEach(r => gps.push(new Groups(r)));
+
+      return gps;
     } catch (err) {
       this.logger.error(err);
       throw new HttpErrors.NotImplemented(err.message);
     }
   }
 
-  @get('/groups/{id}')
+  @get('/groups/{groupId}')
   @response(200, {
     description: 'Groups model instance',
     content: {
       'application/json': {
-        schema: getModelSchemaRef(Groups, { includeRelations: true }),
+        schema: getModelSchemaRef(Groups, { includeRelations: false }),
       },
     },
   })
@@ -108,29 +117,32 @@ export class GroupsController {
     });
   }
 
-  @patch('/groups/{id}')
+  @patch('/groups/{groupId}')
   @response(204, {
     description: 'Groups PATCH success',
   })
   async updateById(
-    @param.path.number('id') id: number,
+    @param.path.number('groupId') groupId: number,
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Groups, { partial: true }),
+          schema: getModelSchemaRef(Groups, {
+            partial: true,
+            exclude: ['createdAt', 'deleted', 'groupId', 'userId'],
+          }),
         },
       },
     })
     groups: Groups,
   ): Promise<void> {
-    await this.groupsRepository.updateById(id, groups);
+    await this.groupsRepository.updateById(groupId, groups);
   }
 
-  @del('/groups/{id}')
+  @del('/groups/{groupId}')
   @response(204, {
     description: 'Groups DELETE success',
   })
-  async deleteById(@param.path.number('id') id: number): Promise<void> {
-    await this.groupsRepository.deleteById(id);
+  async deleteById(@param.path.number('groupId') groupId: number): Promise<void> {
+    await this.groupsRepository.updateById(groupId, { deleted: true });
   }
 }
