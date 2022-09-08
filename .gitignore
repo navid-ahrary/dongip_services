@@ -64,8 +64,6 @@ typings/
 .directory
 .compose.env
 
-*/dongip-support-firebase-adminsdk.json
-*/dongip-user-firebase-adminsdk.json
 */google-oath2-certs-v3.json
 
 # Elastic Beanstalk Files
