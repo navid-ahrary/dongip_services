@@ -9,7 +9,6 @@ import {
   getWhereSchemaFor,
   HttpErrors,
   param,
-  patch,
   post,
   requestBody,
 } from '@loopback/rest';
@@ -37,7 +36,7 @@ export class GroupsGroupParticipantsController {
         content: {
           'application/json': {
             schema: getModelSchemaRef(GroupParticipants, {
-              exclude: ['createdAt', 'deleted', 'userId'],
+              exclude: ['createdAt', 'deleted', 'phone'],
             }),
           },
         },
@@ -58,7 +57,9 @@ export class GroupsGroupParticipantsController {
     groupParticipants: GroupParticipantsCreateDto,
   ): Promise<GroupParticipants> {
     try {
-      const sqlStatement = ``;
+      const sqlStatement = `
+        INSERT INTO group_participants ()
+        VALUE () `;
 
       return await this.groupsRepository.groupParticipants(groupId).create(groupParticipants);
     } catch (err) {
@@ -81,30 +82,6 @@ export class GroupsGroupParticipantsController {
   })
   async find(@param.path.number('groupId') groupId: number): Promise<GroupParticipants[]> {
     return this.groupsRepository.groupParticipants(groupId).find();
-  }
-
-  @patch('/groups/{groupId}/group-participants', {
-    responses: {
-      '200': {
-        description: 'Groups.GroupParticipants PATCH success count',
-        content: { 'application/json': { schema: CountSchema } },
-      },
-    },
-  })
-  async patch(
-    @param.path.number('groupId') groupId: number,
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(GroupParticipants, { partial: true }),
-        },
-      },
-    })
-    groupParticipants: Partial<GroupParticipants>,
-    @param.query.object('where', getWhereSchemaFor(GroupParticipants))
-    where?: Where<GroupParticipants>,
-  ): Promise<Count> {
-    return this.groupsRepository.groupParticipants(groupId).patch(groupParticipants, where);
   }
 
   @del('/groups/{groupId}/group-participants', {

@@ -56,6 +56,7 @@ export class GroupsController {
       await this.groupsRepository.groupParticipants(createdGrp.groupId).create({
         userId: this.userId,
         name: this.currentUserProfile.name,
+        phone: this.currentUserProfile.phone,
       });
 
       return createdGrp;

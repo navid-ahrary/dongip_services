@@ -84,6 +84,18 @@ export class GroupParticipants extends Entity {
   userId: number;
 
   @property({
+    type: 'string',
+    index: { normal: true },
+    jsonSchema: { maxLength: 20 },
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 20,
+      nullable: 'Y',
+    },
+  })
+  phone?: string;
+
+  @property({
     type: 'date',
     required: false,
     defaultFn: 'now',
