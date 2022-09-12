@@ -258,6 +258,8 @@ export class SupportController {
         _.map(foundTargetUsers, u => u.userId),
       );
 
+      const savedMsgs: Array<Messages> = [];
+
       const notifyMsgs: BatchMessage = [];
       for (const foundUser of foundTargetUsers) {
         const firebaseToken = foundUser.firebaseToken;
@@ -278,6 +280,7 @@ export class SupportController {
             isAnswer: true,
             createdAt: timestamp,
           });
+          savedMsgs.push(savedMsg);
 
           const savedNotify = await this.usersRepository.notifications(targetUserId).create({
             type: 'supportMessage',
@@ -309,7 +312,7 @@ export class SupportController {
         this.firebaseService.sendAllMessage(notifyMsgs);
       }
 
-      return notifyMsgs;
+      return savedMsgs;
     } catch (err) {
       console.error(err);
       throw new HttpErrors.NotImplemented(JSON.stringify(err));
