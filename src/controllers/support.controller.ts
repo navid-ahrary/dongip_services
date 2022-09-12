@@ -207,7 +207,7 @@ export class SupportController {
     appVersion?: typeof Users.prototype.appVersion,
     @param.query.string('notAppVersion', { required: false })
     notAppVersion?: typeof Users.prototype.appVersion,
-  ): Promise<void> {
+  ) {
     if (!language && !userId) {
       throw new HttpErrors.UnprocessableEntity('UserId or language must be provided');
     }
@@ -308,6 +308,8 @@ export class SupportController {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.firebaseService.sendAllMessage(notifyMsgs);
       }
+
+      return notifyMsgs;
     } catch (err) {
       console.error(err);
       throw new HttpErrors.NotImplemented(JSON.stringify(err));
