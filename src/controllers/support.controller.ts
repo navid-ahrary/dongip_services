@@ -207,7 +207,7 @@ export class SupportController {
     appVersion?: typeof Users.prototype.appVersion,
     @param.query.string('notAppVersion', { required: false })
     notAppVersion?: typeof Users.prototype.appVersion,
-  ) {
+  ): Promise<Array<Messages>> {
     if (!language && !userId) {
       throw new HttpErrors.UnprocessableEntity('UserId or language must be provided');
     }
