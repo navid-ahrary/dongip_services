@@ -298,5 +298,9 @@
   "REMOVED_FROM_GROUP_BODY":{
     "fa": "از گروه %s حذف شدید",
     "en": "Removed from group %s"
+  },
+  "GROUP_NOT_BELONG_USER": {
+    "fa": "شما مدیر گروه نیستید",
+    "en": "You are not the Manager"
   }
 }
