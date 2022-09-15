@@ -82,15 +82,16 @@ export class GroupsController {
     try {
       const sqlStatement = `
         SELECT g.id AS groupId
-        , g.title
-        , g.\`desc\`
-        , g.user_id AS userId
-        , g.created_at AS createdAt
+          , g.title
+          , g.\`desc\`
+          , g.created_at AS createdAt
         FROM groups g
         LEFT JOIN group_participants gp ON g.id = gp.group_id
-        WHERE gp.user_id = ? AND g.deleted = 0 AND gp.deleted = 0`;
+        WHERE gp.phone = ? AND g.deleted = 0 AND gp.deleted = 0`;
 
-      const result = <Groups[]>await this.groupsRepository.execute(sqlStatement, [this.userId]);
+      const result = <Groups[]>(
+        await this.groupsRepository.execute(sqlStatement, [this.currentUserProfile.phone])
+      );
 
       const gps: Groups[] = [];
       result.forEach(r => gps.push(new Groups(r)));
@@ -100,22 +101,6 @@ export class GroupsController {
       this.logger.error(err);
       throw new HttpErrors.NotImplemented(err.message);
     }
-  }
-
-  @get('/groups/{groupId}')
-  @response(200, {
-    description: 'Groups model instance',
-    content: {
-      'application/json': {
-        schema: getModelSchemaRef(Groups, { includeRelations: false }),
-      },
-    },
-  })
-  async findById(@param.path.number('groupId') groupId: number): Promise<Groups | null> {
-    return this.groupsRepository.findOne({
-      where: { groupId, userId: this.userId, deleted: false },
-      include: [{ relation: 'groupParticipants', scope: { where: { deleted: false } } }],
-    });
   }
 
   @patch('/groups/{groupId}')

@@ -251,6 +251,16 @@ export class Notifications extends BaseEntity {
   })
   receiptId?: typeof Receipts.prototype.receiptId;
 
+  @property({
+    type: 'number',
+    mysql: {
+      columnName: 'group_id',
+      dataType: 'mediumint unsigned',
+      nullable: 'Y',
+    },
+  })
+  groupId?: number;
+
   @belongsTo(
     () => Users,
     {
