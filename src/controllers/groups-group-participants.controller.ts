@@ -81,15 +81,18 @@ export class GroupsGroupParticipantsController {
         throw new HttpErrors.NotFound('Group Not Found');
       }
 
-      const sql2 = `
+      let sql2 = `
         SELECT gp.*, g.title FROM groups g
         LEFT JOIN group_participants gp ON gp.group_id = g.id
-        WHERE gp.phone=? AND gp.group_id = ? AND gp.deleted=0`;
+        WHERE gp.group_id = ? AND gp.deleted=0`;
+      const parms: (string | number)[] = [groupId];
 
-      const alreadyExists = await this.groupsRepository.execute(sql2, [
-        groupParticipants.phone,
-        groupId,
-      ]);
+      if (groupParticipants.phone) {
+        sql2 += ' AND gp.phone=? ';
+        parms.push(groupParticipants.phone);
+      }
+
+      const alreadyExists = await this.groupsRepository.execute(sql2, parms);
 
       if (!alreadyExists.length) {
         const createdParts = await this.groupsRepository
