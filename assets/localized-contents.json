@@ -278,5 +278,29 @@
   "JUST_IRAN_PHONE": {
     "fa": "متاسفانه ارسال پیام به شماره های خارج از ایران پشتیبانی نمی شود. لطفا از روش ورود با ایمیل استفاده کنید",
     "en": "Unfortunately phone numbers out of Iran are not supported for now. Please use the email address way"
+  },
+  "CONFLICT_GROUP_PARTICIPANTS": {
+    "fa": "در گروه شریک شده است",
+    "en": "Participated in group already"
+  },
+  "ADDED_TO_GROUP_TITLE":{
+    "fa": "گروه جدید",
+    "en": "New group"
+  },
+  "ADDED_TO_GROUP_BODY":{
+    "fa": "به گروه %s اضافه شدید",
+    "en": "Added to group %s"
+  },
+  "REMOVED_FROM_GROUP_TITLE":{
+    "fa": "ترک گروه",
+    "en": "Left group"
+  },
+  "REMOVED_FROM_GROUP_BODY":{
+    "fa": "از گروه %s حذف شدید",
+    "en": "Removed from group %s"
+  },
+  "GROUP_NOT_BELONG_USER": {
+    "fa": "شما مدیر گروه نیستید",
+    "en": "You are not the Manager"
   }
 }

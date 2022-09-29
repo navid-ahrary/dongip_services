@@ -5,6 +5,7 @@ import { BillList } from './bill-list.model';
 import { Budgets } from './budgets.model';
 import { Categories } from './categories.model';
 import { Dongs } from './dongs.model';
+import { Groups } from './groups.model';
 import {
   JointAccountSubscribes,
   JointAccountSubscribesWithRelations,
@@ -244,6 +245,29 @@ export class Users extends BaseEntity {
   })
   enabled: boolean;
 
+  @property({
+    type: 'string',
+    mysql: {
+      dataType: 'varchar',
+      dataLength: 30,
+    },
+  })
+  marketplace?: string;
+
+  @property({
+    type: 'boolean',
+    required: true,
+    default: false,
+    mysql: {
+      columnName: 'is_completed',
+      dataType: 'tinyint',
+      dataLength: 1,
+      default: 1,
+      nullable: 'N',
+    },
+  })
+  isCompleted: boolean;
+
   @hasMany(() => Dongs, {
     name: 'dongs',
     keyTo: 'userId',
@@ -412,28 +436,8 @@ export class Users extends BaseEntity {
   @hasMany(() => Accounts, { keyTo: 'userId' })
   accounts: Accounts[];
 
-  @property({
-    type: 'string',
-    mysql: {
-      dataType: 'varchar',
-      dataLength: 30,
-    },
-  })
-  marketplace?: string;
-
-  @property({
-    type: 'boolean',
-    required: true,
-    default: false,
-    mysql: {
-      columnName: 'is_completed',
-      dataType: 'tinyint',
-      dataLength: 1,
-      default: 1,
-      nullable: 'N',
-    },
-  })
-  isCompleted: boolean;
+  @hasMany(() => Groups, { keyTo: 'userId' })
+  groups: Groups[];
 
   constructor(data?: Partial<Users>) {
     super(data);

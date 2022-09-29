@@ -4,6 +4,8 @@ export * from './budgets.controller';
 export * from './categories.controller';
 export * from './dongs-receipts.controller';
 export * from './dongs.controller';
+export * from './groups-group-participants.controller';
+export * from './groups.controller';
 export * from './joint-account.controller';
 export * from './joint-accounts-dongs.controller';
 export * from './messages.controller';

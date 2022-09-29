@@ -31,6 +31,8 @@ export async function migrate(args: string[]) {
       'subscriptions',
       'notifications',
       'refresh_tokens',
+      'groups',
+      'group_participants',
     ],
   });
 

@@ -39,18 +39,18 @@ export class UsersController {
   private readonly lang: string;
 
   constructor(
-    @inject.context() public ctx: RequestContext,
-    @inject(PackageKey) public packageInfo: PackageInfo,
-    @inject(LocMsgsBindings) public locMsg: LocalizedMessages,
-    @inject(TutorialLinksListBinding) public tutLinks: TutorialLinks,
+    @inject.context() private ctx: RequestContext,
+    @inject(PackageKey) private packageInfo: PackageInfo,
+    @inject(LocMsgsBindings) private locMsg: LocalizedMessages,
+    @inject(TutorialLinksListBinding) private tutLinks: TutorialLinks,
     @inject(LoggingBindings.WINSTON_LOGGER) private logger: WinstonLogger,
     @inject(SecurityBindings.USER) private currentUserProfile: CurrentUserProfile,
     @inject(TokenServiceBindings.ACCESS_EXPIRES_IN) private accessExpiresIn: string,
     @inject(AppVersionBindings.ANDROID_VERSION) private androidVersion: string,
     @inject(AppVersionBindings.IOS_VERSION) private iosVersion: string,
-    @inject('controllers.JointAccountController') public jointController: JointAccountController,
-    @service(PhoneNumberService) public phoneNumService: PhoneNumberService,
-    @repository(UsersRepository) public usersRepository: UsersRepository,
+    @inject('controllers.JointAccountController') private jointController: JointAccountController,
+    @service(PhoneNumberService) private phoneNumService: PhoneNumberService,
+    @repository(UsersRepository) private usersRepository: UsersRepository,
   ) {
     this.userId = +currentUserProfile[securityId];
     this.lang = _.includes(this.ctx.request.headers['accept-language'], 'en') ? 'en' : 'fa';
