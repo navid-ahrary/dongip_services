@@ -89,9 +89,9 @@ export class GroupsGroupParticipantsController {
         return createdParts;
       } else {
         const sql2 = `
-        SELECT gp.*, g.title FROM groups g
-        LEFT JOIN group_participants gp ON gp.group_id = g.id
-        WHERE gp.phone=? AND gp.group_id = ? AND gp.deleted=0`;
+          SELECT gp.*, g.title FROM groups g
+          LEFT JOIN group_participants gp ON gp.group_id = g.id
+          WHERE gp.phone=? AND gp.group_id = ? AND gp.deleted=0`;
 
         const alreadyExists = await this.groupsRepository.execute(sql2, [
           groupParticipants.phone,
@@ -104,10 +104,10 @@ export class GroupsGroupParticipantsController {
             .create({ ...groupParticipants, userId: this.userId });
 
           const sql3 = `
-          SELECT s.language, u.id AS userId, u.firebase_token AS firebaseToken
-          FROM users u
-          LEFT JOIN settings s ON s.user_id = u.id
-          WHERE u.phone=? AND firebase_token IS NOT NULL`;
+            SELECT s.language, u.id AS userId, u.firebase_token AS firebaseToken
+            FROM users u
+            LEFT JOIN settings s ON s.user_id = u.id
+            WHERE u.phone=? AND firebase_token IS NOT NULL`;
           const userRes = await this.usersRepository.execute(sql3, [groupParticipants.phone]);
 
           if (userRes.length) {
