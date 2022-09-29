@@ -84,7 +84,7 @@ export class GroupsGroupParticipantsController {
       let sql2 = `
         SELECT gp.*, g.title FROM groups g
         LEFT JOIN group_participants gp ON gp.group_id = g.id
-        WHERE gp.group_id = ? AND gp.deleted=0`;
+        WHERE gp.group_id = ? AND gp.deleted=0 `;
       const parms: (string | number)[] = [groupId];
 
       if (groupParticipants.phone) {
