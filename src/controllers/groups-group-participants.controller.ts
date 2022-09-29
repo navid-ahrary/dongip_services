@@ -81,74 +81,79 @@ export class GroupsGroupParticipantsController {
         throw new HttpErrors.NotFound('Group Not Found');
       }
 
-      let sql2 = `
-        SELECT gp.*, g.title FROM groups g
-        LEFT JOIN group_participants gp ON gp.group_id = g.id
-        WHERE gp.group_id = ? AND gp.deleted=0 `;
-      const parms: (string | number)[] = [groupId];
-
-      if (groupParticipants.phone) {
-        sql2 += ' AND gp.phone=? ';
-        parms.push(groupParticipants.phone);
-      }
-
-      const alreadyExists = await this.groupsRepository.execute(sql2, parms);
-
-      if (!alreadyExists.length) {
+      if (!groupParticipants.phone) {
         const createdParts = await this.groupsRepository
           .groupParticipants(groupId)
           .create({ ...groupParticipants, userId: this.userId });
 
-        const sql3 = `
+        return createdParts;
+      } else {
+        const sql2 = `
+        SELECT gp.*, g.title FROM groups g
+        LEFT JOIN group_participants gp ON gp.group_id = g.id
+        WHERE gp.phone=? AND gp.group_id = ? AND gp.deleted=0`;
+
+        const alreadyExists = await this.groupsRepository.execute(sql2, [
+          groupParticipants.phone,
+          groupId,
+        ]);
+
+        if (!alreadyExists.length) {
+          const createdParts = await this.groupsRepository
+            .groupParticipants(groupId)
+            .create({ ...groupParticipants, userId: this.userId });
+
+          const sql3 = `
           SELECT s.language, u.id AS userId, u.firebase_token AS firebaseToken
           FROM users u
           LEFT JOIN settings s ON s.user_id = u.id
           WHERE u.phone=? AND firebase_token IS NOT NULL`;
-        const userRes = await this.usersRepository.execute(sql3, [groupParticipants.phone]);
+          const userRes = await this.usersRepository.execute(sql3, [groupParticipants.phone]);
 
-        if (userRes.length) {
-          const foundTargetUser = userRes[0];
-          const notifyTitle = this.locMsg['ADDED_TO_GROUP_TITLE'][foundTargetUser.language];
-          const notifyBody = util.format(
-            this.locMsg['ADDED_TO_GROUP_BODY'][foundTargetUser.language],
-            groupRes[0].title,
-          );
-          const notifyType = 'addedToGroup';
+          if (userRes.length) {
+            const foundTargetUser = userRes[0];
+            const notifyTitle = this.locMsg['ADDED_TO_GROUP_TITLE'][foundTargetUser.language];
+            const notifyBody = util.format(
+              this.locMsg['ADDED_TO_GROUP_BODY'][foundTargetUser.language],
+              groupRes[0].title,
+            );
+            const notifyType = 'addedToGroup';
 
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          this.usersRepository
-            .notifications(foundTargetUser.userId)
-            .create({
-              title: notifyTitle,
-              body: notifyBody,
-              type: notifyType,
-              userId: foundTargetUser.userId,
-              groupId: createdParts.groupId,
-              createdAt: new Date().toLocaleString('en-US', {
-                timeZone: 'Asia/Tehran',
-              }),
-            })
-            .then(async createdNotify => {
-              const token = foundTargetUser.firebaseToken ?? ' ';
-              await this.firebaseService.sendToDeviceMessage(token, {
-                notification: {
-                  title: notifyTitle,
-                  body: notifyBody,
-                },
-                data: {
-                  notifyId: createdNotify.getId().toString(),
-                  type: notifyType,
-                  title: notifyTitle,
-                  body: notifyBody,
-                  groupId: createdParts.groupId.toString(),
-                },
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            this.usersRepository
+              .notifications(foundTargetUser.userId)
+              .create({
+                title: notifyTitle,
+                body: notifyBody,
+                type: notifyType,
+                userId: foundTargetUser.userId,
+                groupId: createdParts.groupId,
+                createdAt: new Date().toLocaleString('en-US', {
+                  timeZone: 'Asia/Tehran',
+                }),
+              })
+              .then(async createdNotify => {
+                const token = foundTargetUser.firebaseToken ?? ' ';
+                await this.firebaseService.sendToDeviceMessage(token, {
+                  notification: {
+                    title: notifyTitle,
+                    body: notifyBody,
+                  },
+                  data: {
+                    notifyId: createdNotify.getId().toString(),
+                    type: notifyType,
+                    title: notifyTitle,
+                    body: notifyBody,
+                    groupId: createdParts.groupId.toString(),
+                  },
+                });
               });
-            });
 
-          return createdParts;
+            return createdParts;
+          }
+        } else {
+          throw new HttpErrors.Conflict(this.locMsg['CONFLICT_GROUP_PARTICIPANTS'][this.lang]);
         }
-      } else {
-        throw new HttpErrors.Conflict(this.locMsg['CONFLICT_GROUP_PARTICIPANTS'][this.lang]);
       }
     } catch (err) {
       this.logger.log('error', err);

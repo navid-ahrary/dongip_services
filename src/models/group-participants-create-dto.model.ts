@@ -5,8 +5,8 @@ export class GroupParticipantsCreateDto extends Model {
   @property({ type: 'string' })
   phone?: string;
 
-  @property({ type: 'string' })
-  name?: string;
+  @property({ type: 'string', required: true })
+  name: string;
 
   constructor(data?: Partial<GroupParticipantsCreateDto>) {
     super(data);
