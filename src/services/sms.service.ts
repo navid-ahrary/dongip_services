@@ -66,19 +66,37 @@ export class SmsService {
       receptor: data.receptor,
     };
 
-    return new Promise((resolve, reject) => {
-      this.kavenegarApi.VerifyLookup(sms, (res: any, status: number) => {
-        if (status && res) {
-          resolve({
-            statusCode: status,
-            body: res.length ? res[0] : res, // Handle object and array type
-          });
-        } else
-          reject({
-            statusCode: status,
-            message: 'Not got acceptable response from SMS provider',
-          });
-      });
+    this.kavenegarApi.VerifyLookup(sms, function (response: any, status: number) {
+      console.log(response);
+      console.log(status);
     });
+
+    return {
+      body: {
+        messageid: 1,
+        message: 'string',
+        status: 2,
+        statustext: '',
+        sender: '',
+        receptor: '',
+        date: 23,
+        cost: 3,
+      },
+      statusCode: 123,
+    };
+
+    // this.kavenegarApi.VerifyLookup(sms, (res: any, status: number) => {
+    //   console.log(status, res);
+    //   if (status && res) {
+    //     resolve({
+    //       statusCode: status,
+    //       body: res.length ? res[0] : res, // Handle object and array type
+    //     });
+    //   } else
+    //     reject({
+    //       statusCode: status,
+    //       message: 'Not got acceptable response from SMS provider',
+    //     });
+    // });
   }
 }
